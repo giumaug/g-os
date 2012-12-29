@@ -1,0 +1,7 @@
+BASE_DIR	=/home/peppe/Desktop/mauos_mauos
+INCLUDE		=$(BASE_DIR)/include
+MAKE 		= make
+CC		= gcc 
+LD		= ld
+CFLAGS		= -ggdb -c -fno-builtin
+CPPFLAGS	=-I $(INCLUDE) 
