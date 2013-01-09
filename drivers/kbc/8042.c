@@ -4,7 +4,7 @@
 #include "memory_manager/kmalloc.h" 
 #include "idt.h" 
 #include "drivers/kbc/8042.h" 
-#include "utils/printk.h"
+#include "klib/printk.h"
 
 extern t_system system;
 static int dump[1000];

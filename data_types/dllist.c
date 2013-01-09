@@ -1,5 +1,6 @@
 #include "memory_manager/kmalloc.h"
 #include "scheduler/process.h"
+#include "data_types/dllist.h"
 
 t_llist* new_dllist()
 {
@@ -51,6 +52,7 @@ void ll_delete_node(t_llist_node *node)
   next_node=node->next;
   prev_node->next=next_node;
   next_node->prev=prev_node;
+  //kfree(node->val);
   kfree(node);
 }
 

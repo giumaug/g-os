@@ -82,7 +82,6 @@ clean:
 	$(MAKE) -C virtual_memory clean
 	$(MAKE) -C console clean
 	$(MAKE) -C klib clean
-	$(MAKE) -C kernel clean
 	$(MAKE) -C drivers clean
 	$(MAKE) -C process clean
 	$(MAKE) -C data_types clean
