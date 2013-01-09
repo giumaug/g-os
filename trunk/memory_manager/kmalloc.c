@@ -1,26 +1,25 @@
-#include "memory_manager/buddy.h"
-#include "memory_manager/mem_proc.h"
-#include "memory_manager/fixed_size.h"
-#include "virtual_memory/vm.h"
-#include "asm.h"
-#include "synchro_types/spin_lock.h"
 #include "general.h"
-#include "lib/math.h"
+#include "asm.h"
+#include "lib/math.h" //ERROR USING USER SPACE LIB !!!!!!!!!!!!!!!
+#include "synchro_types/spin_lock.h"
+#include "memory_manager/fixed_size.h"
+#include "memory_manager/general.h"
+#include "virtual_memory/vm.h"
 #include "memory_manager/kmalloc.h"
 
-extern t_mem_desc mem_desc;
-t_a_fixed_size_desc a_fixed_size_desc[11];
+ t_a_fixed_size_desc a_fixed_size_desc[POOL_NUM];
 
 void init_kmalloc() 
 {
 	unsigned int i;
-	buddy_init_mem();
-	//TEMPORAY ALLOCATOR FOR PROCESS MEM	
-	init_mem_proc();
-	//ALLOCATED POOL OF 32 64 128 256 512 1024 2048 4096 8192 16384 BYTE
-	for (i=0;i<10;i++)
+	void* mem_addr;
+
+	mem_addr=POOL_START_ADDR + VIRT_MEM_START_ADDR - MEM_TO_POOL;
+	//ALLOCATED POOL OF 4 8 16 32 64 128 256 512 1024 2048 4096 8192 16384 32768 65536 131072 BYTE
+	for (i=0;i<POOL_NUM;i++)
 	{
-		a_fixed_size_init(&a_fixed_size_desc[i],pow2(5+i),INIT_FREE_BLOCK(pow2(5+i))); 
+		mem_addr+=MEM_TO_POOL;
+		a_fixed_size_init(&a_fixed_size_desc[i],pow2(2+i),mem_addr,MEM_TO_POOL);  
 	}
 }
 
@@ -41,19 +40,13 @@ void* kmalloc(unsigned int mem_size)
 	SAVE_IF_STATUS
 	CLI	
 	SPINLOCK_LOCK
-	if (mem_size==0x100000)
+	for (i=0;i<POOL_NUM;i++)
 	{
-		return alloc_mem_proc();
+		if (mem_size<=pow2(2+i)) break;
 	}
-	for (i=0;i<10;i++)
-	{
-		if (mem_size<=pow2(5+i)) break;
-	}
-	//MAX mem_size ALLOWED 16384 BYTE
-	if (i!=10) 
+	if (i!=POOL_NUM) 
 	{	
-		mem_add=a_fixed_size_alloc(&a_fixed_size_desc[i]); //WHAT IF NO MEMORY AVAILABLE?
-		//a_fixed_size_dump(&a_fixed_size_desc[0]);
+		mem_add=a_fixed_size_alloc(&a_fixed_size_desc[i]); 
 	}
 	SPINLOCK_UNLOCK
 	RESTORE_IF_STATUS
@@ -61,18 +54,17 @@ void* kmalloc(unsigned int mem_size)
 }
 
 void kfree(void *address) 
-{
-	unsigned int xx;	
+{	
 	unsigned int pool_index;
+
 	SAVE_IF_STATUS
 	CLI	
 	SPINLOCK_LOCK
-	xx=(unsigned int) FROM_VIRT_TO_PHY(address);
-	if (FROM_VIRT_TO_PHY(address)>=0xD00000 && FROM_VIRT_TO_PHY(address)<=0x1600000)
+	pool_index=0;
+	while ((pool_index+1)*MEM_TO_POOL<(address-VIRT_MEM_START_ADDR-POOL_START_ADDR))
 	{
-		return free_mem_proc(address);
+		pool_index++;
 	}
-	pool_index=(mem_desc.page_desc[MEM_INDEX((unsigned int)address)].owner_id)-5;
 	a_fixed_size_free(&a_fixed_size_desc[pool_index],address);
 	SPINLOCK_UNLOCK
 	RESTORE_IF_STATUS

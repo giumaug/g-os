@@ -1,6 +1,7 @@
 #include "general.h"
 #include "system.h"
 #include "scheduler/scheduler.h"
+#include "memory_manager/buddy.h"
 #include "virtual_memory/vm.h"
 #include "asm.h"
 #include "klib/printk.h"
@@ -78,8 +79,11 @@ void _sleep(struct t_processor_reg* processor_reg)
 	CLI
 	current_process=system.process_info.current_process->val;
 	t_llist_node* current_node=system.process_info.current_process;
+        a_fixed_size_dump();
 	schedule(processor_reg);
+	a_fixed_size_dump();
 	ll_delete_node(current_node);
+	a_fixed_size_dump();
 	asm("push %eax;");
 	asm("pushfl;");                          
 	asm("movl %0,%%eax;"::"r"(if_status)); 
@@ -136,7 +140,8 @@ void _exit(int status,struct t_processor_reg* processor_reg)
 			asm("sti;hlt");
 		}
 	}
-	kfree(FROM_PHY_TO_VIRT(current_process->phy_add_space));
+	//kfree(FROM_PHY_TO_VIRT(current_process->phy_add_space));
+	buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(current_process->phy_add_space));
 	kfree(current_node->val);
 	ll_delete_node(current_node);
 	
@@ -154,6 +159,7 @@ void _exit(int status,struct t_processor_reg* processor_reg)
 		if (awake_process)
 		{
 			_awake(next->val,processor_reg);
+			kfree(next->val);
 			ll_delete_node(next);
 		}
 		next=ll_next(next);
@@ -174,7 +180,9 @@ int _fork(struct t_processor_reg processor_reg)
 	char *proc_mem;
  	struct t_process_context* child_process_context;
 	struct t_process_context *parent_process_context;
+	a_fixed_size_dump();
 	child_process_context=kmalloc(sizeof(struct t_process_context));
+	a_fixed_size_dump();
 	CLI
 	parent_process_context=system.process_info.current_process->val;
 	kmemcpy(child_process_context,parent_process_context,sizeof(struct t_process_context));
@@ -182,7 +190,8 @@ int _fork(struct t_processor_reg processor_reg)
 	child_process_context->processor_reg=processor_reg;
 	child_process_context->parent=parent_process_context;
 	mem_size=parent_process_context->phy_space_size;
-	proc_mem=kmalloc(mem_size);
+	//proc_mem=kmalloc(mem_size);//-------------qui
+	proc_mem=buddy_alloc_page(system.buddy_desc,mem_size);
 	child_process_context->phy_add_space=FROM_VIRT_TO_PHY(proc_mem);
 	kmemcpy(proc_mem,FROM_PHY_TO_VIRT(parent_process_context->phy_add_space),mem_size);
 	ll_prepend(system.process_info.process_context_list,child_process_context);
@@ -203,7 +212,9 @@ void _exec(unsigned int start_addr,unsigned int size)
 	CLI
 	current_process_context=system.process_info.current_process->val;
 	current_process_context->phy_space_size=size;
-	process_space=kmalloc(size);
+	//process_space=kmalloc(size);
+	process_space=buddy_alloc_page(system.buddy_desc,size);
+	//process_space=0xcc2b4000;
 	process_storage=FROM_PHY_TO_VIRT(start_addr);
 	old_page_dir=current_process_context->page_dir;
 	old_proc_phy_addr=current_process_context->phy_add_space;
@@ -216,7 +227,8 @@ void _exec(unsigned int start_addr,unsigned int size)
 	current_process_context->page_dir=init_vm_process(system.master_page_dir,current_process_context->phy_add_space,current_process_context);
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir)))
 	free_vm_process(old_page_dir,pad);
-	kfree(FROM_PHY_TO_VIRT(old_proc_phy_addr));
+	//kfree(FROM_PHY_TO_VIRT(old_proc_phy_addr));
+	buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(old_proc_phy_addr));
         STI                                 	
 	SWITCH_TO_USER_MODE
 }

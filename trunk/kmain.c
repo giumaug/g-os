@@ -2,6 +2,7 @@
 #include "idt.h"
 #include "scheduler/process.h"
 #include "memory_manager/kmalloc.h"
+#include "memory_manager/buddy.h"
 #include "virtual_memory/vm.h"
 #include "syscall_handler.h"
 #include "process/process_0.h"
@@ -22,15 +23,29 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	static struct t_process_context process_context;
 	static struct t_i_desc i_desc;
 	static t_console_desc console_desc;
+	static t_buddy_desc buddy_desc;
 	char* process_storage;
 	char* process_space;
 	unsigned int proc_phy_addr;
 	unsigned int i;
+	unsigned int x1,x2,x3,x4,x5,x6,x7,x8,x9,x10;
 	if ( magic != 0x2BADB002 )
    	{
       		/* Something went not according to specs. Print an error */
    	}
  	CLI
+	
+	x1=MEM_START_ADDR;
+        x2=MEM_END_ADDR;
+        x3=ALLOCATED_MEM;
+        x4=POOL_START_ADDR;
+        x5=POOL_END_ADDR;
+        x6=POOL_NUM;
+        x7=MEM_TO_POOL;
+        x8=BUDDY_START_ADDR;
+        x9=BUDDY_END_ADDR;
+        x10=BUDDY_MEM_SIZE;
+
 	system.process_info.current_process=NULL;
 	init_kmalloc();
    	init_idt();
@@ -38,6 +53,8 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
    	init_pit();
 	init_kbc();
 	init_console(&console_desc,4000,0);
+	buddy_init(&buddy_desc);
+	
 	system.master_page_dir=init_virtual_memory();
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int)system.master_page_dir)))
 	system.active_console_desc=&console_desc;
@@ -53,14 +70,14 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
         process_context.tick=TICK;
         process_context.processor_reg.esp=0x1EFFFF;//64K user mode stack 
 	process_context.console_desc=&console_desc;
+	system.buddy_desc=&buddy_desc;
 	system.process_info.current_process=ll_prepend(system.process_info.process_context_list,&process_context);
 	system.process_info.tss.ss= *init_data;
 	system.process_info.tss.esp= *(init_data+1);
 	system.process_info.pause_queue=new_dllist();
 	
-	process_space=kmalloc(0x100000);
-	//pad=((unsigned int)process_space % 4096)!=0 ? 4096-((unsigned int)process_space % 4096) : 0;
-	//process_space=((unsigned int)process_space)+pad;
+	//process_space=kmalloc(0x100000);
+	process_space=buddy_alloc_page(system.buddy_desc,0x100000);
 	process_storage=FROM_PHY_TO_VIRT(0x500000);
 	proc_phy_addr=FROM_VIRT_TO_PHY(process_space);
 	process_context.phy_add_space=proc_phy_addr;
