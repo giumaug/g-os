@@ -17,6 +17,9 @@ void syscall_handler()
 	static struct t_processor_reg processor_reg;
 	int* params;
 	char data;
+
+ 	int* xx1;
+	int* xx2;
  	
 	SAVE_PROCESSOR_REG
 	SWITCH_DS_TO_KERNEL_MODE
@@ -108,6 +111,8 @@ exit_1:
 	RET_FROM_INT_HANDLER
 exit_2:
 	current_process_context=system.process_info.current_process->val;
+	xx1=current_process_context->page_dir;
+        xx2=FROM_PHY_TO_VIRT(current_process_context->page_dir);
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir)))
 	if (free_vm_proc) 
 	{
