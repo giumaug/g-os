@@ -159,7 +159,7 @@ void _exit(int status,struct t_processor_reg* processor_reg)
 		if (awake_process)
 		{
 			_awake(next->val,processor_reg);
-			kfree(next->val);
+			//kfree(next->val);
 			ll_delete_node(next);
 		}
 		next=ll_next(next);
