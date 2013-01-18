@@ -1,0 +1,119 @@
+#include <stdio.h>
+#include "general.h"
+#include "kmalloc.h"
+#include "dllist.h"
+#include "hashtable.h"
+
+void static hashtable_free_bucket(t_llist** bucket,int size)
+{
+	int i;
+
+	for (i=0;i<size;i++)
+	{
+		if ((bucket[i])!=NULL)
+		{
+			free_llist(bucket[i]);
+		}
+	}
+	kfree(bucket);
+}
+
+static void rehash(t_hashtable* hashtable)
+{
+	int i;	
+	t_bucket_data* bucket_data;
+	t_llist_node* next;
+	t_llist_node* sentinel;
+	t_hashtable* new_hashtable;
+	t_llist* chained_list;
+	
+	new_hashtable=hashtable_init((hashtable->size)*2);
+    	for (i=0;i<hashtable->size;i++)
+	{
+		if (hashtable->bucket[i]!=NULL)
+		{
+			chained_list=hashtable->bucket[i];
+			sentinel=ll_sentinel(chained_list);
+			next=ll_first(chained_list);
+			while (next!=sentinel) 
+			{
+				bucket_data=next->val;
+				hashtable_put(new_hashtable,bucket_data->key,bucket_data->value);
+				next=ll_next(next);
+			}
+		}
+	}
+	hashtable_free_bucket(hashtable->bucket,hashtable->size);
+	hashtable->bucket=new_hashtable->bucket;
+	hashtable->size=new_hashtable->size;
+	hashtable->elements=new_hashtable->elements;	
+}
+
+t_hashtable* hashtable_init(int init_size)
+{
+	int i;
+	int size;	
+	t_hashtable* hashtable;
+
+	size=init_size/LOAD_FACTOR;	
+	hashtable=kmalloc(sizeof(t_hashtable));
+	hashtable->bucket=kmalloc(sizeof(t_llist*)*size);
+	hashtable->elements=0;
+	hashtable->size=size;
+	
+	for(i=0;i<size;i++) 
+	{
+		hashtable->bucket[i]=new_dllist();
+	}
+	return hashtable;
+}
+
+void hashtable_free(t_hashtable* hashtable)
+{
+	hashtable_free_bucket(hashtable->bucket,hashtable->size);
+	kfree(hashtable);
+}
+
+void* hashtable_get(t_hashtable* hashtable,int key)
+{
+	int index;
+	t_bucket_data* bucket_data;
+	t_llist_node* next;
+	t_llist_node* sentinel;
+	void* value;
+
+	index=key % hashtable->size;
+	sentinel=ll_sentinel(hashtable->bucket[index]);
+	next=ll_first(hashtable->bucket[index]);
+	while (next!=sentinel) 
+	{
+		bucket_data=next->val;
+		if (bucket_data->key==key)
+		{
+			value=bucket_data->value;
+			ll_delete_node(next);	
+			return value;
+		}
+		next=ll_next(next);
+	}
+	return NULL;
+}
+
+void hashtable_put(t_hashtable* hashtable,int key,void* value)
+{
+	int index;
+	t_bucket_data* bucket_data;
+	
+	if ((float)(hashtable->elements+1)/(float)hashtable->size>LOAD_FACTOR)
+	{
+		rehash(hashtable);
+	}
+	index=key % hashtable->size;
+	hashtable->elements++;
+	bucket_data=(t_bucket_data*)kmalloc(sizeof(t_bucket_data));
+	bucket_data->key=key;
+	bucket_data->value=value;
+	ll_prepend(hashtable->bucket[index],bucket_data);
+}
+
+
