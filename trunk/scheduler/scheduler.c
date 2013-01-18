@@ -79,11 +79,8 @@ void _sleep(struct t_processor_reg* processor_reg)
 	CLI
 	current_process=system.process_info.current_process->val;
 	t_llist_node* current_node=system.process_info.current_process;
-        a_fixed_size_dump();
 	schedule(processor_reg);
-	a_fixed_size_dump();
 	ll_delete_node(current_node);
-	a_fixed_size_dump();
 	asm("push %eax;");
 	asm("pushfl;");                          
 	asm("movl %0,%%eax;"::"r"(if_status)); 
@@ -180,9 +177,7 @@ int _fork(struct t_processor_reg processor_reg)
 	char *proc_mem;
  	struct t_process_context* child_process_context;
 	struct t_process_context *parent_process_context;
-	a_fixed_size_dump();
 	child_process_context=kmalloc(sizeof(struct t_process_context));
-	a_fixed_size_dump();
 	CLI
 	parent_process_context=system.process_info.current_process->val;
 	kmemcpy(child_process_context,parent_process_context,sizeof(struct t_process_context));

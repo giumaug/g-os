@@ -66,6 +66,10 @@ void kfree(void *address)
 		pool_index++;
 	}
 	a_fixed_size_free(&a_fixed_size_desc[pool_index],address);
+	if (pool_index==11) 
+	{
+		a_fixed_size_dump();
+	}
 	SPINLOCK_UNLOCK
 	RESTORE_IF_STATUS
 }
