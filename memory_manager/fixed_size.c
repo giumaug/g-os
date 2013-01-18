@@ -74,7 +74,7 @@ void a_fixed_size_free(t_a_fixed_size_desc *a_fixed_size_desc,void *address)
 void a_fixed_size_dump() 
 {
 	int i=0;	
-	t_a_fixed_size_desc *_a_fixed_size_desc=&a_fixed_size_desc[4];	
+	t_a_fixed_size_desc *_a_fixed_size_desc=&a_fixed_size_desc[11];	
 	t_block_desc *current_block_desc;
 	current_block_desc=_a_fixed_size_desc->first_block;
 

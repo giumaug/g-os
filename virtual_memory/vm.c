@@ -28,7 +28,9 @@ void* init_vm_process(void* master_page_dir,unsigned int proc_phy_addr,struct t_
 	unsigned int start,end;
 	unsigned int pad;
 	unsigned int i=0;
+	a_fixed_size_dump();
 	page_dir=kmalloc(8192);
+	a_fixed_size_dump();
 	process_context->page_pad=kmalloc(sizeof(int)*1025);
 	pad=((unsigned int)page_dir % 4096)!=0 ? 4096-((unsigned int)page_dir % 4096) : 0;
 	page_dir=((unsigned int) page_dir) + pad;
@@ -49,7 +51,7 @@ void* init_vm_process(void* master_page_dir,unsigned int proc_phy_addr,struct t_
 void free_vm_process(void* page_dir,int pad)
 {
 	umap_vm_mem(page_dir,0,0x100000);
-	umap_vm_mem(page_dir,PROC_VIRT_MEM_START_ADDR,0x100000);
+	//umap_vm_mem(page_dir,PROC_VIRT_MEM_START_ADDR,0x100000);
 	kfree(page_dir-pad);
 }
 
