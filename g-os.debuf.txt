@@ -13,3 +13,5 @@ init_vm_process di exec su pad (linea 36)
 
 
 0xc23a5528.................qui
+
+51 56 60 
