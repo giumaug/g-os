@@ -46,7 +46,19 @@ void* kmalloc(unsigned int mem_size)
 	}
 	if (i!=POOL_NUM) 
 	{	
-		mem_add=a_fixed_size_alloc(&a_fixed_size_desc[i]); 
+		if (i==11) 
+		{
+			a_fixed_size_dump();
+		}
+		mem_add=a_fixed_size_alloc(&a_fixed_size_desc[i]);
+		if (i==11) 
+		{
+			a_fixed_size_dump();
+		}
+		if (mem_add==0xc23a5524 || mem_add==0xc23a5528 || mem_add==0xc23a5525 || mem_add==0xc23a5521)
+		{
+			a_fixed_size_dump();
+		}
 	}
 	SPINLOCK_UNLOCK
 	RESTORE_IF_STATUS
@@ -67,6 +79,10 @@ void kfree(void *address)
 	}
 	a_fixed_size_free(&a_fixed_size_desc[pool_index],address);
 	if (pool_index==11) 
+	{
+		a_fixed_size_dump();
+	}
+	if (address==0xc23a5524)
 	{
 		a_fixed_size_dump();
 	}

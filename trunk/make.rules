@@ -1,4 +1,4 @@
-BASE_DIR	=/home/peppe2/Desktop/mauos_mauos
+BASE_DIR	=/home/peppe/Desktop/mauos_mauos
 INCLUDE		=$(BASE_DIR)/include
 MAKE 		= make
 CC		= gcc 

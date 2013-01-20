@@ -51,7 +51,7 @@ void* init_vm_process(void* master_page_dir,unsigned int proc_phy_addr,struct t_
 void free_vm_process(void* page_dir,int pad)
 {
 	umap_vm_mem(page_dir,0,0x100000);
-	//umap_vm_mem(page_dir,PROC_VIRT_MEM_START_ADDR,0x100000);
+	umap_vm_mem(page_dir,PROC_VIRT_MEM_START_ADDR,0x100000);
 	kfree(page_dir-pad);
 }
 
