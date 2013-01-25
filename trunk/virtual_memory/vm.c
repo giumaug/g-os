@@ -17,8 +17,8 @@ void* init_virtual_memory()
 	new_page_dir=((unsigned int)new_page_dir)+pad;
 	system.page_pad[1024]=pad;
 	for (i=0;i<1024;i++) new_page_dir[i]=0;
-	map_vm_mem(new_page_dir,0,0,0x100000);
-	map_vm_mem(new_page_dir,VIRT_MEM_START_ADDR,PHY_MEM_START_ADDR,(VIRT_MEM_END_ADDR-VIRT_MEM_START_ADDR));
+	map_vm_mem(new_page_dir,0,0,0x100000,system.page_pad);
+	map_vm_mem(new_page_dir,VIRT_MEM_START_ADDR,PHY_MEM_START_ADDR,(VIRT_MEM_END_ADDR-VIRT_MEM_START_ADDR),system.page_pad);
 	return new_page_dir;
 }
 
@@ -43,19 +43,19 @@ void* init_vm_process(void* master_page_dir,unsigned int proc_phy_addr,struct t_
 	{
 		page_dir[i]=((unsigned int*)master_page_dir)[i];
 	}
-	map_vm_mem(page_dir,0,0,0x100000);
-	map_vm_mem(page_dir,PROC_VIRT_MEM_START_ADDR,proc_phy_addr,0x100000);
+	map_vm_mem(page_dir,0,0,0x100000,process_context->page_pad);
+	map_vm_mem(page_dir,PROC_VIRT_MEM_START_ADDR,proc_phy_addr,0x100000,process_context->page_pad);
 	return page_dir;
 }
 
-void free_vm_process(void* page_dir,int pad)
+void free_vm_process(void* page_dir,unsigned int* old_page_pad)
 {
-	umap_vm_mem(page_dir,0,0x100000);
-	umap_vm_mem(page_dir,PROC_VIRT_MEM_START_ADDR,0x100000);
-	kfree(page_dir-pad);
+	umap_vm_mem(page_dir,0,0x100000,old_page_pad);
+	umap_vm_mem(page_dir,PROC_VIRT_MEM_START_ADDR,0x100000,old_page_pad);
+	kfree(page_dir-old_page_pad[1024]);
 }
 
-void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_addr,int mem_size)
+void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_addr,int mem_size,unsigned int* page_pad)
 {
 	unsigned int *page_table;
 	void *page_addr;
@@ -68,17 +68,16 @@ void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_ad
 	unsigned int first_pt;
 	unsigned int last_pt;
 	unsigned int tot_pd;
-	unsigned int* page_pad;
 
-	//TO FIX WHEN BUDDY ALLOCATOR AVAILABLE
-	if (system.process_info.current_process!=NULL) 
-	{
-		page_pad=(((struct t_process_context*)system.process_info.current_process->val)->page_pad);
-	}
-	else 
-	{
-		page_pad=system.page_pad;
-	}
+//	//TO FIX WHEN BUDDY ALLOCATOR AVAILABLE
+//	if (system.process_info.current_process!=NULL) 
+//	{
+//		page_pad=(((struct t_process_context*)system.process_info.current_process->val)->page_pad);
+//	}
+//	else 
+//	{
+//		page_pad=system.page_pad;
+//	}
 	
 	phy_mem_addr-=4096;
 	page_count=mem_size/4096;
@@ -140,7 +139,7 @@ void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_ad
 	}
 }
 
-void umap_vm_mem(void* page_dir,unsigned int virt_mem_addr,unsigned int mem_size)
+void umap_vm_mem(void* page_dir,unsigned int virt_mem_addr,unsigned int mem_size,unsigned int* page_pad)
 {
 	unsigned int *page_table;
 	unsigned int start,end;
@@ -150,17 +149,17 @@ void umap_vm_mem(void* page_dir,unsigned int virt_mem_addr,unsigned int mem_size
 	unsigned int first_pd;
 	unsigned int first_pt;
 	unsigned int last_pt;
-	unsigned int* page_pad;
 
-	//TO FIX WHEN BUDDY ALLOCATOR AVAILABLE	
-	if (system.process_info.current_process!=NULL) 
-	{
-		page_pad=(((struct t_process_context*)system.process_info.current_process->val)->page_pad);
-	}
-	else 
-	{
-		page_pad=system.page_pad;
-	}	
+//	//TO FIX WHEN BUDDY ALLOCATOR AVAILABLE	
+//	if (system.process_info.current_process!=NULL) 
+//	{
+//		page_pad=(((struct t_process_context*)system.process_info.current_process->val)->page_pad);
+//	}
+//	else 
+//	{
+//		page_pad=system.page_pad;
+//	}
+	
 	page_count=mem_size/4096;
 	if ((mem_size % 4096)>0) page_count++;
 	pd_count=page_count/1024;
