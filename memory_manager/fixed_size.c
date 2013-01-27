@@ -73,7 +73,8 @@ void a_fixed_size_free(t_a_fixed_size_desc *a_fixed_size_desc,void *address)
 //void a_fixed_size_dump(t_a_fixed_size_desc *a_fixed_size_desc) 
 void a_fixed_size_dump() 
 {
-	int i=0;	
+	int i=0;
+	static int ss;	
 	t_a_fixed_size_desc *_a_fixed_size_desc=&a_fixed_size_desc[11];	
 	t_block_desc *current_block_desc;
 	current_block_desc=_a_fixed_size_desc->first_block;
@@ -81,6 +82,10 @@ void a_fixed_size_dump()
 	for (i=0;i<100;i++)
 	{
 		dump_fx[i]=((char*)(current_block_desc)+0xc);
+		if (dump_fx[i]==0xc23a54c8)
+		{
+			ss++;
+		}
 		current_block_desc=current_block_desc->next_block;
 	}
 	return;

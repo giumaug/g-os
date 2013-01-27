@@ -107,7 +107,7 @@ void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_ad
 		}
 		else 
 		{
-			page_table=FROM_PHY_TO_VIRT(((unsigned int*)page_dir)[i]) & 0xFFFFFFF8;
+			page_table=FROM_PHY_TO_VIRT(((unsigned int*)page_dir)[i]) & 0xFFFFFFF8;??????????????
 			
 		}
 		if (i==first_pd && tot_pd>1) 
