@@ -20,6 +20,10 @@ void init_kmalloc()
 	{
 		mem_addr+=MEM_TO_POOL;
 		a_fixed_size_init(&a_fixed_size_desc[i],pow2(2+i),mem_addr,MEM_TO_POOL);  
+		if (i==11) 
+		{
+			a_fixed_size_dump();
+		}
 	}
 }
 
@@ -55,7 +59,7 @@ void* kmalloc(unsigned int mem_size)
 		{
 			a_fixed_size_dump();
 		}
-		if (mem_add==0xc23a5524 || mem_add==0xc23a5528 || mem_add==0xc23a5525 || mem_add==0xc23a5521)
+		if (mem_add==0xc23a1511)
 		{
 			a_fixed_size_dump();
 		}
@@ -82,7 +86,7 @@ void kfree(void *address)
 	{
 		a_fixed_size_dump();
 	}
-	if (address==0xc23a5524)
+	if (address==0xc23a54c4)
 	{
 		a_fixed_size_dump();
 	}
