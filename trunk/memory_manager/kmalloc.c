@@ -86,7 +86,7 @@ void kfree(void *address)
 	{
 		a_fixed_size_dump();
 	}
-	if (address==0xc23a54c4)
+	if (address==0xc23a54c4 || address==0xc23a54a4)
 	{
 		a_fixed_size_dump();
 	}
