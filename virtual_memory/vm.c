@@ -50,8 +50,8 @@ void* init_vm_process(void* master_page_dir,unsigned int proc_phy_addr,struct t_
 
 void free_vm_process(void* page_dir,unsigned int* old_page_pad)
 {
-	umap_vm_mem(page_dir,0,0x100000,old_page_pad);
-	umap_vm_mem(page_dir,PROC_VIRT_MEM_START_ADDR,0x100000,old_page_pad);
+	umap_vm_mem(page_dir,0,0x400000,old_page_pad);
+	//umap_vm_mem(page_dir,PROC_VIRT_MEM_START_ADDR,0x100000,old_page_pad);
 	kfree(page_dir-old_page_pad[1024]);
 }
 
@@ -96,6 +96,10 @@ void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_ad
 			//Because memory pool doesn't return aligned memory,ask for 8k
 			//and pad to align to 4k.To fix when buddy allocator available. 	
 			page_addr=kmalloc(8192);
+			if (page_addr==0xc23a8000) 
+			{
+				a_fixed_size_dump();
+			}
 			pad=((unsigned int)page_addr % 4096)!=0 ? 4096-((unsigned int)page_addr % 4096) : 0;
 			page_pad[i]=pad;
 			page_table=(unsigned int)page_addr+pad;
@@ -107,7 +111,7 @@ void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_ad
 		}
 		else 
 		{
-			page_table=FROM_PHY_TO_VIRT(((unsigned int*)page_dir)[i]) & 0xFFFFFFF8;??????????????
+			page_table=FROM_PHY_TO_VIRT(((unsigned int*)page_dir)[i]) & 0xFFFFF000; //0xFFFFFFF8;
 			
 		}
 		if (i==first_pd && tot_pd>1) 
@@ -149,6 +153,7 @@ void umap_vm_mem(void* page_dir,unsigned int virt_mem_addr,unsigned int mem_size
 	unsigned int first_pd;
 	unsigned int first_pt;
 	unsigned int last_pt;
+	unsigned int tot_pd;
 
 //	//TO FIX WHEN BUDDY ALLOCATOR AVAILABLE	
 //	if (system.process_info.current_process!=NULL) 
@@ -166,18 +171,40 @@ void umap_vm_mem(void* page_dir,unsigned int virt_mem_addr,unsigned int mem_size
 	if ((page_count % 1024)>0) pd_count++;
 	first_pd=virt_mem_addr>>22;
 	first_pt=(virt_mem_addr & 0x3FFFFF)>>12;
-	last_pt=((virt_mem_addr+mem_size) & 0x3FFFFF)>>12;
+	last_pt=((virt_mem_addr+mem_size-1) & 0x3FFFFF)>>12;
+	tot_pd=pd_count+first_pd;
 
-	for (i=0;i<pd_count;i++)
+	for (i=first_pd;i<tot_pd;i++)
 	{	
-		page_table=FROM_PHY_TO_VIRT(((unsigned int*)page_dir)[i]) & 0xFFFFFFF8;
+		page_table=FROM_PHY_TO_VIRT(((unsigned int*)page_dir)[i]) & 0xFFFFF000;//0xFFFFFFF8;    
 		
-		if (i==0) 
+//		if (i==0) 
+//		{
+//			start=first_pt;
+//			end=1024;
+//		}
+//		else if (i==pd_count-1)
+//		{
+//			start=0;
+//			end=last_pt+1;
+//		}
+//		else 
+//		{
+//			start=0;
+//			end=1024;
+//		}
+
+		if (i==first_pd && tot_pd>1) 
 		{
 			start=first_pt;
 			end=1024;
 		}
-		else if (i==pd_count-1)
+		else if (i==first_pd && tot_pd==1) 
+		{
+			start=first_pt;
+			end=last_pt+1;
+		}
+		else if (i==tot_pd-1)
 		{
 			start=0;
 			end=last_pt+1;
@@ -187,11 +214,11 @@ void umap_vm_mem(void* page_dir,unsigned int virt_mem_addr,unsigned int mem_size
 			start=0;
 			end=1024;
 		}
+
 		if (start==0 && end==1024) 
 		{
-			kfree(page_table-page_pad[i]);
-			//((unsigned int*)page_dir)[i]=0;
+			kfree((unsigned int)page_table-page_pad[i]);
+			((unsigned int*)page_dir)[i]=0;
 		}
-		((unsigned int*)page_dir)[i]=0;
 	}
 }
