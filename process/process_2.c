@@ -4,11 +4,11 @@
 #include "lib/unistd.h"
 #include "lib/stdlib.h"
 
-static void quicksort(int low, int high,int* array);
+//static void quicksort(int low, int high,int* array);
 
 void  process_2() 
 {
-/*---------------------------------------------
+//*---------------------------------------------
 	int pid;
 	pid=fork();
 	if (pid==0)
@@ -20,7 +20,9 @@ void  process_2()
 		exit(0);
 	}
 	exit(0);
-------------------------------------------------------*/
+}
+//------------------------------------------------------*/
+/*-----------------------------------------------------
 	int array[MAXSIZE];
  	int i = 0;
 	printf("starting process_2 \n");
@@ -74,4 +76,5 @@ static void quicksort(int low, int high,int* array)
  	if(i < high) 
   		quicksort(i, high,array); 
 }
+---------------------------------------------------*/
 

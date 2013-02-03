@@ -7,7 +7,7 @@ void selection(int elements[], int array_size);
 
 void process_1()
 {
-/*---------------------------------------
+//(*-----------------------------------------------
 	int pid;
 	pid=fork();
 	if (pid==0)
@@ -19,8 +19,8 @@ void process_1()
 		exit(0);
 	}
 	exit(0);
-
----------------------------------------------*/
+}
+//---------------------------------------------*/
 /*--------------------------------
 	int i;
 	for (i=0;i<25;i++) printf("valore=%d \n",&i);
@@ -28,7 +28,7 @@ void process_1()
 	for (i=25;i<50;i++) printf("valore=%d \n",&i);
 	for(;;);
 }
-/*--------------------------------------------test video i/o */
+/*--------------------------------------------test video i/o 
 	int val=15456;
 	printf("starting process_1 \n");
 	printf("input value?");
