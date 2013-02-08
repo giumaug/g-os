@@ -185,7 +185,7 @@ void _exec(unsigned int start_addr,unsigned int size)
 	unsigned int i=0;
 	static unsigned int old_proc_phy_addr;
 	static void* old_page_dir;
-	static unsigned int* old_page_pad;
+	//static unsigned int* old_page_pad;
 	CLI
 	current_process_context=system.process_info.current_process->val;
 	current_process_context->phy_space_size=size;
@@ -199,10 +199,10 @@ void _exec(unsigned int start_addr,unsigned int size)
 	{
 		*process_space++=*process_storage++;
 	}
-        old_page_pad=current_process_context->page_pad;
+        //old_page_pad=current_process_context->page_pad;
 	current_process_context->page_dir=init_vm_process(system.master_page_dir,current_process_context->phy_add_space,current_process_context);
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir)))
-	free_vm_process(old_page_dir,old_page_pad);
+	free_vm_process(old_page_dir);
 	buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(old_proc_phy_addr));
         STI                                 	
 	SWITCH_TO_USER_MODE
