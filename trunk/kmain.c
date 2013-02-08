@@ -28,23 +28,12 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	char* process_space;
 	unsigned int proc_phy_addr;
 	unsigned int i;
-	unsigned int x1,x2,x3,x4,x5,x6,x7,x8,x9,x10;
+	
 	if ( magic != 0x2BADB002 )
    	{
       		/* Something went not according to specs. Print an error */
    	}
  	CLI
-	
-	x1=MEM_START_ADDR;
-        x2=MEM_END_ADDR;
-        x3=ALLOCATED_MEM;
-        x4=POOL_START_ADDR;
-        x5=POOL_END_ADDR;
-        x6=POOL_NUM;
-        x7=MEM_TO_POOL;
-        x8=BUDDY_START_ADDR;
-        x9=BUDDY_END_ADDR;
-        x10=BUDDY_MEM_SIZE;
 
 	system.process_info.current_process=NULL;
 	init_kmalloc();
