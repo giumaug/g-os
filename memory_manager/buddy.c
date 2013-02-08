@@ -16,20 +16,9 @@ void buddy_init(t_buddy_desc* buddy)
 	unsigned int align_offset;
 	unsigned int* mem_addr_bucket;
 	int i,j;
-	unsigned int x1;
 	
-	//mem_addr=BUDDY_START_ADDR + VIRT_MEM_START_ADDR;
 	mem_addr=0;
-	x1=BUDDY_MEM_SIZE;
 	max_page_size=PAGE_SIZE*(1<<(NUM_LIST-1));
-
-//	if ((mem_addr % max_page_size)!=0)
-//	{
-//		mem_addr+=max_page_size;
-//		align_offset=
-//		mem_addr-=(mem_addr % max_page_size);
-//		align_offset=max_page_size-(mem_addr % max_page_size);
-//	}
 	
 	for (i=0;i<NUM_LIST;i++) 
 	{
@@ -60,7 +49,6 @@ void* buddy_alloc_page(t_buddy_desc* buddy,unsigned int mem_size)
 	unsigned int* mem_addr_bucket;
 	void* new_mem_addr;
 	int i;
-	unsigned int x1,x2;
 
 	SAVE_IF_STATUS
 	CLI	
@@ -101,8 +89,6 @@ void* buddy_alloc_page(t_buddy_desc* buddy,unsigned int mem_size)
 	buddy->order[BLOCK_INDEX((int)page_addr)]=(list_index | 16);
 	buddy->page_list_ref[BLOCK_INDEX((int)page_addr)]=node;
 	new_mem_addr=page_addr+BUDDY_START_ADDR + VIRT_MEM_START_ADDR;
-	x1=page_addr;
-	x2=BUDDY_START_ADDR;
 	SPINLOCK_UNLOCK
 	RESTORE_IF_STATUS
 	return new_mem_addr;

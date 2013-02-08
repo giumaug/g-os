@@ -67,28 +67,13 @@ void schedule(struct t_processor_reg *processor_reg)
 void _sleep(struct t_processor_reg* processor_reg)
 {
 	struct t_process_context* current_process;
-//--	SAVE_IF_STATUS
-	unsigned int if_status;          
-	asm("push %eax;");                       
-	asm("pushfl;");                          
-	asm("movl (%esp),%eax;");                
-	asm("andl $0x200,%eax;");	                                                 
-        asm("movl %%eax,%0;":"=r"(if_status));
-	asm("popfl;");                           
-	asm("pop %eax;");                         
-	CLI
+	SAVE_IF_STATUS
+	CLI         
 	current_process=system.process_info.current_process->val;
 	t_llist_node* current_node=system.process_info.current_process;
 	schedule(processor_reg);
-	ll_delete_node(current_node);
-	asm("push %eax;");
-	asm("pushfl;");                          
-	asm("movl %0,%%eax;"::"r"(if_status)); 
-	asm("orl %eax,(%esp);");	         
-	asm("popfl;");			         
-	asm("pop %eax;");	
-//--	RESTORE_IF_STATUS 
- 
+	ll_delete_node(current_node);	
+	RESTORE_IF_STATUS 
 }
 
 void _awake(struct t_process_context *new_process,struct t_processor_reg *processor_reg)
@@ -137,7 +122,6 @@ void _exit(int status,struct t_processor_reg* processor_reg)
 			asm("sti;hlt");
 		}
 	}
-	//kfree(FROM_PHY_TO_VIRT(current_process->phy_add_space));
 	buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(current_process->phy_add_space));
 	kfree(current_node->val);
 	ll_delete_node(current_node);
@@ -145,8 +129,6 @@ void _exit(int status,struct t_processor_reg* processor_reg)
 	sentinel=ll_sentinel(system.process_info.pause_queue);
 	next=ll_first(system.process_info.pause_queue);
 	next_process=next->val;
-	//IF PARENT PROCESS SLEEP AWAKE OTHERWISE SCHEDULE
-	if (next==sentinel) schedule(processor_reg);
 	while(next!=sentinel && !awake_process)
 	{	
 		if (next_process->pid==current_process->parent->pid)
@@ -156,12 +138,13 @@ void _exit(int status,struct t_processor_reg* processor_reg)
 		if (awake_process)
 		{
 			_awake(next->val,processor_reg);
-			//kfree(next->val);
 			ll_delete_node(next);
 		}
 		next=ll_next(next);
 		next_process=next->val;
 	}
+	//IF PARENT PROCESS SLEEP AWAKE OTHERWISE (ZOMBIE PROCESS) SCHEDULE
+	if (!awake_process) schedule(processor_reg);
 	RESTORE_IF_STATUS
 }
 
@@ -185,7 +168,6 @@ int _fork(struct t_processor_reg processor_reg)
 	child_process_context->processor_reg=processor_reg;
 	child_process_context->parent=parent_process_context;
 	mem_size=parent_process_context->phy_space_size;
-	//proc_mem=kmalloc(mem_size);//-------------qui
 	proc_mem=buddy_alloc_page(system.buddy_desc,mem_size);
 	child_process_context->phy_add_space=FROM_VIRT_TO_PHY(proc_mem);
 	kmemcpy(proc_mem,FROM_PHY_TO_VIRT(parent_process_context->phy_add_space),mem_size);

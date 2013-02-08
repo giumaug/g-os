@@ -28,9 +28,8 @@ void* init_vm_process(void* master_page_dir,unsigned int proc_phy_addr,struct t_
 	unsigned int start,end;
 	unsigned int pad;
 	unsigned int i=0;
-	a_fixed_size_dump();
+
 	page_dir=kmalloc(8192);
-	a_fixed_size_dump();
 	process_context->page_pad=kmalloc(sizeof(int)*1025);
 	pad=((unsigned int)page_dir % 4096)!=0 ? 4096-((unsigned int)page_dir % 4096) : 0;
 	page_dir=((unsigned int) page_dir) + pad;
@@ -96,10 +95,6 @@ void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_ad
 			//Because memory pool doesn't return aligned memory,ask for 8k
 			//and pad to align to 4k.To fix when buddy allocator available. 	
 			page_addr=kmalloc(8192);
-			if (page_addr==0xc23a8000) 
-			{
-				a_fixed_size_dump();
-			}
 			pad=((unsigned int)page_addr % 4096)!=0 ? 4096-((unsigned int)page_addr % 4096) : 0;
 			page_pad[i]=pad;
 			page_table=(unsigned int)page_addr+pad;

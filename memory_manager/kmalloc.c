@@ -20,10 +20,6 @@ void init_kmalloc()
 	{
 		mem_addr+=MEM_TO_POOL;
 		a_fixed_size_init(&a_fixed_size_desc[i],pow2(2+i),mem_addr,MEM_TO_POOL);  
-		if (i==11) 
-		{
-			a_fixed_size_dump();
-		}
 	}
 }
 
@@ -50,19 +46,7 @@ void* kmalloc(unsigned int mem_size)
 	}
 	if (i!=POOL_NUM) 
 	{	
-		if (i==11) 
-		{
-			a_fixed_size_dump();
-		}
 		mem_add=a_fixed_size_alloc(&a_fixed_size_desc[i]);
-		if (i==11) 
-		{
-			a_fixed_size_dump();
-		}
-		if (mem_add==0xc23a1511)
-		{
-			a_fixed_size_dump();
-		}
 	}
 	SPINLOCK_UNLOCK
 	RESTORE_IF_STATUS
@@ -82,14 +66,6 @@ void kfree(void *address)
 		pool_index++;
 	}
 	a_fixed_size_free(&a_fixed_size_desc[pool_index],address);
-	if (pool_index==11) 
-	{
-		a_fixed_size_dump();
-	}
-	if (address==0xc23a54c4 || address==0xc23a54a4)
-	{
-		a_fixed_size_dump();
-	}
 	SPINLOCK_UNLOCK
 	RESTORE_IF_STATUS
 }
