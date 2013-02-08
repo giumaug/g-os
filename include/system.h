@@ -11,7 +11,7 @@ typedef struct s_system
 	t_console_desc* active_console_desc;
 	t_buddy_desc* buddy_desc;
 	unsigned int *master_page_dir;
-	unsigned int* page_pad;
+	//unsigned int* page_pad;
 }
 t_system;
 
