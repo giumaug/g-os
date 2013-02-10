@@ -116,7 +116,7 @@ exit_2:;
 	if (free_vm_proc) 
 	{
 		DO_STACK_FRAME(processor_reg.esp-8);
-		free_vm_process(old_process_context->page_dir,old_process_context->page_pad);
+		free_vm_process(old_process_context->page_dir);
 	}
 	SWITCH_DS_TO_USER_MODE
 	RESTORE_PROCESSOR_REG

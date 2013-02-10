@@ -11,12 +11,8 @@ void* init_virtual_memory()
 	unsigned int pad;
 	unsigned int* new_page_dir;
 	system.process_info.current_process=NULL;
-	//new_page_dir=kmalloc(8192);
-	//system.page_pad=kmalloc(sizeof(int)*1025);
-	//pad=((unsigned int)new_page_dir % 4096)!=0 ? 4096-((unsigned int)new_page_dir % 4096) : 0;
-	//new_page_dir=((unsigned int)new_page_dir)+pad;
-	//system.page_pad[1024]=pad;
-	new_page_dir=buddy_alloc_page(system.buddy_desc,0x1000);
+	
+	new_page_dir=buddy_alloc_page(&system.buddy_desc,0x1000);
 	for (i=0;i<1024;i++) new_page_dir[i]=0;
 	map_vm_mem(new_page_dir,0,0,0x100000);
 	map_vm_mem(new_page_dir,VIRT_MEM_START_ADDR,PHY_MEM_START_ADDR,(VIRT_MEM_END_ADDR-VIRT_MEM_START_ADDR));
@@ -30,12 +26,7 @@ void* init_vm_process(void* master_page_dir,unsigned int proc_phy_addr,struct t_
 	unsigned int pad;
 	unsigned int i=0;
 
-	//page_dir=kmalloc(8192);
-	//process_context->page_pad=kmalloc(sizeof(int)*1025);
-	//pad=((unsigned int)page_dir % 4096)!=0 ? 4096-((unsigned int)page_dir % 4096) : 0;
-	//page_dir=((unsigned int) page_dir) + pad;
-	//process_context->page_pad[1024]=pad;
-	page_dir=buddy_alloc_page(system.buddy_desc,0x1000);
+	page_dir=buddy_alloc_page(&system.buddy_desc,0x1000);
 	for (i=0;i<768;i++) 
 	{
 		page_dir[i]=0;
@@ -51,9 +42,6 @@ void* init_vm_process(void* master_page_dir,unsigned int proc_phy_addr,struct t_
 
 void free_vm_process(void* page_dir)
 {
-	//umap_vm_mem(page_dir,0,0x400000,old_page_pad);
-	//umap_vm_mem(page_dir,PROC_VIRT_MEM_START_ADDR,0x100000,old_page_pad);
-	//kfree(page_dir-old_page_pad[1024]);
 	umap_vm_mem(page_dir,0,0x100000);
 	umap_vm_mem(page_dir,PROC_VIRT_MEM_START_ADDR,0x100000);
 	kfree(page_dir);
@@ -62,7 +50,6 @@ void free_vm_process(void* page_dir)
 void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_addr,int mem_size)
 {
 	unsigned int *page_table;
-	//void *page_addr;
 	unsigned int pad;
 	unsigned int i,j;
 	unsigned int start,end;
@@ -87,11 +74,7 @@ void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_ad
 	{
 		if (((int*)(page_dir))[i]==0)
 		{	
-			//page_addr=kmalloc(8192);
-			//pad=((unsigned int)page_addr % 4096)!=0 ? 4096-((unsigned int)page_addr % 4096) : 0;
-			//page_pad[i]=pad;
-			//page_table=(unsigned int)page_addr+pad;
-			page_table==buddy_alloc_page(system.buddy_desc,0x1000);
+			page_table=buddy_alloc_page(&system.buddy_desc,0x1000);
 			for (j=0;j<1024;j++)
 			{
 				page_table[j]=0;

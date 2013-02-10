@@ -69,7 +69,3 @@ void kfree(void *address)
 	SPINLOCK_UNLOCK
 	RESTORE_IF_STATUS
 }
-
-
-
-
