@@ -12,18 +12,14 @@
 #include "system.h"
 
 extern unsigned int PAGE_DIR;
-//struct t_process_info process_info;
-//unsigned int *master_page_dir;
 t_system system;
 
 void kmain( void* mbd, unsigned int magic,int init_data_add)
-{
-	unsigned int pad;	
+{	
 	unsigned int *init_data=init_data_add;
 	static struct t_process_context process_context;
 	static struct t_i_desc i_desc;
 	static t_console_desc console_desc;
-	static t_buddy_desc buddy_desc;
 	char* process_storage;
 	char* process_space;
 	unsigned int proc_phy_addr;
@@ -42,7 +38,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
    	init_pit();
 	init_kbc();
 	init_console(&console_desc,4000,0);
-	buddy_init(&buddy_desc);
+	buddy_init(&system.buddy_desc);
 	
 	system.master_page_dir=init_virtual_memory();
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int)system.master_page_dir)))
@@ -59,14 +55,12 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
         process_context.tick=TICK;
         process_context.processor_reg.esp=0x1EFFFF;//64K user mode stack 
 	process_context.console_desc=&console_desc;
-	system.buddy_desc=&buddy_desc;
 	system.process_info.current_process=ll_prepend(system.process_info.process_context_list,&process_context);
 	system.process_info.tss.ss= *init_data;
 	system.process_info.tss.esp= *(init_data+1);
 	system.process_info.pause_queue=new_dllist();
 	
-	//process_space=kmalloc(0x100000);
-	process_space=buddy_alloc_page(system.buddy_desc,0x100000);
+	process_space=buddy_alloc_page(&system.buddy_desc,0x100000);
 	process_storage=FROM_PHY_TO_VIRT(0x500000);
 	proc_phy_addr=FROM_VIRT_TO_PHY(process_space);
 	process_context.phy_add_space=proc_phy_addr;
