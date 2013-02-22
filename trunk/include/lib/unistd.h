@@ -9,6 +9,7 @@
 extern inline int pause(void) __attribute__((always_inline));
 extern inline int fork() __attribute__((always_inline));
 extern inline int exec(unsigned int start_addr,unsigned int size) __attribute__((always_inline));
+extern inline int sleep(unsigned int time) __attribute__((always_inline));
 
 extern inline int exec(unsigned int start_addr,unsigned int size) 
 {
@@ -34,4 +35,12 @@ extern inline int pause()
 {
 	SYSCALL(11,NULL);
 }
+
+extern inline int sleep(unsigned int time)
+{
+	unsigned int params[1];
+	params[0]=time;
+	SYSCALL(15,params);
+}
+
 #endif

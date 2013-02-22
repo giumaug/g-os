@@ -10,9 +10,17 @@
 #include "drivers/kbc/8042.h"
 #include "general.h"
 #include "system.h"
+#include "process/process_1.h"
 
 extern unsigned int PAGE_DIR;
 t_system system;
+
+t_data data[3]=
+{
+	{1,1000,10},
+	{1,1000,10},
+	{1,1000,10}
+};
 
 void kmain( void* mbd, unsigned int magic,int init_data_add)
 {	
@@ -49,6 +57,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	i_desc.baseHi=((int)&syscall_handler)>>0x10;
 	set_idt_entry(0x80,&i_desc);
 
+	system.sleep_wait_queue=new_dllist();	
 	system.process_info.process_context_list=new_dllist();
 	system.process_info.next_pid=1;
 	process_context.pid=0;

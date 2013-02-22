@@ -5,6 +5,7 @@ process_1_load_address = 0x600000;
 process_2_load_address = 0x700000;
 process_3_load_address = 0x800000;
 process_4_load_address = 0x900000;
+process_5_load_address = 0xa00000;
 
 MEMORY { kernel_phy_address_space : ORIGIN = 0xC00000, LENGTH = 0x200000 }
 MEMORY { kernel_address_space : ORIGIN = 0xC0000000, LENGTH = 0x200000 }
@@ -13,6 +14,7 @@ MEMORY { process_1_address_space : ORIGIN = 0x100000, LENGTH = 0x100000 }
 MEMORY { process_2_address_space : ORIGIN = 0x100000, LENGTH = 0x100000 }
 MEMORY { process_3_address_space : ORIGIN = 0x100000, LENGTH = 0x100000 }
 MEMORY { shell_address_space : ORIGIN = 0x100000, LENGTH = 0x100000 }
+MEMORY { process_5_address_space : ORIGIN = 0x100000, LENGTH = 0x100000 }
 
 SECTIONS{
 
@@ -38,22 +40,22 @@ SECTIONS{
 
     .text :AT(kernel_load_address){
 	text = .;
-	 *(EXCLUDE_FILE (*process_0.o  *process_1.o *process_2.o *process_3.o *shell.o *loader.o) .text)
+	 *(EXCLUDE_FILE (*process_0.o  *process_1.o *process_2.o *process_3.o *shell.o *process_5.o *loader.o) .text)
     }>kernel_address_space
 
     .rodata :AT(kernel_load_address + (rodata - text)){
 	rodata = .;
-	*(EXCLUDE_FILE (*process_0.o  *process_1.o *process_2.o *process_3.o *shell.o *loader.o) .rodata)
+	*(EXCLUDE_FILE (*process_0.o  *process_1.o *process_2.o *process_3.o *shell.o *process_5.o *loader.o) .rodata)
     }>kernel_address_space 
 
     .data :AT(kernel_load_address +(data - text)){
 	data = .;
-	*(EXCLUDE_FILE (*process_0.o  *process_1.o *process_2.o *process_3.o *shell.o *loader.o) .data)
+	*(EXCLUDE_FILE (*process_0.o  *process_1.o *process_2.o *process_3.o *shell.o *process_5.o *loader.o) .data)
     }>kernel_address_space 
 
     .bss :AT(kernel_load_address + (bss - text)){
 	bss = .;
-	*(EXCLUDE_FILE (*process_0.o  *process_1.o *process_2.o *process_3.o *shell.o *loader.o) .bss)
+	*(EXCLUDE_FILE (*process_0.o  *process_1.o *process_2.o *process_3.o *shell.o *process_5.o *loader.o) .bss)
     }>kernel_address_space
 
    /*process_0 address space*/ 
@@ -165,5 +167,27 @@ SECTIONS{
 	bss_4 = .;
         *shell.o(.bss)
     }>shell_address_space
+
+    /*process_5  address space*/
+
+    .text_5 :AT(process_5_load_address){
+	text_5 = .;
+	*process_5.o(.text) 
+    }>process_5_address_space
+
+    .rodata_5 :AT(process_5_load_address + (rodata_5 - text_5)){
+	rodata_5 = .;
+        *process_5.o(.rodata)
+    }>process_5_address_space
+
+    .data_5 :AT(process_5_load_address + (data_5 - text_5)){
+	data_5 = .;
+        *process_5.o(.data)
+    }>process_5_address_space
+
+    .bss_5 :AT(process_5_load_address + (bss_5 - text_5)){
+	bss_5 = .;
+        *process_5.o(.bss)
+    }>process_5_address_space
 }
 

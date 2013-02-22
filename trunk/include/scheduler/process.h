@@ -35,6 +35,7 @@ struct t_process_context {
 	unsigned int phy_add_space;
 	unsigned int phy_space_size;
 	char* page_dir;
+	unsigned int sleep_time;
 };
 
 struct t_process_info {

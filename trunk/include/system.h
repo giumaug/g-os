@@ -11,6 +11,7 @@ typedef struct s_system
 	t_console_desc* active_console_desc;
 	t_buddy_desc buddy_desc;
 	unsigned int *master_page_dir;
+	struct t_llist* sleep_wait_queue;
 }
 t_system;
 

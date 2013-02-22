@@ -4,6 +4,7 @@
 #include "scheduler/scheduler.h"
 #include "virtual_memory/vm.h"
 #include "syscall_handler.h"
+#include "process/process_1.h"
 
 extern t_system system;
 
@@ -88,7 +89,8 @@ void syscall_handler()
 	}
 	else if (syscall_num==12)
 	{
-		_awake(params[0],params[1]);
+		//_awake(params[0],params[1]);
+		_awake(params[0]);
 		goto exit_1; 
 	}
 	else if (syscall_num==13)
@@ -101,6 +103,11 @@ void syscall_handler()
 	{
 		_exec(params[0],params[1]);
 		//dead code point 
+	}
+	else if (syscall_num==15) 
+	{
+		_sleep_time(params[0],&processor_reg);	
+		goto exit_2; 
 	}
 exit_1:
         SWITCH_DS_TO_USER_MODE
