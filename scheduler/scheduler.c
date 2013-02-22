@@ -5,8 +5,10 @@
 #include "virtual_memory/vm.h"
 #include "asm.h"
 #include "klib/printk.h"
+#include "process/process_1.h"
 
 extern t_system system;
+extern  t_data data[3];
 
 extern struct t_llist* kbc_wait_queue;
 extern unsigned int *master_page_dir;
@@ -75,15 +77,25 @@ void _sleep(struct t_processor_reg* processor_reg)
 	RESTORE_IF_STATUS 
 }
 
-void _awake(struct t_process_context *new_process,struct t_processor_reg *processor_reg)
+//void _awake(struct t_process_context *new_process,struct t_processor_reg *processor_reg)
+//{
+//	t_llist_node* new_node;
+//
+//	SAVE_IF_STATUS
+//	CLI 
+//	do_context_switch(system.process_info.current_process->val,processor_reg,new_process);
+//	new_node=ll_prepend(system.process_info.process_context_list,new_process);	
+//	system.process_info.current_process=new_node;
+//	RESTORE_IF_STATUS
+//}
+
+void _awake(struct t_process_context *new_process)
 {
 	t_llist_node* new_node;
 
 	SAVE_IF_STATUS
 	CLI 
-	do_context_switch(system.process_info.current_process->val,processor_reg,new_process);
-	new_node=ll_prepend(system.process_info.process_context_list,new_process);	
-	system.process_info.current_process=new_node;
+	ll_prepend(system.process_info.process_context_list,new_process);	
 	RESTORE_IF_STATUS
 }
 
@@ -136,7 +148,8 @@ void _exit(int status,struct t_processor_reg* processor_reg)
 		}
 		if (awake_process)
 		{
-			_awake(next->val,processor_reg);
+			//_awake(next->val,processor_reg);
+			_awake(next->val);
 			ll_delete_node(next);
 		}
 		next=ll_next(next);
@@ -204,4 +217,19 @@ void _exec(unsigned int start_addr,unsigned int size)
 	buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(old_proc_phy_addr));
         STI                                 	
 	SWITCH_TO_USER_MODE
+}
+
+void _sleep_time(unsigned int time,struct t_processor_reg* processor_reg)
+{
+	struct t_process_context* current_process;
+	t_llist* sleep_wait_queue;
+
+	SAVE_IF_STATUS	
+	CLI 
+	sleep_wait_queue=system.sleep_wait_queue;
+	current_process=system.process_info.current_process->val;
+	current_process->sleep_time=time;
+	ll_prepend(sleep_wait_queue,current_process);	
+	_sleep(processor_reg);
+	RESTORE_IF_STATUS
 }

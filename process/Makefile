@@ -17,6 +17,9 @@ process_2.o:process_2.c process_2.h
 process_3.o:process_3.c process_3.h
 	$(CC)  $(CPPFLAGS) $(CFLAGS) process_3.c
 
+process_4.o:process_4.c process_4.h
+	$(CC)  $(CPPFLAGS) $(CFLAGS) process_4.c
+
 shell.o:shell.c shell.h
 	$(CC)  $(CPPFLAGS) $(CFLAGS) shell.c
 

@@ -29,6 +29,11 @@ void int_handler_pit()
 	struct t_process_context* process_context;
 	struct t_process_context* sleeping_process;
 	static struct t_processor_reg processor_reg;
+	t_llist_node* next;
+	t_llist_node* sentinel;
+	t_llist_node* old_node;
+	struct t_process_context* next_process;
+	unsigned int stop;
 	
 	SAVE_PROCESSOR_REG
 	EOI
@@ -40,11 +45,31 @@ void int_handler_pit()
 		SWITCH_DS_TO_KERNEL_MODE
 	}
 	sleeping_process=system.active_console_desc->sleeping_process;
+	
+	stop=0;	
+	sentinel=ll_sentinel(system.sleep_wait_queue);
+	next=ll_first(system.sleep_wait_queue);
+	next_process=next->val;
+	while(next!=sentinel && !stop)
+	{
+		if (--next_process->sleep_time==0)
+		{
+			ll_prepend(system.process_info.process_context_list,next_process);
+			old_node=next;
+			next=ll_next(next);
+			ll_delete_node(old_node);
+			stop=1;
+		}
+		else 
+		{
+			next=ll_next(next);
+		}
+	}
+
 	if (sleeping_process!=NULL && !system.active_console_desc->is_empty)
 	{
-		_awake(sleeping_process,&processor_reg);
+		_awake(sleeping_process);
 		system.active_console_desc->sleeping_process=NULL;
-		is_schedule=1;
 	}
 	else
 	{
