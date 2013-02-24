@@ -17,9 +17,9 @@ t_system system;
 
 t_data data[3]=
 {
-	{1,1000,10},
-	{1,1000,10},
-	{1,1000,10}
+	{100,50000000,10},//4 sec
+	{100,50000000,10},
+	{100,50000000,10}
 };
 
 void kmain( void* mbd, unsigned int magic,int init_data_add)
