@@ -58,12 +58,13 @@ void int_handler_pit()
 			old_node=next;
 			next=ll_next(next);
 			ll_delete_node(old_node);
-			stop=1;
+			//stop=1;
 		}
 		else 
 		{
 			next=ll_next(next);
 		}
+		next_process=next->val;
 	}
 
 	if (sleeping_process!=NULL && !system.active_console_desc->is_empty)
