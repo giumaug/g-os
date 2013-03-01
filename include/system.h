@@ -3,7 +3,9 @@
 
 #include "console/console.h"
 #include "scheduler/process.h"
+#include "scheduler/scheduler.h"
 #include "memory_manager/buddy.h"
+#include "data_types/dllist.h"
 
 typedef struct s_system
 {
@@ -11,7 +13,8 @@ typedef struct s_system
 	t_console_desc* active_console_desc;
 	t_buddy_desc buddy_desc;
 	unsigned int *master_page_dir;
-	struct t_llist* sleep_wait_queue;
+	t_llist* sleep_wait_queue;
+	t_scheduler_desc scheduler_desc;
 }
 t_system;
 

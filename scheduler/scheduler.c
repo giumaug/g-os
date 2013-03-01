@@ -13,6 +13,8 @@ extern  t_data data[3];
 extern struct t_llist* kbc_wait_queue;
 extern unsigned int *master_page_dir;
 
+unsigned int t_sched_debug[10][10];
+
 void do_context_switch(struct t_process_context *current_process_context,
 		       struct t_processor_reg *processor_reg,
 		       struct t_process_context *new_process_context)
@@ -37,33 +39,171 @@ void do_context_switch(struct t_process_context *current_process_context,
 	processor_reg->esp=new_process_context->processor_reg.esp;
 }
 
+void init_scheduler()
+{
+	int i;
+	for (i=0;i<9;i++)
+	{
+		system.scheduler_desc.scheduler_queue[i]=new_dllist();
+	}
+}
+
+void sched_debug()
+{
+	struct t_process_context* next_process_context;
+	t_llist_node* next;
+	t_llist_node* sentinel_node;
+	unsigned int i,j;
+
+	for (i=0;i<10;i++)
+	{
+		sentinel_node=ll_sentinel(system.scheduler_desc.scheduler_queue[i]);
+		next=ll_first(system.scheduler_desc.scheduler_queue[i]);
+		j=0;
+		while(next!=sentinel_node)
+		{
+			next_process_context=next->val;
+			t_sched_debug[i][++j]=next_process_context->pid;	
+		} 
+	}
+}
+
 void schedule(struct t_processor_reg *processor_reg)
 {
 	struct t_process_context* current_process_context;
-	struct t_process_context* new_process_context;
-	t_llist_node* current_node;
+	struct t_process_context* next_process_context;
+	t_llist_node* next;
 	t_llist_node* sentinel_node;
+	unsigned int stop=0;
+	unsigned int queue_index;
+	unsigned int priority;
+	unsigned int index;	
 
-	//FIND NEXT PROCESS TO SCHEDULE IS TRICK BECAUSE ll_next TAKE IN
-	//COUNT SENTINEL NODE TOO.BEST APPROCH TO MANAGE ROUND ROBIN IS 
-	//CIRCULAR LIST WITHOUT SENTINEL NODE.  
-	//printk("schedule \n");
-	current_process_context=system.process_info.current_process->val;
-	current_node=ll_next(system.process_info.current_process);
-	sentinel_node=ll_sentinel(system.process_info.process_context_list);
-	if (current_node==sentinel_node)
+	index=0;	
+	current_process_context=system.process_info.current_process->val;		
+	while(!stop)
 	{
-		current_node=ll_next(current_node);
+		sentinel_node=ll_sentinel(system.scheduler_desc.scheduler_queue[index]);
+		next=ll_first(system.scheduler_desc.scheduler_queue[index]);
+		while(next!=sentinel_node && !stop)
+		{
+			next_process_context=next->val;
+//			if (current_process_context->pid!=next_process_context->pid)
+//			{
+				do_context_switch(current_process_context,processor_reg,next_process_context);	
+				system.process_info.current_process=next;
+				stop=1;
+//			}	
+		}
+		index++; 
 	}
-	new_process_context=current_node->val;
-	if (current_process_context->pid!=new_process_context->pid)
+	//static prioriry range from -10 to 10 default value is 0;
+	priority=current_process_context->sleep_time+(current_process_context->static_priority*10);
+	if (priority>1000)
 	{
-		do_context_switch(current_process_context,processor_reg,new_process_context);	
-		system.process_info.current_process=current_node;
-		//printk("context switch from %d \n",&current_process_context->pid);
-		//printk("context switch to %d \n",&new_process_context->pid);
+		priority=1000;
 	}
+	if (priority<0)
+	{
+		priority=0;
+	}
+
+	if (priority>=0 && priority<100)
+	{
+		queue_index=9;
+	}
+	else 
+	{	
+		if (priority>=100 && priority<200)
+		{
+			queue_index=8;
+		}
+		else 
+		{
+			if (priority>=200 && priority<300)
+			{
+				queue_index=7;
+			}
+			else 
+			{
+				if (priority>=300 && priority<400)
+				{
+					queue_index=6;
+				}
+				else 
+				{
+					if (priority>=400 && priority<500)
+					{
+						queue_index=5;
+					}
+					else
+					{
+						if (priority>=500 && priority<600)
+						{
+							queue_index=4;
+						}
+						else
+						{
+							if (priority>=600 && priority<700)
+							{
+								queue_index=3;
+							}
+							else
+							{
+								if (priority>=700 && priority<800)
+								{
+									queue_index=2;
+								}
+								else
+								{
+									if (priority>=800 && priority<900)
+									{
+										queue_index=1;
+									}
+									else
+									{
+										if (priority>=900 && priority<1000)
+										{
+											queue_index=0;
+										}	
+									}	
+								}	
+							}	
+						}
+						
+					}	
+				}	
+			}
+		}		
+	}
+	ll_append(system.scheduler_desc.scheduler_queue[queue_index],current_process_context);
 }
+
+//void schedule(struct t_processor_reg *processor_reg)
+//{
+//	struct t_process_context* current_process_context;
+//	struct t_process_context* new_process_context;
+//	t_llist_node* current_node;
+//	t_llist_node* sentinel_node;
+//
+//	//FIND NEXT PROCESS TO SCHEDULE IS TRICK BECAUSE ll_next TAKE IN
+//	//COUNT SENTINEL NODE TOO.BEST APPROCH TO MANAGE ROUND ROBIN IS 
+//	//CIRCULAR LIST WITHOUT SENTINEL NODE.  
+//	//printk("schedule \n");
+//	current_process_context=system.process_info.current_process->val;
+//	current_node=ll_next(system.process_info.current_process);
+//	sentinel_node=ll_sentinel(system.process_info.process_context_list);
+//	if (current_node==sentinel_node)
+//	{
+//		current_node=ll_next(current_node);
+//	}
+//	new_process_context=current_node->val;
+//	if (current_process_context->pid!=new_process_context->pid)
+//	{
+//		do_context_switch(current_process_context,processor_reg,new_process_context);	
+//		system.process_info.current_process=current_node;
+//	}
+//}
 
 void _sleep(struct t_processor_reg* processor_reg)
 {

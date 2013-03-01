@@ -1,6 +1,12 @@
 #ifndef SCHEDULER_H                
 #define SCHEDULER_H
 
+typedef struct s_scheduler_desc 
+{
+	t_llist* scheduler_queue[10];
+}
+t_scheduler_desc;
+
 void schedule(struct t_processor_reg *processor_reg);
 void _sleep(struct t_processor_reg* processor_reg);
 //void _awake(struct t_process_context *new_process,struct t_processor_reg *processor_reg);
