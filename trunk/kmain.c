@@ -17,9 +17,9 @@ t_system system;
 
 t_data data[3]=
 {
-	{100,50000000,10},//4 sec
+	{10,50000000,10},//4 sec on home 3 sec at work
 	{100,50000000,10},
-	{100,50000000,10}
+	{1000,50000000,10}
 };
 
 void kmain( void* mbd, unsigned int magic,int init_data_add)
@@ -47,6 +47,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	init_kbc();
 	init_console(&console_desc,4000,0);
 	buddy_init(&system.buddy_desc);
+	init_scheduler();
 	
 	system.master_page_dir=init_virtual_memory();
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int)system.master_page_dir)))
@@ -60,11 +61,14 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	system.sleep_wait_queue=new_dllist();	
 	system.process_info.process_context_list=new_dllist();
 	system.process_info.next_pid=1;
+	process_context.sleep_time=0;
+	process_context.static_priority=0;
 	process_context.pid=0;
         process_context.tick=TICK;
         process_context.processor_reg.esp=0x1EFFFF;//64K user mode stack 
 	process_context.console_desc=&console_desc;
-	system.process_info.current_process=ll_prepend(system.process_info.process_context_list,&process_context);
+	//system.process_info.current_process=ll_prepend(system.process_info.process_context_list,&process_context);
+	system.process_info.current_process=ll_prepend(system.scheduler_desc.scheduler_queue[0],&process_context);
 	system.process_info.tss.ss= *init_data;
 	system.process_info.tss.esp= *(init_data+1);
 	system.process_info.pause_queue=new_dllist();

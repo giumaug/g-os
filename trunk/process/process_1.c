@@ -12,7 +12,7 @@ void process_1()
 	{	
 		exec(0x700000,0x100000);
 	}
-/*
+
 	pid=fork();
 	if (pid==0)
 	{	
@@ -24,7 +24,6 @@ void process_1()
 	{	
 		exec(0xa00000,0x100000);
 	}
-*/
 	exit(0);
 }
 

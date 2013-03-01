@@ -36,6 +36,7 @@ struct t_process_context {
 	unsigned int phy_space_size;
 	char* page_dir;
 	unsigned int sleep_time;
+	unsigned int static_priority;
 };
 
 struct t_process_info {

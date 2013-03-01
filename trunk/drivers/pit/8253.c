@@ -33,7 +33,6 @@ void int_handler_pit()
 	t_llist_node* sentinel;
 	t_llist_node* old_node;
 	struct t_process_context* next_process;
-	unsigned int stop;
 	
 	SAVE_PROCESSOR_REG
 	EOI
@@ -46,11 +45,10 @@ void int_handler_pit()
 	}
 	sleeping_process=system.active_console_desc->sleeping_process;
 	
-	stop=0;	
 	sentinel=ll_sentinel(system.sleep_wait_queue);
 	next=ll_first(system.sleep_wait_queue);
 	next_process=next->val;
-	while(next!=sentinel && !stop)
+	while(next!=sentinel)
 	{
 		if (--next_process->sleep_time==0)
 		{
@@ -58,7 +56,6 @@ void int_handler_pit()
 			old_node=next;
 			next=ll_next(next);
 			ll_delete_node(old_node);
-			//stop=1;
 		}
 		else 
 		{
