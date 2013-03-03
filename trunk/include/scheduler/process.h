@@ -5,7 +5,7 @@
 #include "data_types/dllist.h"
 
 #define U_STACK_SIZE 		0x4000;
-#define QUANTUM_DURATION	11931 //10 ms verificare valore piu' appropriato
+//#define QUANTUM_DURATION	11931 //10 ms verificare valore piu' appropriato
 #define TICK                    10;  //100ms for each process look cesati pag 260
 
 struct t_tss {
@@ -36,7 +36,11 @@ struct t_process_context {
 	unsigned int phy_space_size;
 	char* page_dir;
 	unsigned int sleep_time;
+	//when io queue manager iplemented create a sleep managert too and move
+	//this filed inside it
+	unsigned int assigned_sleep_time;
 	unsigned int static_priority;
+	unsigned int curr_sched_queue_index;
 };
 
 struct t_process_info {
