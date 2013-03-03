@@ -1,11 +1,11 @@
 #include "general.h"
 #include "asm.h"  
 #include "idt.h" 
-#include "drivers/pit/8253.h" 
 #include "system.h"  
 #include "scheduler/scheduler.h"
 #include "virtual_memory/vm.h"
 #include "drivers/pic/8259A.h" 
+#include "drivers/pit/8253.h" 
 
 extern t_system system;
 
@@ -13,8 +13,8 @@ void init_pit()
 {	
 	static struct t_i_desc i_desc;
 	out(BINARIY_COUNT_MODE,CONTROL_WORD);
-	out(LOW_QUANTUM_DURATION,COUNTER_0);
-	out(HI_QUANTUM_DURATION,COUNTER_0);
+	out(LOW_QUANTUM,COUNTER_0);
+	out(HI_QUANTUM,COUNTER_0);
 	i_desc.baseLow=((int)&int_handler_pit) & 0xFFFF;
 	i_desc.selector=0x8;
 	i_desc.flags=0x08e00;
@@ -33,6 +33,7 @@ void int_handler_pit()
 	t_llist_node* sentinel;
 	t_llist_node* old_node;
 	struct t_process_context* next_process;
+	unsigned int queue_index;
 	
 	SAVE_PROCESSOR_REG
 	EOI
@@ -48,11 +49,17 @@ void int_handler_pit()
 	sentinel=ll_sentinel(system.sleep_wait_queue);
 	next=ll_first(system.sleep_wait_queue);
 	next_process=next->val;
+	//THIS STUFF MUST BE MOVED INSIDE ASSIGNED SLEEP MANAGER LIKE IO
 	while(next!=sentinel)
 	{
-		if (--next_process->sleep_time==0)
+		next_process->assigned_sleep_time-=QUNTUM_DURATION;
+		if (next_process->assigned_sleep_time==0)
 		{
-			ll_prepend(system.process_info.process_context_list,next_process);
+			queue_index=find_sched_queue(priority);			
+			current_process_context->curr_sched_queue_index=queue_index;
+			current_process_context->sleep_time=current_process_context->assigned_sleep_time;
+			current_process_context->assigned_sleep_time=0;
+			ll_append(system.scheduler_desc.scheduler_queue[queue_index],current_process_context);
 			old_node=next;
 			next=ll_next(next);
 			ll_delete_node(old_node);
@@ -68,9 +75,15 @@ void int_handler_pit()
 	{
 		_awake(sleeping_process);
 		system.active_console_desc->sleeping_process=NULL;
+		
 	}
 	else
-	{
+	{	
+		if (sleeping_process!=NULL)
+		{
+			sleeping_process->sleep_time+=QUATUM_DURATION;
+		}
+		process_context->sleep_time-=QUATUM_DURATION;
 		process_context=system.process_info.current_process->val;
 		process_context->tick--;
 		if (process_context->tick==0) 

@@ -42,7 +42,7 @@ void do_context_switch(struct t_process_context *current_process_context,
 void init_scheduler()
 {
 	int i;
-	for (i=0;i<9;i++)
+	for (i=0;i<10;i++)
 	{
 		system.scheduler_desc.scheduler_queue[i]=new_dllist();
 	}
@@ -99,7 +99,13 @@ void schedule(struct t_processor_reg *processor_reg)
 	}
 	//static prioriry range from -10 to 10 default value is 0;
 	priority=current_process_context->sleep_time+(current_process_context->static_priority*10);
-	if (priority>1000)
+	
+	current_process_context->curr_sched_queue_index=find_sched_queue(priority);
+	ll_append(system.scheduler_desc.scheduler_queue[queue_index],current_process_context);
+}
+
+void find_sched_queue(unsigned int priority)
+{
 	{
 		priority=1000;
 	}
@@ -176,8 +182,9 @@ void schedule(struct t_processor_reg *processor_reg)
 			}
 		}		
 	}
-	ll_append(system.scheduler_desc.scheduler_queue[queue_index],current_process_context);
 }
+
+
 
 //void schedule(struct t_processor_reg *processor_reg)
 //{
@@ -235,7 +242,8 @@ void _awake(struct t_process_context *new_process)
 
 	SAVE_IF_STATUS
 	CLI 
-	ll_prepend(system.process_info.process_context_list,new_process);	
+	//ll_prepend(system.process_info.process_context_list,new_process);	
+	ll_prepend(system.scheduler_desc.scheduler_queue[new_process->curr_sched_queue_index],new_process);
 	RESTORE_IF_STATUS
 }
 
@@ -323,7 +331,7 @@ int _fork(struct t_processor_reg processor_reg)
 	proc_mem=buddy_alloc_page(&system.buddy_desc,mem_size);
 	child_process_context->phy_add_space=FROM_VIRT_TO_PHY(proc_mem);
 	kmemcpy(proc_mem,FROM_PHY_TO_VIRT(parent_process_context->phy_add_space),mem_size);
-	ll_prepend(system.process_info.process_context_list,child_process_context);
+	ll_prepend(system.scheduler_desc.scheduler_queue[parent_process_context->curr_sched_queue_index],child_process_context);
 	child_process_context->page_dir=init_vm_process(system.master_page_dir,child_process_context->phy_add_space,child_process_context);
       	STI
 	return child_process_context->pid;
@@ -368,7 +376,7 @@ void _sleep_time(unsigned int time,struct t_processor_reg* processor_reg)
 	CLI 
 	sleep_wait_queue=system.sleep_wait_queue;
 	current_process=system.process_info.current_process->val;
-	current_process->sleep_time=time;
+	current_process->assigned_sleep_time=time;
 	ll_prepend(sleep_wait_queue,current_process);	
 	_sleep(processor_reg);
 	RESTORE_IF_STATUS

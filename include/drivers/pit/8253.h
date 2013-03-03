@@ -6,9 +6,11 @@
 #define COUNTER_2 		0x42
 #define CONTROL_WORD		0x43
 #define BINARIY_COUNT_MODE 	0x36 //0B110110 
-//#define QUANTUM_DURATION	11931 //10 ms verificare valore piu' appropriato
-#define HI_QUANTUM_DURATION	QUANTUM_DURATION >> 8
-#define LOW_QUANTUM_DURATION	QUANTUM_DURATION & 0xff
+#define QYANTUM_DURANTION	10 //10 ms
+#define QUANTUM			11931 //10ms
+#define HI_QUANTUM		QUANTUM >> 8
+#define LOW_QUANTUM		QUANTUM & 0xff
+
 
 void int_handler_pit();
 
