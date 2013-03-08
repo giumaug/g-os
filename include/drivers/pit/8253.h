@@ -6,7 +6,7 @@
 #define COUNTER_2 		0x42
 #define CONTROL_WORD		0x43
 #define BINARIY_COUNT_MODE 	0x36 //0B110110 
-#define QYANTUM_DURANTION	10 //10 ms
+#define QUANTUM_DURATION	10 //10 ms
 #define QUANTUM			11931 //10ms
 #define HI_QUANTUM		QUANTUM >> 8
 #define LOW_QUANTUM		QUANTUM & 0xff
