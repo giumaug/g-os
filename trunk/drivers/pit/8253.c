@@ -34,6 +34,7 @@ void int_handler_pit()
 	t_llist_node* old_node;
 	struct t_process_context* next_process;
 	unsigned int queue_index;
+	unsigned int priority;
 	
 	SAVE_PROCESSOR_REG
 	EOI
@@ -52,14 +53,14 @@ void int_handler_pit()
 	//THIS STUFF MUST BE MOVED INSIDE ASSIGNED SLEEP MANAGER LIKE IO
 	while(next!=sentinel)
 	{
-		next_process->assigned_sleep_time-=QUNTUM_DURATION;
+		next_process->assigned_sleep_time-=QUANTUM_DURATION;
 		if (next_process->assigned_sleep_time==0)
-		{
-			queue_index=find_sched_queue(priority);			
-			current_process_context->curr_sched_queue_index=queue_index;
-			current_process_context->sleep_time=current_process_context->assigned_sleep_time;
-			current_process_context->assigned_sleep_time=0;
-			ll_append(system.scheduler_desc.scheduler_queue[queue_index],current_process_context);
+		{		
+			adjust_sched_queue(next);			
+			//next_process->curr_sched_queue_index=queue_index;
+			//next_process->sleep_time=next_process->assigned_sleep_time;
+			next_process->assigned_sleep_time=0;
+			//ll_append(system.scheduler_desc.scheduler_queue[queue_index],next_process);
 			old_node=next;
 			next=ll_next(next);
 			ll_delete_node(old_node);
@@ -75,16 +76,15 @@ void int_handler_pit()
 	{
 		_awake(sleeping_process);
 		system.active_console_desc->sleeping_process=NULL;
-		
 	}
 	else
 	{	
 		if (sleeping_process!=NULL)
 		{
-			sleeping_process->sleep_time+=QUATUM_DURATION;
+			sleeping_process->sleep_time+=QUANTUM_DURATION;
 		}
-		process_context->sleep_time-=QUATUM_DURATION;
 		process_context=system.process_info.current_process->val;
+		process_context->sleep_time-=QUANTUM_DURATION;
 		process_context->tick--;
 		if (process_context->tick==0) 
 		{

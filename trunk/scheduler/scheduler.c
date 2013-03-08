@@ -72,6 +72,7 @@ void schedule(struct t_processor_reg *processor_reg)
 {
 	struct t_process_context* current_process_context;
 	struct t_process_context* next_process_context;
+	t_llist_node* node;
 	t_llist_node* next;
 	t_llist_node* sentinel_node;
 	unsigned int stop=0;
@@ -79,8 +80,10 @@ void schedule(struct t_processor_reg *processor_reg)
 	unsigned int priority;
 	unsigned int index;	
 
-	index=0;	
-	current_process_context=system.process_info.current_process->val;		
+	index=0;
+	node=system.process_info.current_process;	
+	//current_process_context=system.process_info.current_process->val;
+	current_process_context=node->val;		
 	while(!stop)
 	{
 		sentinel_node=ll_sentinel(system.scheduler_desc.scheduler_queue[index]);
@@ -97,21 +100,29 @@ void schedule(struct t_processor_reg *processor_reg)
 		}
 		index++; 
 	}
-	//static prioriry range from -10 to 10 default value is 0;
-	priority=current_process_context->sleep_time+(current_process_context->static_priority*10);
-	
-	current_process_context->curr_sched_queue_index=find_sched_queue(priority);
-	ll_append(system.scheduler_desc.scheduler_queue[queue_index],current_process_context);
+	adjust_sched_queue(node);
 }
 
-void find_sched_queue(unsigned int priority)
+void adjust_sched_queue(t_llist_node* node)
 {
+	int priority;
+	unsigned int queue_index;
+	struct t_process_context *current_process_context;
+	
+	current_process_context=node->val;	
+	//static prioriry range from -10 to 10 default value is 0;
+	priority=current_process_context->sleep_time+(current_process_context->static_priority*10);
+
+	
+	if (priority>1000) 	
 	{
 		priority=1000;
+		current_process_context->sleep_time=1000;
 	}
 	if (priority<0)
 	{
 		priority=0;
+		current_process_context->sleep_time=0;
 	}
 
 	if (priority>=0 && priority<100)
@@ -168,7 +179,7 @@ void find_sched_queue(unsigned int priority)
 									}
 									else
 									{
-										if (priority>=900 && priority<1000)
+										if (priority>=900 && priority<=1000)
 										{
 											queue_index=0;
 										}	
@@ -182,6 +193,10 @@ void find_sched_queue(unsigned int priority)
 			}
 		}		
 	}
+	current_process_context->curr_sched_queue_index=queue_index;
+	ll_delete_node(node);
+	ll_append(system.scheduler_desc.scheduler_queue[queue_index],current_process_context);
+	return;
 }
 
 
@@ -242,7 +257,7 @@ void _awake(struct t_process_context *new_process)
 
 	SAVE_IF_STATUS
 	CLI 
-	//ll_prepend(system.process_info.process_context_list,new_process);	
+	//ll_prepend(system.process_info.process_context_list,new_process);
 	ll_prepend(system.scheduler_desc.scheduler_queue[new_process->curr_sched_queue_index],new_process);
 	RESTORE_IF_STATUS
 }
