@@ -97,6 +97,10 @@ void schedule(struct t_processor_reg *processor_reg)
 				system.process_info.current_process=next;
 				adjust_sched_queue(node);
 				stop=1;
+			}
+			else 
+			{
+				next=ll_next(next);
 			}	
 		}
 		index++; 
