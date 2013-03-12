@@ -37,6 +37,7 @@ void* kmalloc(unsigned int mem_size)
 {		
 	int i;	
 	void *mem_add;
+	int xx=0;
 	SAVE_IF_STATUS
 	CLI	
 	SPINLOCK_LOCK
@@ -48,6 +49,10 @@ void* kmalloc(unsigned int mem_size)
 	{	
 		mem_add=a_fixed_size_alloc(&a_fixed_size_desc[i]);
 	}
+	if (mem_add==0xc1936c26)
+	{
+		xx++;	
+	}
 	SPINLOCK_UNLOCK
 	RESTORE_IF_STATUS
 	return mem_add;
@@ -56,6 +61,7 @@ void* kmalloc(unsigned int mem_size)
 void kfree(void *address) 
 {	
 	unsigned int pool_index;
+	int xx=0;
 
 	SAVE_IF_STATUS
 	CLI	
@@ -64,6 +70,10 @@ void kfree(void *address)
 	while ((pool_index+1)*MEM_TO_POOL<(address-VIRT_MEM_START_ADDR-POOL_START_ADDR))
 	{
 		pool_index++;
+	}
+	if (address==0xc1936c26)
+	{
+		xx++;	
 	}
 	a_fixed_size_free(&a_fixed_size_desc[pool_index],address);
 	SPINLOCK_UNLOCK
