@@ -91,13 +91,13 @@ void schedule(struct t_processor_reg *processor_reg)
 		while(next!=sentinel_node && !stop)
 		{
 			next_process_context=next->val;
-//			if (current_process_context->pid!=next_process_context->pid)
-//			{
+			if (current_process_context->pid!=next_process_context->pid)
+			{
 				do_context_switch(current_process_context,processor_reg,next_process_context);	
 				system.process_info.current_process=next;
-				//adjust_sched_queue(node);
+				adjust_sched_queue(node);
 				stop=1;
-//			}	
+			}	
 		}
 		index++; 
 	}
