@@ -8,6 +8,13 @@
 //#define QUANTUM_DURATION	11931 //10 ms verificare valore piu' appropriato
 #define TICK                    10;  //100ms for each process look cesati pag 260
 
+typedef enum s_proc_status
+{ 
+	RUNNING,
+	SLEEPING
+} 
+t_proc_status;
+
 struct t_tss {
 	unsigned int* ss;
 	unsigned int* esp;
@@ -41,6 +48,7 @@ struct t_process_context {
 	int assigned_sleep_time;
 	unsigned int static_priority;
 	unsigned int curr_sched_queue_index;
+	t_proc_status proc_status;
 };
 
 struct t_process_info {

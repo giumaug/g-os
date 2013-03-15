@@ -61,6 +61,9 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	system.sleep_wait_queue=new_dllist();	
 	system.process_info.process_context_list=new_dllist();
 	system.process_info.next_pid=1;
+	
+	process_context.proc_status=RUNNING;
+	process_context.assigned_sleep_time=0;	
 	process_context.sleep_time=0;
 	process_context.static_priority=0;
 	process_context.curr_sched_queue_index=9;

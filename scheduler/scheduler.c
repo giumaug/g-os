@@ -95,7 +95,10 @@ void schedule(struct t_processor_reg *processor_reg)
 			{
 				do_context_switch(current_process_context,processor_reg,next_process_context);	
 				system.process_info.current_process=next;
-				adjust_sched_queue(node);
+				if (current_process_context->proc_status==RUNNING)
+				{
+					adjust_sched_queue(node);
+				}
 				stop=1;
 			}
 			else 
@@ -191,7 +194,6 @@ void adjust_sched_queue(t_llist_node* node)
 								}	
 							}	
 						}
-						
 					}	
 				}	
 			}
@@ -238,6 +240,7 @@ void _sleep(struct t_processor_reg* processor_reg)
 	CLI         
 	current_process=system.process_info.current_process->val;
 	t_llist_node* current_node=system.process_info.current_process;
+	current_process->proc_status=SLEEPING;
 	schedule(processor_reg);
 	ll_delete_node(current_node);	
 	RESTORE_IF_STATUS 
@@ -366,6 +369,10 @@ void _exec(unsigned int start_addr,unsigned int size)
 	static void* old_page_dir;
 	
 	CLI
+	current_process_context->proc_status=RUNNING;
+	current_process_context->sleep_time=0;
+	current_process_context->assigned_sleep_time=0;
+	current_process_context->static_priority=0;
 	current_process_context=system.process_info.current_process->val;
 	current_process_context->phy_space_size=size;
 	process_space=buddy_alloc_page(&system.buddy_desc,size);
