@@ -63,9 +63,11 @@ void sched_debug()
 		while(next!=sentinel_node)
 		{
 			next_process_context=next->val;
-			t_sched_debug[i][++j]=next_process_context->pid;	
+			t_sched_debug[i][++j]=next_process_context->pid;
+			next=ll_next(next);	
 		} 
 	}
+	return;
 }
 
 void schedule(struct t_processor_reg *processor_reg)
@@ -84,7 +86,7 @@ void schedule(struct t_processor_reg *processor_reg)
 	node=system.process_info.current_process;	
 	//current_process_context=system.process_info.current_process->val;
 	current_process_context=node->val;		
-	while(!stop)
+	while(!stop && index<10)
 	{
 		sentinel_node=ll_sentinel(system.scheduler_desc.scheduler_queue[index]);
 		next=ll_first(system.scheduler_desc.scheduler_queue[index]);
@@ -98,6 +100,8 @@ void schedule(struct t_processor_reg *processor_reg)
 				if (current_process_context->proc_status==RUNNING)
 				{
 					adjust_sched_queue(node);
+					ll_delete_node(node);
+					ll_append(system.scheduler_desc.scheduler_queue[queue_index],current_process_context);
 				}
 				stop=1;
 			}
@@ -200,8 +204,9 @@ void adjust_sched_queue(t_llist_node* node)
 		}		
 	}
 	current_process_context->curr_sched_queue_index=queue_index;
-	ll_delete_node(node);
-	ll_append(system.scheduler_desc.scheduler_queue[queue_index],current_process_context);
+	//ll_delete_node(node);
+	//ll_append(system.scheduler_desc.scheduler_queue[queue_index],current_process_context);
+	sched_debug();
 	return;
 }
 
@@ -246,25 +251,13 @@ void _sleep(struct t_processor_reg* processor_reg)
 	RESTORE_IF_STATUS 
 }
 
-//void _awake(struct t_process_context *new_process,struct t_processor_reg *processor_reg)
-//{
-//	t_llist_node* new_node;
-//
-//	SAVE_IF_STATUS
-//	CLI 
-//	do_context_switch(system.process_info.current_process->val,processor_reg,new_process);
-//	new_node=ll_prepend(system.process_info.process_context_list,new_process);	
-//	system.process_info.current_process=new_node;
-//	RESTORE_IF_STATUS
-//}
-
 void _awake(struct t_process_context *new_process)
 {
 	t_llist_node* new_node;
 
 	SAVE_IF_STATUS
-	CLI 
-	//ll_prepend(system.process_info.process_context_list,new_process);
+	CLI
+	new_process->proc_status=RUNNING;
 	ll_prepend(system.scheduler_desc.scheduler_queue[new_process->curr_sched_queue_index],new_process);
 	RESTORE_IF_STATUS
 }
