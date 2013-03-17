@@ -56,11 +56,9 @@ void int_handler_pit()
 		next_process->assigned_sleep_time-=QUANTUM_DURATION;
 		if (next_process->assigned_sleep_time==0)
 		{		
-			adjust_sched_queue(next);			
-			//next_process->curr_sched_queue_index=queue_index;
-			//next_process->sleep_time=next_process->assigned_sleep_time;
+			adjust_sched_queue(next);----------qui			
 			next_process->assigned_sleep_time=0;
-			//ll_append(system.scheduler_desc.scheduler_queue[queue_index],next_process);
+			ll_append(system.scheduler_desc.scheduler_queue[queue_index],next_process);
 			old_node=next;
 			next=ll_next(next);
 			ll_delete_node(old_node);
