@@ -24,6 +24,7 @@ void init_pit()
 
 void int_handler_pit()
 {	
+	int xx;	
 	int is_schedule=0;
 	short ds;
 	struct t_process_context* process_context;
@@ -54,14 +55,27 @@ void int_handler_pit()
 	while(next!=sentinel)
 	{
 		next_process->assigned_sleep_time-=QUANTUM_DURATION;
+		next_process->sleep_time+=QUANTUM_DURATION;
+		
+		if (next_process->sleep_time>1000) 	
+		{
+			next_process->sleep_time=1000;
+		}
+		else if (next_process->sleep_time<0)
+		{
+			next_process->sleep_time=0;
+		}
+
 		if (next_process->assigned_sleep_time==0)
 		{		
-			adjust_sched_queue(next);----------qui			
+			adjust_sched_queue(next->val);			
 			next_process->assigned_sleep_time=0;
+			queue_index=next_process->curr_sched_queue_index;
 			ll_append(system.scheduler_desc.scheduler_queue[queue_index],next_process);
 			old_node=next;
 			next=ll_next(next);
 			ll_delete_node(old_node);
+			sched_debug();
 		}
 		else 
 		{
@@ -80,12 +94,34 @@ void int_handler_pit()
 		if (sleeping_process!=NULL)
 		{
 			sleeping_process->sleep_time+=QUANTUM_DURATION;
+			if (sleeping_process->sleep_time>1000) 	
+			{
+				sleeping_process->sleep_time=1000;
+			}
+			else if (sleeping_process->sleep_time<0)
+			{		
+				sleeping_process->sleep_time=0;
+			}
 		}
 		process_context=system.process_info.current_process->val;
 		process_context->sleep_time-=QUANTUM_DURATION;
+		
+		if (process_context->sleep_time>1000) 	
+		{
+			process_context->sleep_time=1000;
+		}
+		else if (process_context->sleep_time<0)
+		{
+			process_context->sleep_time=0;
+		}
+
 		process_context->tick--;
 		if (process_context->tick==0) 
 		{
+			if (process_context->pid==1)
+			{
+				xx++;
+			}
 			process_context->tick=TICK;
 			schedule(&processor_reg);
 			is_schedule=1;	
