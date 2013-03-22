@@ -18,3 +18,6 @@ void  process_3()
 	printf("end process_3 \n");
 	exit(0);
 }
+
+
+

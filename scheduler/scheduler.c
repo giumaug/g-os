@@ -13,7 +13,7 @@ extern  t_data data[3];
 extern struct t_llist* kbc_wait_queue;
 extern unsigned int *master_page_dir;
 
-unsigned int t_sched_debug[10][10];
+int t_sched_debug[10][10];
 
 void do_context_switch(struct t_process_context *current_process_context,
 		       struct t_processor_reg *processor_reg,
@@ -55,6 +55,13 @@ void sched_debug()
 	t_llist_node* sentinel_node;
 	unsigned int i,j;
 
+	for (i=0;i<10;i++)
+	{
+		for (j=0;j<10;j++)
+		{
+			t_sched_debug[i][j]=-1;
+		}
+	}
 	for (i=0;i<10;i++)
 	{
 		sentinel_node=ll_sentinel(system.scheduler_desc.scheduler_queue[i]);
@@ -99,8 +106,9 @@ void schedule(struct t_processor_reg *processor_reg)
 				system.process_info.current_process=next;
 				if (current_process_context->proc_status==RUNNING)
 				{
-					adjust_sched_queue(node);
+					adjust_sched_queue(current_process_context);
 					ll_delete_node(node);
+					queue_index=current_process_context->curr_sched_queue_index;
 					ll_append(system.scheduler_desc.scheduler_queue[queue_index],current_process_context);
 				}
 				stop=1;
@@ -112,30 +120,29 @@ void schedule(struct t_processor_reg *processor_reg)
 		}
 		index++; 
 	}
+	sched_debug();
 }
 
-void adjust_sched_queue(t_llist_node* node)
+void adjust_sched_queue(struct t_process_context *current_process_context)
 {
 	int priority;
 	unsigned int queue_index;
-	struct t_process_context *current_process_context;
-	
-	current_process_context=node->val;	
+		
 	//static prioriry range from -10 to 10 default value is 0;
 	priority=current_process_context->sleep_time+(current_process_context->static_priority*10);
 
 	
-	if (priority>1000) 	
-	{
-		priority=1000;
-		current_process_context->sleep_time=1000;
-	}
-	if (priority<0)
-	{
-		priority=0;
-		current_process_context->sleep_time=0;
-	}
-
+//	if (priority>1000) 	
+//	{
+//		priority=1000;
+//		current_process_context->sleep_time=1000;
+//	}
+//	if (priority<0)
+//	{
+//		priority=0;
+//		current_process_context->sleep_time=0;
+//	}
+//
 	if (priority>=0 && priority<100)
 	{
 		queue_index=9;
@@ -242,12 +249,14 @@ void _sleep(struct t_processor_reg* processor_reg)
 {
 	struct t_process_context* current_process;
 	SAVE_IF_STATUS
-	CLI         
+	CLI
+	sched_debug();         
 	current_process=system.process_info.current_process->val;
 	t_llist_node* current_node=system.process_info.current_process;
 	current_process->proc_status=SLEEPING;
 	schedule(processor_reg);
-	ll_delete_node(current_node);	
+	ll_delete_node(current_node);
+	sched_debug();	
 	RESTORE_IF_STATUS 
 }
 
@@ -258,6 +267,7 @@ void _awake(struct t_process_context *new_process)
 	SAVE_IF_STATUS
 	CLI
 	new_process->proc_status=RUNNING;
+	adjust_sched_queue(new_process);
 	ll_prepend(system.scheduler_desc.scheduler_queue[new_process->curr_sched_queue_index],new_process);
 	RESTORE_IF_STATUS
 }
