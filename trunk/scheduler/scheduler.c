@@ -97,6 +97,7 @@ void schedule(struct t_processor_reg *processor_reg)
 	{
 		sentinel_node=ll_sentinel(system.scheduler_desc.scheduler_queue[index]);
 		next=ll_first(system.scheduler_desc.scheduler_queue[index]);
+		sched_debug();
 		while(next!=sentinel_node && !stop)
 		{
 			next_process_context=next->val;
@@ -110,6 +111,7 @@ void schedule(struct t_processor_reg *processor_reg)
 					ll_delete_node(node);
 					queue_index=current_process_context->curr_sched_queue_index;
 					ll_append(system.scheduler_desc.scheduler_queue[queue_index],current_process_context);
+					sched_debug();
 				}
 				stop=1;
 			}
@@ -131,18 +133,6 @@ void adjust_sched_queue(struct t_process_context *current_process_context)
 	//static prioriry range from -10 to 10 default value is 0;
 	priority=current_process_context->sleep_time+(current_process_context->static_priority*10);
 
-	
-//	if (priority>1000) 	
-//	{
-//		priority=1000;
-//		current_process_context->sleep_time=1000;
-//	}
-//	if (priority<0)
-//	{
-//		priority=0;
-//		current_process_context->sleep_time=0;
-//	}
-//
 	if (priority>=0 && priority<100)
 	{
 		queue_index=9;
@@ -308,7 +298,7 @@ void _exit(int status,struct t_processor_reg* processor_reg)
 	}
 	buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(current_process->phy_add_space));
 	kfree(current_node->val);
-	ll_delete_node(current_node);
+	ll_delete_node(current_node);-----qui
 	
 	sentinel=ll_sentinel(system.process_info.pause_queue);
 	next=ll_first(system.process_info.pause_queue);
