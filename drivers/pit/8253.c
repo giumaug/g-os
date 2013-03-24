@@ -70,6 +70,7 @@ void int_handler_pit()
 		{		
 			adjust_sched_queue(next->val);			
 			next_process->assigned_sleep_time=0;
+			next_process->proc_status=RUNNING;
 			queue_index=next_process->curr_sched_queue_index;
 			ll_append(system.scheduler_desc.scheduler_queue[queue_index],next_process);
 			old_node=next;
