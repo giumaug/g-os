@@ -11,7 +11,8 @@
 typedef enum s_proc_status
 { 
 	RUNNING,
-	SLEEPING
+	SLEEPING,
+	EXITING
 } 
 t_proc_status;
 

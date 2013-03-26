@@ -9,6 +9,7 @@ void  process_3()
 {
 	int i,j;
 
+//sleep(10000);
 	printf("start process_3 \n");
 	for (i=0;i<data[1].iteration;i++)
 	{
