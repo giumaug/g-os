@@ -49,7 +49,7 @@ void* kmalloc(unsigned int mem_size)
 	{	
 		mem_add=a_fixed_size_alloc(&a_fixed_size_desc[i]);
 	}
-	if (mem_add==0xc1936c26)
+	if (mem_add==0xc1936c86)
 	{
 		xx++;	
 	}
@@ -71,7 +71,7 @@ void kfree(void *address)
 	{
 		pool_index++;
 	}
-	if (address==0xc1936c26)
+	if (address==0xc1936c86)
 	{
 		xx++;	
 	}

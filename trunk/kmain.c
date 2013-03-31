@@ -15,18 +15,11 @@
 extern unsigned int PAGE_DIR;
 t_system system;
 
-t_data data[3]=
-{
-	{100,50000000,10},//4 sec on home 3 sec at work 10=100ms
-	{5000,50000000,10}, //1s
-	{10000,50000000,10}  //10s
-};
-
 //t_data data[3]=
 //{
-//	{100,50000000,10},//4 sec on home 3 sec at work
-//	{100,50000000,10},
-//	{100,50000000,10}
+//	{100,50000000,10},//4 sec on home 3 sec at work 10=100ms
+//	{1000,50000000,10}, //1s
+//	{10000,50000000,10}  //10s
 //};
 
 void kmain( void* mbd, unsigned int magic,int init_data_add)
