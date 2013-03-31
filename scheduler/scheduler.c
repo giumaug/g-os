@@ -8,7 +8,6 @@
 #include "process/process_1.h"
 
 extern t_system system;
-extern  t_data data[3];
 
 extern struct t_llist* kbc_wait_queue;
 extern unsigned int *master_page_dir;
@@ -91,7 +90,6 @@ void schedule(struct t_processor_reg *processor_reg)
 
 	index=0;
 	node=system.process_info.current_process;	
-	//current_process_context=system.process_info.current_process->val;
 	current_process_context=node->val;		
 	while(!stop && index<10)
 	{
@@ -101,8 +99,8 @@ void schedule(struct t_processor_reg *processor_reg)
 		while(next!=sentinel_node && !stop)
 		{
 			next_process_context=next->val;
-//			if (current_process_context->pid!=next_process_context->pid)
-//			{
+			if (current_process_context->pid!=next_process_context->pid)
+			{
 				do_context_switch(current_process_context,processor_reg,next_process_context);	
 				system.process_info.current_process=next;
 				if (current_process_context->proc_status==RUNNING)
@@ -114,11 +112,11 @@ void schedule(struct t_processor_reg *processor_reg)
 					sched_debug();
 				}
 				stop=1;
-//			}
-//			else 
-//			{
-//				next=ll_next(next);
-//			}	
+			}
+			else 
+			{
+				next=ll_next(next);
+			}	
 		}
 		index++; 
 	}
@@ -201,13 +199,8 @@ void adjust_sched_queue(struct t_process_context *current_process_context)
 		}		
 	}
 	current_process_context->curr_sched_queue_index=queue_index;
-	//ll_delete_node(node);
-	//ll_append(system.scheduler_desc.scheduler_queue[queue_index],current_process_context);
-	sched_debug();
 	return;
 }
-
-
 
 //void schedule(struct t_processor_reg *processor_reg)
 //{
@@ -259,6 +252,7 @@ void _awake(struct t_process_context *new_process)
 	new_process->proc_status=RUNNING;
 	adjust_sched_queue(new_process);
 	ll_prepend(system.scheduler_desc.scheduler_queue[new_process->curr_sched_queue_index],new_process);
+	sched_debug();----qui
 	RESTORE_IF_STATUS
 }
 
@@ -298,9 +292,6 @@ void _exit(int status,struct t_processor_reg* processor_reg)
 	}
 	current_process->proc_status=EXITING;
 	buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(current_process->phy_add_space));
-	kfree(current_node->val);
-	//ll_delete_node(current_node);
-	
 	sentinel=ll_sentinel(system.process_info.pause_queue);
 	next=ll_first(system.process_info.pause_queue);
 	next_process=next->val;
@@ -312,7 +303,6 @@ void _exit(int status,struct t_processor_reg* processor_reg)
 		}
 		if (awake_process)
 		{
-			//_awake(next->val,processor_reg);
 			_awake(next->val);
 			ll_delete_node(next);
 		}
@@ -320,7 +310,8 @@ void _exit(int status,struct t_processor_reg* processor_reg)
 		next_process=next->val;
 	}
 	//IF PARENT PROCESS SLEEP AWAKE OTHERWISE (ZOMBIE PROCESS) SCHEDULE
-	if (!awake_process) schedule(processor_reg);
+	schedule(processor_reg);	
+	kfree(current_node->val);	
 	ll_delete_node(current_node);
 	sched_debug();
 	RESTORE_IF_STATUS
