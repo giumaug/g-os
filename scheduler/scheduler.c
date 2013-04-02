@@ -252,7 +252,7 @@ void _awake(struct t_process_context *new_process)
 	new_process->proc_status=RUNNING;
 	adjust_sched_queue(new_process);
 	ll_prepend(system.scheduler_desc.scheduler_queue[new_process->curr_sched_queue_index],new_process);
-	sched_debug();----qui
+	sched_debug();
 	RESTORE_IF_STATUS
 }
 
