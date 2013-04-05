@@ -1,11 +1,12 @@
 #include "asm.h" 
-#include "drivers/ata/ata.h" 
+#include "drivers/ata/ata.h"
+
+t_ata_request *current_ata_request; 
 
 void init_ata()
 {	
 	struct t_i_desc i_desc;
 	
-	in_buf=new_queue();
 	i_desc.baseLow=((int)&int_handler_ata) & 0xFFFF;
 	i_desc.selector=0x8;
 	i_desc.flags=0x0EF00;
@@ -20,20 +21,34 @@ void free_ata()
 
 void int_handler_ata()
 {
+	//Input (E)CX words from port DX into ES:[(E)DI]
 
+	asm("push %ecx");
+	asm("push %edx");
+	asm("push %edi");
+	asm("mov $0x80,%ecx");
+	asm("mov $0x1F0,%edx");
+	asm ("movl %0,%%edi;"::"r"(ata_request->io_buffer));                                  
+	asm("rep insw");
+	EOI
+	_awake(ata_request->process_context);
 }
 
-void read_28_ata(unsigned int lba)
+void _read_28_ata(t_ata_request *ata_request)
 {
-//Send 0xE0 for the "master" or 0xF0 for the "slave", ORed with the highest 4 bits of the LBA to port 0x1F6: outb(0x1F6, 0xE0 | (slavebit << 4) | ((LBA >> 24) & 0x0F))
-//Send a NULL byte to port 0x1F1, if you like (it is ignored and wastes lots of CPU time): outb(0x1F1, 0x00)
-//Send the sectorcount to port 0x1F2: outb(0x1F2, (unsigned char) count)
-//Send the low 8 bits of the LBA to port 0x1F3: outb(0x1F3, (unsigned char) LBA))
-//Send the next 8 bits of the LBA to port 0x1F4: outb(0x1F4, (unsigned char)(LBA >> 8))
-//Send the next 8 bits of the LBA to port 0x1F5: outb(0x1F5, (unsigned char)(LBA >> 16))
-//Send the "READ SECTORS" command (0x20) to port 0x1F7: outb(0x1F7, 0x20) 
-	out(0x1F6, 0xE0 | (LBA >> 24))
-
+	SAVE_IF_STATUS
+	CLI
+	//sleep process if dirver locked by other request
+	current_ata_request=ata_request;	
+	out(0xE0 | (lba >> 24),0x1F6);
+	out(0x00,0x1F1);
+	out((unsigned char)sector_count,0x1F2);
+	out((unsigned char)lba,0x1F3);
+	out((unsigned char)(lba >> 8),0x1F4);
+	out((unsigned char)(lba >> 16),0x1F5);
+	out(0x20,0x1F7);
+	_sleep(struct t_processor_reg* processor_reg);
+	RESTORE_IF_STATUS 
 }
 
 void write_28_ata()

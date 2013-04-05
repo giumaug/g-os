@@ -95,7 +95,6 @@ void schedule(struct t_processor_reg *processor_reg)
 	{
 		sentinel_node=ll_sentinel(system.scheduler_desc.scheduler_queue[index]);
 		next=ll_first(system.scheduler_desc.scheduler_queue[index]);
-		sched_debug();
 		while(next!=sentinel_node && !stop)
 		{
 			next_process_context=next->val;
@@ -109,7 +108,6 @@ void schedule(struct t_processor_reg *processor_reg)
 					ll_delete_node(node);
 					queue_index=current_process_context->curr_sched_queue_index;
 					ll_append(system.scheduler_desc.scheduler_queue[queue_index],current_process_context);
-					sched_debug();
 				}
 				stop=1;
 			}
@@ -120,7 +118,6 @@ void schedule(struct t_processor_reg *processor_reg)
 		}
 		index++; 
 	}
-	sched_debug();
 }
 
 void adjust_sched_queue(struct t_process_context *current_process_context)
@@ -232,14 +229,12 @@ void _sleep(struct t_processor_reg* processor_reg)
 {
 	struct t_process_context* current_process;
 	SAVE_IF_STATUS
-	CLI
-	sched_debug();         
+	CLI        
 	current_process=system.process_info.current_process->val;
 	t_llist_node* current_node=system.process_info.current_process;
 	current_process->proc_status=SLEEPING;
 	schedule(processor_reg);
-	ll_delete_node(current_node);
-	sched_debug();	
+	ll_delete_node(current_node);	
 	RESTORE_IF_STATUS 
 }
 
@@ -252,7 +247,6 @@ void _awake(struct t_process_context *new_process)
 	new_process->proc_status=RUNNING;
 	adjust_sched_queue(new_process);
 	ll_prepend(system.scheduler_desc.scheduler_queue[new_process->curr_sched_queue_index],new_process);
-	sched_debug();
 	RESTORE_IF_STATUS
 }
 
@@ -313,7 +307,6 @@ void _exit(int status,struct t_processor_reg* processor_reg)
 	schedule(processor_reg);	
 	kfree(current_node->val);	
 	ll_delete_node(current_node);
-	sched_debug();
 	RESTORE_IF_STATUS
 }
 
