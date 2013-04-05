@@ -18,6 +18,7 @@ void syscall_handler()
 	static struct t_processor_reg processor_reg;
 	int* params;
 	char data;
+	t_ata_request *ata_request;
  	
 	SAVE_PROCESSOR_REG
 	SWITCH_DS_TO_KERNEL_MODE
@@ -109,6 +110,17 @@ void syscall_handler()
 		_sleep_time(params[0],&processor_reg);	
 		goto exit_2; 
 	}
+	else if (syscall_num==16) 
+	{
+		ata_request=kmalloc(sizeof(t_ata_request));
+		ata_request->io_buffer=params[2];
+		ata_request->lba=params[0];
+		ata_request->sector_count=params[1];
+		ata_request->process_context=current_process_context;
+		_read_28_ata(ata_request);
+		goto exit_2; 
+	}
+
 exit_1:
         SWITCH_DS_TO_USER_MODE
 	RESTORE_PROCESSOR_REG

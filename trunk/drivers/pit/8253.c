@@ -76,7 +76,6 @@ void int_handler_pit()
 			old_node=next;
 			next=ll_next(next);
 			ll_delete_node(old_node);
-			sched_debug();
 		}
 		else 
 		{

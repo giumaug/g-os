@@ -43,4 +43,13 @@ extern inline int sleep(unsigned int time)
 	SYSCALL(15,params);
 }
 
+extern inline int read_sector(unsigned int lba,unsigned int sector_count,void *io_buffer)
+{
+	unsigned int params[1];
+	params[0]=lba;
+	params[1]=sector_count;
+	params[2]=io_buffer;	
+	SYSCALL(16,params);
+}
+
 #endif
