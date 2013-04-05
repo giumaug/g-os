@@ -7,6 +7,15 @@ void selection(int elements[], int array_size);
 
 void process_1()
 {
+	void *io_buffer;
+	buffer=malloc(512);
+	read_sector(100,1,io_buffer);
+	exit(0);
+}
+
+/*-------------------------------------
+void process_1()
+{
 	int i=0;	
 	int pid;
 	for (i=0;i<=10;i++)
@@ -18,6 +27,7 @@ void process_1()
 		}
 	}
 	exit(0);
+---------------------------------------*/
 
 
 /*--------------------------------
