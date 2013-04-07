@@ -8,6 +8,7 @@
 #include "process/process_0.h"
 #include "lib/math.h"
 #include "drivers/kbc/8042.h"
+#include "drivers/ata/ata.h"
 #include "general.h"
 #include "system.h"
 #include "process/process_1.h"
@@ -45,6 +46,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
    	init_pic();
    	init_pit();
 	init_kbc();
+	init_ata();
 	init_console(&console_desc,4000,0);
 	buddy_init(&system.buddy_desc);
 	init_scheduler();

@@ -1,7 +1,10 @@
 #include "asm.h" 
+#include "idt.h" 
 #include "drivers/ata/ata.h"
 
-t_ata_request *current_ata_request; 
+t_ata_request static *current_ata_request;
+
+void static int_handler_ata(); 
 
 void init_ata()
 {	
@@ -10,7 +13,7 @@ void init_ata()
 	i_desc.baseLow=((int)&int_handler_ata) & 0xFFFF;
 	i_desc.selector=0x8;
 	i_desc.flags=0x0EF00;
-	i_desc.baseHi=((int)&int_handler_kbc)>>0x10;
+	i_desc.baseHi=((int)&int_handler_ata)>>0x10;
 	set_idt_entry(0x2E,&i_desc);
 }
 
@@ -28,10 +31,10 @@ void int_handler_ata()
 	asm("push %edi");
 	asm("mov $0x80,%ecx");
 	asm("mov $0x1F0,%edx");
-	asm ("movl %0,%%edi;"::"r"(ata_request->io_buffer));                                  
+	asm ("movl %0,%%edi;"::"r"(current_ata_request->io_buffer));                                  
 	asm("rep insw");
 	EOI
-	_awake(ata_request->process_context);
+	_awake(current_ata_request->process_context);
 }
 
 void _read_28_ata(t_ata_request *ata_request)
@@ -40,14 +43,14 @@ void _read_28_ata(t_ata_request *ata_request)
 	CLI
 	//sleep process if dirver locked by other request
 	current_ata_request=ata_request;	
-	out(0xE0 | (lba >> 24),0x1F6);
+	out(0xE0 | (ata_request->lba >> 24),0x1F6);
 	out(0x00,0x1F1);
-	out((unsigned char)sector_count,0x1F2);
-	out((unsigned char)lba,0x1F3);
-	out((unsigned char)(lba >> 8),0x1F4);
-	out((unsigned char)(lba >> 16),0x1F5);
+	out((unsigned char)ata_request->sector_count,0x1F2);
+	out((unsigned char)ata_request->lba,0x1F3);
+	out((unsigned char)(ata_request->lba >> 8),0x1F4);
+	out((unsigned char)(ata_request->lba >> 16),0x1F5);
 	out(0x20,0x1F7);
-	_sleep(struct t_processor_reg* processor_reg);
+	_sleep(&ata_request->process_context->processor_reg);
 	RESTORE_IF_STATUS 
 }
 
@@ -55,6 +58,3 @@ void write_28_ata()
 {
 
 }
-
-
-

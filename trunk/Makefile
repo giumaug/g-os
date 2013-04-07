@@ -24,6 +24,7 @@ all:	kmain.o                       \
 	drivers/pit/*.o               \
 	drivers/pic/*.o               \
 	drivers/kbc/*.o               \
+	drivers/ata/*.o               \
 	process/*.o                   \
 	data_types/*.o                
 

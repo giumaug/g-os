@@ -75,7 +75,7 @@ extern inline void exit(int status)
 extern inline void *malloc(unsigned int mem_size) 
 {
 	int params[2];
-	params[0]=&mem_size;
+	params[0]=mem_size;
 	params[1]=NULL;
 	SYSCALL(2,params);
 	return params[1];

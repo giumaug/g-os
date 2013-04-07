@@ -5,7 +5,6 @@
 
 void init_kbc();
 void free_kbc();
-void int_handler_kbc();
 char read_buf();
 
 #endif
