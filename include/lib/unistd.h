@@ -10,6 +10,7 @@ extern inline int pause(void) __attribute__((always_inline));
 extern inline int fork() __attribute__((always_inline));
 extern inline int exec(unsigned int start_addr,unsigned int size) __attribute__((always_inline));
 extern inline int sleep(unsigned int time) __attribute__((always_inline));
+extern inline int read_sector(unsigned int lba,unsigned int sector_count,void *io_buffer) __attribute__((always_inline));
 
 extern inline int exec(unsigned int start_addr,unsigned int size) 
 {

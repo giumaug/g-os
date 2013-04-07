@@ -275,6 +275,8 @@ char uppercase_charset[0x80] = {
 static t_queue* in_buf;
 static t_llist* wait_queue; 
 
+void static int_handler_kbc();
+
 void init_kbc()
 {	
 	struct t_i_desc i_desc;
