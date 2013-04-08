@@ -32,9 +32,10 @@ void int_handler_ata()
 	asm("mov $0x80,%ecx");
 	asm("mov $0x1F0,%edx");
 	asm ("movl %0,%%edi;"::"r"(current_ata_request->io_buffer));                                  
-	asm("rep insw");
+	//asm("rep insw");
 	EOI
 	_awake(current_ata_request->process_context);
+	RET_FROM_INT_HANDLER
 }
 
 void _read_28_ata(t_ata_request *ata_request)
@@ -51,7 +52,7 @@ void _read_28_ata(t_ata_request *ata_request)
 	out((unsigned char)(ata_request->lba >> 16),0x1F5);
 	out(0x20,0x1F7);
 	_sleep(&ata_request->process_context->processor_reg);
-	RESTORE_IF_STATUS 
+	RESTORE_IF_STATUS
 }
 
 void write_28_ata()
