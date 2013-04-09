@@ -24,17 +24,20 @@ void free_ata()
 
 void int_handler_ata()
 {
-	//Input (E)CX words from port DX into ES:[(E)DI]
+	struct t_processor_reg processor_reg;
 
-	asm("push %ecx");
-	asm("push %edx");
-	asm("push %edi");
-	asm("mov $0x80,%ecx");
-	asm("mov $0x1F0,%edx");
-	asm ("movl %0,%%edi;"::"r"(current_ata_request->io_buffer));                                  
+	SAVE_PROCESSOR_REG
+	//Input (E)CX words from port DX into ES:[(E)DI]
+	//asm("push %ecx");
+	//asm("push %edx");
+	//asm("push %edi");
+	//asm("mov $0x80,%ecx");
+	//asm("mov $0x1F0,%edx");
+	//asm ("movl %0,%%edi;"::"r"(current_ata_request->io_buffer));                                  
 	//asm("rep insw");
 	EOI
 	_awake(current_ata_request->process_context);
+	RESTORE_PROCESSOR_REG
 	RET_FROM_INT_HANDLER
 }
 

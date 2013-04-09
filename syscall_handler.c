@@ -10,6 +10,7 @@ extern t_system system;
 
 void syscall_handler()
 {
+	int xx=0;	
 	static int free_vm_proc;        
 	int syscall_num;
 	unsigned int mem_size;
@@ -131,6 +132,10 @@ exit_2:;
 	//NOT USED SAVE_IF_STATUS BECAUSE PAGE SWITCH
 	CLI
 	current_process_context=system.process_info.current_process->val;
+	if (current_process_context->pid==0) 
+	{
+		xx++;
+	}
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir)))
 	if (free_vm_proc) 
 	{
