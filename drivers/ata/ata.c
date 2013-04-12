@@ -36,7 +36,7 @@ void int_handler_ata()
 	//asm ("movl %0,%%edi;"::"r"(current_ata_request->io_buffer));                                  
 	//asm("rep insw");
 	EOI
-	_awake(current_ata_request->process_context);
+	//_awake(current_ata_request->process_context);
 	RESTORE_PROCESSOR_REG
 	RET_FROM_INT_HANDLER
 }
