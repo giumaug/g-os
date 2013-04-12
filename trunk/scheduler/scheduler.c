@@ -18,7 +18,12 @@ void do_context_switch(struct t_process_context *current_process_context,
 		       struct t_processor_reg *processor_reg,
 		       struct t_process_context *new_process_context)
 {
+	//int pp=0;
 	*(system.process_info.tss.esp)=0x1FFFFF;
+	//if (current_process_context->pid==0)
+	//{
+	//	pp++;
+	//}
 	//save current process state 
 	current_process_context->processor_reg.eax=processor_reg->eax;
 	current_process_context->processor_reg.ebx=processor_reg->ebx;
