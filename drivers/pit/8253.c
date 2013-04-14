@@ -24,7 +24,6 @@ void init_pit()
 
 void int_handler_pit()
 {	
-	int xx;	
 	int is_schedule=0;
 	short ds;
 	struct t_process_context* process_context;
@@ -118,10 +117,6 @@ void int_handler_pit()
 		process_context->tick--;
 		if (process_context->tick==0) 
 		{
-			if (process_context->pid==1)
-			{
-				xx++;
-			}
 			process_context->tick=TICK;
 			schedule(&processor_reg);
 			is_schedule=1;	
