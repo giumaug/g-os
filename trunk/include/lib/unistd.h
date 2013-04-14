@@ -10,7 +10,8 @@ extern inline int pause(void) __attribute__((always_inline));
 extern inline int fork() __attribute__((always_inline));
 extern inline int exec(unsigned int start_addr,unsigned int size) __attribute__((always_inline));
 extern inline int sleep(unsigned int time) __attribute__((always_inline));
-extern inline int read_sector(unsigned int lba,unsigned int sector_count,void *io_buffer) __attribute__((always_inline));
+extern inline int read_sector(unsigned int lba,unsigned int sector_count,void *read_buffer) __attribute__((always_inline));
+extern inline int write_sector(unsigned int lba,unsigned int sector_count,void *write_buffer) __attribute__((always_inline));
 
 extern inline int exec(unsigned int start_addr,unsigned int size) 
 {
@@ -44,13 +45,22 @@ extern inline int sleep(unsigned int time)
 	SYSCALL(15,params);
 }
 
-extern inline int read_sector(unsigned int lba,unsigned int sector_count,void *io_buffer)
+extern inline int read_sector(unsigned int lba,unsigned int sector_count,void *read_buffer)
 {
 	unsigned int params[1];
 	params[0]=lba;
 	params[1]=sector_count;
-	params[2]=io_buffer;	
+	params[2]=read_buffer;	
 	SYSCALL(16,params);
+}
+
+extern inline int write_sector(unsigned int lba,unsigned int sector_count,void *write_buffer)
+{
+	unsigned int params[1];
+	params[0]=lba;
+	params[1]=sector_count;
+	params[2]=write_buffer;	
+	SYSCALL(17,params);
 }
 
 #endif

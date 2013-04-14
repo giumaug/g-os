@@ -7,9 +7,17 @@ void selection(int elements[], int array_size);
 
 void process_1()
 {
-	void *io_buffer;
-	io_buffer=malloc(512);
-	read_sector(100,1,io_buffer);
+	void *write_buffer;
+	void *read_buffer;
+	int i;
+
+	write_buffer=malloc(512);
+	for (i=0;i<512;i++)
+ 	{
+		((char*)write_buffer)[i]=(unsigned char)i;
+	}
+	write_sector(100,1,write_buffer);
+	read_sector(100,1,read_buffer);
 	exit(0);
 }
 

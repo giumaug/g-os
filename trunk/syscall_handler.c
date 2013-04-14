@@ -118,7 +118,19 @@ void syscall_handler()
 		ata_request->lba=params[0];
 		ata_request->sector_count=params[1];
 		ata_request->process_context=current_process_context;
-		_read_28_ata(ata_request);
+		ata_request->cmd=READ_28;
+		_read_28_ata(ata_request,&processor_reg);
+		goto exit_2; 
+	}
+	else if (syscall_num==17) 
+	{
+		ata_request=kmalloc(sizeof(t_ata_request));
+		ata_request->io_buffer=params[2];
+		ata_request->lba=params[0];
+		ata_request->sector_count=params[1];
+		ata_request->process_context=current_process_context;
+		ata_request->cmd=WRITE_28;
+		_write_28_ata(ata_request,&processor_reg);
 		goto exit_2; 
 	}
 
