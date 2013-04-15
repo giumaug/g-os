@@ -66,6 +66,7 @@ void _read_28_ata(t_ata_request *ata_request,struct t_processor_reg* processor_r
 
 void _write_28_ata(t_ata_request *ata_request,struct t_processor_reg* processor_reg)
 {
+	int i=0;	
 	SAVE_IF_STATUS
 	CLI
 	//sleep process if dirver locked by other request
@@ -76,17 +77,18 @@ void _write_28_ata(t_ata_request *ata_request,struct t_processor_reg* processor_
 	out((unsigned char)ata_request->lba,0x1F3);
 	out((unsigned char)(ata_request->lba >> 8),0x1F4);
 	out((unsigned char)(ata_request->lba >> 16),0x1F5);
+	out(WRITE_28,0x1F7);
+	for(i=0;i<=1000000;i++);
 	asm("push %ecx");
 	asm("push %edx");
 	asm("push %edi");
 	asm("mov $0x80,%ecx");
 	asm("mov $0x1F0,%edx");
-	out(WRITE_28,0x1F7);
 	asm ("movl %0,%%edi;"::"r"(current_ata_request->io_buffer));                                  
 	asm("rep outsw");
 	asm("pop %edi");
 	asm("pop %edx");
 	asm("pop %ecx");
-	_sleep(processor_reg);
+	//_sleep(processor_reg);
 	RESTORE_IF_STATUS
 }
