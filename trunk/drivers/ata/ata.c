@@ -78,7 +78,12 @@ void _write_28_ata(t_ata_request *ata_request,struct t_processor_reg* processor_
 	out((unsigned char)(ata_request->lba >> 8),0x1F4);
 	out((unsigned char)(ata_request->lba >> 16),0x1F5);
 	out(WRITE_28,0x1F7);
-	for(i=0;i<=1000000;i++);
+	for(i=0;i<=10000;i++);
+	//(inb(iobase + ATA_STATUS) & ATA_STATUS_ERR) 
+	if (in(0x1F7) & 1)
+	{
+		i++;
+	}
 	asm("push %ecx");
 	asm("push %edx");
 	asm("push %edi");
