@@ -74,21 +74,23 @@ void _write_28_ata(t_ata_request *ata_request,struct t_processor_reg* processor_
 	CLI
 	//sleep process if dirver locked by other request
 	current_ata_request=ata_request;	
-	out(0xE0 | (ata_request->lba >> 24),0x1F6);
+	out(0x60 | (ata_request->lba >> 24),0x1F6);
         //outb(iobase + ATA_DRV_HEAD, 0xa0 | (device->position << 4)); udelay(1);  
 	//out(0x00,0x1F1);
-	for(i=0;i<=10000000;i++);
-	kk=in(0x1F7);
-	for(i=0;i<=10000000;i++);
+	//for(i=0;i<=10000000;i++);
+	//kk=in(0x1F7);
+	//for(i=0;i<=10000000;i++);
 	out((unsigned char)ata_request->sector_count,0x1F2);
 	out((unsigned char)ata_request->lba,0x1F3);
 	out((unsigned char)(ata_request->lba >> 8),0x1F4);
 	out((unsigned char)(ata_request->lba >> 16),0x1F5);
-	for(i=0;i<=10000000;i++);
-	kk=in(0x1F7);
-	for(i=0;i<=10000000;i++);
-	out(WRITE_28,0x1F7);
+	//for(i=0;i<=10000000;i++);
+	//kk=in(0x1F7);
+	//for(i=0;i<=10000000;i++);
+	out(0x30,0x1F7);
 	for(i=0;i<=1000000;i++);
+	//kk=in(0x3F6);
+	//for(i=0;i<=1000000;i++);
 	kk=in(0x1F7);
 	//(inb(iobase + ATA_STATUS) & ATA_STATUS_ERR) 
 	//if (in(0x1F7) & 1)
@@ -107,10 +109,15 @@ void _write_28_ata(t_ata_request *ata_request,struct t_processor_reg* processor_
 //	asm("pop %edx");
 //	asm("pop %ecx");
 
-	for (i =0;i<512;i++)
+	for (i=0;i<512;i++)
 	{  
-		out(*(char*)io_buffer++,0x1F0);  
+		//out(*(char*)io_buffer++,0x1F0);
+		for(i=0;i<=100000;i++);
+		out(6,0x1F0);  
 	}
 	//_sleep(processor_reg);
+	//kk=in(0x1F7);
+	//out(0xE7,0x1F7);
+//	kk=in(0x3F6);
 	RESTORE_IF_STATUS
 }

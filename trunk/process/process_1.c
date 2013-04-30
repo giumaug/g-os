@@ -12,11 +12,12 @@ void process_1()
 	int i;
 
 	write_buffer=malloc(512);
+	read_buffer=malloc(512);
 	for (i=0;i<512;i++)
  	{
 		((char*)write_buffer)[i]=(unsigned char)i;
 	}
-	write_sector(100,1,write_buffer);
+	write_sector(1,1,write_buffer);
 	//read_sector(100,1,read_buffer);
 	exit(0);
 }
