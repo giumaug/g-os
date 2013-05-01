@@ -70,20 +70,17 @@ void _write_28_ata(t_ata_request *ata_request,struct t_processor_reg* processor_
 	int z=0;
 	int kk;
 	void *io_buffer;	
-	//SAVE_IF_STATUS
-	//CLI
-	//out(0x4,0x3F6);
+	SAVE_IF_STATUS
+	CLI
 	//sleep process if dirver locked by other request
 	current_ata_request=ata_request;	
 	out(0xE0 | (ata_request->lba >> 24),0x1F6);
 	//out(0x00,0x1F1);
-	for(i=0;i<=1000000;i++);
 	out((unsigned char)ata_request->sector_count,0x1F2);
 	out((unsigned char)ata_request->lba,0x1F3);
 	out((unsigned char)(ata_request->lba >> 8),0x1F4);
 	out((unsigned char)(ata_request->lba >> 16),0x1F5);
 	out(WRITE_28,0x1F7);
-	for(i=0;i<=1000000;i++);
 	kk=in(0x1F7);
 	//(inb(iobase + ATA_STATUS) & ATA_STATUS_ERR) 
 	//if (in(0x1F7) & 1)
@@ -107,7 +104,8 @@ void _write_28_ata(t_ata_request *ata_request,struct t_processor_reg* processor_
 		//out(*(char*)io_buffer++,0x1F0); 
 		out((unsigned char)55,0x1F0);  
 	}
-	out(0xE7,0x1F7);
-	_sleep(processor_reg);
-	//RESTORE_IF_STATUS
+	kk=in(0x1F7);
+	//_sleep(processor_reg);
+	RESTORE_IF_STATUS
+	while(1);
 }
