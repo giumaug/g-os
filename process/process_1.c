@@ -18,7 +18,7 @@ void process_1()
 		((char*)write_buffer)[i]=(unsigned char)i;
 	}
 	write_sector(100,1,write_buffer);
-	//read_sector(100,1,read_buffer);
+	//read_sector(0,1,read_buffer);
 	exit(0);
 }
 
