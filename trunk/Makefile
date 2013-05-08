@@ -77,8 +77,8 @@ install_remote:all
 	scp ./kernel.bin root@192.168.1.215:/boot/
 
 bochs:all
-	mount /dev/loop1 /mnt
-	cp /home/peppe/Desktop/g-os/kernel.bin /mnt/boot/kernel.bin
+	mount /dev/loop7 /mnt
+	cp /home/peppe2/Desktop/g-os/kernel.bin /mnt/boot/kernel.bin
 	umount /mnt
 clean:	
 	rm -f kmain.o idt.o syscall_handler.o asm.o loader.o kernel_init.o
