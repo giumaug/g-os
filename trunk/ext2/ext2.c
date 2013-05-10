@@ -1,3 +1,5 @@
+
+
 typedef struct s_superblock
 {
 	u32 inodes_count; 
@@ -13,24 +15,31 @@ typedef struct s_superblock
 	u32 inodes_per_group;
 	u32 mtime;
 	u32 wtime;
+	
 	u16 mnt_count;
 	u16 max_mnt_count;
 	u16 magic; 
 	u16 state; 
 	u16 errors;
 	u16 minor_rev_level;
+	
 	u32 lastcheck;
 	u32 checkinterval;
 	u32 creator_os;	
 	u32 rev_level;
+	
 	u16 def_resuid;
 	u16 def_resgid;
+	
 	u32 first_ino;
+	
 	u16 inode_size;
 	u16 block_group_nr;
+	
 	u32 feature_compat;
 	u32 feature_incompat;
 	u32 feature_ro_compat;
+	
 	u8[16] uuid;
 	char[16] volume_name;
 	char[64] last_mounted;
@@ -57,22 +66,24 @@ t_group_block;
 
 typedef struct s_ext2
 {
-	t_superblock superblock;
-	t_group_block group_block;
+	t_superblock *superblock;
+	t_group_block **group_block;
+	u32 partition_start_sector; 
  
 }
 t_ext2;
 
 void init_ext2(t_ext2 *ext2)
 {
-	read_superblock(ext2->superblock);
+	ext2>partition_start_sector=lookup_partition(1);	
+	read_superblock(ext2->superblock,ext2>partition_start_sector);
 	read_group_block(ext2->group_block);
 
 }
 
 void free_ext2()
 {
-
+	//remember to free all allocated memory!!!!!!!!
 }
 
 void alloc_inode() 
@@ -95,21 +106,24 @@ void free_block()
 
 }
 
-void static read_superblock(t_superblock *superblock)
+void static read_superblock(t_ext2 *ext2)
 {
+	t_superblock *superblock;	
 	t_ata_request *ata_request;
 	void *io_buffer;
 	
+	superblock=kmalloc(sizeof(t_superblock));
+	ext2->superblock=superblock;	
 	ata_request=kmalloc(sizeof(t_ata_request));
 	io_buffer=kmalloc(512);
 	
 	ata_request->io_buffer=io_buffer;
-	ata_request->lba=0;
-	ata_request->sector_count=1;
+	ata_request->lba=1024+partition_start_sector;
+	ata_request->sector_count=2;
 	ata_request->process_context=NULL;
 	ata_request->cmd=READ_28;
 
-	_read_28_ata(ata_request,&processor_reg,FALSE);
+	_read_28_ata(ata_request,NULL,TRUE);
 	
 	//u32
 	superblock->inodes_count=io_buffer[0];        
@@ -145,30 +159,94 @@ void static read_superblock(t_superblock *superblock)
 	//u16
 	superblock->inode_size=io_buffer[88];
 	superblock->block_group_nr=io_buffer[90];
+	//u32
 	superblock->feature_compat=io_buffer[92];
-	//u32
-	superblock->feature_incompat=io_buffer[94];
-	superblock->feature_ro_compat=io_buffer[98];
-	//u8[16]	
-	superblock->uuid=io_buffer[102];
-	//u16
-	superblock->volume_name=io_buffer[118];
+	superblock->feature_incompat=io_buffer[96];
+	superblock->feature_ro_compat=io_buffer[100];
+	//u8[16]
+	kmemcpy(&superblock->uuid,&io_buffer[104],16);	
+	//s8[16]
+	kmemcpy(&superblock->volume_name,&io_buffer[120],16);
 	//u64
-	superblock->last_mounted=io_buffer[120];
+	kmemcpy(&superblock->last_mounted,&io_buffer[136],64);
 	//u32
-	superblock->algorithm_usage_bitmap=io_buffer[184]; 
+	superblock->algorithm_usage_bitmap=io_buffer[200]); 
 	//u8
-	superblock->prealloc_blocks=io_buffer[188];         
-	superblock->prealloc_dir_blocks=io_buffer[189];
+	superblock->prealloc_blocks=io_buffer[204];         
+	superblock->prealloc_dir_blocks=io_buffer[205];
 	//u16
-	superblock->padding1=io_buffer[190];
+	superblock->padding1=io_buffer[206];
 	//u32[204]
-	superblock->reserved=io_buffer[192]; 
+	kmemcpy(&superblock->reserved,&io_buffer[208],204);
+	kfree(io_buffer);
+	kfree(ata_request);
 }
 
-void static read_group_block(t_group_block *group_block)
+read_group_block(ext2->group_block,)
 {
+	u32 block_in_group;
+	u32 sector_count;
+	t_group_block *group_block;
 
+	block_group_nr=ext2->superblock->s_block_count/(8*ext2->superblock->s_log_block_size);	
+	sector_count=block_group_nr*ext2->superblock->s_log_block_size/512;
+
+	ata_request=kmalloc(sizeof(t_ata_request));
+	io_buffer=kmalloc(512*sector_count);
+	
+	
+	ata_request->io_buffer=io_buffer;
+	ata_request->lba=2048+ext2->partition_start_sector;
+	ata_request->sector_count=sector_count;
+	ata_request->process_context=NULL;
+	ata_request->cmd=READ_28;
+
+	_read_28_ata(ata_request,NULL,TRUE);
+	
+	ext2->group_block=kmalloc(sizeof(t_group_block*)*block_group_nr);
+	for (i=0;i<=block_group_nr;i++)
+	{
+		group_block=kmalloc(sizeof(t_group_block));
+		ext2->group_block[i]=group_block;
+		//u32 
+		bg_block_bitmap=io_buffer[0+(23*i)];
+	    	//u32 
+		bg_inode_bitmap=io_buffer[4+(23*i)];
+		//u32 
+		bg_inode_table=io_buffer[8+(23*i)]; 
+		//u16 
+		bg_free_blocks_count=io_buffer[12+(23*i)];
+		//u16 
+		bg_free_inodes_count=io_buffer[14+(23*i)];
+		//u16 
+		bg_used_dirs_count=io_buffer[16+(23*i)];
+		//u16 
+		bg_pad=io_buffer[18+(23*i)];
+		//u32[3] 
+		bg_reserved=kmemcpy(&bg_reserved,&io_buffer[20+(23*i)],3); 			
+	}
+	kfree(io_buffer);
+	kfree(ata_request);
+}
+
+u32 static lookup_partition(u8 partition_number)
+{
+	u32 first_partition_start_sector;	
+	ata_request=kmalloc(sizeof(t_ata_request));
+	io_buffer=kmalloc(512);
+	
+	ata_request->io_buffer=io_buffer;
+	ata_request->lba=0;
+	ata_request->sector_count=1;
+	ata_request->process_context=NULL;
+	ata_request->cmd=READ_28;
+
+	_read_28_ata(ata_request,NULL,TRUE);
+	first_partition_start_sector=io_buffer[0x1be+( partition_number*16)+8];
+
+	kfree(io_buffer);
+	kfree(ata_request);
+	return first_partition_start_sector;
 }
 
 
