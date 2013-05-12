@@ -127,8 +127,10 @@
 #define SYSCALL(syscall_num,params) asm("mov %0,%%eax;mov %1,%%ecx;int $0x80"::"r"(syscall_num),"r"(params):"%eax","%ecx");
 #define DO_STACK_FRAME(esp) asm("movl %0,%%esp;"::"r"(esp));
 
-unsigned int in(unsigned int address);
-void out(unsigned int value,unsigned int address);
+unsigned char in(unsigned int address);
+void out(unsigned char value,unsigned int address);
+unsigned short inw(unsigned int address);
+void outw(unsigned short value,unsigned int address);
 void switch_to_user_mode();
 void adjust_kernel_stack(unsigned int,unsigned int);
 void syscall(unsigned int syscall_num,int* params);

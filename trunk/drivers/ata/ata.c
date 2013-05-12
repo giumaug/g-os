@@ -23,7 +23,7 @@ void free_ata()
 }
 
 void int_handler_ata()
-{
+{	
 	struct t_processor_reg processor_reg;
 
 	SAVE_PROCESSOR_REG
@@ -92,9 +92,11 @@ unsigned int _write_28_ata(t_ata_request *ata_request,struct t_processor_reg* pr
 
 	for (i=0;i<256;i++)
 	{  
-		outw(*(char*)io_buffer++,0x1F0);   
+		//out(*(char*)io_buffer++,0x1F0); 
+		outw((unsigned short)55,0x1F0);
 	}
-	if (!sync) {
+	if (!sync) 
+	{
 		_sleep(processor_reg);
 	}
 	else
