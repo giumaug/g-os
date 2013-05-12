@@ -64,6 +64,35 @@ typedef struct s_group_block
 }
 t_group_block;
 
+type struct s_inode
+{
+  	u16 i_mode;
+	u16 i_uid; 
+	u32 i_size
+	u32 i_atime;
+	u32 i_ctime;
+	u32 i_mtime;
+	u32 i_dtime;
+	u16 i_gid;
+	u16 i_links_count;
+	u32 i_blocks;
+	u32 i_flags;
+	//union osd1;
+	u32 osd1;
+	u32[EXT2_N_BLOCKS] i_block;
+	u32 i_generation; 
+	u32 i_file_acl;
+	u32 i_dir_acl;
+	u32 i_faddr;
+	//union osd2;
+	u32 osd2_1;
+	u32 osd2_2;
+	u32 osd2_3;
+}
+
+
+
+
 typedef struct s_ext2
 {
 	t_superblock *superblock;
@@ -88,6 +117,7 @@ void free_ext2()
 
 void alloc_inode() 
 {
+	
 
 }
 
@@ -102,6 +132,11 @@ void alloc_block()
 }
 
 void free_block()
+{
+
+}
+
+void lookup(char*)
 {
 
 }
@@ -182,7 +217,7 @@ void static read_superblock(t_ext2 *ext2)
 	kfree(ata_request);
 }
 
-read_group_block(ext2->group_block,)
+read_group_block(t_ext2 *ext2)
 {
 	u32 block_in_group;
 	u32 sector_count;
@@ -227,6 +262,11 @@ read_group_block(ext2->group_block,)
 	}
 	kfree(io_buffer);
 	kfree(ata_request);
+}
+
+void static read_inode()
+{
+
 }
 
 u32 static lookup_partition(u8 partition_number)

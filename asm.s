@@ -1,6 +1,6 @@
-.global out,in,adjust_kernel_stack,syscall
+.global out,in,outw,inw,adjust_kernel_stack,syscall
 
-# void out(unsigend int value,unsigned int address)
+# void out(unsigend char value,unsigned int address)
 out:
 	push   %ebp
  	mov    %esp,%ebp
@@ -14,7 +14,7 @@ out:
  	pop    %ebp
  	ret
 
-# unsigned int in(unsigned int address)
+# unsigned char in(unsigned int address)
 in:
 	push   %ebp
  	mov    %esp,%ebp
@@ -23,6 +23,34 @@ in:
 	mov    $0x0,%eax
  	mov    0x8(%ebp),%edx  # address
  	in     %dx,%al
+	#pop    %eax
+	pop    %edx
+ 	pop    %ebp
+ 	ret
+
+# void out(unsigend short value,unsigned int address)
+outw:
+	push   %ebp
+ 	mov    %esp,%ebp
+	push   %edx
+	push   %eax
+ 	mov    0xc(%ebp),%edx  # address
+ 	mov    0x8(%ebp),%eax  # value
+ 	out    %ax,%dx
+	pop    %eax
+	pop    %edx
+ 	pop    %ebp
+ 	ret
+
+# unsigned short in(unsigned int address)
+inw:
+	push   %ebp
+ 	mov    %esp,%ebp
+	push   %edx
+	#push   %eax
+	mov    $0x0,%eax
+ 	mov    0x8(%ebp),%edx  # address
+ 	in     %dx,%ax
 	#pop    %eax
 	pop    %edx
  	pop    %ebp
