@@ -132,23 +132,21 @@ void alloc_inode(char* path,unsigned int type)
 		// 3)se bg_free_inodes_count>0  else step 4)
 		//	3.1)leggi blocco inode bitmap (bg_inode_bitmap)
 		//	3.2)seleziona primo inode libero
-		//	3.3)update file system 
+		//	3.3)update file system
+		//	3.4)ritorna inode 
 		// 4)seleziona group descriptor group descriptor+1+2+4+.... inode mod(n=numero totale group descriptor)
 		// 5)vai punto 3
-		// .....
-		// 6)ritorna inode	
+		// 6)Seleziona primo group descriptor con inode libero a partire da group descriptor corrente +2
 	}
 	else if (type==1)
 	{
-		// 1)seleziona inode parent dir
-		// 2)se parent dir e' root fs
-		//      2.1)leggi inode per ogni dir contenuta in root fs
-		//      2.2)leggi group descriptor di per ogni inode selezionato
-		// 		2.2.1)se bg_free_inodes_count>0  else step 2.2)
-		//			2.2.1.1)leggi blocco inode bitmap (bg_inode_bitmap)
-		//			2.2.1.2)seleziona primo blocco libero
-		//			2.2.1.3)update file system
-		//	 
+		//1)Seleziona primo group descriptor con numero inode<=media inode 
+		//	2.1)Leggi blocco inode bitmap (bg_inode_bitmap)
+		//	2.2)Seleziona primo inode libero
+		//	2.3)Update file system	
+		//	2.4)ritorna inode
+		//2)Seleziona primo group descriptor con inode libero a partire da group descriptor corrente +1
+		//3)Vai punto 2.1 
 	}
 }
 
