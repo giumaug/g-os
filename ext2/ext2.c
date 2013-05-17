@@ -1,6 +1,7 @@
+#define NAME_MAX 50
+#define PATH_MAX 1000
 
-
-typedef struct s_superblock
+typedef struct s_superblock_disk
 {
 	u32 inodes_count; 
 	u32 blocks_count; 
@@ -64,8 +65,9 @@ typedef struct s_group_block
 }
 t_group_block;
 
-type struct s_inode
+type struct s_inode_disk
 {
+	u16 i_number;
   	u16 i_mode;
 	u16 i_uid; 
 	u32 i_size
@@ -89,7 +91,12 @@ type struct s_inode
 	u32 osd2_2;
 	u32 osd2_3;
 }
+t_inode;
 
+typedef struct s_directory
+{
+
+}
 
 
 
@@ -97,7 +104,8 @@ typedef struct s_ext2
 {
 	t_superblock *superblock;
 	t_group_block **group_block;
-	u32 partition_start_sector; 
+	u32 partition_start_sector;
+	t_inode* root_dir_inode; 
  
 }
 t_ext2;
@@ -115,15 +123,38 @@ void free_ext2()
 	//remember to free all allocated memory!!!!!!!!
 }
 
-void alloc_inode() 
+void alloc_inode(char* path,unsigned int type) 
 {
-	
-
+	if (type==0)
+	{
+		// 1)seleziona inode parent dir
+		// 2)seleziona 	group descriptor inode  (block group = (inode – 1) / INODES_PER_GROUP)
+		// 3)se bg_free_inodes_count>0  else step 4)
+		//	3.1)leggi blocco inode bitmap (bg_inode_bitmap)
+		//	3.2)seleziona primo inode libero
+		//	3.3)update file system 
+		// 4)seleziona group descriptor group descriptor+1+2+4+.... inode mod(n=numero totale group descriptor)
+		// 5)vai punto 3
+		// .....
+		// 6)ritorna inode	
+	}
+	else if (type==1)
+	{
+		// 1)seleziona inode parent dir
+		// 2)se parent dir e' root fs
+		//      2.1)leggi inode per ogni dir contenuta in root fs
+		//      2.2)leggi group descriptor di per ogni inode selezionato
+		// 		2.2.1)se bg_free_inodes_count>0  else step 2.2)
+		//			2.2.1.1)leggi blocco inode bitmap (bg_inode_bitmap)
+		//			2.2.1.2)seleziona primo blocco libero
+		//			2.2.1.3)update file system
+		//	 
+	}
 }
 
 void free_inode()
 {
-
+s
 }
 
 void alloc_block()
@@ -136,9 +167,33 @@ void free_block()
 
 }
 
-void lookup(char*)
+t_inode* lookup_path(char* path)
 {
+	int i,j;
+	t_inode* parent_dir_inode;
+	char[NAME_MAX] name;
+		
+	if (path[0]=='/')
+	{	                         
+		parent_dir_inode=ext2->root_dir_inode;
+		i=1;
+	}
+	else if(path[0]=='.' && path[1]=='/')
+	{
+		parent_dir_inode=system.process_info.current_process->current_dir_inode;
+		i=2;	
+	}
 
+	while(path[i]!='\\' && path[i]!='\0')
+	{
+		j=0;
+		while((path[i]!='\')
+		{
+			name[j++]=path[i++];	
+		}
+		parent_dir_inode=lookup_inode(parent_dir_inode,name);	
+	}
+	return parent_dir_inode;
 }
 
 void static read_superblock(t_ext2 *ext2)

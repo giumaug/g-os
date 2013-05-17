@@ -116,4 +116,15 @@ void hashtable_put(t_hashtable* hashtable,int key,void* value)
 	ll_prepend(hashtable->bucket[index],bucket_data);
 }
 
+//djb2 hash function
+void hashtable_put(t_hashtable* hashtable,char* key,void* value)
+{
+	unsigned long long_key = 5381;
+	int c;
 
+	while (c = *str++)
+	{
+		long_key = ((long_key << 5) + long_key) + c;
+	}
+	hashtable_put(thashtable,long_key,value);
+}

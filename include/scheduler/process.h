@@ -50,6 +50,7 @@ struct t_process_context {
 	unsigned int static_priority;
 	unsigned int curr_sched_queue_index;
 	t_proc_status proc_status;
+	char* current_dir;
 };
 
 struct t_process_info {
