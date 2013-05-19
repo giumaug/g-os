@@ -8,14 +8,12 @@
 #define REQUEST_WAITING 0x0;
 #define REQUEST_COMPLETED 0x1;
 
-typedef struct s_ata_request
+typedef struct s_ata_desc
 {
-	void *io_buffer;
-	unsigned int lba;
-	unsigned char sector_count;
+	unsigned int status;
 	struct t_processor_reg* processor_reg;
-	unsigned char cmd;
-	unsigned char status;
+	//qui......
+	
 }
 t_ata_request;
 
