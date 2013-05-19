@@ -128,9 +128,9 @@ void syscall_handler()
 		ata_request->io_buffer=params[2];
 		ata_request->lba=params[0];
 		ata_request->sector_count=params[1];
-		ata_request->process_context=current_process_context;
+		ata_request->processor_reg=&processor_reg);
 		ata_request->cmd=WRITE_28;
-		_write_28_ata(ata_request,&processor_reg);
+		_write_28_ata(ata_request,FALSE);
 		goto exit_2; 
 	}
 

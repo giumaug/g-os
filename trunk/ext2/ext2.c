@@ -1,119 +1,8 @@
-#define NAME_MAX 50
-#define PATH_MAX 1000
-
-typedef struct s_superblock_disk
-{
-	u32 inodes_count; 
-	u32 blocks_count; 
-	u32 r_blocks_count;
-	u32 free_blocks_count;
-	u32 free_inodes_count; 
-	u32 first_data_block; 
-	u32 log_block_size;
-	u32 log_frag_size;
-	u32 blocks_per_group;
-	u32 frags_per_group;
-	u32 inodes_per_group;
-	u32 mtime;
-	u32 wtime;
-	
-	u16 mnt_count;
-	u16 max_mnt_count;
-	u16 magic; 
-	u16 state; 
-	u16 errors;
-	u16 minor_rev_level;
-	
-	u32 lastcheck;
-	u32 checkinterval;
-	u32 creator_os;	
-	u32 rev_level;
-	
-	u16 def_resuid;
-	u16 def_resgid;
-	
-	u32 first_ino;
-	
-	u16 inode_size;
-	u16 block_group_nr;
-	
-	u32 feature_compat;
-	u32 feature_incompat;
-	u32 feature_ro_compat;
-	
-	u8[16] uuid;
-	char[16] volume_name;
-	char[64] last_mounted;
-	u32 algorithm_usage_bitmap; 
-	u8 prealloc_blocks;
-	u8 prealloc_dir_blocks;
-	u16 padding1;
-	u32[204] reserved; 
-}
-t_superblock;
-
-typedef struct s_group_block
-{
-	u32 bg_block_bitmap;
-	u32 bg_inode_bitmap;
-	u32 bg_inode_table; 
-	u16 bg_free_blocks_count;
-	u16 bg_free_inodes_count;
-	u16 bg_used_dirs_count;
-	u16 bg_pad;
-	u32 [3] bg_reserved; 
-}
-t_group_block;
-
-type struct s_inode_disk
-{
-	u16 i_number;
-  	u16 i_mode;
-	u16 i_uid; 
-	u32 i_size
-	u32 i_atime;
-	u32 i_ctime;
-	u32 i_mtime;
-	u32 i_dtime;
-	u16 i_gid;
-	u16 i_links_count;
-	u32 i_blocks;
-	u32 i_flags;
-	//union osd1;
-	u32 osd1;
-	u32[EXT2_N_BLOCKS] i_block;
-	u32 i_generation; 
-	u32 i_file_acl;
-	u32 i_dir_acl;
-	u32 i_faddr;
-	//union osd2;
-	u32 osd2_1;
-	u32 osd2_2;
-	u32 osd2_3;
-}
-t_inode;
-
-typedef struct s_directory
-{
-
-}
-
-
-
-typedef struct s_ext2
-{
-	t_superblock *superblock;
-	t_group_block **group_block;
-	u32 partition_start_sector;
-	t_inode* root_dir_inode; 
- 
-}
-t_ext2;
 
 void init_ext2(t_ext2 *ext2)
 {
 	ext2>partition_start_sector=lookup_partition(1);	
-	read_superblock(ext2->superblock,ext2>partition_start_sector);
+	read_superblock(ext2->superblock,ext2->partition_start_sector);
 	read_group_block(ext2->group_block);
 
 }
@@ -123,10 +12,28 @@ void free_ext2()
 	//remember to free all allocated memory!!!!!!!!
 }
 
-void alloc_inode(char* path,unsigned int type) 
+void alloc_inode(char* path,unsigned int type,struct t_processor_reg* processor_reg) 
 {
+	u32 group_block_index;	
+	t_inode* i_node_parent_dir;
+	t_group_block **group_block;
+	void* io_buffer;
 	if (type==0)
 	{
+		i_node_parent_dir=lookup_path(char* path);
+		group_block_index=(i_node_parent_dir->i_number-1)/ext2->superblock->inodes_per_group;
+		group_block=ext2->group_block[group_block_index];
+		if (group_block->bg_free_inodes<=superblock->average_block_inode)
+		{
+			io_buffer=kmalloc(SECTOR_SIZE);			
+			ata_request->io_buffer=io_buffer;
+			ata_request->lba=ext2->partition_start_sector+group_block->bg_inode_bitmap/SECTOR_SIZE;
+			ata_request->sector_count=(BLOCK_SIZE/SECTOR_SIZE);
+			ata_request->processor_reg=processor_reg;
+			ata_request->cmd=READ_28;
+
+			_read_28_ata(ata_request,FALSE);
+		}
 		// 1)seleziona inode parent dir
 		// 2)seleziona 	group descriptor inode  (block group = (inode – 1) / INODES_PER_GROUP)
 		// 3)se bg_free_inodes_count>0  else step 4)

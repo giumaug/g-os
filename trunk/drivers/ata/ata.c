@@ -34,7 +34,7 @@ void int_handler_ata()
 	RET_FROM_INT_HANDLER
 }
 
-unsigned int _read_28_ata(t_ata_request *ata_request,struct t_processor_reg* processor_reg,unsigned int sync)
+unsigned int _read_28_ata(t_ata_request *ata_request,unsigned int sync)
 {
 	int i;	
 	SAVE_IF_STATUS
@@ -53,7 +53,7 @@ unsigned int _read_28_ata(t_ata_request *ata_request,struct t_processor_reg* pro
 		return -1;
 	}
 	if (!sync) {
-		_sleep(processor_reg);
+		_sleep(ata_request->processor_reg);
 	}
 	else
 	{
@@ -69,7 +69,7 @@ unsigned int _read_28_ata(t_ata_request *ata_request,struct t_processor_reg* pro
 	return 0;
 }
 
-unsigned int _write_28_ata(t_ata_request *ata_request,struct t_processor_reg* processor_reg,unsigned int sync)
+unsigned int _write_28_ata(t_ata_request *ata_request,unsigned int sync)
 {
 	int i;
 	void *io_buffer;	
@@ -97,7 +97,7 @@ unsigned int _write_28_ata(t_ata_request *ata_request,struct t_processor_reg* pr
 	}
 	if (!sync) 
 	{
-		_sleep(processor_reg);
+		_sleep(ata_request->processor_reg);
 	}
 	else
 	{
