@@ -13,15 +13,15 @@ typedef struct s_ata_request
 	void *io_buffer;
 	unsigned int lba;
 	unsigned char sector_count;
-	struct t_process_context *process_context;
+	struct t_processor_reg* processor_reg;
 	unsigned char cmd;
 	unsigned char status;
 }
 t_ata_request;
 
 void init_ata();
-unsigned int _read_28_ata(t_ata_request *ata_request,struct t_processor_reg* processor_reg,unsigned int sync);
-unsigned int _write_28_ata(t_ata_request *ata_request,struct t_processor_reg* processor_reg,unsigned int sync);
+unsigned int _read_28_ata(t_ata_request *ata_request,unsigned int sync);
+unsigned int _write_28_ata(t_ata_request *ata_request,unsigned int sync);
 void free_ata();
 
 #endif
