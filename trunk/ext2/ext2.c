@@ -18,6 +18,9 @@ void alloc_inode(char* path,unsigned int type,struct t_processor_reg* processor_
 	t_inode* i_node_parent_dir;
 	t_group_block **group_block;
 	void* io_buffer;
+	u32 lba;
+	u32 sector_count;
+
 	if (type==0)
 	{
 		i_node_parent_dir=lookup_path(char* path);
@@ -25,14 +28,17 @@ void alloc_inode(char* path,unsigned int type,struct t_processor_reg* processor_
 		group_block=ext2->group_block[group_block_index];
 		if (group_block->bg_free_inodes<=superblock->average_block_inode)
 		{
-			io_buffer=kmalloc(SECTOR_SIZE);			
-			ata_request->io_buffer=io_buffer;
-			ata_request->lba=ext2->partition_start_sector+group_block->bg_inode_bitmap/SECTOR_SIZE;
-			ata_request->sector_count=(BLOCK_SIZE/SECTOR_SIZE);
-			ata_request->processor_reg=processor_reg;
-			ata_request->cmd=READ_28;
+			lba=ext2->partition_start_sector+group_block->bg_inode_bitmap/SECTOR_SIZE;
+			sector_count=BLOCK_SIZE/SECTOR_SIZE;
+			_read_28_ata(sector_count,lba,io_buffer,processor_reg,current_process_context,TRUE);
 
-			_read_28_ata(ata_request,FALSE);
+			for (i=0;i<BLOCK_SIZE*8;i++)
+			{
+				if(i%8==0)
+				{
+					current_byte=io_buffer++;----qui
+				}
+			}
 		}
 		// 1)seleziona inode parent dir
 		// 2)seleziona 	group descriptor inode  (block group = (inode – 1) / INODES_PER_GROUP)

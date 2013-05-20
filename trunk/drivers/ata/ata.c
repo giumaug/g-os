@@ -18,7 +18,7 @@ void init_ata(t_ata_desc* ata_desc)
 
 void free_ata()
 {
-
+	//nothing to do
 }
 
 void int_handler_ata()
@@ -28,7 +28,6 @@ void int_handler_ata()
 	SAVE_PROCESSOR_REG
 	system.ata_desc->status=REQUEST_COMPLETED;	
 	EOI
-	_awake(current_ata_request->process_context);----qui
 	RESTORE_PROCESSOR_REG
 	RET_FROM_INT_HANDLER
 }
@@ -53,8 +52,11 @@ unsigned int _read_28_ata(unsigned int sector_count,
 		_sleep(processor_reg);
 		ll_append(ata_desc->pending_request,current_process_context);
 	}
-
-	current_ata_request=ata_request;	
+	else 
+	{
+		ata_desc->status=REQUEST_WAITING;
+	}
+	
 	out(0xE0 | (ata_request->lba >> 24),0x1F6);
 	out(0x00,0x1F1);
 	out((unsigned char)ata_request->sector_count,0x1F2);
@@ -66,7 +68,7 @@ unsigned int _read_28_ata(unsigned int sector_count,
 	{
 		return -1;
 	}
-	if (!sync) {
+	if (sync) {
 		_sleep(ata_request->processor_reg);
 	}
 	else
@@ -80,6 +82,7 @@ unsigned int _read_28_ata(unsigned int sector_count,
 		((char*)current_ata_request->io_buffer)[i]=zz;
 	}
 
+	_awake(current_process_context);
 	if (!ll_empty(ata_desc->pending_request))
 	{
 		process_context=(struct t_process_context*)ll_sentinel(ata_desc->pending_request);
@@ -110,8 +113,11 @@ unsigned int _write_28_ata(unsigned int sector_count,
 		_sleep(processor_reg);
 		ll_append(ata_desc->pending_request,current_process_context);
 	}	
-
-	current_ata_request=ata_request;	
+	else 
+	{
+		ata_desc->status=REQUEST_WAITING;
+	}
+	
 	out(0xE0 | (lba >> 24),0x1F6);
 	out((unsigned char)sector_count,0x1F2);
 	out((unsigned char)lba,0x1F3);
@@ -129,7 +135,7 @@ unsigned int _write_28_ata(unsigned int sector_count,
 		//out(*(char*)io_buffer++,0x1F0); 
 		outw((unsigned short)55,0x1F0);
 	}
-	if (!sync) 
+	if (sync) 
 	{
 		_sleep(processor_reg);
 	}
@@ -138,6 +144,7 @@ unsigned int _write_28_ata(unsigned int sector_count,
 		while(ata_desc->status!=REQUEST_COMPLETED);
 	}
 	
+	_awake(current_process_context);
 	if (!ll_empty(ata_desc->pending_request))
 	{
 		process_context=(struct t_process_context*)ll_sentinel(ata_desc->pending_request);
