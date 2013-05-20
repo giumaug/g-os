@@ -46,7 +46,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
    	init_pic();
    	init_pit();
 	init_kbc();
-	init_ata();
+	init_ata(&system.ata_desc);
 	init_console(&console_desc,4000,0);
 	buddy_init(&system.buddy_desc);
 	init_scheduler();

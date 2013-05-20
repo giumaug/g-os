@@ -10,7 +10,6 @@ extern t_system system;
 
 void syscall_handler()
 {
-	int xx=0;	
 	static int free_vm_proc;        
 	int syscall_num;
 	unsigned int mem_size;
@@ -113,24 +112,12 @@ void syscall_handler()
 	}
 	else if (syscall_num==16) 
 	{
-		ata_request=kmalloc(sizeof(t_ata_request));
-		ata_request->io_buffer=params[2];
-		ata_request->lba=params[0];
-		ata_request->sector_count=params[1];
-		ata_request->process_context=current_process_context;
-		ata_request->cmd=READ_28;
-		_read_28_ata(ata_request,&processor_reg);
+		_read_28_ata(params[1],params[0],params[2],&processor_reg,current_process_context,FALSE);
 		goto exit_2; 
 	}
 	else if (syscall_num==17) 
 	{
-		ata_request=kmalloc(sizeof(t_ata_request));
-		ata_request->io_buffer=params[2];
-		ata_request->lba=params[0];
-		ata_request->sector_count=params[1];
-		ata_request->processor_reg=&processor_reg);
-		ata_request->cmd=WRITE_28;
-		_write_28_ata(ata_request,FALSE);
+		_write_28_ata(params[1],params[0],params[2],&processor_reg,current_process_context,FALSE);
 		goto exit_2; 
 	}
 
@@ -144,10 +131,7 @@ exit_2:;
 	//NOT USED SAVE_IF_STATUS BECAUSE PAGE SWITCH
 	CLI
 	current_process_context=system.process_info.current_process->val;
-	if (current_process_context->pid==0) 
-	{
-		xx++;
-	}
+	
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir)))
 	if (free_vm_proc) 
 	{
