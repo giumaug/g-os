@@ -15,6 +15,7 @@ typedef struct s_system
 	unsigned int *master_page_dir;
 	t_llist* sleep_wait_queue;
 	t_scheduler_desc scheduler_desc;
+	t_ata_desc ata_desc;
 }
 t_system;
 
