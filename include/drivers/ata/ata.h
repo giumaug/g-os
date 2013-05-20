@@ -8,19 +8,9 @@
 #define REQUEST_WAITING 0x0;
 #define REQUEST_COMPLETED 0x1;
 
-typedef struct s_ata_request
-{
-	unsigned int status;
-	struct t_processor_reg* processor_reg;
-	struct t_process_context *current_process_context;
-}
-t_ata_request;
-
-
 typedef struct s_ata_desc
 {
 	unsigned int status;
-	t_ata_request* current_ata_request;
 	t_llist* pending_request;
 	
 }
