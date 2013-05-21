@@ -12,9 +12,13 @@ void free_ext2()
 	//remember to free all allocated memory!!!!!!!!
 }
 
-void alloc_inode(char* path,unsigned int type,struct t_processor_reg* processor_reg) 
+u32 alloc_inode(char* path,unsigned int type,struct t_processor_reg* processor_reg) 
 {
-	u32 group_block_index;	
+	u32 inode_number;	
+	char* current_byte;
+	u32 i,j;	
+	u32 group_block_index;
+	u32 group_block_offset;	
 	t_inode* i_node_parent_dir;
 	t_group_block **group_block;
 	void* io_buffer;
@@ -23,21 +27,43 @@ void alloc_inode(char* path,unsigned int type,struct t_processor_reg* processor_
 
 	if (type==0)
 	{
-		i_node_parent_dir=lookup_path(char* path);
-		group_block_index=(i_node_parent_dir->i_number-1)/ext2->superblock->inodes_per_group;
-		group_block=ext2->group_block[group_block_index];
-		if (group_block->bg_free_inodes<=superblock->average_block_inode)
-		{
-			lba=ext2->partition_start_sector+group_block->bg_inode_bitmap/SECTOR_SIZE;
-			sector_count=BLOCK_SIZE/SECTOR_SIZE;
-			_read_28_ata(sector_count,lba,io_buffer,processor_reg,current_process_context,TRUE);
+		group_block_offset=0;
+		inode_number=-1;
+		tot_group_block=ext2->superblock->s_blocks_count/ext2->superblock->s_log_block_size;
+		group_block_index=lookup_path(char* path);
 
-			for (i=0;i<BLOCK_SIZE*8;i++)
+		while (group_block_index<tot_group_block && inode_number==-1)
+		{
+			i_node_parent_dir=lookup_path(char* path);
+			group_block_index=(i_node_parent_dir->i_number-1)/ext2->superblock->inodes_per_group;
+			group_block=ext2->group_block[group_block_index];
+			if (group_block->bg_free_inodes<=superblock->average_block_inode)
 			{
-				if(i%8==0)
+				lba=ext2->partition_start_sector+group_block->bg_inode_bitmap/SECTOR_SIZE;
+				sector_count=BLOCK_SIZE/SECTOR_SIZE;
+				_read_28_ata(sector_count,lba,io_buffer,processor_reg,current_process_context,TRUE);
+
+				while (inode_number!=-1 && i<BLOCK_SIZE)
 				{
-					current_byte=io_buffer++;----qui
+					current_byte=*(io_buffer++);
+					while (inode_number!=-1 && j<8)
+					{
+						if (!(*current_byte & 2>>j)
+						{
+							inode_number=i*8+j;
+							*current_byte=*current_byte | 2>>j
+						}
+						j++;
+					}
+					i++;
+					j=0;
 				}
+				_write_28_ata(sector_count,lba,io_buffer,processor_reg,current_process_context,TRUE);
+				return inode_number;
+			
+				//no found free inode on parent dir
+			
+				group_block_index=group_block_offset>>1;
 			}
 		}
 		// 1)seleziona inode parent dir
@@ -253,6 +279,33 @@ u32 static lookup_partition(u8 partition_number)
 	kfree(io_buffer);
 	kfree(ata_request);
 	return first_partition_start_sector;
+}
+
+void static find_free_inode(t_inode* i_mode) ----------------qui
+{
+	group_block_index=(i_node_parent_dir->i_number-1)/ext2->superblock->inodes_per_group;
+			group_block=ext2->group_block[group_block_index];
+			if (group_block->bg_free_inodes<=superblock->average_block_inode)
+			{
+				lba=ext2->partition_start_sector+group_block->bg_inode_bitmap/SECTOR_SIZE;
+				sector_count=BLOCK_SIZE/SECTOR_SIZE;
+				_read_28_ata(sector_count,lba,io_buffer,processor_reg,current_process_context,TRUE);
+
+				while (inode_number!=-1 && i<BLOCK_SIZE)
+				{
+					current_byte=*(io_buffer++);
+					while (inode_number!=-1 && j<8)
+					{
+						if (!(*current_byte & 2>>j)
+						{
+							inode_number=i*8+j;
+							*current_byte=*current_byte | 2>>j
+						}
+						j++;
+					}
+					i++;
+					j=0;
+				}
 }
 
 
