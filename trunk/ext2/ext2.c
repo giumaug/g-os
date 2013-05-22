@@ -18,6 +18,7 @@ u32 alloc_inode(char* path,unsigned int type,struct t_processor_reg* processor_r
 	char* current_byte;
 	u32 i,j;	
 	u32 group_block_index;
+	u32 parent_dir_group_block_index;
 	u32 group_block_offset;	
 	t_inode* i_node_parent_dir;
 	t_group_block **group_block;
@@ -25,73 +26,87 @@ u32 alloc_inode(char* path,unsigned int type,struct t_processor_reg* processor_r
 	u32 lba;
 	u32 sector_count;
 
+	// 1)seleziona inode parent dir
+	// 2)seleziona 	group descriptor inode  (block group = (inode – 1) / INODES_PER_GROUP)
+	// 3)se bg_free_inodes_count>0  else step 4)
+	//	3.1)leggi blocco inode bitmap (bg_inode_bitmap)
+	//	3.2)seleziona primo inode libero
+	//	3.3)update file system
+	//	3.4)ritorna inode 
+	// 4)seleziona group descriptor group descriptor+1+2+4+.... inode mod(n=numero totale group descriptor)
+	// 5)vai punto 3
+	// 6)Seleziona primo group descriptor con inode libero a partire da group descriptor corrente +2
 	if (type==0)
 	{
 		group_block_offset=0;
 		inode_number=-1;
 		tot_group_block=ext2->superblock->s_blocks_count/ext2->superblock->s_log_block_size;
-		group_block_index=lookup_path(char* path);
+		i_node_parent_dir=lookup_path(char* path);
+		parent_dir_group_block_index=(i_node_parent_dir->i_number-1)/ext2->superblock->inodes_per_group;
+		group_block_index=parent_dir_group_block_index;
 
 		while (group_block_index<tot_group_block && inode_number==-1)
 		{
-			i_node_parent_dir=lookup_path(char* path);
-			group_block_index=(i_node_parent_dir->i_number-1)/ext2->superblock->inodes_per_group;
-			group_block=ext2->group_block[group_block_index];
-			if (group_block->bg_free_inodes<=superblock->average_block_inode)
+			group_block=ext2->group_block[group_block_index];			
+			inode_number=find_free_inode(t_group_block* group_block);
+			if (inode_number!=-1)
 			{
-				lba=ext2->partition_start_sector+group_block->bg_inode_bitmap/SECTOR_SIZE;
-				sector_count=BLOCK_SIZE/SECTOR_SIZE;
-				_read_28_ata(sector_count,lba,io_buffer,processor_reg,current_process_context,TRUE);
-
-				while (inode_number!=-1 && i<BLOCK_SIZE)
-				{
-					current_byte=*(io_buffer++);
-					while (inode_number!=-1 && j<8)
-					{
-						if (!(*current_byte & 2>>j)
-						{
-							inode_number=i*8+j;
-							*current_byte=*current_byte | 2>>j
-						}
-						j++;
-					}
-					i++;
-					j=0;
-				}
 				_write_28_ata(sector_count,lba,io_buffer,processor_reg,current_process_context,TRUE);
-				return inode_number;
+			} 
+			//no found free inode on parent dir
 			
-				//no found free inode on parent dir
-			
-				group_block_index=group_block_offset>>1;
+			group_block_index=group_block_offset>>1;
+		}
+
+		if (inode_number==-1)
+		{
+			group_block_index=parent_dir_group_block_index+2;
+			while(inode_number!=-1 && group_block_index<tot_group_block)
+			{
+				group_block=ext2->group_block[group_block_index];			
+				inode_number=find_free_inode(t_group_block* group_block);
+
+			}
+			if (inode_number==-1)
+			{
+				group_block_index=0;
+				while(inode_number!=-1 && group_block_index<parent_dir_group_block_index-1)
+				{
+					group_block=ext2->group_block[group_block_index];			
+					inode_number=find_free_inode(t_group_block* group_block);
+				}	
 			}
 		}
-		// 1)seleziona inode parent dir
-		// 2)seleziona 	group descriptor inode  (block group = (inode – 1) / INODES_PER_GROUP)
-		// 3)se bg_free_inodes_count>0  else step 4)
-		//	3.1)leggi blocco inode bitmap (bg_inode_bitmap)
-		//	3.2)seleziona primo inode libero
-		//	3.3)update file system
-		//	3.4)ritorna inode 
-		// 4)seleziona group descriptor group descriptor+1+2+4+.... inode mod(n=numero totale group descriptor)
-		// 5)vai punto 3
-		// 6)Seleziona primo group descriptor con inode libero a partire da group descriptor corrente +2
 	}
+
+
+	//1)Seleziona primo group descriptor con numero inode<=media inode 
+	//	2.1)Leggi blocco inode bitmap (bg_inode_bitmap)
+	//	2.2)Seleziona primo inode libero
+	//	2.3)Update file system	
+	//	2.4)ritorna inode
+	//2)Seleziona primo group descriptor con inode libero a partire da group descriptor corrente +1
+	//3)Vai punto 2.1 
 	else if (type==1)
 	{
-		//1)Seleziona primo group descriptor con numero inode<=media inode 
-		//	2.1)Leggi blocco inode bitmap (bg_inode_bitmap)
-		//	2.2)Seleziona primo inode libero
-		//	2.3)Update file system	
-		//	2.4)ritorna inode
-		//2)Seleziona primo group descriptor con inode libero a partire da group descriptor corrente +1
-		//3)Vai punto 2.1 
+		ext2->superblock->block_free_inode_average;
+		while (group_block_index<tot_group_block && inode_number==-1)
+		{
+			group_block=ext2->group_block[group_block_index];			
+			inode_number=find_free_inode(t_group_block* group_block);
+		}
 	}
+	
+	if (inode_number!=-1)
+	{
+		_write_28_ata(sector_count,lba,io_buffer,processor_reg,current_process_context,TRUE);
+	}
+	return inode_number;
 }
 
 void free_inode()
 {
-s
+
 }
 
 void alloc_block()
@@ -281,31 +296,31 @@ u32 static lookup_partition(u8 partition_number)
 	return first_partition_start_sector;
 }
 
-void static find_free_inode(t_inode* i_mode) ----------------qui
+void static find_free_inode(t_group_block* group_block)
 {
-	group_block_index=(i_node_parent_dir->i_number-1)/ext2->superblock->inodes_per_group;
-			group_block=ext2->group_block[group_block_index];
-			if (group_block->bg_free_inodes<=superblock->average_block_inode)
-			{
-				lba=ext2->partition_start_sector+group_block->bg_inode_bitmap/SECTOR_SIZE;
-				sector_count=BLOCK_SIZE/SECTOR_SIZE;
-				_read_28_ata(sector_count,lba,io_buffer,processor_reg,current_process_context,TRUE);
+	if (group_block->bg_free_inodes<=superblock->average_block_inode)
+	{
+		lba=ext2->partition_start_sector+group_block->bg_inode_bitmap/SECTOR_SIZE;
+		sector_count=BLOCK_SIZE/SECTOR_SIZE;
+		_read_28_ata(sector_count,lba,io_buffer,processor_reg,current_process_context,TRUE);
 
-				while (inode_number!=-1 && i<BLOCK_SIZE)
+		while (inode_number!=-1 && i<BLOCK_SIZE)
+		{
+			current_byte=*(io_buffer++);
+			while (inode_number!=-1 && j<8)
+			{
+				if (!(*current_byte & 2>>j)
 				{
-					current_byte=*(io_buffer++);
-					while (inode_number!=-1 && j<8)
-					{
-						if (!(*current_byte & 2>>j)
-						{
-							inode_number=i*8+j;
-							*current_byte=*current_byte | 2>>j
-						}
-						j++;
-					}
-					i++;
-					j=0;
+					inode_number=i*8+j;
+					*current_byte=*current_byte | 2>>j
 				}
+				j++;
+			}
+			i++;
+			j=0;
+		}
+	}
+	return inode_number;
 }
 
 
