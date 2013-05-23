@@ -36,6 +36,7 @@ struct s_console_desc;
 
 struct t_process_context {
 	struct t_processor_reg processor_reg;
+	struct t_processor_reg processor_reg_on_syscall;
         unsigned int pid; 
 	struct t_process_context* parent;
 	unsigned int tick;
