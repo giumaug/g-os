@@ -33,7 +33,7 @@ t_console_desc;
 
 void init_console(t_console_desc *console_desc,int out_buf_len,int in_buf_len);
 void free_console(t_console_desc *console_desc);
-char _read_char(t_console_desc *console_desc,struct t_processor_reg* processor_reg);
+char _read_char(t_console_desc *console_desc);
 void _write_char(t_console_desc *console_desc,char data);
 void _delete_char(t_console_desc *console_desc);
 void _echo_char(t_console_desc *console_desc,char data);

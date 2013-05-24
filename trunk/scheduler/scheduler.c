@@ -14,11 +14,14 @@ extern unsigned int *master_page_dir;
 
 int t_sched_debug[10][10];
 
-void do_context_switch(struct t_process_context *current_process_context,
-		       struct t_processor_reg *processor_reg,
-		       struct t_process_context *new_process_context)
+static void do_context_switch(struct t_process_context *current_process_context,struct t_process_context *new_process_context)
 {
 	int pp=0;
+	struct t_processor_reg* processor_reg;
+	processor_reg=((struct t_process_context*)system.process_info.current_process->val)->processor_reg_on_syscall;
+
+
+
 	*(system.process_info.tss.esp)=0x1FFFFF;
 	if (current_process_context->pid==2 && new_process_context->pid==0)
 	{
@@ -81,7 +84,7 @@ void sched_debug()
 	return;
 }
 
-void schedule(struct t_processor_reg *processor_reg)
+void schedule()
 {
 	struct t_process_context* current_process_context;
 	struct t_process_context* next_process_context;
@@ -95,7 +98,8 @@ void schedule(struct t_processor_reg *processor_reg)
 
 	index=0;
 	node=system.process_info.current_process;	
-	current_process_context=node->val;		
+	current_process_context=node->val;
+		
 	while(!stop && index<10)
 	{
 		sentinel_node=ll_sentinel(system.scheduler_desc.scheduler_queue[index]);
@@ -105,7 +109,7 @@ void schedule(struct t_processor_reg *processor_reg)
 			next_process_context=next->val;
 			if (current_process_context->pid!=next_process_context->pid)
 			{
-				do_context_switch(current_process_context,processor_reg,next_process_context);	
+				do_context_switch(current_process_context,next_process_context);	
 				system.process_info.current_process=next;
 				if (current_process_context->proc_status==RUNNING)
 				{
@@ -204,33 +208,7 @@ void adjust_sched_queue(struct t_process_context *current_process_context)
 	return;
 }
 
-//void schedule(struct t_processor_reg *processor_reg)
-//{
-//	struct t_process_context* current_process_context;
-//	struct t_process_context* new_process_context;
-//	t_llist_node* current_node;
-//	t_llist_node* sentinel_node;
-//
-//	//FIND NEXT PROCESS TO SCHEDULE IS TRICK BECAUSE ll_next TAKE IN
-//	//COUNT SENTINEL NODE TOO.BEST APPROCH TO MANAGE ROUND ROBIN IS 
-//	//CIRCULAR LIST WITHOUT SENTINEL NODE.  
-//	//printk("schedule \n");
-//	current_process_context=system.process_info.current_process->val;
-//	current_node=ll_next(system.process_info.current_process);
-//	sentinel_node=ll_sentinel(system.process_info.process_context_list);
-//	if (current_node==sentinel_node)
-//	{
-//		current_node=ll_next(current_node);
-//	}
-//	new_process_context=current_node->val;
-//	if (current_process_context->pid!=new_process_context->pid)
-//	{
-//		do_context_switch(current_process_context,processor_reg,new_process_context);	
-//		system.process_info.current_process=current_node;
-//	}
-//}
-
-void _sleep(struct t_processor_reg* processor_reg)
+void _sleep()
 {
 	struct t_process_context* current_process;
 	SAVE_IF_STATUS
@@ -238,7 +216,7 @@ void _sleep(struct t_processor_reg* processor_reg)
 	current_process=system.process_info.current_process->val;
 	t_llist_node* current_node=system.process_info.current_process;
 	current_process->proc_status=SLEEPING;
-	schedule(processor_reg);
+	schedule();
 	ll_delete_node(current_node);	
 	RESTORE_IF_STATUS 
 }
@@ -255,7 +233,7 @@ void _awake(struct t_process_context *new_process)
 	RESTORE_IF_STATUS
 }
 
-_pause(struct t_processor_reg* processor_reg)
+_pause()
 {
 	struct t_process_context* current_process;
 	t_llist* pause_queue;
@@ -265,11 +243,11 @@ _pause(struct t_processor_reg* processor_reg)
 	pause_queue=system.process_info.pause_queue;
 	current_process=system.process_info.current_process->val;
 	ll_prepend(pause_queue,current_process);	
-	_sleep(processor_reg);
+	_sleep();
 	RESTORE_IF_STATUS
 }
 
-void _exit(int status,struct t_processor_reg* processor_reg)
+void _exit(int status)
 {
 	t_llist_node* next;
 	t_llist_node* sentinel;
@@ -309,13 +287,13 @@ void _exit(int status,struct t_processor_reg* processor_reg)
 		next_process=next->val;
 	}
 	//IF PARENT PROCESS SLEEP AWAKE OTHERWISE (ZOMBIE PROCESS) SCHEDULE
-	schedule(processor_reg);	
+	schedule();	
 	kfree(current_node->val);	
 	ll_delete_node(current_node);
 	RESTORE_IF_STATUS
 }
 
-int _fork(struct t_processor_reg processor_reg) 
+int _fork() 
 {
 	unsigned int parent_add_space;
 	unsigned int child_add_space;
@@ -326,13 +304,14 @@ int _fork(struct t_processor_reg processor_reg)
 	unsigned int eip;
 	char *proc_mem;
  	struct t_process_context* child_process_context;
-	struct t_process_context *parent_process_context;
+	struct t_process_context* parent_process_context;
+
 	child_process_context=kmalloc(sizeof(struct t_process_context));
 	CLI
 	parent_process_context=system.process_info.current_process->val;
 	kmemcpy(child_process_context,parent_process_context,sizeof(struct t_process_context));
 	child_process_context->pid=system.process_info.next_pid++;
-	child_process_context->processor_reg=processor_reg;
+	child_process_context->processor_reg=((struct t_process_context*)system.process_info.current_process->val)->processor_reg_on_syscall;
 	child_process_context->parent=parent_process_context;
 	mem_size=parent_process_context->phy_space_size;
 	proc_mem=buddy_alloc_page(&system.buddy_desc,mem_size);
@@ -378,7 +357,7 @@ void _exec(unsigned int start_addr,unsigned int size)
 	SWITCH_TO_USER_MODE
 }
 
-void _sleep_time(unsigned int time,struct t_processor_reg* processor_reg)
+void _sleep_time(unsigned int time)
 {
 	struct t_process_context* current_process;
 	t_llist* sleep_wait_queue;
@@ -389,6 +368,6 @@ void _sleep_time(unsigned int time,struct t_processor_reg* processor_reg)
 	current_process=system.process_info.current_process->val;
 	current_process->assigned_sleep_time=time;
 	ll_prepend(sleep_wait_queue,current_process);	
-	_sleep(processor_reg);
+	_sleep();
 	RESTORE_IF_STATUS
 }
