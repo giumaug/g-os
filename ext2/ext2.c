@@ -125,6 +125,7 @@ void free_inode(t_inode* i_node,t_ext2 *ext2)
 
 void alloc_block()
 {
+	------------qui
 
 }
 
