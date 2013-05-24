@@ -24,13 +24,14 @@ void syscall_handler()
 	SWITCH_DS_TO_KERNEL_MODE
 	free_vm_proc=0;
 	current_process_context=system.process_info.current_process->val;
+	current_process_context->processor_reg_on_syscall=processor_reg;
 	old_process_context=current_process_context;
 	t_console_desc *console_desc=current_process_context->console_desc;
 	syscall_num=processor_reg.eax;
 	params=processor_reg.ecx;
 	if (syscall_num==1) 
 	{
-		params[0]=_fork(processor_reg);
+		params[0]=_fork();
 		goto exit_1;
 	}
 	else if (syscall_num==2)
@@ -50,7 +51,7 @@ void syscall_handler()
 	}
 	else if (syscall_num==5)
 	{ 
-		data=_read_char(console_desc,&processor_reg);
+		data=_read_char(console_desc);
 		*((char*)params[0])=data;	
 		if (data==NULL)
 		{
@@ -85,7 +86,7 @@ void syscall_handler()
 	}
 	else if (syscall_num==11)
 	{
-		_pause(&processor_reg);	
+		_pause();	
 		goto exit_2; 
 	}
 	else if (syscall_num==12)
@@ -96,7 +97,7 @@ void syscall_handler()
 	}
 	else if (syscall_num==13)
 	{
-		_exit(params[0],&processor_reg);
+		_exit(params[0]);
 		free_vm_proc=1;
 		goto exit_2; 
 	}
@@ -107,17 +108,17 @@ void syscall_handler()
 	}
 	else if (syscall_num==15) 
 	{
-		_sleep_time(params[0],&processor_reg);	
+		_sleep_time(params[0]);	
 		goto exit_2; 
 	}
 	else if (syscall_num==16) 
 	{
-		_read_28_ata(params[1],params[0],params[2],&processor_reg,current_process_context,FALSE);
+		_read_28_ata(params[1],params[0],params[2],FALSE);
 		goto exit_2; 
 	}
 	else if (syscall_num==17) 
 	{
-		_write_28_ata(params[1],params[0],params[2],&processor_reg,current_process_context,FALSE);
+		_write_28_ata(params[1],params[0],params[2],FALSE);
 		goto exit_2; 
 	}
 

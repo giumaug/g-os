@@ -32,7 +32,7 @@ void free_console(t_console_desc *console_desc)
 	kfree(console_desc->out_buf);
 }
 
-char _read_char(t_console_desc *console_desc,struct t_processor_reg* processor_reg)
+char _read_char(t_console_desc *console_desc)
 {
 	char data;
 	if (data=read_buf()) 
@@ -40,7 +40,7 @@ char _read_char(t_console_desc *console_desc,struct t_processor_reg* processor_r
 		return data;
 	}
 	system.active_console_desc->sleeping_process=system.process_info.current_process->val;
-	_sleep(processor_reg);	
+	_sleep();	
 	return NULL;
 }
 

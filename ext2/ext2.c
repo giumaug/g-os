@@ -113,7 +113,7 @@ void free_inode(t_inode* i_node,t_ext2 *ext2)
 	
 	lba=ext2->partition_start_sector+group_block->bg_inode_bitmap/SECTOR_SIZE;
 	sector_count=BLOCK_SIZE/SECTOR_SIZE;
-	_read_28_ata(sector_count,lba,io_buffer,processor_reg,current_process_context,TRUE);
+	_read_28_ata(sector_count,lba,io_buffer,TRUE);
 
 	inode_index = (i_node->i_number – 1) % ext2->superblock->s_blocks_per_group; 
 	buffer_index=(inode_index-1) / 8;
@@ -172,14 +172,7 @@ void static read_superblock(t_ext2 *ext2)
 	ext2->superblock=superblock;	
 	ata_request=kmalloc(sizeof(t_ata_request));
 	io_buffer=kmalloc(512);
-	
-	ata_request->io_buffer=io_buffer;
-	ata_request->lba=1024+partition_start_sector;
-	ata_request->sector_count=2;
-	ata_request->process_context=NULL;
-	ata_request->cmd=READ_28;
-
-	_read_28_ata(ata_request,NULL,TRUE);
+	_read_28_ata(2,(1024+partition_start_sector),io_buffer,TRUE);
 	
 	//u32
 	superblock->inodes_count=io_buffer[0];        
@@ -246,19 +239,8 @@ read_group_block(t_ext2 *ext2)
 
 	block_group_nr=ext2->superblock->s_block_count/(8*ext2->superblock->s_log_block_size);	
 	sector_count=block_group_nr*ext2->superblock->s_log_block_size/512;
-
-	ata_request=kmalloc(sizeof(t_ata_request));
 	io_buffer=kmalloc(512*sector_count);
-	
-	
-	ata_request->io_buffer=io_buffer;
-	ata_request->lba=2048+ext2->partition_start_sector;
-	ata_request->sector_count=sector_count;
-	ata_request->process_context=NULL;
-	ata_request->cmd=READ_28;
-
-	_read_28_ata(ata_request,NULL,TRUE);
-	
+	_read_28_ata(sector_count,(2048+ext2->partition_start_sector),io_buffer,TRUE);
 	ext2->group_block=kmalloc(sizeof(t_group_block*)*block_group_nr);
 	for (i=0;i<=block_group_nr;i++)
 	{
@@ -288,20 +270,10 @@ read_group_block(t_ext2 *ext2)
 u32 static lookup_partition(u8 partition_number)
 {
 	u32 first_partition_start_sector;	
-	ata_request=kmalloc(sizeof(t_ata_request));
-	io_buffer=kmalloc(512);
-	
-	ata_request->io_buffer=io_buffer;
-	ata_request->lba=0;
-	ata_request->sector_count=1;
-	ata_request->process_context=NULL;
-	ata_request->cmd=READ_28;
 
-	_read_28_ata(ata_request,NULL,TRUE);
+	_read_28_ata(sector_count,0,io_buffer,TRUE);
 	first_partition_start_sector=io_buffer[0x1be+( partition_number*16)+8];
-
 	kfree(io_buffer);
-	kfree(ata_request);
 	return first_partition_start_sector;
 }
 

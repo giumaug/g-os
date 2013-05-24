@@ -7,16 +7,16 @@ typedef struct s_scheduler_desc
 }
 t_scheduler_desc;
 
-void schedule(struct t_processor_reg *processor_reg);
+void schedule();
 void init_scheduler();
 void sched_debug();
 void adjust_sched_queue(struct t_process_context *current_process_context);
-void _sleep(struct t_processor_reg* processor_reg);
-void _awake(struct t_process_context *new_process);
-_pause(struct t_processor_reg* processor_reg);
-void _exit(int status,struct t_processor_reg* processor_reg);
+void _sleep();
+void _awake();
+_pause();
+void _exit(int status);
 void _exec(unsigned int start_addr,unsigned int size);
-int _fork(struct t_processor_reg processor_reg);
-void _sleep_time(unsigned int time,struct t_processor_reg* processor_reg);
+int _fork();
+void _sleep_time(unsigned int time);
 
 #endif
