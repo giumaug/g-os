@@ -73,6 +73,8 @@ t_group_block;
 type struct s_inode_disk
 {
 	u16 i_number;
+	t_hashtable* block_hashtable;
+	u32 last_allocated_block;
 	//disk fields
   	u16 i_mode;
 	u16 i_uid; 
