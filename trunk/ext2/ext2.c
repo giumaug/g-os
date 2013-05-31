@@ -123,7 +123,7 @@ void free_inode(t_inode* i_node,t_ext2 *ext2)
 	_write_28_ata(sector_count,lba,io_buffer,processor_reg,current_process_context,TRUE);
 }
 
-void alloc_block()
+void alloc_block(t_inode* i_node)
 {
 	------------qui
 
@@ -266,6 +266,11 @@ read_group_block(t_ext2 *ext2)
 	}
 	kfree(io_buffer);
 	kfree(ata_request);
+}
+
+void static read_inode()
+{
+
 }
 
 u32 static lookup_partition(u8 partition_number)
