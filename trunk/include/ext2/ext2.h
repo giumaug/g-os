@@ -2,6 +2,7 @@
 #define SECTOR_SIZE 512
 #define NAME_MAX 50
 #define PATH_MAX 1000
+#define BLOCK_NUM(FILE_BLOCK_NUM) 
 
 typedef struct s_superblock
 {
@@ -74,7 +75,9 @@ type struct s_inode_disk
 {
 	u16 i_number;
 	t_hashtable* block_hashtable;
-	u32 last_allocated_block;
+	u32 last_block_num;
+	u32 last_file_block_num;
+	u32 file_offset;
 	//disk fields
   	u16 i_mode;
 	u16 i_uid; 

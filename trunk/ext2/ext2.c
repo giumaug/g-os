@@ -123,9 +123,33 @@ void free_inode(t_inode* i_node,t_ext2 *ext2)
 	_write_28_ata(sector_count,lba,io_buffer,processor_reg,current_process_context,TRUE);
 }
 
-void alloc_block(t_inode* i_node)
+void alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
 {
-	------------qui
+	u32 preferred_block;
+	u32 block;
+	u32 offset;
+
+	if (block_num=ext2->last_file_block_num+1)
+	{
+		preferred_block=ext2->last_block_num+1;
+	}
+	//block count start from 1
+	else if (ext2->last_file_block_num!=0)
+	{
+		block=0;
+		offset=block_num-1;
+		while(block==0 && offset!=0)
+		{
+			block=hashtable_get(i_node->block_hashtable,block_num);
+			offset--;
+		}
+		if (block==0)
+		{
+			x
+		}
+
+	}
+	
 
 }
 
@@ -134,7 +158,7 @@ void free_block()
 
 }
 
-t_inode* lookup_path(char* path,t_ext2 *ext2)
+t_inode* lookup_path(char* path,t_ext2* ext2)
 {
 	int i,j;
 	t_inode* parent_dir_inode;
