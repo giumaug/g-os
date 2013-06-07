@@ -134,12 +134,11 @@ void alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
 	u32 offset;
 	u32 group_block;
 	u32 sector_count;
-	u32 preallocated_block_count;
-	u32 discard_preallocated_block;
+	u32 free_block;
 	u32 i;
 
 
-	preferred_block=0;
+	preferred_block=0;-------qui riepilogo generale!!!
 	discard_preallocated_block=1;
 	group_block=(i-node->i_number – 1)/ ext2->s_inodes_per_group;
 	lba=ext2->partition_start_sector+group_block->bg_block_bitmap/SECTOR_SIZE;
@@ -172,7 +171,7 @@ void alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
 		if (--i_node->preallocated_block_count>0)
 		{
 			first_preallocated_block=i_node->first_preallocated_block++;
-			discard_preallocated_block=0;------------------qui
+			discard_preallocated_block=0;
 		}
 	}
 	
@@ -225,24 +224,32 @@ void alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
 			}
 		}
 	}
-	if (preallocated_block_count==0 && )
-	preallocated_block_count=0;
-	first_preallocated_block=0;
-	io_buffer[buffer_byte]&= (255 & (2>>byte_bit));
-	--i_node->preallocated_block_count=8;
-	i_node->first_preallocated_block++;
-	_write_28_ata(sector_count,lba,io_buffer,TRUE);
+	if (block!=0)
+	{
+		if (discard_preallocated_block) 
+		{
+			free_block=0;			
+			i_node->preallocated_block_count=8;
+			for(i=block;i<block+8;i++)
+			{
+				buffer_byte=i/8;
+				byte_bit=(preferred_block-1+1+i) % 8;
+				selected_bit=io_buffer[buffer_byte]&=(2>>byte_bit);
+				if (selected_bit==0)
+				{
+					free_block++;
+				}
+			}
+			if (free_block==8)
+			{
+				i_node->preallocated_block_count=8;
+				i_node->first_preallocated_block=block+1;		
+			}			
+		}	
+		io_buffer[buffer_byte]&= (255 & (2>>byte_bit));
+		_write_28_ata(sector_count,lba,io_buffer,TRUE);
+	}
 	kfree(io_buffer);
-
-
-
-	
-
-	
-	
-
-	
-
 }
 
 void free_block()
@@ -434,28 +441,25 @@ u32 static find_free_block(void* io_buffer,t_i_node* i_node)
 	u32 selected_bit;
 	u32 i;
 
-	for (i=0;i<BLOCK_SIZE;i++)
+	for (i=1;i<=BLOCK_SIZE*8;i++)
 	{
-		if (io_buffer[i]==0)
-		{
-			block=(i*8)+1;
-			io_buffer[i]=1;
-			io_buffer[buffer_byte]&= (255 & (2>>byte_bit));
-			return i;
+		buffer_byte=i/8;
+		byte_bit=(preferred_block-1+1+i) % 8;
+		selected_bit=io_buffer[buffer_byte]&=(2>>byte_bit);
+		if (selected_bit==0)
+		{	
+			free_block++;
+			if (!found_block)
+			{
+				found_block=i;
+			}
+			if (free_block==8)
+			{
+				break;
+			}
 		}
 	}
-	if (block==0)
-	{
-		for (i=1;i<=BLOCK_SIZE*8;i++)
-		{
-			buffer_byte=i/8;
-			byte_bit=(preferred_block-1+1+i) % 8;
-			selected_bit=io_buffer[buffer_byte]&=(2>>byte_bit);
-			if (selected_bit==0)
-			{	
-				io_buffer[buffer_byte]&= (255 & (2>>byte_bit));
-				return i;
-			}
-		}	
-	}
+	io_buffer[buffer_byte]&= (255 & (2>>byte_bit));
+	return i;	
 }
+
