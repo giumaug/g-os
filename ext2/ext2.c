@@ -113,6 +113,7 @@ void free_inode(t_inode* i_node,t_ext2 *ext2)
 	
 	lba=ext2->partition_start_sector+group_block->bg_inode_bitmap/SECTOR_SIZE;
 	sector_count=BLOCK_SIZE/SECTOR_SIZE;
+	io_buffer=kmalloc(BLOCK_SIZE);
 	_read_28_ata(sector_count,lba,io_buffer,TRUE);
 
 	inode_index = (i_node->i_number – 1) % ext2->superblock->s_blocks_per_group; 
@@ -121,34 +122,125 @@ void free_inode(t_inode* i_node,t_ext2 *ext2)
 	io_buffer[buffer_index]&= (255 & (2>>byte_bit));
 
 	_write_28_ata(sector_count,lba,io_buffer,processor_reg,current_process_context,TRUE);
+	kfree(io_buffer);
 }
 
 void alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
 {
+	void* io_buffer;	
 	u32 preferred_block;
+	u32 lba;
 	u32 block;
 	u32 offset;
+	u32 group_block;
+	u32 sector_count;
+	u32 preallocated_block_count;
+	u32 discard_preallocated_block;
+	u32 i;
+
+
+	preferred_block=0;
+	discard_preallocated_block=1;
+	group_block=(i-node->i_number – 1)/ ext2->s_inodes_per_group;
+	lba=ext2->partition_start_sector+group_block->bg_block_bitmap/SECTOR_SIZE;
+	sector_count=BLOCK_SIZE/SECTOR_SIZE;
+	io_buffer=kmalloc(BLOCK_SIZE);
+	_read_28_ata(sector_count,lba,io_buffer,processor_reg,current_process_context,TRUE);
 
 	if (block_num=ext2->last_file_block_num+1)
 	{
-		preferred_block=ext2->last_block_num+1;
+		preferred_block=ext2->last_file_block_num+1;
 	}
 	//block count start from 1
 	else if (ext2->last_file_block_num!=0)
 	{
-		block=0;
 		offset=block_num-1;
-		while(block==0 && offset!=0)
+		while(preferred_block==0 && offset!=0)
 		{
-			block=hashtable_get(i_node->block_hashtable,block_num);
+			preferred_block=hashtable_get(i_node->block_hashtable,block_num) == 0 ? 0 : block_num; 
 			offset--;
+		}
+		if (preferred_block==0)
+		{
+			preferred_block=1;
+		}
+	}
+
+	if(preferred_block==i_node->first_preallocated_block)
+	{
+		block=preferred_block;
+		if (--i_node->preallocated_block_count>0)
+		{
+			first_preallocated_block=i_node->first_preallocated_block++;
+			discard_preallocated_block=0;------------------qui
+		}
+	}
+	
+	if (block==0)
+	{
+		buffer_byte=(preferred_block-1) / 8;
+		byte_bit=(preferred_block-1) % 8;
+		//io_buffer[buffer_byte]&= (255 & (2>>byte_bit));
+		selected_bit=io_buffer[buffer_byte]&=(2>>byte_bit);
+		if (selected_bit==0)
+		{
+			block=preferred_block;
+			//io_buffer[buffer_byte]&= (255 & (2>>byte_bit));
+		}
+		else 
+		{
+			for (i=0;i<16;i++)
+			{
+				buffer_byte=(preferred_block-1+1+i) / 8;
+				byte_bit=(preferred_block-1+1+i) % 8;
+				selected_bit=io_buffer[buffer_byte]&=(2>>byte_bit);
+				if (selected_bit==0)
+				{
+					block=preferred_block+1+i;
+					break;	
+				}
+			}
 		}
 		if (block==0)
 		{
-			x
+			block=find_free_block(io_buffer,i_node);
 		}
-
+		if (block!=0)
+		{
+			io_buffer[buffer_byte]&= (255 & (2>>byte_bit));
+		}
+		else 
+		{ 
+			for (i=1;i<=etx2->s_blocks_count;i++)
+			{
+				group_block=(i-node->i_number – 1)/ ext2->s_inodes_per_group;
+				lba=ext2->partition_start_sector+group_block->bg_block_bitmap/SECTOR_SIZE;
+				sector_count=BLOCK_SIZE/SECTOR_SIZE;
+				_read_28_ata(sector_count,lba,io_buffer,processor_reg,current_process_context,TRUE);
+				block=find_free_block(io_buffer,i_node);
+				if (block!=0)
+				{
+					break;
+				}
+			}
+		}
 	}
+	if (preallocated_block_count==0 && )
+	preallocated_block_count=0;
+	first_preallocated_block=0;
+	io_buffer[buffer_byte]&= (255 & (2>>byte_bit));
+	--i_node->preallocated_block_count=8;
+	i_node->first_preallocated_block++;
+	_write_28_ata(sector_count,lba,io_buffer,TRUE);
+	kfree(io_buffer);
+
+
+
+	
+
+	
+	
+
 	
 
 }
@@ -334,4 +426,36 @@ void static find_free_inode(t_group_block* group_block,t_ext2 *ext2)
 	return inode_number;
 }
 
+u32 static find_free_block(void* io_buffer,t_i_node* i_node)
+{
+	u32 block;
+	u32 buffer_byte;
+	u32 byte_bit;
+	u32 selected_bit;
+	u32 i;
 
+	for (i=0;i<BLOCK_SIZE;i++)
+	{
+		if (io_buffer[i]==0)
+		{
+			block=(i*8)+1;
+			io_buffer[i]=1;
+			io_buffer[buffer_byte]&= (255 & (2>>byte_bit));
+			return i;
+		}
+	}
+	if (block==0)
+	{
+		for (i=1;i<=BLOCK_SIZE*8;i++)
+		{
+			buffer_byte=i/8;
+			byte_bit=(preferred_block-1+1+i) % 8;
+			selected_bit=io_buffer[buffer_byte]&=(2>>byte_bit);
+			if (selected_bit==0)
+			{	
+				io_buffer[buffer_byte]&= (255 & (2>>byte_bit));
+				return i;
+			}
+		}	
+	}
+}

@@ -78,6 +78,8 @@ type struct s_inode_disk
 	u32 last_block_num;
 	u32 last_file_block_num;
 	u32 file_offset;
+	u32 preallocated_block_count;
+	u32 first_preallocated_block;
 	//disk fields
   	u16 i_mode;
 	u16 i_uid; 
