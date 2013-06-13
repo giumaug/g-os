@@ -2,11 +2,13 @@
 #define SECTOR_SIZE 512
 #define NAME_MAX 50
 #define PATH_MAX 1000
+#define EXT2_N_BLOCKS 15
 #define BLOCK_NUM(FILE_BLOCK_NUM) 
 
 typedef struct s_superblock
-{
+{	
 	u32 average_block_inode;
+	u32 block_group_size;
 	//disk fields	
 	u32 inodes_count; 
 	u32 blocks_count; 
