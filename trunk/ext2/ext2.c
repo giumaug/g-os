@@ -111,6 +111,8 @@ void free_inode(t_inode* i_node,t_ext2 *ext2)
         t_group_block*  group_block;
 	t_hashtable* group_hash;
 	t_llist* block_list;
+	t_llist_node* next;
+	t_llist_node* sentinel;
 
 	//1)find block descriptor conteinig inode	
 	//2)clear inode_bitmap bit
@@ -135,20 +137,42 @@ void free_inode(t_inode* i_node,t_ext2 *ext2)
 	sector_count=BLOCK_SIZE/SECTOR_SIZE;
        	_read_28_ata(sector_count,lba,io_buffer,TRUE);
 
-	for (i=0;i<=11;i++)
+	group_hash=hashtable_init(50);
+	group_list=new_dllist();
+	fill_group_hash(group_hash,0,11,i_node);
+	if (i_node->i_block[12]!=NULL)
 	{
-		if (block_index=i_node->i_block[i]!=0)
+		fill_group_hash(block_list,group_list,group_hash,12,---,i_node);
+	}
+
+	sentinel=ll_sentinel(group_list);
+	next=ll_first(group_list);
+	while (next!=sentinel) 
+	{
+		group_block_key=next->val;
+		block_list=hashtable_get(group_hash,group_block_index))];
+		group_block=ext2->group_block[block_index];
+		lba=ext2->partition_start_sector+(group_block->bg_block_bitmap*BLOCK_SIZE/SECTOR_SIZE);
+		sector_count=BLOCK_SIZE/SECTOR_SIZE;
+	 	io_buffer=kmalloc(BLOCK_SIZE);
+        	_read_28_ata(sector_count,lba,io_buffer,processor_reg,current_process_context,TRUE);
+		
+		sentinel2=ll_sentinel(block_list);
+		next=ll_first(block_list);
+		while (next!=sentinel) 
 		{
-			group_block_index=(block_index-1)/ext2->superblock->s_blocks_per_group; 
-
+			offset=next->val;
+			buffer_byte=(offset-1) / 8;
+                	byte_bit=byte_bit=(offset-1) % 8;
+			io_buffer[buffer_index]&= (255 & (2>>byte_bit));
+			next=ll_next(next);
 		}
-	}	
-	
-	group_hash=hashtable_init(50);-------qui2
-	block_list=new_dllist();
-
-
-	kfree(io_buffer);
+		_write_28_ata(sector_count,lba,io_buffer,TRUE);
+		free_llist(block_list);
+	}
+	hashtable_free(group_hash);//??????????????????
+	free_llist(group_list);
+	kfree(io_buffer);--------------qui
 }
 
 u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
@@ -499,3 +523,31 @@ u32 static find_free_block(void* io_buffer,t_i_node* i_node)
         return i;      
 }
 
+//verificare delete hashtalbe sulla get!!!!!!!!
+//performace hashtable!!!!!!!!!
+void static fill_group_hash(t_llist* group_list,t_hashtable* group_hash,u32 start_block,u32 end_block,t_i_node* i_node)
+{
+	u32 i;
+	u32 group_block_index;
+	t_llist* block_list;
+	u32 group_block_index;
+
+	for (i=start_block;i<=end_block;i++)
+	{
+		if (block_index=i_node->i_block[i]!=0)
+		{
+			group_block_index=(block_index-1)/ext2->superblock->s_blocks_per_group; 
+			if ((block_list=hashtable_get(group_hash,group_block_index))==NULL))
+			{
+				block_list=new_dllist();
+				ll_append(block_list,&i_node->i_block[i]);
+				hashtable_put(group_hash,group_block_index,block_list);
+				ll_append(group_list,block_index);
+			}
+			else 
+			{
+				ll_append(block_list,block_index=&i_node->i_block[i]);	
+			}
+		}
+	}
+}
