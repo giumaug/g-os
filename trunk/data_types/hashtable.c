@@ -4,6 +4,34 @@
 #include "dllist.h"
 #include "hashtable.h"
 
+void* static hashtable_search(t_hashtable* hashtable,int key,int remove)
+{
+	int index;
+	t_bucket_data* bucket_data;
+	t_llist_node* next;
+	t_llist_node* sentinel;
+	void* value;
+
+	index=key % hashtable->size;
+	sentinel=ll_sentinel(hashtable->bucket[index]);
+	next=ll_first(hashtable->bucket[index]);
+	while (next!=sentinel) 
+	{
+		bucket_data=next->val;
+		if (bucket_data->key==key)
+		{
+			value=bucket_data->value;
+			if (remove)
+			{
+				ll_delete_node(next);
+			}	
+			return value;
+		}
+		next=ll_next(next);
+	}
+	return NULL;
+}
+
 void static hashtable_free_bucket(t_llist** bucket,int size)
 {
 	int i;
@@ -76,27 +104,12 @@ void hashtable_free(t_hashtable* hashtable)
 
 void* hashtable_get(t_hashtable* hashtable,int key)
 {
-	int index;
-	t_bucket_data* bucket_data;
-	t_llist_node* next;
-	t_llist_node* sentinel;
-	void* value;
+	return hashtable_search(hashtable,key,FALSE);
+}
 
-	index=key % hashtable->size;
-	sentinel=ll_sentinel(hashtable->bucket[index]);
-	next=ll_first(hashtable->bucket[index]);
-	while (next!=sentinel) 
-	{
-		bucket_data=next->val;
-		if (bucket_data->key==key)
-		{
-			value=bucket_data->value;
-			ll_delete_node(next);	
-			return value;
-		}
-		next=ll_next(next);
-	}
-	return NULL;
+void* hashtable_get(t_hashtable* hashtable,int key)
+{
+	return hashtable_search(hashtable,key,TRUE);
 }
 
 void hashtable_put(t_hashtable* hashtable,int key,void* value)

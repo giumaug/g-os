@@ -1,4 +1,3 @@
-
 void init_ext2(t_ext2 *ext2)
 {
         ext2>partition_start_sector=lookup_partition(1);        
@@ -170,9 +169,9 @@ void free_inode(t_inode* i_node,t_ext2 *ext2)
 		_write_28_ata(sector_count,lba,io_buffer,TRUE);
 		free_llist(block_list);
 	}
-	hashtable_free(group_hash);//??????????????????
+	hashtable_free(group_hash);
 	free_llist(group_list);
-	kfree(io_buffer);--------------qui
+	kfree(io_buffer);
 }
 
 u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
@@ -302,7 +301,7 @@ u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
 
                 io_buffer[buffer_byte]&= (255 & (2>>byte_bit));
                 _write_28_ata(sector_count,lba,io_buffer,TRUE);
-		hashtable_put(i_node->block_hashtable,block_num,block);---qui1
+		hashtable_put(i_node->block_hashtable,block_num,block);---qui
         }
         kfree(io_buffer);
 	return block;
@@ -523,18 +522,26 @@ u32 static find_free_block(void* io_buffer,t_i_node* i_node)
         return i;      
 }
 
-//verificare delete hashtalbe sulla get!!!!!!!!
-//performace hashtable!!!!!!!!!
 void static fill_group_hash(t_llist* group_list,t_hashtable* group_hash,u32 start_block,u32 end_block,t_i_node* i_node)
 {
 	u32 i;
 	u32 group_block_index;
 	t_llist* block_list;
 	u32 group_block_index;
+	u32* inode_block;
+	
+	if (start_block>=0 && end_block<=11)
+	{
+		inode_block=i_node->block;
+	}
+	else if (start_block>=12 && end_block<=1033)
+	{
+		inode_block=i_node->indirect_block;
+	}
 
 	for (i=start_block;i<=end_block;i++)
 	{
-		if (block_index=i_node->i_block[i]!=0)
+		if (block_index=inode_block[i]!=0)
 		{
 			group_block_index=(block_index-1)/ext2->superblock->s_blocks_per_group; 
 			if ((block_list=hashtable_get(group_hash,group_block_index))==NULL))
