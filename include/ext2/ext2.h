@@ -73,10 +73,10 @@ typedef struct s_group_block
 }
 t_group_block;
 
-type struct s_inode_disk
+type struct s_inode
 {
 	u16 i_number;
-	t_hashtable* block_hashtable;
+	u32* indirect_block;
 	u32 last_block_num;
 	u32 last_file_block_num;
 	u32 file_offset;
