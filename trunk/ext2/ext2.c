@@ -11,90 +11,18 @@ void free_ext2()
         //remember to free all allocated memory!!!!!!!!
 }
 
-u32 alloc_inode(char* path,unsigned int type,struct t_processor_reg* processor_reg,t_ext2 *ext2)
+static u32 select_inode(char* path,unsigned int type,t_ext2 *ext2)
+
+
+i_node* alloc_inode(char* path,unsigned int type,t_ext2 *ext2)
 {
-        u32 inode_number;      
-        char* current_byte;
-        u32 i,j;        
-        u32 group_block_index;
-        u32 parent_dir_group_block_index;
-        u32 group_block_offset;
-        t_inode* i_node_parent_dir;
-        t_group_block **group_block;
-        void* io_buffer;
-        u32 lba;
-        u32 sector_count;
+	u32 inode_number;
 
-        // 1)seleziona inode parent dir
-        // 2)seleziona  group descriptor inode  (block group = (inode – 1) / INODES_PER_GROUP)
-        // 3)se bg_free_inodes_count>0  else step 4)
-        //      3.1)leggi blocco inode bitmap (bg_inode_bitmap)
-        //      3.2)seleziona primo inode libero
-        //      3.3)update file system
-        //      3.4)ritorna inode
-        // 4)seleziona group descriptor group descriptor+1+2+4+.... inode mod(n=numero totale group descriptor)
-        // 5)vai punto 3
-        // 6)Seleziona primo group descriptor con inode libero a partire da group descriptor corrente +2
-        if (type==0)
-        {
-                group_block_offset=0;
-                inode_number=-1;
-                tot_group_block=ext2->superblock->s_blocks_count/ext2->superblock->s_log_block_size;
-                i_node_parent_dir=lookup_path(char* path);
-                parent_dir_group_block_index=(i_node_parent_dir->i_number-1)/ext2->superblock->inodes_per_group;
-                group_block_index=parent_dir_group_block_index;
+	inode_number=select_inode(path,type,ext2);
+	i_node=kmaolloc(sizeof(t_inode));
+	
+		
 
-                while (group_block_index<tot_group_block && inode_number==-1)
-                {
-                        group_block=ext2->group_block[group_block_index];                      
-                        inode_number=find_free_inode(t_group_block* group_block);
-                        group_block_index=group_block_offset>>1;
-                }
-
-                if (inode_number==-1)
-                {
-                        group_block_index=parent_dir_group_block_index+2;
-                        while(inode_number!=-1 && group_block_index<tot_group_block)
-                        {
-                                group_block=ext2->group_block[group_block_index];                      
-                                inode_number=find_free_inode(t_group_block* group_block);
-
-                        }
-                        if (inode_number==-1)
-                        {
-                                group_block_index=0;
-                                while(inode_number!=-1 && group_block_index<parent_dir_group_block_index-1)
-                                {
-                                        group_block=ext2->group_block[group_block_index];                      
-                                        inode_number=find_free_inode(t_group_block* group_block);
-                                }      
-                        }
-                }
-		return inode_number;
-        }
-
-        //1)Seleziona primo group descriptor con numero inode<=media inode
-        //      2.1)Leggi blocco inode bitmap (bg_inode_bitmap)
-        //      2.2)Seleziona primo inode libero
-        //      2.3)Update file system  
-        //      2.4)ritorna inode
-        //2)Seleziona primo group descriptor con inode libero a partire da group descriptor corrente +1
-        //3)Vai punto 2.1
-        else if (type==1)
-        {
-                ext2->superblock->block_free_inode_average;
-                while (group_block_index<tot_group_block && inode_number==-1)
-                {
-                        group_block=ext2->group_block[group_block_index];                      
-                        inode_number=find_free_inode(t_group_block* group_block);
-                }
-        }
-       
-        if (inode_number!=-1)
-        {
-                _write_28_ata(sector_count,lba,io_buffer,processor_reg,current_process_context,TRUE);
-        }
-        return inode_number;
 }
 
 void free_inode(t_inode* i_node,t_ext2 *ext2)
@@ -141,7 +69,7 @@ void free_inode(t_inode* i_node,t_ext2 *ext2)
 	fill_group_hash(group_hash,0,11,i_node);
 	if (i_node->i_block[12]!=NULL)
 	{
-		fill_group_hash(block_list,group_list,group_hash,12,---,i_node);
+		fill_group_hash(block_list,group_list,group_hash,12,1033,i_node);
 	}
 
 	sentinel=ll_sentinel(group_list);
@@ -169,6 +97,10 @@ void free_inode(t_inode* i_node,t_ext2 *ext2)
 		_write_28_ata(sector_count,lba,io_buffer,TRUE);
 		free_llist(block_list);
 	}
+	if (i_node->i_block[12]!=NULL)
+	{
+		free_indirect_block(i_node);
+	}
 	hashtable_free(group_hash);
 	free_llist(group_list);
 	kfree(io_buffer);
@@ -186,6 +118,7 @@ u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
 	u32 block_bitmap;
         u32 sector_count;
         u32 free_block;
+	u32 block_sector;
         u32 i;
 	
 	block=0;
@@ -209,7 +142,7 @@ u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
                 offset=block_num-1;
                 while(preferred_block==0 && offset!=0)
                 {
-                        preferred_block=hashtable_get(i_node->block_hashtable,block_num) == 0 ? 0 : block_num;
+			preferred_block=read_indirect_block(i_node,block_num) == 0 ? 0 : block_num;
                         offset--;
                 }
                 if (preferred_block==0)
@@ -301,15 +234,82 @@ u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
 
                 io_buffer[buffer_byte]&= (255 & (2>>byte_bit));
                 _write_28_ata(sector_count,lba,io_buffer,TRUE);
-		hashtable_put(i_node->block_hashtable,block_num,block);---qui
+		write_indirect_block(inode,block_num,block);
         }
         kfree(io_buffer);
-	return block;
+	block_sector=ext2->partition_start_sector
+		    +(BLOCK_SIZE
+		    +ext2->superblock->block_group_size*(block-1)
+		    /SECTOR_SIZE;
+	return block_sector;
 }
 
 void free_block()
 {
+	//nothing
+}
 
+static void* read_block_bitmap(t_ext2* ext2,void* io_buffer,t_inode* inode)------------qui
+{
+	u32 group_block_index;
+	t_group_block* group_block;
+	u32 lba;
+	u32 sector_count;
+	
+
+	group_block_index=(i-node->i_number – 1)/ ext2->s_inodes_per_group;
+	group_block=ext2->group_block[group_block_index];
+	
+        lba=ext2->partition_start_sector+(group_block->bg_block_bitmap*BLOCK_SIZE/SECTOR_SIZE);
+        sector_count=BLOCK_SIZE/SECTOR_SIZE;
+        io_buffer=kmalloc(BLOCK_SIZE);
+        _read_28_ata(sector_count,lba,io_buffer,processor_reg,current_process_context,TRUE);
+
+}
+
+static void alloc_indirect_block(t_ext2* ext2,t_inode* i_node)
+{
+	1)Alloco primo blocco libero nel gruppo
+	2)Altrimenri primo blocco libero del primo gruppo con un blocco libero
+
+	group_block_index=(i-node->i_number – 1)/ ext2->s_inodes_per_group;
+	group_block=ext2->group_block[group_block_index];
+	
+        lba=ext2->partition_start_sector+(group_block->bg_block_bitmap*BLOCK_SIZE/SECTOR_SIZE);
+        sector_count=BLOCK_SIZE/SECTOR_SIZE;
+        io_buffer=kmalloc(BLOCK_SIZE);
+        _read_28_ata(sector_count,lba,io_buffer,processor_reg,current_process_context,TRUE);
+
+}
+
+static void free_indirect_block(t_i_node* i_node)
+{
+
+}
+
+static u32 read_indirect_block(t_inode* inode,u32 key)
+{
+	if (key>=0 && key<=11)
+	{
+		return i_node->i_block[key-1];
+	}
+	else
+	{
+		return i_node>indirect_block[key-12];
+	} 
+
+}
+
+static void write_indirect_block(t_inode* inode,u32 key,u32 value)
+{
+	if (key>=0 && key<=11)
+	{
+		i_node->i_block[key-1]=value;
+	}
+	else
+	{
+		i_node>indirect_block[key-12]=value;
+	}
 }
 
 t_inode* lookup_path(char* path,t_ext2* ext2)
@@ -408,10 +408,11 @@ void static read_superblock(t_ext2 *ext2)
         kmemcpy(&superblock->reserved,&io_buffer[208],204);
         kfree(io_buffer);
         kfree(ata_request);
-//	superblock->block_group_size=3*BLOCK_SIZE
-//				    +32*superblock->s_blocks_count/superblock->s_blocks_per_group
-//				    +128*s_inodes_per_group
-//				    +BLOCK_SIZE*superblock->s_blocks_count;
+	superblock->block_group_header_size=3*BLOCK_SIZE
+				    	   +32*superblock->s_blocks_count/superblock->s_blocks_per_group
+				           +128*s_inodes_per_group;
+
+	superblock->block_group_size=superblock->block_group_header_size+BLOCK_SIZE*superblock->s_blocks_count;
 }
 
 read_group_block(t_ext2 *ext2)
@@ -453,6 +454,7 @@ read_group_block(t_ext2 *ext2)
 void static read_inode()
 {
 
+
 }
 
 u32 static lookup_partition(u8 partition_number)
@@ -465,8 +467,12 @@ u32 static lookup_partition(u8 partition_number)
         return first_partition_start_sector;
 }
 
-void static find_free_inode(t_group_block* group_block,t_ext2 *ext2)
+void static find_free_inode(u32 group_block_index,t_ext2 *ext2)
 {
+	u32 inode_sector;
+	t_group_block* group_block;
+
+	group_block=ext2->group_block[group_block_index];                      
         if (group_block->bg_free_inodes<=superblock->average_block_inode)
         {
                 lba=ext2->partition_start_sector+group_block->bg_inode_bitmap/SECTOR_SIZE;
@@ -489,7 +495,13 @@ void static find_free_inode(t_group_block* group_block,t_ext2 *ext2)
                         j=0;
                 }
         }
-        return inode_number;
+	inode_sector=ext2->partition_start_sector
+		    +(BLOCK_SIZE
+		    +ext2->superblock->block_group_size*(group_block_index-1)
+	            +superblock->block_group_header_size+128*inode_number)
+		    /SECTOR_SIZE;
+
+        return inode_sector;
 }
 
 u32 static find_free_block(void* io_buffer,t_i_node* i_node)
@@ -557,4 +569,91 @@ void static fill_group_hash(t_llist* group_list,t_hashtable* group_hash,u32 star
 			}
 		}
 	}
+}
+
+static u32 select_inode(char* path,unsigned int type,t_ext2 *ext2)
+{
+        u32 inode_number;      
+        char* current_byte;
+        u32 i,j;        
+        u32 group_block_index;
+        u32 parent_dir_group_block_index;
+        u32 group_block_offset;
+        t_inode* i_node_parent_dir;
+        t_group_block **group_block;
+        void* io_buffer;
+        u32 lba;
+        u32 sector_count;
+
+        // 1)seleziona inode parent dir
+        // 2)seleziona  group descriptor inode  (block group = (inode – 1) / INODES_PER_GROUP)
+        // 3)se bg_free_inodes_count>0  else step 4)
+        //      3.1)leggi blocco inode bitmap (bg_inode_bitmap)
+        //      3.2)seleziona primo inode libero
+        //      3.3)update file system
+        //      3.4)ritorna inode
+        // 4)seleziona group descriptor group descriptor+1+2+4+.... inode mod(n=numero totale group descriptor)
+        // 5)vai punto 3
+        // 6)Seleziona primo group descriptor con inode libero a partire da group descriptor corrente +2
+        if (type==0)
+        {
+                group_block_offset=0;
+                inode_number=-1;
+                tot_group_block=ext2->superblock->s_blocks_count/ext2->superblock->s_log_block_size;
+                i_node_parent_dir=lookup_path(char* path);
+                parent_dir_group_block_index=(i_node_parent_dir->i_number-1)/ext2->superblock->inodes_per_group;
+                group_block_index=parent_dir_group_block_index;
+
+                while (group_block_index<tot_group_block && inode_number==-1)
+                {
+                        group_block=ext2->group_block[group_block_index];                      
+			inode_number=find_free_inode(group_block_index,ext2);
+                        group_block_index=group_block_offset>>1;
+                }
+
+                if (inode_number==-1)
+                {
+                        group_block_index=parent_dir_group_block_index+2;
+                        while(inode_number!=-1 && group_block_index<tot_group_block)
+                        {
+                                group_block=ext2->group_block[group_block_index];                      
+				inode_number=find_free_inode(group_block_index,ext2);
+
+                        }
+                        if (inode_number==-1)
+                        {
+                                group_block_index=0;
+                                while(inode_number!=-1 && group_block_index<parent_dir_group_block_index-1)
+                                {
+                                        group_block=ext2->group_block[group_block_index];                      
+					inode_number=find_free_inode(group_block_index,ext2);
+                                }      
+                        }
+                }
+		return inode_number;
+        }
+
+        //1)Seleziona primo group descriptor con numero inode<=media inode
+        //      2.1)Leggi blocco inode bitmap (bg_inode_bitmap)
+        //      2.2)Seleziona primo inode libero
+        //      2.3)Update file system  
+        //      2.4)ritorna inode
+        //2)Seleziona primo group descriptor con inode libero a partire da group descriptor corrente +1
+        //3)Vai punto 2.1
+        else if (type==1)
+        {
+                ext2->superblock->block_free_inode_average;
+                while (group_block_index<tot_group_block && inode_number==-1)
+                {
+                        group_block=ext2->group_block[group_block_index];                      
+			inode_number=find_free_inode(group_block_index,ext2);
+                }
+        }
+       
+        if (inode_number!=-1)
+        {
+                _write_28_ata(sector_count,lba,io_buffer,TRUE);
+        }
+	superblock->block_group_header_size
+        return inode_number;
 }
