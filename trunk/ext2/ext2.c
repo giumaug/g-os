@@ -231,7 +231,7 @@ u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
         kfree(io_buffer);
 	block_sector=ext2->partition_start_sector
 		    +(BLOCK_SIZE
-		    +ext2->superblock->block_group_size*(block-1)
+		    +ext2->superblock->block_group_size*(block-1)  ?????
 		    /SECTOR_SIZE;
 	return block_sector;
 }
@@ -263,8 +263,11 @@ static void* write_block_bitmap(u32 partition_start_sector,u32 bg_block_bitmap,v
 
 static u32 alloc_indirect_block(t_ext2* ext2,t_inode* i_node)
 {
-	1)Alloco primo blocco libero nel gruppo
-	2)Altrimenri primo blocco libero del primo gruppo con un blocco libero
+	u32 group_block_index;
+	u32 indirect_block;
+	u32 ret;
+	t_group_block* group_block;
+	void* io_buffer;
 
 	ret=-1;	
 	group_block_index=(i-node->i_number – 1)/ ext2->s_inodes_per_group;
@@ -297,7 +300,8 @@ static u32 alloc_indirect_block(t_ext2* ext2,t_inode* i_node)
 		}
 	}
 	kfree(io_buffer);
-	return ret;	       
+	return ret;
+	bg_inode_table-------??22 	       
 }
 
 static void free_indirect_block(t_i_node* i_node)
@@ -430,7 +434,7 @@ void static read_superblock(t_ext2 *ext2)
 				    	   +32*superblock->s_blocks_count/superblock->s_blocks_per_group
 				           +128*s_inodes_per_group;
 
-	superblock->block_group_size=superblock->block_group_header_size+BLOCK_SIZE*superblock->s_blocks_count;
+	superblock->block_group_size=superblock->block_group_header_size+BLOCK_SIZE*superblock->s_blocks_count;------------???1
 }
 
 read_group_block(t_ext2 *ext2)
