@@ -9,6 +9,7 @@ typedef struct s_superblock
 {	
 	u32 average_block_inode;
 	u32 block_group_size;
+	u32 block_group_header_size;
 	//disk fields	
 	u32 inodes_count; 
 	u32 blocks_count; 
