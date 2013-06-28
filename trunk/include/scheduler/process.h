@@ -52,6 +52,8 @@ struct t_process_context {
 	unsigned int curr_sched_queue_index;
 	t_proc_status proc_status;
 	char* current_dir;
+	u32 next_fd;
+	hashtable* file_desc;
 };
 
 struct t_process_info {

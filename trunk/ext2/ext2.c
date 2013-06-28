@@ -1,9 +1,11 @@
+#include ""
+
 void init_ext2(t_ext2 *ext2)
 {
         ext2>partition_start_sector=lookup_partition(1);        
         read_superblock(ext2->superblock,ext2->partition_start_sector);
         read_group_block(ext2->group_block);
-
+	init_ata(ext2->ata_desc);
 }
 
 void free_ext2()
@@ -235,7 +237,7 @@ void free_block()
 	//nothing
 }
 
-t_inode* lookup_path(char* path,t_ext2* ext2)
+t_inode* lookup_parent_dir_inode(char* path,t_ext2* ext2)
 {
         int i,j;
         t_inode* parent_dir_inode;
@@ -262,6 +264,43 @@ t_inode* lookup_path(char* path,t_ext2* ext2)
                 parent_dir_inode=lookup_inode(parent_dir_inode,name);  
         }
         return parent_dir_inode;
+}
+
+t_inode* lookup_parent_inode(char* path,t_ext2* ext2)
+{
+	t_inode* parent_dir_inode;
+
+	parent_dir_inode=lookup_parent_inode(path,ext2);
+	read_dir-----------------qui
+	
+
+}
+
+void static find_free_inode(t_group_block* group_block,t_ext2 *ext2)
+{
+	if (group_block->bg_free_inodes<=superblock->average_block_inode)
+	{
+		lba=ext2->partition_start_sector+group_block->bg_inode_bitmap/SECTOR_SIZE;
+		sector_count=BLOCK_SIZE/SECTOR_SIZE;
+		_read_28_ata(sector_count,lba,io_buffer,processor_reg,current_process_context,TRUE);
+
+		while (inode_number!=-1 && i<BLOCK_SIZE)
+		{
+			current_byte=*(io_buffer++);
+			while (inode_number!=-1 && j<8)
+			{
+				if (!(*current_byte & 2>>j)
+				{
+					inode_number=i*8+j;
+					*current_byte=*current_byte | 2>>j
+				}
+				j++;
+			}
+			i++;
+			j=0;
+		}
+	}
+	return inode_number;
 }
 
 

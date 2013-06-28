@@ -33,18 +33,15 @@ void int_handler_ata()
 	RET_FROM_INT_HANDLER
 }
 
-unsigned int _read_28_ata(unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync)
+unsigned int _read_28_ata(t_ata_desc* ata_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync)
 {
 	int i;
 	void *io_buffer;
-	t_ata_desc* ata_desc;
 	struct t_process_context* process_context;
 	struct t_process_context *current_process_context;	
 	
 	SAVE_IF_STATUS
 	CLI
-	
-	ata_desc=system.ata_desc;
 	current_process_context=system.process_info.current_process->val;
 	if (ata_desc->status==REQUEST_WAITING)
 	{
@@ -92,18 +89,15 @@ unsigned int _read_28_ata(unsigned int sector_count,unsigned int lba,void* io_bu
 	return 0;
 }
 
-unsigned int _write_28_ata(unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync)
+unsigned int _write_28_ata(t_ata_desc* ata_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync)
 {
 	int i;
 	void *io_buffer;
-	t_ata_desc* ata_desc;
 	struct t_process_context* process_context;
 	struct t_process_context *current_process_context;
 	
 	SAVE_IF_STATUS
 	CLI
-	
-	ata_desc=system.ata_desc;
 	current_process_context=system.process_info.current_process->val;
 	if (ata_desc->status==REQUEST_WAITING)
 	{

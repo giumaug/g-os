@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include "general.h"
-#include "kmalloc.h"
-#include "dllist.h"
-#include "hashtable.h"
+#include "memory_manager/kmalloc.h"
+#include "data_types/dllist.h"
+#include "data_types/hashtable.h"
 
 void* static hashtable_search(t_hashtable* hashtable,int key,int remove)
 {

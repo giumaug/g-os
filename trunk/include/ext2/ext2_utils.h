@@ -5,8 +5,6 @@
 							/SECTOR_SIZE;
 
 #define ABSOLUTE_BLOCK_ADDRESS(group_block_index,relative_block_address) ext2->superblock->s_blocks_per_group*(group_block_index-1)+block
-s_blocks_per_group 
-
 
 static void* read_block_bitmap(u32 partition_start_sector,u32 bg_block_bitmap,void* io_buffer)
 {
@@ -85,9 +83,9 @@ static void free_indirect_block(t_i_node* i_node)
 	io_buffer=kmalloc(BLOCK_SIZE);
 	read_block_bitmap(ext2->partition_start_sector,group_block->bg_block_bitmap,io_buffer);
 	buffer_byte=relative_block_address/8;
-	byte_bit=relative_block_address%8;---------qui
-	
-
+	byte_bit=relative_block_address%8;
+	io_buffer[buffer_byte]&= (255 &  ~(2>>byte_bit));
+	write_block_bitmap(ext2->partition_start_sector,group_block->bg_block_bitmap,io_buffer);
 }
 
 static u32 read_indirect_block(t_inode* inode,u32 key)
@@ -229,6 +227,11 @@ void static read_inode()
 {
 
 
+}
+
+void static read_directory()
+{
+	----------------qui
 }
 
 u32 static lookup_partition(u8 partition_number)
@@ -390,7 +393,7 @@ static u32 select_inode(char* path,unsigned int type,t_ext2 *ext2)
                 group_block_offset=0;
                 inode_number=-1;
                 tot_group_block=ext2->superblock->s_blocks_count/ext2->superblock->s_log_block_size;
-                i_node_parent_dir=lookup_path(char* path);
+                i_node_parent_dir=lookup_parent_dir_inode(char* path);
                 parent_dir_group_block_index=(i_node_parent_dir->i_number-1)/ext2->superblock->inodes_per_group;
                 group_block_index=parent_dir_group_block_index;
 

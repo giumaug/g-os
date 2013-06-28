@@ -5,6 +5,9 @@
 #define EXT2_N_BLOCKS 15
 #define BLOCK_NUM(FILE_BLOCK_NUM) 
 
+#define O_CREAT 0b1
+#define O_APPEND 0b10
+
 typedef struct s_superblock
 {	
 	u32 average_block_inode;
@@ -122,7 +125,7 @@ typedef struct s_ext2
 	t_superblock *superblock;
 	t_group_block **group_block;
 	u32 partition_start_sector;
-	t_inode* root_dir_inode; 
- 
+	t_inode* root_dir_inode;
+	t_ata_desc* ata_desc;
 }
 t_ext2;
