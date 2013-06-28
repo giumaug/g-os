@@ -33,6 +33,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	char* process_space;
 	unsigned int proc_phy_addr;
 	unsigned int i;
+	t_ext2* ext2;
 	
 	if ( magic != 0x2BADB002 )
    	{
@@ -46,10 +47,12 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
    	init_pic();
    	init_pit();
 	init_kbc();
-	init_ata(&system.ata_desc);
+	//init_ata(&system.ata_desc);
 	init_console(&console_desc,4000,0);
 	buddy_init(&system.buddy_desc);
 	init_scheduler();
+	init_ext2(t_ext2 *ext2);
+	system->root_fs=ext2;
 	
 	system.master_page_dir=init_virtual_memory();
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int)system.master_page_dir)))
