@@ -123,7 +123,6 @@ typedef struct s_directory
 typedef struct s_ext2
 {
 	t_superblock *superblock;
-	t_group_block **group_block;
 	u32 partition_start_sector;
 	t_inode* root_dir_inode;
 	t_ata_desc* ata_desc;
