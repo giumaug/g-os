@@ -266,50 +266,18 @@ read_group_block(t_ext2 *ext2,group_block_number,t_group_block* group_block)
 	free(io_buffer);
 }
 
-//read_group_block(t_ext2 *ext2)
-//{
-//        u32 block_in_group;
-//        u32 sector_count;
-//        t_group_block *group_block;
-//
-//        block_group_nr=ext2->superblock->s_block_count/(8*ext2->superblock->s_log_block_size);  
-//        sector_count=block_group_nr*ext2->superblock->s_log_block_size/512;
-//        io_buffer=kmalloc(512*sector_count);
-//        _read_28_ata(sector_count,(2048+ext2->partition_start_sector),io_buffer,TRUE);
-//        ext2->group_block=kmalloc(sizeof(t_group_block*)*block_group_nr);
-//        for (i=0;i<=block_group_nr;i++)
-//        {
-//                group_block=kmalloc(sizeof(t_group_block));
-//                ext2->group_block[i]=group_block;
-//                //u32
-//                bg_block_bitmap=io_buffer[0+(23*i)];
-//                //u32
-//                bg_inode_bitmap=io_buffer[4+(23*i)];
-//                //u32
-//                bg_inode_table=io_buffer[8+(23*i)];
-//                //u16
-//                bg_free_blocks_count=io_buffer[12+(23*i)];
-//                //u16
-//                bg_free_inodes_count=io_buffer[14+(23*i)];
-//                //u16
-//                bg_used_dirs_count=io_buffer[16+(23*i)];
-//                //u16
-//                bg_pad=io_buffer[18+(23*i)];
-//                //u32[3]
-//                bg_reserved=kmemcpy(&bg_reserved,&io_buffer[20+(23*i)],3);                      
-//        }
-//        kfree(io_buffer);
-//        kfree(ata_request);
-//}
-
-void static read_inode(t_ext2* ext2,u32 inode_number)
+void static read_inode(t_ext2* ext2,u32 inode_number,t_inode* inode)
 {
 	u32 group_number;
 	u32 group_offset;
 	u32 inode_table_offset;
 	u32 inode_offset;
 	t_group_block* group_block;
+	u32 lba;
+	u32 sector_count;
+	void* io_buffer;
 
+	io_buffer=kmalloc(BLOCK_SIZE);	
 	group_block=kmalloc(sizeof(t_group_block));
 	
 	group_number=inode_number/ext2->superblock->s_inodes_per_group; 
@@ -318,9 +286,57 @@ void static read_inode(t_ext2* ext2,u32 inode_number)
 
 	inode_table_offset=group_offset/(BLOCK_SIZE/128);
 	inode_offset=group_offset%(BLOCK_SIZE/128);	
-	bg_inode_table--------qui
+	
+	lba=group_block->bg_inode_table+inode_table_offset*(BLOCK_SIZE/SECTOR_SIZE);
+	sector_count=BLOCK_SIZE/SECTOR_SIZE;
+	_read_28_ata(sector_count,lba,io_buffer,TRUE);
 
+	
+	//u16 
+	inode->i_mode=io_buffer[inode_offset];
+	//u16 
+	inode->i_uid=io_buffer[inode_offset+2];
+	//u32 
+	inode->i_size=io_buffer[inode_offset+4];
+	//u32 
+	inode->i_atime=io_buffer[inode_offset+8];
+	//u32 
+	inode->i_ctime=io_buffer[inode_offset+12];
+	//u32 
+	inode->i_mtime=io_buffer[inode_offset+16];
+	//u32 
+	inode->i_dtime=io_buffer[inode_offset+20];
+	//u16
+	inode->i_gid=io_buffer[inode_offset+24];
+	//u16 
+	inode->i_links_count=io_buffer[inode_offset+26];
+	//u32 
+	inode->i_blocks=io_buffer[inode_offset+28];
+	//u32 
+	inode->i_flags=io_buffer[inode_offset+32];
+	//u32 
+	inode->osd1=io_buffer[inode_offset+36];
+	//u32[EXT2_N_BLOCKS] 0-14 -------------------qui
+	for (i=0;i< 
+	inode->i_block=io_buffer[inode_offset];
+	//u32 
+	inode->i_generation=io_buffer[inode_offset];
+	//u32 
+	inode->i_file_acl=io_buffer[inode_offset];
+	//u32 
+	inode->i_dir_acl=io_buffer[inode_offset];
+	//u32 
+	inode->i_faddr=io_buffer[inode_offset];
+	//u32 
+	inode->osd2_1=io_buffer[inode_offset];
+	//u32 
+	inode->osd2_2=io_buffer[inode_offset];
+	//u32 
+	inode->osd2_3=io_buffer[inode_offset];
+	
+	
 
+	kfree(io_buffer);
 	kfree(group_block);
 }
 
