@@ -38,7 +38,7 @@ static u32 alloc_indirect_block(t_ext2* ext2,t_inode* i_node)
 	group_block_index=(i-node->i_number – 1)/ ext2->s_inodes_per_group;
 	//group_block=ext2->group_block[group_block_index]
 	group_block=kmalloc(sizeof(t_group_block));
-	group_block=read_group_block(ext2,group_block_index);
+	read_group_block(ext2,group_block_index,group_block);
 	io_buffer=kmalloc(BLOCK_SIZE);
 	read_block_bitmap(ext2->partition_start_sector,group_block->bg_block_bitmap,io_buffer);
 	indirect_block=ABSOLUTE_BLOCK_ADDRESS(group_block_index,find_free_block(io_buffer,0));
@@ -46,6 +46,7 @@ static u32 alloc_indirect_block(t_ext2* ext2,t_inode* i_node)
 	{
 		i_node->i_block[12]=indirect_block;
 		write_block_bitmap(ext2->partition_start_sector,group_block->bg_block_bitmap,io_buffer);
+		write_group_block(ext2,group_block_index,group_block);
 		ret=0;
 	}
 	else 
@@ -55,13 +56,14 @@ static u32 alloc_indirect_block(t_ext2* ext2,t_inode* i_node)
 			if (i!=group_block_index)
 			{
 				//group_block=ext2->group_block[i];
-				group_block=read_group_block(ext2,i);
+				read_group_block(ext2,i,group_block);
 				read_block_bitmap(ext2->partition_start_sector,group_block->bg_block_bitmap,io_buffer);
 				indirect_block=ABSOLUTE_BLOCK_ADDRESS(group_block_index,find_free_block(io_buffer,0));
 				if (indirect_block!=0)
 				{
 					i_node->i_block[12]=indirect_block;
 					write_block_bitmap(ext2->partition_start_sector,group_block->bg_block_bitmap,io_buffer);
+					write_group_block(ext2,group_block_index,group_block);
 					ret=0;
 				}
 			}
@@ -85,13 +87,14 @@ static void free_indirect_block(t_i_node* i_node)
 	relative_block_address=i_node->i_block[12] % ext2->superblock->s_blocks_per_group;
 	//group_block=ext2->group_block[group_block_index];
 	group_block=kmalloc(sizeof(t_group_block));
-	group_block=read_group_block(ext2,group_block_index);
+	read_group_block(ext2,group_block_index,group_block);
 	io_buffer=kmalloc(BLOCK_SIZE);
 	read_block_bitmap(ext2->partition_start_sector,group_block->bg_block_bitmap,io_buffer);
 	buffer_byte=relative_block_address/8;
 	byte_bit=relative_block_address%8;
 	io_buffer[buffer_byte]&= (255 &  ~(2>>byte_bit));
 	write_block_bitmap(ext2->partition_start_sector,group_block->bg_block_bitmap,io_buffer);
+	write_group_block(ext2,group_block_index,group_block);
 	kfree(group_block);
 	kfree(io_buffer);
 }
@@ -209,26 +212,25 @@ write_group_block(t_ext2 *ext2,group_block_number,t_group_block* group_block)
 	io_buffer=kmalloc(512);
 
 	//u32
-	bg_block_bitmap=io_buffer[0+sector_offset]=group_block->bg_block_bitmap;
+	io_buffer[0+sector_offset]=group_block->bg_block_bitmap;
 	//u32
-	bg_inode_bitmap=io_buffer[4+sector_offset]=group_block->bg_inode_bitmap;
+	io_buffer[4+sector_offset]=group_block->bg_inode_bitmap;
 	//u32
-	bg_inode_table=io_buffer[8+sector_offset]=group_block->bg_inode_table;
+	io_buffer[8+sector_offset]=group_block->bg_inode_table;
 	//u16
-	bg_free_blocks_count=io_buffer[12+sector_offset]=group_block->bg_free_blocks_count;
+	io_buffer[12+sector_offset]=group_block->bg_free_blocks_count;
 	//u16
-	bg_free_inodes_count=io_buffer[14+sector_offset]=group_block->bg_free_inodes_count;
+	io_buffer[14+sector_offset]=group_block->bg_free_inodes_count;
 	//u16
-	bg_used_dirs_count=io_buffer[16+sector_offset]=group_block->bg_used_dirs_count;
+	io_buffer[16+sector_offset]=group_block->bg_used_dirs_count;
 	//u16
-	bg_pad=io_buffer[18+sector_offset]=group_block->bg_pad;
+	io_buffer[18+sector_offset]=group_block->bg_pad;
 	//u32[3]
 	kmemcpy(&io_buffer[20+sector_offset],group_block->bg_reserved,3);   
 	
 	write_28_ata(1,lba,io_buffer,TRUE);
-	free(io_buffer);--------qui
-
-
+	free(io_buffer);
+}
 
 read_group_block(t_ext2 *ext2,group_block_number,t_group_block* group_block)
 {
@@ -304,17 +306,75 @@ void static read_inode(t_ext2* ext2,u32 inode_number)
 {
 	u32 group_number;
 	u32 group_offset;
+	u32 inode_table_offset;
+	u32 inode_offset;
+	t_group_block* group_block;
+
+	group_block=kmalloc(sizeof(t_group_block));
 	
 	group_number=inode_number/ext2->superblock->s_inodes_per_group; 
 	group_offset=inode_number%ext2->superblock->s_inodes_per_group;
-	read_group_block(ext2,)
+	read_group_block(ext2,group_block_index,group_block);
+
+	inode_table_offset=group_offset/(BLOCK_SIZE/128);
+	inode_offset=group_offset%(BLOCK_SIZE/128);	
+	bg_inode_table--------qui
 
 
+	kfree(group_block);
 }
 
-void static read_directory(char* path,t_inode* inode)
+void static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext2,t_inode* inode)
 {
-	----------------qui
+	int i;
+	int j;
+	u32 inode_address;
+	u32 next_entry;
+	u32 name_len;
+	void* io_buffer;
+	char file_name_entry[NAME_MAX];
+
+	// For directory inode supposed max 12 block	
+	for (i=0;i<=11;i++)
+	{
+		if (inode->i_block[i]==-1)
+		{	
+			break;
+		} 
+	}
+	io_buffer=kmalloc(BLOCK_SIZE*(i+1));
+
+	for (j=0;j<=i;j++)
+	{
+		_read_28_ata(2,parent_dir_inode->i_block[i],(io_buffer+1024*j),TRUE);
+	}
+
+	next_entry=0;	
+	j=0;
+	while(next_entry<=(i+1)*BLOCK_SIZE)
+	{
+		inode_address=io_buffer[next_entry];
+		next_entry=(u16) io_buffer[next_entry+4];
+		name_len=(u8) io_buffer[next_entry+6];
+		while(io_buffer[next_entry+6+j]==file_name[j] && j<name_len)		
+		{
+			j++;
+		}
+		if(name_len==j)
+		{
+			break;
+		}	
+	}
+	if(next_entry<=(i+1)*BLOCK_SIZE)
+	{
+		read_inode(t_ext2* ext2,u32 inode_number,inode)
+	}
+	else 
+	{
+		inode=NULL;
+	}
+	kfree(io_buffer);
+	return inode;
 }
 
 u32 static lookup_partition(u8 partition_number)
@@ -334,7 +394,7 @@ void static find_free_inode(u32 group_block_index,t_ext2 *ext2)
 
 	//group_block=ext2->group_block[group_block_index];
 	group_block=kmalloc(sizeof(t_group_block));   
-	group_block=read_group_block(ext2,group_block_index);                   
+	read_group_block(ext2,group_block_index,group_block);                   
         if (group_block->bg_free_inodes<=superblock->average_block_inode)
         {
                 lba=ext2->partition_start_sector+group_block->bg_inode_bitmap/SECTOR_SIZE;
@@ -363,6 +423,7 @@ void static find_free_inode(u32 group_block_index,t_ext2 *ext2)
 	            +superblock->block_group_header_size+128*inode_number)
 		    /SECTOR_SIZE;
 
+	_write_28_ata(sector_count,lba,io_buffer,processor_reg,current_process_context,TRUE);
 	kfree(group_block);
         return inode_sector;
 }
@@ -480,14 +541,14 @@ static u32 select_inode(char* path,unsigned int type,t_ext2 *ext2)
                 group_block_offset=0;
                 inode_number=-1;
                 tot_group_block=ext2->superblock->s_blocks_count/ext2->superblock->s_log_block_size;
-                i_node_parent_dir=lookup_parent_dir_inode(char* path);
+                i_node_parent_dir=lookup_inode(char* path);
                 parent_dir_group_block_index=(i_node_parent_dir->i_number-1)/ext2->superblock->inodes_per_group;
                 group_block_index=parent_dir_group_block_index;
 
                 while (group_block_index<tot_group_block && inode_number==-1)
                 {
                         //group_block=ext2->group_block[group_block_index];
-			group_block=read_group_block(ext2,group_block_index);                        
+			read_group_block(ext2,group_block_index,group_block);                        
 			inode_number=find_free_inode(group_block_index,ext2);
                         group_block_index=group_block_offset>>1;
                 }
@@ -498,7 +559,7 @@ static u32 select_inode(char* path,unsigned int type,t_ext2 *ext2)
                         while(inode_number!=-1 && group_block_index<tot_group_block)
                         {
                                 //group_block=ext2->group_block[group_block_index];  
-				group_block=read_group_block(ext2,group_block_index);                    
+				read_group_block(ext2,group_block_index,group_block);                    
 				inode_number=find_free_inode(group_block_index,ext2);
 
                         }
@@ -508,13 +569,11 @@ static u32 select_inode(char* path,unsigned int type,t_ext2 *ext2)
                                 while(inode_number!=-1 && group_block_index<parent_dir_group_block_index-1)
                                 {
                                         //group_block=ext2->group_block[group_block_index];
-					group_block=read_group_block(ext2,group_block_index);                      
+					read_group_block(ext2,group_block_index,group_block);                      
 					inode_number=find_free_inode(group_block_index,ext2);
                                 }      
                         }
                 }
-		kfree(group_block);
-		return inode_number;
         }
 
         //1)Seleziona primo group descriptor con numero inode<=media inode
@@ -530,14 +589,13 @@ static u32 select_inode(char* path,unsigned int type,t_ext2 *ext2)
                 while (group_block_index<tot_group_block && inode_number==-1)
                 {
                         //group_block=ext2->group_block[group_block_index];
-			group_block=read_group_block(ext2,group_block_index);                        
+			read_group_block(ext2,group_block_index,group_block);                        
 			inode_number=find_free_inode(group_block_index,ext2);
                 }
         }
-       
         if (inode_number!=-1)
         {
-                _write_28_ata(sector_count,lba,io_buffer,TRUE);
+                write_group_block(ext2,group_block_index,group_block);
         }
 	kfree(group_block);
         return inode_number;
