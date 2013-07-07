@@ -12,15 +12,12 @@ void free_ext2()
         //remember to free all allocated memory!!!!!!!!
 }
 
-i_node* alloc_inode(char* path,unsigned int type,t_ext2 *ext2)
+void alloc_inode(char* path,unsigned int type,t_ext2 *ext2 t_inode* inode)
 {
 	u32 inode_number;
 
 	inode_number=select_inode(path,type,ext2);
-	i_node=kmaolloc(sizeof(t_inode));
-	
-		
-
+	inode->i_number=inode_number;
 }
 
 void free_inode(t_inode* i_node,t_ext2 *ext2)
@@ -244,14 +241,11 @@ void free_block()
 	//nothing
 }
 
-t_inode* lookup_inode(char* path,t_ext2* ext2)
+void lookup_inode(char* path,t_ext2* ext2,t_inode* inode)
 {
         int i,j;
         t_inode* parent_dir_inode;
-	t_inode* inode;
         char[NAME_MAX] name;
-
-	inode=kmalloc(sizeof(t_inode));
                
         if (path[0]=='/')
         {                                
@@ -274,6 +268,4 @@ t_inode* lookup_inode(char* path,t_ext2* ext2)
 		read_dir_inode(name,parent_dir_inode,ext2,inode);
 		parent_dir_inode=inode;
         }
-	kfree(inode);
-        return parent_dir_inode;
 }
