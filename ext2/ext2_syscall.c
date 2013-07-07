@@ -1,7 +1,7 @@
 #include "data_types/hashtable.h"
 #include "ext2/ext2.h"
 
-int open(const char *pathname, int flags, mode_t mode); 
+int open(const char *path, int flags, mode_t mode); 
 {
 	//se file esiste carico inode da disco 
 	//se file non esiste alloco inode
@@ -10,23 +10,30 @@ int open(const char *pathname, int flags, mode_t mode);
 	t_inode* inode;
 	t_llist_node* node;
 
-	fd=current_process_context->next_fd++;
+	inode=kmalloc(sizeof(t_inode);
 	node=system.process_info.current_process;	
 	current_process_context=node->val;
+	fd=current_process_context->next_fd++;
 	
 	if (flags & O_CREAT)
 	{
-		inode=alloc_inode(pathname,0,system->ext2);
+		inode=alloc_inode(path,0,system->ext2,inode);
 		hashtable_put(current_process_context->file_desc,fd,inode);
 	}
 	else if (flags & O_APPEND)
 	{
-		fd=
+		lookup_inode(path,ext2,inode);
+		hashtable_put(current_process_context->file_desc,fd,inode);
 	}
+	inode->file_offset=0;
+	return fd;
 }
 
 int close(int fd)
 {
+	t_inode* inode;
+	
+	inode=hashtable_get(current_process_context->file_desc,fd);
 
 }
 
