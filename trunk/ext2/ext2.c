@@ -53,12 +53,12 @@ int read(int fd, void *buf, size_t count);
 	u32 byte_read;
 	u32 byte_count;
 	t_inode* inode;
-	void io_buffer;
-	void io_buffer_2;
+	void* iob_indirect_block;
+	void* iob_data_block;
 
 	byte_read=0;
-	io_buffer=kmalloc(BLOCK_SIZE);
-	io_buffer_2=kmalloc(BLOCK_SIZE);
+	iob_indirect_block=kmalloc(BLOCK_SIZE);
+	iob_data_block=kmalloc(BLOCK_SIZE);
 	inode=hashtable_get(current_process_context->file_desc,fd);
 	first_inode_block=inode->file_offset/BLOCK_SIZE;
 	first_data_offset=inode->file_offset%BLOCK_SIZE;
@@ -73,10 +73,10 @@ int read(int fd, void *buf, size_t count);
 			{
 				indirect_lba=inode->i_block[12];
         			sector_count=BLOCK_SIZE/SECTOR_SIZE;
-				_read_28_ata(sector_count,indirect_lba,io_buffer,TRUE);
+				_read_28_ata(sector_count,indirect_lba,iob_indirect_block,TRUE);
 				allocated_indirect_block=1;
 			}
-			lba=io_buffer[inode_block-12];	
+			lba=iob_indirect_block[inode_block-12];	
 		}
 		else
 		{
@@ -92,21 +92,22 @@ int read(int fd, void *buf, size_t count);
 			byte_count=byte_to_read;
 		}
         	sector_count=BLOCK_SIZE/SECTOR_SIZE;
-		_read_28_ata(sector_count,lba,io_buffer_2,TRUE);
+		_read_28_ata(sector_count,lba,iob_data_block,TRUE);
 		if(i==first_inode_block)
 		{
 			buf+=first_inode_block;
 		}
-		kmemcpy(buf,io_buffer_2,byte_count);
+		kmemcpy(buf,iob_data_block,byte_count);
 		inode->file_offset+=byte_to_read;
 		buf+=byte_to_read;
 		byte_read+=byte_count;
 	}
-	kfree(io_buffer);
+	kfree(iob_indirect_block);
+	kfree(iob_data_block);
 	return byte_read;
 }
 
- int write(int fd, const void *buf, size_t count)----qui verifica algoritmo+ io_buffer read+zero defaul su alloc_block+soglie su alloc block
+ int write(int fd, const void *buf, size_t count)
 {
 	{
 	u32 i;	
@@ -122,14 +123,17 @@ int read(int fd, void *buf, size_t count);
 	u32 byte_to_read;
 	u32 byte_read;
 	u32 byte_count;
+	u32 load_block;
 	t_inode* inode;
 	void* iob_data_block;
 	void* iob_indirect_block;
 
-	byte_written=0;
 	iob_data_block=kmalloc(BLOCK_SIZE);
 	iob_indirect_block=kmalloc(BLOCK_SIZE);
-	
+	kfillmem(iob_data_block,0,BLOCK_SIZE);
+	kfillmem(iob_indirect_block,0,BLOCK_SIZE);
+
+	byte_written=0;
 	inode=hashtable_get(current_process_context->file_desc,fd);
 	first_inode_block=inode->file_offset/BLOCK_SIZE;
 	first_data_offset=inode->file_offset%BLOCK_SIZE;
@@ -155,16 +159,26 @@ int read(int fd, void *buf, size_t count);
 	{
 		if ((i==first_inode_block && first_data_offset!=0) || (i==last_inode_block && last_data_offset!=0))
 		{
-			lba=0;
-			if (i<12 && inode->i_block[i]!=0)
+			load_block=1;
+			if (i>12)
 			{
-				lba=i;
-			}
-			else if (i>=12 && iob_indirect_block[i-12]!=0)
-			{
+				if (iob_indirect_block[i-12]==0)
+				{
+					iob_indirect_block[i-12]=alloc_block(ext2,inode,i);
+					load_block=0;
+				}
 				lba=iob_indirect_block[i-12];
 			}
-			if (lba!=0)
+			else
+			{
+				if (inode->i_block[i]==0)
+				{
+					inode->i_block[i]=alloc_block(ext2,inode,i);
+					load_block=0;
+				}
+				lba=inode->i_block[i];
+			}
+			if (load_block)
 			{
 				sector_count=BLOCK_SIZE/SECTOR_SIZE;
 				_read_28_ata(sector_count,lba,iob_data_block,TRUE);
@@ -211,17 +225,27 @@ int read(int fd, void *buf, size_t count);
 		buf+=byte_count;
 		byte_written+=byte_count;
 	}
-	kfree(io_buffer);
-	kfree(io_buffer_2);
+	kfree(iob_data_block);
+	kfree(iob_indirect_block);
 	return byte_written;
 }
 
-void rm()
+void rm(t_ext2* ext2,char* path)
 {
+	t_inode* inode;
 
+	inode=kmalloc(sizeof(t_inode));
+	lookup_inode(path,ext2,inode);
+	free_inode(inode,ext2);
+	kfree(inode);
 }
 
+---qui
 void mkdir()
 {
-
+	t_inode* inode;
+	
+	inode=kmalloc(sizeof(t_inode));
+	alloc_inode(path,1,ext2,inode);
+	kfree(inode);
 }
