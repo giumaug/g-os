@@ -484,7 +484,6 @@ void static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext
 		inode=NULL;
 	}
 	kfree(io_buffer);
-	return inode;
 }
 
 u32 static lookup_partition(u8 partition_number)
