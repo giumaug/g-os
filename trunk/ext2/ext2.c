@@ -3,6 +3,7 @@
 #include "ext2/ext2_utils_1.h"
 #include "ext2/ext2_utils_2.h"
 
+//mettere inode dentro dir
 int open(const char *path, int flags, mode_t mode); 
 {
 	u32 fd;
@@ -230,7 +231,8 @@ int read(int fd, void *buf, size_t count);
 	return byte_written;
 }
 
-void rm(t_ext2* ext2,char* path)
+---invalidare dir
+int rm(t_ext2* ext2,char* path)
 {
 	t_inode* inode;
 
@@ -238,14 +240,32 @@ void rm(t_ext2* ext2,char* path)
 	lookup_inode(path,ext2,inode);
 	free_inode(inode,ext2);
 	kfree(inode);
+	return 0;
 }
 
 ---qui
-void mkdir()
+int mkdir()
 {
 	t_inode* inode;
+	t_inode* inode_parent_dir;
+	void* iob_dir;
 	
 	inode=kmalloc(sizeof(t_inode));
+	inode_parent_dir=kmalloc(sizeof(t_inode));
+	iob_dir=kmalloc(BLOCK_SIZE);
+	kfillmem(iob_dir,0,BLOCK_SIZE);
+		
 	alloc_inode(path,1,ext2,inode);
+	lookup_inode(cpath,ext2,inode_parent_dir);
+	inode->i_block[0]=inode->inode_number;
+	
+	iob_dir[0]=inode->inode_number;
+	iob_dir[4]=inode_parent_dir->inode_number;
+	iob_dir[6]=
+	iob_dir[7]=
+	iob_dir[8]=
+
+
 	kfree(inode);
+	kfree(inode_parent_dir);
 }

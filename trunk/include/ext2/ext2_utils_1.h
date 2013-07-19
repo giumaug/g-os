@@ -379,7 +379,6 @@ void alloc_inode(char* path,unsigned int type,t_ext2 *ext2 t_inode* inode)
         //3)Vai punto 2.1
         else if (type==1)
         {
-                ext2->superblock->block_free_inode_average;
                 while (group_block_index<tot_group_block && inode_number==-1)
                 {
                         //group_block=ext2->group_block[group_block_index];
@@ -393,5 +392,4 @@ void alloc_inode(char* path,unsigned int type,t_ext2 *ext2 t_inode* inode)
 		inode->i_number=inode_number;
         }
 	kfree(group_block);
-        return inode_number;
 }
