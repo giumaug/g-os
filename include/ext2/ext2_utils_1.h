@@ -239,7 +239,7 @@ void free_block()
 	//nothing
 }
 
-void lookup_inode(char* path,t_ext2* ext2,t_inode* inode)
+void lookup_inode(char* path,t_ext2* ext2,t_inode* inode,t_inode* inode_parent)
 {
         int i,j;
         t_inode* parent_dir_inode;
@@ -255,6 +255,10 @@ void lookup_inode(char* path,t_ext2* ext2,t_inode* inode)
                 parent_dir_inode=system.process_info.current_process->current_dir_inode;
                 i=2;    
         }
+	else
+	{
+		parent_dir_inode=inode_parent;
+	}
 
         while(path[i]!='\\' && path[i]!='\0')
         {
@@ -393,3 +397,62 @@ void alloc_inode(char* path,unsigned int type,t_ext2 *ext2 t_inode* inode)
         }
 	kfree(group_block);
 }
+
+static int add_dir_entry(t_ext2* ext2,t_inode* inode_dir,char* filename,u32 type)
+{
+	u32 offset;
+	u32 found_entry;
+	void* iob_dir;
+	int ret_val;
+	
+	ret_val=-1;
+	iob_dir=kmalloc(BLOCK_SIZE);
+	offset=0;
+	while (inode_dir[offset]!=0)
+	{
+		offset++;
+	}
+	_read_28_ata(BLOCK_SIZE/SECTOR_SIZE,inode_dir->i_block[offset-1],iob_dir,TRUE);
+	while(found_entry || offset==(BLOCK_SIZE-1))
+	{
+		inode_number=iob_dir[offset];
+		rec_len=iob_dir[offset+4];
+		if (inode_number==0)
+		{
+			found_entry=1;
+		}
+		else
+		{
+			offset=rec_len;
+		}
+	}
+	if (found_entry)
+	{
+		new_entry=offset+8+file_len;
+		if ((new_entry % 4)!=0)
+		{
+			new_entry=new_entry+(4-(new_entry % 4));
+		}
+		iob_dir[offset]=inode_dir->i_number;
+		iob_dir[offset+4]=new_entry;
+		iob_dir[offset+6]=file_len;
+		iob_dir[offset+7]=file_type;
+		kmemcpy(iob_dir+offset,filename,file_len);
+		ret_val=0;
+	}
+	kfree(iob_dir);
+	return ret_val;
+}
+
+static int del_dir_entry(t_ext2* ext2,t_inode* inode_dir,char* filename,u32 type)
+{
+	lookup_inode(path,ext2,inode_parent_dir);
+
+}
+
+
+
+
+
+
+
