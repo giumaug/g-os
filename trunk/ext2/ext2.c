@@ -231,7 +231,7 @@ int read(int fd, void *buf, size_t count);
 	return byte_written;
 }
 
----invalidare dir
+---invalidare dir-------qui
 int rm(t_ext2* ext2,char* path)
 {
 	t_inode* inode;
@@ -243,8 +243,7 @@ int rm(t_ext2* ext2,char* path)
 	return 0;
 }
 
----qui
-int mkdir()
+int mkdir(t_ext2* ext2,char* path,char* filename)
 {
 	t_inode* inode;
 	t_inode* inode_parent_dir;
@@ -256,16 +255,32 @@ int mkdir()
 	kfillmem(iob_dir,0,BLOCK_SIZE);
 		
 	alloc_inode(path,1,ext2,inode);
-	lookup_inode(cpath,ext2,inode_parent_dir);
-	inode->i_block[0]=inode->inode_number;
+	lookup_inode(path,ext2,inode_parent_dir);
+	inode->i_block[0]=alloc_block(ext2,inode,0);
 	
 	iob_dir[0]=inode->inode_number;
-	iob_dir[4]=inode_parent_dir->inode_number;
-	iob_dir[6]=
-	iob_dir[7]=
-	iob_dir[8]=
-
+	iob_dir[4]=12;
+	iob_dir[6]=1;
+	iob_dir[7]=2;
+	iob_dir[8]='.';
+	iob_dir[9]='\0';
+	iob_dir[10]='\0';
+	iob_dir[11]='\0';
+	
+	iob_dir[12]=inode_parent_dir->inode_number;
+	iob_dir[16]=24;
+	iob_dir[18]=1;
+	iob_dir[19]=2;
+	iob_dir[20]='.';
+	iob_dir[21]='.';
+	iob_dir[22]='\0';
+	iob_dir[23]='\0';
+	
+	sector_count=BLOCK_SIZE/SECTOR_SIZE;
+	_write_28_ata(sector_count,inode->i_block[0],iob_dir,TRUE);
+	add_dir_entry(ext2,inode_parent_dir,filename,2);
 
 	kfree(inode);
 	kfree(inode_parent_dir);
+	kfree(iob_dir);
 }
