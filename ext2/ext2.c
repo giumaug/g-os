@@ -1,29 +1,48 @@
+#include "data_types/primitive_types.h"
 #include "data_types/hashtable.h"
 #include "ext2/ext2.h"
 #include "ext2/ext2_utils_1.h"
 #include "ext2/ext2_utils_2.h"
 
-//mettere inode dentro dir
-int open(const char *path, int flags, mode_t mode); 
+void init_ext2(t_ext2 *ext2)
+{
+        ext2>partition_start_sector=lookup_partition(1);        
+        read_superblock(ext2->superblock,ext2->partition_start_sector);
+	init_ata(ext2->ata_desc);
+}
+
+void free_ext2()
+{
+        //remember to free all allocated memory!!!!!!!!
+}
+
+int open(const char *fullpath, int flags, mode_t mode); 
 {
 	u32 fd;
 	struct t_process_context* current_process_context;
 	t_inode* inode;
+	t_inode* inode_dir;
 	t_llist_node* node;
+	char path[NAME_MAX];
+	char filename[NAME_MAX]:
 
+	extract_filename(fullpath,path,filename);
 	inode=kmalloc(sizeof(t_inode);
+	inode_dir=kmalloc(sizeof(t_inode);
 	node=system.process_info.current_process;	
 	current_process_context=node->val;
 	fd=current_process_context->next_fd++;
 	
-	if (flags & O_CREAT)
+	if (flags & O_CREAT & O_RDWR)
 	{
-		inode=alloc_inode(path,0,system->ext2,inode);
+		inode=alloc_inode(fullpath,0,system->ext2,inode);
 		hashtable_put(current_process_context->file_desc,fd,inode);
 	}
-	else if (flags & O_APPEND)
+	else if (flags & O_APPEND & O_RDWR)
 	{
-		lookup_inode(path,ext2,inode);
+		lookup_inode(path,ext2,NULL,inode_dir);
+		lookup_inode(filename,ext2,inode_dir,inode);		
+		add_dir_entry(ext2,t_inode* inode_dir,u32 inode->i_number,filename,1);
 		hashtable_put(current_process_context->file_desc,fd,inode);
 	}
 	inode->file_offset=0;
@@ -231,15 +250,24 @@ int read(int fd, void *buf, size_t count);
 	return byte_written;
 }
 
----invalidare dir-------qui
-int rm(t_ext2* ext2,char* path)
+int rm(t_ext2* ext2,char* fullpath)
 {
 	t_inode* inode;
+	t_inode* inode_dir;
+	char path[NAME_MAX];
+	char filename[NAME_MAX];
 
 	inode=kmalloc(sizeof(t_inode));
-	lookup_inode(path,ext2,inode);
+	inode_dir=kmalloc(sizeof(t_inode));
+	
+	extract_filename(fullpath,path,filename);
+	lookup_inode(path,ext2,NULL,inode_dir);
+	lookup_inode(filename,ext2,inode_dir,inode);
+	del_dir_entry(ext2,inode_dir,inode->i_number);
 	free_inode(inode,ext2);
+
 	kfree(inode);
+	kfree(inode_dir);
 	return 0;
 }
 
@@ -278,9 +306,10 @@ int mkdir(t_ext2* ext2,char* path,char* filename)
 	
 	sector_count=BLOCK_SIZE/SECTOR_SIZE;
 	_write_28_ata(sector_count,inode->i_block[0],iob_dir,TRUE);
-	add_dir_entry(ext2,inode_parent_dir,filename,2);
+	add_dir_entry(ext2,inode_parent_dir,inode->inode_number,filename,2);
 
 	kfree(inode);
 	kfree(inode_parent_dir);
 	kfree(iob_dir);
+	return 0;
 }

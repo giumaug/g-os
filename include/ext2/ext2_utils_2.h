@@ -1,11 +1,3 @@
-#define BLOCK_SECTOR_ADDRESS(group_block_index,block)    ext2->partition_start_sector                                         \
-							+(BLOCK_SIZE                                                          \
-							+ext2->superblock->block_group_size*(group_block_index+1)             \
-							+ext2->superblock->block_group_header_size+(BLOCK_SIZE*(block+1)))    \
-							/SECTOR_SIZE;
-
-#define ABSOLUTE_BLOCK_ADDRESS(group_block_index,relative_block_address) ext2->superblock->s_blocks_per_group*(group_block_index-1)+block
-
 static void* read_block_bitmap(u32 partition_start_sector,u32 bg_block_bitmap,void* io_buffer)
 {
 	u32 lba;
@@ -36,7 +28,6 @@ static u32 alloc_indirect_block(t_ext2* ext2,t_inode* i_node)
 
 	ret=-1;	
 	group_block_index=(i-node->i_number – 1)/ ext2->s_inodes_per_group;
-	//group_block=ext2->group_block[group_block_index]
 	group_block=kmalloc(sizeof(t_group_block));
 	read_group_block(ext2,group_block_index,group_block);
 	io_buffer=kmalloc(BLOCK_SIZE);
@@ -55,7 +46,6 @@ static u32 alloc_indirect_block(t_ext2* ext2,t_inode* i_node)
 		{
 			if (i!=group_block_index)
 			{
-				//group_block=ext2->group_block[i];
 				read_group_block(ext2,i,group_block);
 				read_block_bitmap(ext2->partition_start_sector,group_block->bg_block_bitmap,io_buffer);
 				indirect_block=ABSOLUTE_BLOCK_ADDRESS(group_block_index,find_free_block(io_buffer,0));
@@ -85,7 +75,6 @@ static void free_indirect_block(t_i_node* i_node)
 
 	group_block_index=i_node->i_block[12]/ext2->superblock->s_blocks_per_group;
 	relative_block_address=i_node->i_block[12] % ext2->superblock->s_blocks_per_group;
-	//group_block=ext2->group_block[group_block_index];
 	group_block=kmalloc(sizeof(t_group_block));
 	read_group_block(ext2,group_block_index,group_block);
 	io_buffer=kmalloc(BLOCK_SIZE);

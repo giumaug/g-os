@@ -1,3 +1,6 @@
+#ifndef EXT2_H                
+#define EXT2_H
+
 #define BLOCK_SIZE 1024
 #define SECTOR_SIZE 512
 #define NAME_MAX 50
@@ -7,6 +10,15 @@
 
 #define O_CREAT 0b1
 #define O_APPEND 0b10
+#define O_RDWR 0b100
+
+#define BLOCK_SECTOR_ADDRESS(group_block_index,block)    ext2->partition_start_sector                                         \
+							+(BLOCK_SIZE                                                          \
+							+ext2->superblock->block_group_size*(group_block_index+1)             \
+							+ext2->superblock->block_group_header_size+(BLOCK_SIZE*(block+1)))    \
+							/SECTOR_SIZE;
+
+#define ABSOLUTE_BLOCK_ADDRESS(group_block_index,relative_block_address) ext2->superblock->s_blocks_per_group*(group_block_index-1)+block
 
 typedef struct s_superblock
 {	
@@ -128,3 +140,5 @@ typedef struct s_ext2
 	t_ata_desc* ata_desc;
 }
 t_ext2;
+
+#endif
