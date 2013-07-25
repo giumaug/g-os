@@ -1,17 +1,3 @@
-#include ""
-
-void init_ext2(t_ext2 *ext2)
-{
-        ext2>partition_start_sector=lookup_partition(1);        
-        read_superblock(ext2->superblock,ext2->partition_start_sector);
-	init_ata(ext2->ata_desc);
-}
-
-void free_ext2()
-{
-        //remember to free all allocated memory!!!!!!!!
-}
-
 void free_inode(t_inode* i_node,t_ext2 *ext2)
 {
         u32 group_block_index;
@@ -99,7 +85,7 @@ void free_inode(t_inode* i_node,t_ext2 *ext2)
 	kfree(group_block);
 	kfree(io_buffer);
 }
-------------qui
+
 u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
 {
         void* io_buffer;        
@@ -239,7 +225,7 @@ void free_block()
 	//nothing
 }
 
-void lookup_inode(char* path,t_ext2* ext2,t_inode* inode,t_inode* inode_parent)
+void lookup_inode(char* path,t_ext2* ext2,t_inode* inode_parent,t_inode* inode)
 {
         int i,j;
         t_inode* parent_dir_inode;
@@ -339,13 +325,12 @@ void alloc_inode(char* path,unsigned int type,t_ext2 *ext2 t_inode* inode)
                 group_block_offset=0;
                 inode_number=-1;
                 tot_group_block=ext2->superblock->s_blocks_count;
-                lookup_inode(path,inode_parent);
+                lookup_inode(fullpath,ext2,NULL,inode_parent);
                 parent_dir_group_block_index=(i_node_parent_dir->i_number-1)/ext2->superblock->inodes_per_group;
                 group_block_index=parent_dir_group_block_index;
 
                 while (group_block_index<tot_group_block && inode_number==-1)
                 {
-                        //group_block=ext2->group_block[group_block_index];
 			read_group_block(ext2,group_block_index,group_block);                        
 			inode_number=find_free_inode(group_block_index,ext2,0);
                         group_block_index=group_block_offset>>1;
@@ -356,7 +341,6 @@ void alloc_inode(char* path,unsigned int type,t_ext2 *ext2 t_inode* inode)
                         group_block_index=parent_dir_group_block_index+2;
                         while(inode_number!=-1 && group_block_index<tot_group_block)
                         {
-                                //group_block=ext2->group_block[group_block_index];  
 				read_group_block(ext2,group_block_index,group_block);                    
 				inode_number=find_free_inode(group_block_index,ext2,0);
 
@@ -366,7 +350,6 @@ void alloc_inode(char* path,unsigned int type,t_ext2 *ext2 t_inode* inode)
                                 group_block_index=0;
                                 while(inode_number!=-1 && group_block_index<parent_dir_group_block_index-1)
                                 {
-                                        //group_block=ext2->group_block[group_block_index];
 					read_group_block(ext2,group_block_index,group_block);                      
 					inode_number=find_free_inode(group_block_index,ext2,0);
                                 }      
@@ -385,7 +368,6 @@ void alloc_inode(char* path,unsigned int type,t_ext2 *ext2 t_inode* inode)
         {
                 while (group_block_index<tot_group_block && inode_number==-1)
                 {
-                        //group_block=ext2->group_block[group_block_index];
 			read_group_block(ext2,group_block_index,group_block);                        
 			inode_number=find_free_inode(group_block_index,ext2,1);
                 }
@@ -398,7 +380,7 @@ void alloc_inode(char* path,unsigned int type,t_ext2 *ext2 t_inode* inode)
 	kfree(group_block);
 }
 
-static int add_dir_entry(t_ext2* ext2,t_inode* inode_dir,char* filename,u32 type)
+static int add_dir_entry(t_ext2* ext2,t_inode* inode_dir,u32 inode_number,char* filename,u32 type)
 {
 	u32 offset;
 	u32 found_entry;
@@ -433,7 +415,7 @@ static int add_dir_entry(t_ext2* ext2,t_inode* inode_dir,char* filename,u32 type
 		{
 			new_entry=new_entry+(4-(new_entry % 4));
 		}
-		iob_dir[offset]=inode_dir->i_number;
+		iob_dir[offset]=inode_number;
 		iob_dir[offset+4]=new_entry;
 		iob_dir[offset+6]=file_len;
 		iob_dir[offset+7]=file_type;
@@ -444,15 +426,67 @@ static int add_dir_entry(t_ext2* ext2,t_inode* inode_dir,char* filename,u32 type
 	return ret_val;
 }
 
-static int del_dir_entry(t_ext2* ext2,t_inode* inode_dir,char* filename,u32 type)
+static int del_dir_entry(t_ext2* ext2,t_inode* inode_dir,u32 inode_number)
 {
-	lookup_inode(path,ext2,inode_parent_dir);
-
+	u32 offset;
+	u32 block_offset;
+	u32 previous_rec_len;
+	u32 found_entry;
+	void* iob_dir;
+	int ret_val;
+	
+	ret_val=-1;
+	iob_dir=kmalloc(BLOCK_SIZE);
+	offset=0;
+	while (inode_dir[offset]<12 && !found_entry)
+	{
+		_read_28_ata(BLOCK_SIZE/SECTOR_SIZE,inode_dir->i_block[offset],iob_dir,TRUE);
+		for (block_offset=0;block_offset<BLOCK_SIZE;block_offset++)
+		{
+			if (iob_dir[block_offset]==inode_number)
+			{
+				found_entry=1;
+				break;
+			}
+		}
+		previous_rec_len=block_offset;
+		offset+=iob_dir[block_offset+4];
+	}
+	if (found_entry)
+	{
+		iob_dir[block_offset]=0;
+		iob_dir[previous_rec_len+4]+=iob_dir[block_offset+4];
+		_write_28_ata(BLOCK_SIZE/SECTOR_SIZE,inode_dir->i_block[offset],iob_dir,TRUE);
+		ret_val=1;
+	}
+	return ret_val;
 }
 
-
-
-
-
-
-
+static void extract_filename(char* fullpath,char* path,char* filename)
+{
+	int i;
+	int j;
+	int last_element;
+	
+	i=0;
+	j=0;
+	last_element=0;
+	while(fullpath[i]!='\0')
+	{
+		if (fullpath[i]=='/')
+		{
+			last_element=i;
+		}
+		i++;	
+	}
+	for (j=0;j<last_element;j++)
+	{
+		path[j]=fullpath[j];
+	}
+	path[j]='\0';
+	for (j=0;j<(i-last_element-1);j++)
+	{
+		filename[j]=fullpath[last_element+1+j];
+	}
+	filename[j]='\0';
+}
