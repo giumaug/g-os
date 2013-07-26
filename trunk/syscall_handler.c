@@ -121,7 +121,41 @@ void syscall_handler()
 		_write_28_ata(params[1],params[0],params[2],FALSE);
 		goto exit_2; 
 	}
+	else if (syscall_num==18) 
+	{
+		params[3]=_open(params[0],params[1],params[2]); 
+		goto exit_2; 
+	}
 
+	else if (syscall_num==19) 
+	{
+		params[1]=_close(params[0]);
+		goto exit_2; 
+	}
+
+	else if (syscall_num==20) 
+	{
+		params[3]=_read(params[0],params[1],params[2]); 
+		goto exit_2; 
+	}
+
+	else if (syscall_num==21) 
+	{
+		params[3]=_write(params[0],params[1],params[2]);
+		goto exit_2; 
+	}
+	
+	else if (syscall_num==22) 
+	{
+		params[2]=_rm(params[0],params[1]);
+		goto exit_2; 
+	}
+
+	else if (syscall_num==23) 
+	{
+		params[3]=_mkdir(params[0],params[1],params[2]);
+		goto exit_2; 
+	}
 exit_1:
         SWITCH_DS_TO_USER_MODE
 	RESTORE_PROCESSOR_REG

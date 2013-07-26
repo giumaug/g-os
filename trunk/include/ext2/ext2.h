@@ -20,6 +20,7 @@
 
 #define ABSOLUTE_BLOCK_ADDRESS(group_block_index,relative_block_address) ext2->superblock->s_blocks_per_group*(group_block_index-1)+block
 
+------------qui
 typedef struct s_superblock
 {	
 	u32 average_block_inode;
