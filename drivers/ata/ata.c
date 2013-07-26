@@ -18,7 +18,7 @@ void init_ata(t_ata_desc* ata_desc)
 
 void free_ata()
 {
-	//nothing to do
+	free_llist(ata_desc->pending_request);
 }
 
 void int_handler_ata()

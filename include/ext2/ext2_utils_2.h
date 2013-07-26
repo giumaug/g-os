@@ -112,15 +112,10 @@ static void write_indirect_block(t_inode* inode,u32 key,u32 value)
 	}
 }
 
-void static read_superblock(t_ext2 *ext2)
+void static read_superblock(superblock,partition_start_sector)
 {
-        t_superblock *superblock;      
-        t_ata_request *ata_request;
         void *io_buffer;
-       
-        superblock=kmalloc(sizeof(t_superblock));
-        ext2->superblock=superblock;    
-        ata_request=kmalloc(sizeof(t_ata_request));
+	
         io_buffer=kmalloc(512);
         _read_28_ata(2,(1024+partition_start_sector),io_buffer,TRUE);
        
@@ -177,13 +172,76 @@ void static read_superblock(t_ext2 *ext2)
         superblock->padding1=io_buffer[206];
         //u32[204]
         kmemcpy(&superblock->reserved,&io_buffer[208],204);
-        kfree(io_buffer);
-        kfree(ata_request);
 	superblock->block_group_header_size=3*BLOCK_SIZE
 				    	   +32*superblock->s_blocks_count/superblock->s_blocks_per_group
 				           +128*s_inodes_per_group;
 
 	superblock->block_group_size=superblock->block_group_header_size+BLOCK_SIZE*superblock->s_blocks_per_group;
+	kfree(io_buffer);
+}
+
+void static write_superblock(superblock,partition_start_sector)
+{
+        void *io_buffer;
+	
+        io_buffer=kmalloc(512);
+       
+        //u32
+        io_buffer[0]=superblock->inodes_count;
+        io_buffer[4]=superblock->blocks_count;
+        io_buffer[8]=superblock->r_blocks_count;
+        io_buffer[12]=superblock->free_blocks_count;
+        io_buffer[16]=superblock->free_inodes_count;
+        io_buffer[20]=superblock->first_data_block;
+        io_buffer[24]=superblock->log_block_size;
+        io_buffer[28]=superblock->log_frag_size;
+        io_buffer[32]=superblock->blocks_per_group;
+        io_buffer[36]=superblock->frags_per_group;
+        io_buffer[40]=superblock->inodes_per_group;
+        io_buffer[44]=superblock->mtime;
+        io_buffer[48]=superblock->wtime;
+        //u16
+        io_buffer[52]=superblock->mnt_count;       
+        io_buffer[54]=superblock->max_mnt_count;
+        io_buffer[56]=superblock->magic;
+        io_buffer[58]=superblock->state;
+        io_buffer[60]=superblock->errors;
+        io_buffer[62]=superblock->minor_rev_level;
+        //u32
+        io_buffer[64]=superblock->lastcheck;            
+        io_buffer[68]=superblock->checkinterval;
+        io_buffer[72]=superblock->creator_os;
+        io_buffer[76]=superblock->rev_level;
+        //u16
+        io_buffer[80]=superblock->def_resuid;            
+        io_buffer[82]=superblock->def_resgid;
+        //u32
+        io_buffer[84]=superblock->first_ino;                     
+        //u16
+        io_buffer[88]=superblock->inode_size;
+        io_buffer[90]=superblock->block_group_nr;
+        //u32
+        io_buffer[92]=superblock->feature_compat;
+        io_buffer[96]=superblock->feature_incompat;
+        io_buffer[100]=superblock->feature_ro_compat;
+        //u8[16]
+	kmemcpy(&io_buffer[104],&superblock->uuid,16);
+        //s8[16]
+	kmemcpy(&io_buffer[120],&superblock->volume_name,16);
+        //u64
+	kmemcpy(&io_buffer[136],&superblock->last_mounted,64);
+        //u32
+        io_buffer[200])=superblock->algorithm_usage_bitmap;
+        //u8
+        io_buffer[204]=superblock->prealloc_blocks;    
+        io_buffer[205]=superblock->prealloc_dir_blocks;
+        //u16
+        io_buffer[206]=superblock->padding1;
+        //u32[204]
+	kmemcpy(&io_buffer[208],&superblock->reserved,204);
+
+	_write_28_ata(2,(1024+partition_start_sector),io_buffer,TRUE);	
+	kfree(io_buffer);
 }
 
 write_group_block(t_ext2 *ext2,group_block_number,t_group_block* group_block)

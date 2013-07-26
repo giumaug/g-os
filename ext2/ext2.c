@@ -6,17 +6,21 @@
 
 void init_ext2(t_ext2 *ext2)
 {
+	t_superblock *superblock;
+
+	superblock=kmalloc(sizeof(t_superblock));
         ext2>partition_start_sector=lookup_partition(1);        
         read_superblock(ext2->superblock,ext2->partition_start_sector);
+	ext2->superblock=superblock;
 	init_ata(ext2->ata_desc);
 }
 
 void free_ext2()
 {
-        //remember to free all allocated memory!!!!!!!!
+	kfree(superblock);
 }
 
-int open(const char *fullpath, int flags, mode_t mode); 
+int _open(const char *fullpath, int flags, mode_t mode); 
 {
 	u32 fd;
 	struct t_process_context* current_process_context;
@@ -49,7 +53,7 @@ int open(const char *fullpath, int flags, mode_t mode);
 	return fd;
 }
 
-int close(int fd)
+int _close(int fd)
 {
 	t_inode* inode;
 	
@@ -58,7 +62,7 @@ int close(int fd)
 	kfree(inode);
 }
 
-int read(int fd, void *buf, size_t count); 
+int _read(int fd, void *buf, size_t count)
 {
 	u32 i;	
 	u32 first_inode_block;
@@ -127,7 +131,7 @@ int read(int fd, void *buf, size_t count);
 	return byte_read;
 }
 
- int write(int fd, const void *buf, size_t count)
+int _write(int fd, const void *buf, size_t count)
 {
 	{
 	u32 i;	
@@ -250,7 +254,7 @@ int read(int fd, void *buf, size_t count);
 	return byte_written;
 }
 
-int rm(t_ext2* ext2,char* fullpath)
+int _rm(t_ext2* ext2,char* fullpath)
 {
 	t_inode* inode;
 	t_inode* inode_dir;
@@ -271,7 +275,7 @@ int rm(t_ext2* ext2,char* fullpath)
 	return 0;
 }
 
-int mkdir(t_ext2* ext2,char* path,char* filename)
+int _mkdir(t_ext2* ext2,char* path,char* filename)
 {
 	t_inode* inode;
 	t_inode* inode_parent_dir;
