@@ -23,7 +23,6 @@
 ------------qui
 typedef struct s_superblock
 {	
-	u32 average_block_inode;
 	u32 block_group_size;
 	u32 block_group_header_size;
 	//disk fields	

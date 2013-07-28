@@ -20,7 +20,7 @@ void free_ext2()
 	kfree(superblock);
 }
 
-int _open(const char *fullpath, int flags, mode_t mode); 
+int _open(const char* fullpath, int flags); 
 {
 	u32 fd;
 	struct t_process_context* current_process_context;
@@ -274,8 +274,8 @@ int _rm(t_ext2* ext2,char* fullpath)
 	kfree(inode_dir);
 	return 0;
 }
-
-int _mkdir(t_ext2* ext2,char* path,char* filename)
+---------------ext2????----------qui
+int _mkdir(const char* fullpath)
 {
 	t_inode* inode;
 	t_inode* inode_parent_dir;
