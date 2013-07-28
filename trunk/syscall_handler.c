@@ -123,7 +123,7 @@ void syscall_handler()
 	}
 	else if (syscall_num==18) 
 	{
-		params[3]=_open(params[0],params[1],params[2]); 
+		params[2]=_open((char*) params[0],params[1]); 
 		goto exit_2; 
 	}
 
@@ -135,13 +135,13 @@ void syscall_handler()
 
 	else if (syscall_num==20) 
 	{
-		params[3]=_read(params[0],params[1],params[2]); 
+		params[3]=_read((void*)params[0],params[1],params[2]); 
 		goto exit_2; 
 	}
 
 	else if (syscall_num==21) 
 	{
-		params[3]=_write(params[0],params[1],params[2]);
+		params[3]=_write((void*)params[0],params[1],params[2]);
 		goto exit_2; 
 	}
 	
