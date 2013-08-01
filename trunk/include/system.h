@@ -6,6 +6,18 @@
 #include "scheduler/scheduler.h"
 #include "memory_manager/buddy.h"
 #include "data_types/dllist.h"
+#include "ext2/ext2.h"
+
+typedef struct s_device_desc
+{
+	u32 (*read)(void* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync);
+	u32 (*write)(void* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync);
+	unsigned int status;
+	t_llist* pending_request;
+	struct t_process_context* serving_process_context;
+	
+}
+t_device_desc;
 
 typedef struct s_system
 {

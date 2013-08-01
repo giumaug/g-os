@@ -4,7 +4,7 @@
 
 void static int_handler_ata(); 
 
-void init_ata(t_ata_desc* ata_desc)
+void init_ata(t_device_desc* device_desc)
 {	
 	struct t_i_desc i_desc;
 	
@@ -13,12 +13,14 @@ void init_ata(t_ata_desc* ata_desc)
 	i_desc.flags=0x0EF00;
 	i_desc.baseHi=((int)&int_handler_ata)>>0x10;
 	set_idt_entry(0x2E,&i_desc);
-	ata_desc->pending_request=new_dllist();
+	device_desc->pending_request=new_dllist();
+	device_desc->read=_read_28_ata;
+	device_desc->write=_write_28_ata
 }
 
 void free_ata()
 {
-	free_llist(ata_desc->pending_request);
+	free_llist(device_desc->pending_request);
 }
 
 void int_handler_ata()
@@ -26,14 +28,14 @@ void int_handler_ata()
 	struct t_processor_reg processor_reg;
 
 	SAVE_PROCESSOR_REG
-	system.ata_desc->status=REQUEST_COMPLETED;	
+	system.device_desc->status=REQUEST_COMPLETED;	
 	EOI
-	_awake(system.ata_desc->serving_process_context);
+	_awake(system.device_desc->serving_process_context);
 	RESTORE_PROCESSOR_REG
 	RET_FROM_INT_HANDLER
 }
 
-unsigned int _read_28_ata(t_ata_desc* ata_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync)
+unsigned int _read_28_ata(t_device_desc* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync)
 {
 	int i;
 	void *io_buffer;
@@ -43,17 +45,17 @@ unsigned int _read_28_ata(t_ata_desc* ata_desc,unsigned int sector_count,unsigne
 	SAVE_IF_STATUS
 	CLI
 	current_process_context=system.process_info.current_process->val;
-	if (ata_desc->status==REQUEST_WAITING)
+	if (device_desc->status==REQUEST_WAITING)
 	{
 		_sleep(processor_reg);
-		ll_append(ata_desc->pending_request,current_process_context);
+		ll_append(device_desc->pending_request,current_process_context);
 	}
 	else 
 	{
-		ata_desc->status=REQUEST_WAITING;
+		device_desc->status=REQUEST_WAITING;
 	}
 	
-	ata_desc->serving_processs_context=current_process_context;
+	device_desc->serving_processs_context=current_process_context;
 	out(0xE0 | (ata_request->lba >> 24),0x1F6);
 	out(0x00,0x1F1);
 	out((unsigned char)ata_request->sector_count,0x1F2);
@@ -70,7 +72,7 @@ unsigned int _read_28_ata(t_ata_desc* ata_desc,unsigned int sector_count,unsigne
 	}
 	else
 	{
-		while(ata_desc->status!=REQUEST_COMPLETED);
+		while(device_desc->status!=REQUEST_COMPLETED);
 	}
 	for (i=0;i<256;i++)
 	{  
@@ -79,9 +81,9 @@ unsigned int _read_28_ata(t_ata_desc* ata_desc,unsigned int sector_count,unsigne
 		((char*)current_ata_request->io_buffer)[i]=zz;
 	}
 
-	if (!ll_empty(ata_desc->pending_request))
+	if (!ll_empty(device_desc->pending_request))
 	{
-		process_context=(struct t_process_context*)ll_sentinel(ata_desc->pending_request);
+		process_context=(struct t_process_context*)ll_sentinel(device_desc->pending_request);
 		_awake(process_context);
 	}
 
@@ -89,7 +91,7 @@ unsigned int _read_28_ata(t_ata_desc* ata_desc,unsigned int sector_count,unsigne
 	return 0;
 }
 
-unsigned int _write_28_ata(t_ata_desc* ata_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync)
+unsigned int _write_28_ata(t_device_desc* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync)
 {
 	int i;
 	void *io_buffer;
@@ -99,14 +101,14 @@ unsigned int _write_28_ata(t_ata_desc* ata_desc,unsigned int sector_count,unsign
 	SAVE_IF_STATUS
 	CLI
 	current_process_context=system.process_info.current_process->val;
-	if (ata_desc->status==REQUEST_WAITING)
+	if (device_desc->status==REQUEST_WAITING)
 	{
 		_sleep();
-		ll_append(ata_desc->pending_request,current_process_context);
+		ll_append(device_desc->pending_request,current_process_context);
 	}	
 	else 
 	{
-		ata_desc->status=REQUEST_WAITING;
+		device_desc->status=REQUEST_WAITING;
 	}
 	
 	out(0xE0 | (lba >> 24),0x1F6);
@@ -132,13 +134,13 @@ unsigned int _write_28_ata(t_ata_desc* ata_desc,unsigned int sector_count,unsign
 	}
 	else
 	{
-		while(ata_desc->status!=REQUEST_COMPLETED);
+		while(device_desc->status!=REQUEST_COMPLETED);
 	}
 	
 	_awake(current_process_context);
-	if (!ll_empty(ata_desc->pending_request))
+	if (!ll_empty(device_desc->pending_request))
 	{
-		process_context=(struct t_process_context*)ll_sentinel(ata_desc->pending_request);
+		process_context=(struct t_process_context*)ll_sentinel(device_desc->pending_request);
 		_awake(process_context);
 	}
 	

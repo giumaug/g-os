@@ -3,6 +3,8 @@
 
 #include "console/console.h"
 #include "data_types/dllist.h"
+#include "data_types/hashtable.h"
+#include "data_types/primitive_types.h"
 
 #define U_STACK_SIZE 		0x4000;
 //#define QUANTUM_DURATION	11931 //10 ms verificare valore piu' appropriato
@@ -53,7 +55,7 @@ struct t_process_context {
 	t_proc_status proc_status;
 	char* current_dir;
 	u32 next_fd;
-	hashtable* file_desc;
+	t_hashtable* file_desc;
 };
 
 struct t_process_info {

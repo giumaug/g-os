@@ -1,6 +1,9 @@
 #ifndef EXT2_H                
 #define EXT2_H
 
+#include "system.h"
+#include "data_types/primitive_types.h"
+
 #define BLOCK_SIZE 1024
 #define SECTOR_SIZE 512
 #define NAME_MAX 50
@@ -20,7 +23,6 @@
 
 #define ABSOLUTE_BLOCK_ADDRESS(group_block_index,relative_block_address) ext2->superblock->s_blocks_per_group*(group_block_index-1)+block
 
-------------qui
 typedef struct s_superblock
 {	
 	u32 block_group_size;
@@ -64,14 +66,14 @@ typedef struct s_superblock
 	u32 feature_incompat;
 	u32 feature_ro_compat;
 	
-	u8[16] uuid;
-	char[16] volume_name;
-	char[64] last_mounted;
+	u8 uuid[16];
+	char volume_name[16];
+	char last_mounted[64];
 	u32 algorithm_usage_bitmap; 
 	u8 prealloc_blocks;
 	u8 prealloc_dir_blocks;
 	u16 padding1;
-	u32[204] reserved; 
+	u32 reserved[204]; 
 }
 t_superblock;
 
@@ -85,11 +87,11 @@ typedef struct s_group_block
 	u16 bg_free_inodes_count;
 	u16 bg_used_dirs_count;
 	u16 bg_pad;
-	u32 [3] bg_reserved; 
+	u32 bg_reserved[3]; 
 }
 t_group_block;
 
-type struct s_inode
+typedef struct s_inode
 {
 	u16 i_number;
 	u32* indirect_block;
@@ -102,7 +104,7 @@ type struct s_inode
 	//disk fields
   	u16 i_mode;
 	u16 i_uid; 
-	u32 i_size
+	u32 i_size;
 	u32 i_atime;
 	u32 i_ctime;
 	u32 i_mtime;
@@ -113,7 +115,7 @@ type struct s_inode
 	u32 i_flags;
 	//union osd1;
 	u32 osd1;
-	u32[EXT2_N_BLOCKS] i_block;
+	u32 i_block[EXT2_N_BLOCKS];
 	u32 i_generation; 
 	u32 i_file_acl;
 	u32 i_dir_acl;
@@ -125,19 +127,14 @@ type struct s_inode
 }
 t_inode;
 
-typedef struct s_directory
-{
-
-}
-
-
+struct s_device_desc;
 
 typedef struct s_ext2
 {
-	t_superblock *superblock;
+	t_superblock* superblock;
 	u32 partition_start_sector;
 	t_inode* root_dir_inode;
-	t_ata_desc* ata_desc;
+	struct s_device_desc* device_desc;
 }
 t_ext2;
 

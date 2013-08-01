@@ -68,33 +68,36 @@ extern inline int write_sector(unsigned int lba,unsigned int sector_count,void *
 
 extern inline int close(int fd)
 {
-	unsigned int params[0];
+	unsigned int params[3];
 
 	params[0]=fd;
+	params[1]=system->root_fs;
 	SYSCALL(19,params);
-	return  params[1];
+	return  params[2];
 }
 
 extern inline int read(int fd, void *buf, int count)
 {
-	unsigned int params[4];
+	unsigned int params[5];
 
 	params[0]=fd;
 	params[1]=buf;
 	params[2]=count;
+	params[3]=system->root_fs;
 	SYSCALL(20,params);
-	return  params[3];
+	return  params[4];
 }
 
 extern inline int write(int fd, void *buf, int count)
 {
-	unsigned int params[4];
+	unsigned int params[5];
 
 	params[0]=fd;
 	params[1]=buf;
 	params[2]=count;
-	SYSCALL(20,params);
-	return  params[3];
+	params[3]=system->root_fs;
+	SYSCALL(21,params);
+	return  params[4];
 }
 
 #endif
