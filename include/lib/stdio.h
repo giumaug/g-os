@@ -13,6 +13,7 @@ extern inline void printf(char *text) __attribute__((always_inline));
 extern inline void d_printf(int val) __attribute__((always_inline));
 extern inline void scanf(char *text,void* val) __attribute__((always_inline));
 extern inline void print_num(int val) __attribute__((always_inline));
+extern inline int remove(const char *filename) __attribute__((always_inline));
 
 extern struct t_process_info process_info;
 
@@ -119,4 +120,15 @@ extern inline void scanf(char *text,void *val)
 		}
 	}
 }
+
+extern inline int remove(const char *filename)
+{
+	unsigned int params[3];
+
+	params[0]=filename;
+	params[1]=system->root_fs;
+	SYSCALL(22,params);
+	return  params[2];
+}
+
 #endif

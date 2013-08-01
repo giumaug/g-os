@@ -1,10 +1,9 @@
-#include "data_types/primitive_types.h"
 #include "data_types/hashtable.h"
 #include "ext2/ext2.h"
 #include "ext2/ext2_utils_1.h"
 #include "ext2/ext2_utils_2.h"
 
-void init_ext2(t_ext2 *ext2)
+void init_ext2(t_ext2 *ext2,t_device_desc* device_desc)
 {
 	t_superblock *superblock;
 
@@ -12,7 +11,7 @@ void init_ext2(t_ext2 *ext2)
         ext2>partition_start_sector=lookup_partition(1);        
         read_superblock(ext2->superblock,ext2->partition_start_sector);
 	ext2->superblock=superblock;
-	init_ata(ext2->ata_desc);
+	ext2->device_desc=device_desc;
 }
 
 void free_ext2()
