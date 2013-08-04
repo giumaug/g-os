@@ -96,7 +96,7 @@ int _read(int fd, void *buf, size_t count)
 			{
 				indirect_lba=inode->i_block[12];
         			sector_count=BLOCK_SIZE/SECTOR_SIZE;
-				_read_28_ata(sector_count,indirect_lba,iob_indirect_block,TRUE);
+				_read_28_ata(sector_count,indirect_lba,iob_indirect_block);
 				allocated_indirect_block=1;
 			}
 			lba=iob_indirect_block[inode_block-12];	
@@ -174,7 +174,7 @@ int _write(int fd, const void *buf, size_t count)
 		else
 		{
 			sector_count=BLOCK_SIZE/SECTOR_SIZE;
-			_read_28_ata(sector_count,inode->i_block[12],iob_indirect_block,TRUE);
+			_read_28_ata(sector_count,inode->i_block[12],iob_indirect_block);
 		}
 	}
 
@@ -204,7 +204,7 @@ int _write(int fd, const void *buf, size_t count)
 			if (load_block)
 			{
 				sector_count=BLOCK_SIZE/SECTOR_SIZE;
-				_read_28_ata(sector_count,lba,iob_data_block,TRUE);
+				_read_28_ata(sector_count,lba,iob_data_block);
 				if (i==first_inode_block)
 				{
 					iob_data_block+=first_data_offset;
@@ -243,7 +243,7 @@ int _write(int fd, const void *buf, size_t count)
 		}
 		kmemcpy(iob_data_block,buf,byte_count);
 		sector_count=BLOCK_SIZE/SECTOR_SIZE;
-		_write_28_ata(sector_count,lba,io_buffer_2,TRUE);
+		WRITE(sector_count,lba,io_buffer_2);
 		inode->file_offset+=byte_count;
 		buf+=byte_count;
 		byte_written+=byte_count;
@@ -273,7 +273,7 @@ int _rm(t_ext2* ext2,char* fullpath)
 	kfree(inode_dir);
 	return 0;
 }
----------------ext2????----------qui
+
 int _mkdir(const char* fullpath)
 {
 	t_inode* inode;
@@ -306,9 +306,9 @@ int _mkdir(const char* fullpath)
 	iob_dir[21]='.';
 	iob_dir[22]='\0';
 	iob_dir[23]='\0';
-	
+
 	sector_count=BLOCK_SIZE/SECTOR_SIZE;
-	_write_28_ata(sector_count,inode->i_block[0],iob_dir,TRUE);
+	WRITE(sector_count,inode->i_block[0],iob_dir);
 	add_dir_entry(ext2,inode_parent_dir,inode->inode_number,filename,2);
 
 	kfree(inode);
