@@ -2,34 +2,20 @@ static void* read_block_bitmap(u32 partition_start_sector,u32 bg_block_bitmap,vo
 {
 	u32 lba;
 	u32 sector_count;
-	t_device_desc* device_desc;
-	u32 (*read)(void* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync);
-	u32 (*write)(void* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync);
-
-	device_desc=ext2->device_desc;
-	read=ext2->device_desc->read;
-	write=ext2-device_desc->>write;
 		
         lba=partition_start_sector+(bg_block_bitmap*BLOCK_SIZE/SECTOR_SIZE);
         sector_count=BLOCK_SIZE/SECTOR_SIZE;
-	read(device_desc,sector_count,lba,io_buffer,TRUE);
+	READ(device_desc,sector_count,lba,io_buffer);
 }
 
 static void* write_block_bitmap(u32 partition_start_sector,u32 bg_block_bitmap,void* io_buffer)
 {
 	u32 lba;
 	u32 sector_count;
-	t_device_desc* device_desc;
-	u32 (*read)(void* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync);
-	u32 (*write)(void* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync);
-
-	device_desc=ext2->device_desc;
-	read=ext2->device_desc->read;
-	write=ext2-device_desc->>write;
 		
         lba=partition_start_sector+(bg_block_bitmap*BLOCK_SIZE/SECTOR_SIZE);
         sector_count=BLOCK_SIZE/SECTOR_SIZE;
-	write(device_desc,sector_count,lba,io_buffer,TRUE);
+	WRITE(sector_count,lba,io_buffer);
 }
 
 static u32 alloc_indirect_block(t_ext2* ext2,t_inode* i_node)
@@ -129,16 +115,9 @@ static void write_indirect_block(t_inode* inode,u32 key,u32 value)
 void static read_superblock(superblock,partition_start_sector)
 {
         void *io_buffer;
-	t_device_desc* device_desc;
-	u32 (*read)(void* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync);
-	u32 (*write)(void* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync);
-
-	device_desc=ext2->device_desc;
-	read=ext2->device_desc->read;
-	write=ext2-device_desc->>write;
 	
         io_buffer=kmalloc(512);
-        read(device_desc,2,(1024+partition_start_sector),io_buffer,TRUE);
+        READ(2,(1024+partition_start_sector),io_buffer);
        
         //u32
         superblock->inodes_count=io_buffer[0];        
@@ -204,16 +183,9 @@ void static read_superblock(superblock,partition_start_sector)
 void static write_superblock(superblock,partition_start_sector)
 {
         void *io_buffer;
-	t_device_desc* device_desc;
-	u32 (*read)(void* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync);
-	u32 (*write)(void* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync);
-
-	device_desc=ext2->device_desc;
-	read=ext2->device_desc->read;
-	write=ext2-device_desc->>write;
 	
         io_buffer=kmalloc(512);
-       
+   
         //u32
         io_buffer[0]=superblock->inodes_count;
         io_buffer[4]=superblock->blocks_count;
@@ -268,7 +240,7 @@ void static write_superblock(superblock,partition_start_sector)
         //u32[204]
 	kmemcpy(&io_buffer[208],&superblock->reserved,204);
 
-	write(device_desc,2,(1024+partition_start_sector),io_buffer,TRUE);	
+	WRITE(2,(1024+partition_start_sector),io_buffer);	
 	kfree(io_buffer);
 }
 
@@ -302,7 +274,7 @@ write_group_block(t_ext2 *ext2,group_block_number,t_group_block* group_block)
 	//u32[3]
 	kmemcpy(&io_buffer[20+sector_offset],group_block->bg_reserved,3);   
 	
-	write_28_ata(1,lba,io_buffer,TRUE);
+	WRITE(1,lba,io_buffer);
 	free(io_buffer);
 }
 
@@ -312,13 +284,6 @@ read_group_block(t_ext2 *ext2,group_block_number,t_group_block* group_block)
 	u32 sector_offset;
 	u32 lba;
 	void* io_buffer;
-	t_device_desc* device_desc;
-	u32 (*read)(void* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync);
-	u32 (*write)(void* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync);
-
-	device_desc=ext2->device_desc;
-	read=ext2->device_desc->read;
-	write=ext2-device_desc->>write;
 
 	//block_number start from 1
 	sector_number=32*(block_number-1)/SECTOR_SIZE;
@@ -326,7 +291,7 @@ read_group_block(t_ext2 *ext2,group_block_number,t_group_block* group_block)
 	lba=(2*BLOCK_SIZE)/SECTOR_SIZE+ext2->partition_start_sector+sector_number;
 	io_buffer=kmalloc(512);
 	
-	read(device_desc,1,lba,io_buffer,TRUE);
+	READ(1,lba,io_buffer);
 	//u32
 	group_block->bg_block_bitmap=io_buffer[0+sector_offset];
 	//u32
@@ -357,13 +322,6 @@ void static read_inode(t_ext2* ext2,t_inode* inode)
 	u32 lba;
 	u32 sector_count;
 	void* io_buffer;
-	t_device_desc* device_desc;
-	u32 (*read)(void* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync);
-	u32 (*write)(void* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync);
-
-	device_desc=ext2->device_desc;
-	read=ext2->device_desc->read;
-	write=ext2-device_desc->>write;
 
 	io_buffer=kmalloc(BLOCK_SIZE);	
 	group_block=kmalloc(sizeof(t_group_block));
@@ -377,7 +335,7 @@ void static read_inode(t_ext2* ext2,t_inode* inode)
 	
 	lba=group_block->bg_inode_table+inode_table_offset*(BLOCK_SIZE/SECTOR_SIZE);
 	sector_count=BLOCK_SIZE/SECTOR_SIZE;
-	read(device_desc,sector_count,lba,io_buffer,TRUE);
+	READ(device_desc,sector_count,lba,io_buffer);
 
 	//u16 
 	inode->i_mode=io_buffer[inode_offset];
@@ -448,13 +406,6 @@ void static write_inode(t_ext2* ext2,u32 inode_number,t_inode* inode)
 	u32 lba;
 	u32 sector_count;
 	void* io_buffer;
-	t_device_desc* device_desc;
-	u32 (*read)(void* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync);
-	u32 (*write)(void* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync);
-
-	device_desc=ext2->device_desc;
-	read=ext2->device_desc->read;
-	write=ext2-device_desc->>write;
 
 	io_buffer=kmalloc(BLOCK_SIZE);	
 	group_block=kmalloc(sizeof(t_group_block));
@@ -524,7 +475,7 @@ void static write_inode(t_ext2* ext2,u32 inode_number,t_inode* inode)
 	//u32 
 	io_buffer[inode_offset+124]=inode->osd2_3;
 
-	write(device_desc,sector_count,lba,io_buffer,TRUE);
+	WRITE(sector_count,lba,io_buffer);
 	kfree(io_buffer);
 	kfree(group_block);
 }
@@ -538,13 +489,6 @@ void static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext
 	u32 name_len;
 	void* io_buffer;
 	char file_name_entry[NAME_MAX];
-	t_device_desc* device_desc;
-	u32 (*read)(void* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync);
-	u32 (*write)(void* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync);
-
-	device_desc=ext2->device_desc;
-	read=ext2->device_desc->read;
-	write=ext2-device_desc->>write;
 
 	// For directory inode supposed max 12 block	
 	for (i=0;i<=11;i++)
@@ -558,7 +502,7 @@ void static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext
 
 	for (j=0;j<=i;j++)
 	{
-		read(device_desc,2,parent_dir_inode->i_block[i],(io_buffer+1024*j),TRUE);
+		READ(2,parent_dir_inode->i_block[i],(io_buffer+1024*j));
 	}
 
 	next_entry=0;	
@@ -591,16 +535,9 @@ void static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext
 
 u32 static lookup_partition(u8 partition_number)
 {
-        u32 first_partition_start_sector; 
-	t_device_desc* device_desc;
-	u32 (*read)(void* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync);
-	u32 (*write)(void* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync);
+        u32 first_partition_start_sector;      
 
-	device_desc=ext2->device_desc;
-	read=ext2->device_desc->read;
-	write=ext2-device_desc->>write;     
-
-        read(device_desc,sector_count,0,io_buffer,TRUE);
+        READ(sector_count,0,io_buffer,TRUE);
         first_partition_start_sector=io_buffer[0x1be+( partition_number*16)+8];
         kfree(io_buffer);
         return first_partition_start_sector;
@@ -610,13 +547,6 @@ u32 static find_free_inode(u32 group_block_index,t_ext2 *ext2,u32 check_threshol
 {
 	u32 inode_number;
 	t_group_block* group_block;
-	t_device_desc* device_desc;
-	u32 (*read)(void* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync);
-	u32 (*write)(void* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync);
-
-	device_desc=ext2->device_desc;
-	read=ext2->device_desc->read;
-	write=ext2-device_desc->>write;
 
 	inode_number=-1;
 	group_block=kmalloc(sizeof(t_group_block));   
@@ -625,7 +555,7 @@ u32 static find_free_inode(u32 group_block_index,t_ext2 *ext2,u32 check_threshol
         {
                 lba=ext2->partition_start_sector+group_block->bg_inode_bitmap/SECTOR_SIZE;
                 sector_count=BLOCK_SIZE/SECTOR_SIZE;
-		read(device_desc,sector_count,lba,io_buffer,TRUE);
+		read(device_desc,sector_count,lba,io_buffer);
 
                 while (inode_number!=-1 && i<BLOCK_SIZE)
                 {
@@ -642,7 +572,7 @@ u32 static find_free_inode(u32 group_block_index,t_ext2 *ext2,u32 check_threshol
                         i++;
                         j=0;
                 }
-		write(device_desc,sector_count,lba,io_buffer,TRUE);
+		WRITE(sector_count,lba,io_buffer);
 		group_block->bg_free_inodes_count--;
 		write_group_block(ext2,group_block_index,group_block); 
 		ext2->superblock->free_inodes_count--;

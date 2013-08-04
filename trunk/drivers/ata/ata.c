@@ -35,7 +35,7 @@ void int_handler_ata()
 	RET_FROM_INT_HANDLER
 }
 
-unsigned int _read_28_ata(t_device_desc* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync)
+unsigned int _read_28_ata(t_device_desc* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer)
 {
 	int i;
 	void *io_buffer;
@@ -67,7 +67,8 @@ unsigned int _read_28_ata(t_device_desc* device_desc,unsigned int sector_count,u
 	{
 		return -1;
 	}
-	if (sync) {
+	if (system.process_info.current_process->val!=NULL)
+	{
 		_sleep();
 	}
 	else
@@ -91,7 +92,7 @@ unsigned int _read_28_ata(t_device_desc* device_desc,unsigned int sector_count,u
 	return 0;
 }
 
-unsigned int _write_28_ata(t_device_desc* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync)
+unsigned int _write_28_ata(t_device_desc* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer)
 {
 	int i;
 	void *io_buffer;
@@ -128,7 +129,7 @@ unsigned int _write_28_ata(t_device_desc* device_desc,unsigned int sector_count,
 		//out(*(char*)io_buffer++,0x1F0); 
 		outw((unsigned short)55,0x1F0);
 	}
-	if (sync) 
+	if (system.process_info.current_process->val!=NULL)
 	{
 		_sleep();
 	}

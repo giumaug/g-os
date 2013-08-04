@@ -110,17 +110,16 @@ void syscall_handler()
 		_sleep_time(params[0]);	
 		goto exit_2; 
 	}
-	else if (syscall_num==16) 
-	{	4
-		_read_28_ata(t_device_desc* ata_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync);----------qui superblock????
-		_read_28_ata(params[0],params[1],params[2],params[3],FALSE);
-		goto exit_2; 
-	}
-	else if (syscall_num==17) 
-	{
-		_write_28_ata(params[1],params[0],params[2],FALSE);
-		goto exit_2; 
-	}
+//	else if (syscall_num==16) 
+//	{
+//		_read_28_ata(params[0],params[1],params[2],params[3]);
+//		goto exit_2; 
+//	}
+//	else if (syscall_num==17) 
+//	{
+//		_write_28_ata(params[1],params[0],params[2]);
+//		goto exit_2; 
+//	}
 	else if (syscall_num==18) 
 	{
 		params[3]=_open((char*) params[0],params[1],params[2]); 

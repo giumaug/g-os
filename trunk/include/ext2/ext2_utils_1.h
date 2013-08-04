@@ -14,12 +14,6 @@ void free_inode(t_inode* i_node,t_ext2 *ext2)
 	t_llist_node* next;
 	t_llist_node* sentinel;
 	t_device_desc* device_desc;
-	u32 (*read)(void* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync);
-	u32 (*write)(void* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync);
-
-	device_desc=ext2->device_desc;
-	read=ext2->device_desc->read;
-	write=ext2-device_desc->>write;
 
 	//1)find block descriptor conteinig inode	
 	//2)clear inode_bitmap bit
@@ -35,18 +29,18 @@ void free_inode(t_inode* i_node,t_ext2 *ext2)
         lba=ext2->partition_start_sector+(group_block->bg_inode_bitmap*BLOCK_SIZE/SECTOR_SIZE);
         sector_count=BLOCK_SIZE/SECTOR_SIZE;
         io_buffer=kmalloc(BLOCK_SIZE);
-       	read(device_desc,sector_count,lba,io_buffer,TRUE); 
+       	read(device_desc,sector_count,lba,io_buffer); 
 	
         inode_index = (i_node->i_number – 1) % ext2->superblock->s_blocks_per_group;
         buffer_index=(inode_index-1) / 8;
         byte_bit=(inode_index-1) % 8;
         io_buffer[buffer_index]&= (255 & (2>>byte_bit));
 
-        write(device_desc,sector_count,lba,io_buffer,processor_reg,current_process_context,TRUE);
+	WRITE(sector_count,lba,io_buffer);
         
 	lba=ext2->partition_start_sector+i_node->i_block[12]*(BLOCK_SIZE/SECTOR_SIZE)-1;
 	sector_count=BLOCK_SIZE/SECTOR_SIZE;
-       	read(device_desc,sector_count,lba,io_buffer,TRUE);
+       	read(device_desc,sector_count,lba,io_buffer);
 
 	group_hash=hashtable_init(50);
 	group_list=new_dllist();
@@ -393,13 +387,6 @@ static int add_dir_entry(t_ext2* ext2,t_inode* inode_dir,u32 inode_number,char* 
 	u32 found_entry;
 	void* iob_dir;
 	int ret_val;
-	t_device_desc* device_desc;
-	u32 (*read)(void* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync);
-	u32 (*write)(void* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync);
-
-	device_desc=ext2->device_desc;
-	read=ext2->device_desc->read;
-	write=ext2-device_desc->>write;
 	
 	ret_val=-1;
 	iob_dir=kmalloc(BLOCK_SIZE);
@@ -408,7 +395,7 @@ static int add_dir_entry(t_ext2* ext2,t_inode* inode_dir,u32 inode_number,char* 
 	{
 		offset++;
 	}
-	read(device_desc,BLOCK_SIZE/SECTOR_SIZE,inode_dir->i_block[offset-1],iob_dir,TRUE);
+	READ(BLOCK_SIZE/SECTOR_SIZE,inode_dir->i_block[offset-1],iob_dir);
 	while(found_entry || offset==(BLOCK_SIZE-1))
 	{
 		inode_number=iob_dir[offset];
@@ -448,20 +435,13 @@ static int del_dir_entry(t_ext2* ext2,t_inode* inode_dir,u32 inode_number)
 	u32 found_entry;
 	void* iob_dir;
 	int ret_val;
-	t_device_desc* device_desc;
-	u32 (*read)(void* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync);
-	u32 (*write)(void* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync);
-
-	device_desc=ext2->device_desc;
-	read=ext2->device_desc->read;
-	write=ext2-device_desc->>write;
 	
 	ret_val=-1;
 	iob_dir=kmalloc(BLOCK_SIZE);
 	offset=0;
 	while (inode_dir[offset]<12 && !found_entry)
 	{
-		read(BLOCK_SIZE/SECTOR_SIZE,inode_dir->i_block[offset],iob_dir,TRUE);
+		read(BLOCK_SIZE/SECTOR_SIZE,inode_dir->i_block[offset],iob_dir);
 		for (block_offset=0;block_offset<BLOCK_SIZE;block_offset++)
 		{
 			if (iob_dir[block_offset]==inode_number)
@@ -477,7 +457,7 @@ static int del_dir_entry(t_ext2* ext2,t_inode* inode_dir,u32 inode_number)
 	{
 		iob_dir[block_offset]=0;
 		iob_dir[previous_rec_len+4]+=iob_dir[block_offset+4];
-		write(device_desc,BLOCK_SIZE/SECTOR_SIZE,inode_dir->i_block[offset],iob_dir,TRUE);
+		WRITE(BLOCK_SIZE/SECTOR_SIZE,inode_dir->i_block[offset],iob_dir);
 		ret_val=1;
 	}
 	return ret_val;

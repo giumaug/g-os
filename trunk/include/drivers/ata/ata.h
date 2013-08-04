@@ -10,9 +10,12 @@
 #define REQUEST_WAITING 0x0
 #define REQUEST_COMPLETED 0x1
 
+#define READ(sector_count,lba,io_buffer) ext2->device_desc->write(ext2->device_desc,sector_count,lba,io_buffer);
+#define WRITE(sector_count,lba,io_buffer) ext2->device_desc->write(ext2->device_desc,sector_count,lba,io_buffer);
+
 void init_ata(t_device_desc* ata_desc);
-unsigned int _read_28_ata(t_device_desc* ata_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync);
-unsigned int _write_28_ata(t_device_desc* ata_desc,unsigned int sector_count,unsigned int lba,void* io_buffer,unsigned int sync);
+unsigned int _read_28_ata(t_device_desc* ata_desc,unsigned int sector_count,unsigned int lba,void* io_buffer);
+unsigned int _write_28_ata(t_device_desc* ata_desc,unsigned int sector_count,unsigned int lba,void* io_buffer);
 void free_ata();
 
 #endif
