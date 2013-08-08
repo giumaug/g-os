@@ -54,6 +54,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	init_ata(&device_desc);
 	init_ext2(&ext2,&device_desc);
 	system.root_fs=&ext2;
+	system.device_desc=&device_desc;
 	
 	system.master_page_dir=init_virtual_memory();
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int)system.master_page_dir)))

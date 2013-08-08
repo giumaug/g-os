@@ -23,7 +23,6 @@ void syscall_handler()
 	SWITCH_DS_TO_KERNEL_MODE
 	free_vm_proc=0;
 	current_process_context=system.process_info.current_process->val;
-	current_process_context->processor_reg_on_syscall=processor_reg;
 	old_process_context=current_process_context;
 	t_console_desc *console_desc=current_process_context->console_desc;
 	syscall_num=processor_reg.eax;
