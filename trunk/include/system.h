@@ -28,6 +28,7 @@ typedef struct s_system
 	t_llist* sleep_wait_queue;
 	t_scheduler_desc scheduler_desc;
 	t_ext2* root_fs;
+	t_device_desc* device_desc;
 }
 t_system;
 

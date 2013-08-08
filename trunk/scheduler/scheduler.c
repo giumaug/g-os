@@ -14,37 +14,29 @@ extern unsigned int *master_page_dir;
 
 int t_sched_debug[10][10];
 
-static void do_context_switch(struct t_process_context *current_process_context,struct t_process_context *new_process_context)
-{
-	int pp=0;
-	struct t_processor_reg* processor_reg;
-	processor_reg=((struct t_process_context*)system.process_info.current_process->val)->processor_reg_on_syscall;
-
-
-
-	*(system.process_info.tss.esp)=0x1FFFFF;
-	if (current_process_context->pid==2 && new_process_context->pid==0)
-	{
-		pp++;
-	}
-	//save current process state 
-	current_process_context->processor_reg.eax=processor_reg->eax;
-	current_process_context->processor_reg.ebx=processor_reg->ebx;
-	current_process_context->processor_reg.ecx=processor_reg->ecx;
-	current_process_context->processor_reg.edx=processor_reg->edx;
-	current_process_context->processor_reg.esi=processor_reg->esi;
-	current_process_context->processor_reg.edi=processor_reg->edi;
-	current_process_context->processor_reg.esp=processor_reg->esp;
-
-	//restore new process state
-	processor_reg->eax=new_process_context->processor_reg.eax;
-	processor_reg->ebx=new_process_context->processor_reg.ebx;
-	processor_reg->ecx=new_process_context->processor_reg.ecx;
-	processor_reg->edx=new_process_context->processor_reg.edx;
-	processor_reg->esi=new_process_context->processor_reg.esi;
-	processor_reg->edi=new_process_context->processor_reg.edi;
-	processor_reg->esp=new_process_context->processor_reg.esp;
-}
+//void do_context_switch(struct t_process_context *current_process_context,
+//		       struct t_processor_reg *processor_reg,
+//		       struct t_process_context *new_process_context)
+//{
+//	*(system.process_info.tss.esp)=0x1FFFFF;
+//	//save current process state 
+//	current_process_context->processor_reg.eax=processor_reg->eax;
+//	current_process_context->processor_reg.ebx=processor_reg->ebx;
+//	current_process_context->processor_reg.ecx=processor_reg->ecx;
+//	current_process_context->processor_reg.edx=processor_reg->edx;
+//	current_process_context->processor_reg.esi=processor_reg->esi;
+//	current_process_context->processor_reg.edi=processor_reg->edi;
+//	current_process_context->processor_reg.esp=processor_reg->esp;
+//
+//	//restore new process state
+//	processor_reg->eax=new_process_context->processor_reg.eax;
+//	processor_reg->ebx=new_process_context->processor_reg.ebx;
+//	processor_reg->ecx=new_process_context->processor_reg.ecx;
+//	processor_reg->edx=new_process_context->processor_reg.edx;
+//	processor_reg->esi=new_process_context->processor_reg.esi;
+//	processor_reg->edi=new_process_context->processor_reg.edi;
+//	processor_reg->esp=new_process_context->processor_reg.esp;
+//}
 
 void init_scheduler()
 {
@@ -84,6 +76,8 @@ void sched_debug()
 	return;
 }
 
+//SCHEDULE SHOULD BE OUTSIDE SLEEP PAUSE ECC... TO AVOID PROPAGATION OF PROCESSOR_REG.THIS
+//REQUIRE SOME LOT OF REFACTORING ON CODE 
 void schedule()
 {
 	struct t_process_context* current_process_context;
@@ -109,7 +103,7 @@ void schedule()
 			next_process_context=next->val;
 			if (current_process_context->pid!=next_process_context->pid)
 			{
-				do_context_switch(current_process_context,next_process_context);	
+				//do_context_switch(current_process_context,processor_reg,next_process_context);	
 				system.process_info.current_process=next;
 				if (current_process_context->proc_status==RUNNING)
 				{
@@ -233,7 +227,7 @@ void _awake(struct t_process_context *new_process)
 	RESTORE_IF_STATUS
 }
 
-_pause()
+void _pause()
 {
 	struct t_process_context* current_process;
 	t_llist* pause_queue;
@@ -311,7 +305,6 @@ int _fork()
 	parent_process_context=system.process_info.current_process->val;
 	kmemcpy(child_process_context,parent_process_context,sizeof(struct t_process_context));
 	child_process_context->pid=system.process_info.next_pid++;
-	child_process_context->processor_reg=((struct t_process_context*)system.process_info.current_process->val)->processor_reg_on_syscall;
 	child_process_context->parent=parent_process_context;
 	mem_size=parent_process_context->phy_space_size;
 	proc_mem=buddy_alloc_page(&system.buddy_desc,mem_size);

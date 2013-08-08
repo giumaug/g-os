@@ -118,7 +118,7 @@ void int_handler_pit()
 		if (process_context->tick==0) 
 		{
 			process_context->tick=TICK;
-			schedule(&processor_reg);
+			schedule();
 			is_schedule=1;	
 		}
 	}
