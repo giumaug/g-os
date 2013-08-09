@@ -4,7 +4,7 @@
 #include "data_types/dllist.h"
 #include "data_types/hashtable.h"
 
-void* static hashtable_search(t_hashtable* hashtable,int key,int remove)
+static void* hashtable_search(t_hashtable* hashtable,int key,int remove)
 {
 	int index;
 	t_bucket_data* bucket_data;
@@ -32,7 +32,7 @@ void* static hashtable_search(t_hashtable* hashtable,int key,int remove)
 	return NULL;
 }
 
-void static hashtable_free_bucket(t_llist** bucket,int size)
+static void hashtable_free_bucket(t_llist** bucket,int size)
 {
 	int i;
 
@@ -107,7 +107,7 @@ void* hashtable_get(t_hashtable* hashtable,int key)
 	return hashtable_search(hashtable,key,FALSE);
 }
 
-void* hashtable_get(t_hashtable* hashtable,int key)
+void* hashtable_remove(t_hashtable* hashtable,int key)
 {
 	return hashtable_search(hashtable,key,TRUE);
 }
@@ -130,14 +130,14 @@ void hashtable_put(t_hashtable* hashtable,int key,void* value)
 }
 
 //djb2 hash function
-void hashtable_put(t_hashtable* hashtable,char* key,void* value)
+void hashtable_put_str(t_hashtable* hashtable,char* key,char* value)
 {
 	unsigned long long_key = 5381;
 	int c;
 
-	while (c = *str++)
+	while (c = *value++)
 	{
 		long_key = ((long_key << 5) + long_key) + c;
 	}
-	hashtable_put(thashtable,long_key,value);
+	hashtable_put(hashtable,long_key,value);
 }

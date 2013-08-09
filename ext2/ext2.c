@@ -5,21 +5,18 @@
 
 void init_ext2(t_ext2 *ext2,t_device_desc* device_desc)
 {
-	t_superblock *superblock;
-
-	superblock=kmalloc(sizeof(t_superblock));
+	ext2->superblock=kmalloc(sizeof(t_superblock));
         ext2>partition_start_sector=lookup_partition(1);        
         read_superblock(ext2->superblock,ext2->partition_start_sector);
-	ext2->superblock=superblock;
 	ext2->device_desc=device_desc;
 }
 
 void free_ext2()
 {
-	kfree(superblock);
+	kfree(ext2->superblock);
 }
 
-int _open(const char* fullpath, int flags); 
+int _open(t_ext2* ext2,const char* fullpath, int flags); 
 {
 	u32 fd;
 	struct t_process_context* current_process_context;
@@ -52,7 +49,7 @@ int _open(const char* fullpath, int flags);
 	return fd;
 }
 
-int _close(int fd)
+int _close(t_ext2* ext2,int fd)
 {
 	t_inode* inode;
 	
@@ -61,7 +58,7 @@ int _close(int fd)
 	kfree(inode);
 }
 
-int _read(int fd, void *buf, size_t count)
+int _read(t_ext2* ext2,int fd, void *buf, size_t count)
 {
 	u32 i;	
 	u32 first_inode_block;
@@ -130,7 +127,7 @@ int _read(int fd, void *buf, size_t count)
 	return byte_read;
 }
 
-int _write(int fd, const void *buf, size_t count)
+int _write(t_ext2* ext2,int fd, const void *buf, size_t count)
 {
 	{
 	u32 i;	
@@ -274,7 +271,7 @@ int _rm(t_ext2* ext2,char* fullpath)
 	return 0;
 }
 
-int _mkdir(const char* fullpath)
+int _mkdir(t_ext2* ext2,const char* fullpath)
 {
 	t_inode* inode;
 	t_inode* inode_parent_dir;

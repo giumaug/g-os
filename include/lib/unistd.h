@@ -48,56 +48,55 @@ extern inline int sleep(unsigned int time)
 	SYSCALL(15,params);
 }
 
-extern inline int read_sector(unsigned int lba,unsigned int sector_count,void *read_buffer)
-{
-	unsigned int params[1];
-	params[0]=lba;
-	params[1]=sector_count;
-	params[2]=read_buffer;	
-	SYSCALL(16,params);
-}
-
-extern inline int write_sector(unsigned int lba,unsigned int sector_count,void *write_buffer)
-{
-	unsigned int params[1];
-	params[0]=lba;
-	params[1]=sector_count;
-	params[2]=write_buffer;	
-	SYSCALL(17,params);
-}
+//extern inline int read_sector(unsigned int lba,unsigned int sector_count,void *read_buffer)
+//{
+//	unsigned int params[2];
+//	params[0]=lba;
+//	params[1]=sector_count;
+//	params[2]=read_buffer;	
+//	SYSCALL(16,params);
+//	return params[2];
+//}
+//
+//extern inline int write_sector(unsigned int lba,unsigned int sector_count,void *write_buffer)
+//{
+//	unsigned int params[2];
+//	params[0]=lba;
+//	params[1]=sector_count;
+//	params[2]=write_buffer;	
+//	SYSCALL(17,params);
+//	return params[2];
+//}
 
 extern inline int close(int fd)
 {
-	unsigned int params[3];
+	unsigned int params[2];
 
 	params[0]=fd;
-	params[1]=system->root_fs;
 	SYSCALL(19,params);
-	return  params[2];
+	return  params[1];
 }
 
 extern inline int read(int fd, void *buf, int count)
 {
-	unsigned int params[5];
+	unsigned int params[4];
 
 	params[0]=fd;
 	params[1]=buf;
 	params[2]=count;
-	params[3]=system->root_fs;
 	SYSCALL(20,params);
-	return  params[4];
+	return  params[3];
 }
 
 extern inline int write(int fd, void *buf, int count)
 {
-	unsigned int params[5];
+	unsigned int params[4];
 
 	params[0]=fd;
 	params[1]=buf;
 	params[2]=count;
-	params[3]=system->root_fs;
 	SYSCALL(21,params);
-	return  params[4];
+	return  params[3];
 }
 
 #endif

@@ -121,37 +121,37 @@ void syscall_handler()
 //	}
 	else if (syscall_num==18) 
 	{
-		params[3]=_open((char*) params[0],params[1],params[2]); 
+		params[3]=_open(system.root_fs,(char*) params[0],params[1],params[2]); 
 		goto exit_2; 
 	}
 
 	else if (syscall_num==19) 
 	{
-		params[2]=_close(params[0],params[1]);
+		params[2]=_close(system.root_fs,params[0],params[1]);
 		goto exit_2; 
 	}
 
 	else if (syscall_num==20) 
 	{
-		params[4]=_read((void*)params[0],params[1],params[2],params[3]); 
+		params[4]=_read(system.root_fs,(void*)params[0],params[1],params[2],params[3]); 
 		goto exit_2; 
 	}
 
 	else if (syscall_num==21) 
 	{
-		params[4]=_write((void*)params[0],params[1],params[2],params[3]);
+		params[4]=_write(system.root_fs,(void*)params[0],params[1],params[2],params[3]);
 		goto exit_2; 
 	}
 	
 	else if (syscall_num==22)
 	{
-		params[2]=_rm((char*)params[0],params[1]);
+		params[2]=_rm(system.root_fs,(char*)params[0],params[1]);
 		goto exit_2; 
 	}
 
 	else if (syscall_num==23) 
 	{
-		params[2]=_mkdir(params[0],params[1]);
+		params[2]=_mkdir(system.root_fs,params[0],params[1]);
 		goto exit_2; 
 	}
 exit_1:
