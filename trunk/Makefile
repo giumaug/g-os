@@ -13,7 +13,9 @@ all:	kmain.o                       \
         console.o klib.o              \
         drivers.o                     \
         process.o                     \
-        data_types.o
+        data_types.o		      \
+	ext2.o
+
 	ld -T linker.ld -o kernel.bin \
 	*.o                           \
 	scheduler/*.o                 \
@@ -26,7 +28,8 @@ all:	kmain.o                       \
 	drivers/kbc/*.o               \
 	drivers/ata/*.o               \
 	process/*.o                   \
-	data_types/*.o                
+	data_types/*.o		      \
+	ext2/*.o                
 
 kmain.o:kmain.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) kmain.c
@@ -73,6 +76,9 @@ process.o:
 data_types.o:
 	$(MAKE) -C data_types
 
+ext2.o:
+	$(MAKE) -C ext2
+
 install_remote:all
 	scp ./kernel.bin root@192.168.1.215:/boot/
 
@@ -90,6 +96,7 @@ clean:
 	$(MAKE) -C drivers clean
 	$(MAKE) -C process clean
 	$(MAKE) -C data_types clean
+	$(MAKE) -C ext2 clean
 	rm -f kernel.bin
 
 

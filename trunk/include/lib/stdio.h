@@ -123,12 +123,11 @@ extern inline void scanf(char *text,void *val)
 
 extern inline int remove(const char *filename)
 {
-	unsigned int params[3];
+	unsigned int params[2];
 
 	params[0]=filename;
-	params[1]=system->root_fs;
 	SYSCALL(22,params);
-	return  params[2];
+	return  params[1];
 }
 
 #endif

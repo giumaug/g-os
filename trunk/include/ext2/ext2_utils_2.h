@@ -112,7 +112,7 @@ static void write_indirect_block(t_inode* inode,u32 key,u32 value)
 	}
 }
 
-void static read_superblock(superblock,partition_start_sector)
+void static read_superblock(t_superblock* superblock,partition_start_sector)
 {
         void *io_buffer;
 	

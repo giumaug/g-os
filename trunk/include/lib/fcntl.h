@@ -10,13 +10,12 @@ extern inline int open(const char *fullpath, int flags) __attribute__((always_in
 
 extern inline int open(const char *fullpath, int flags)
 {
-	unsigned int params[4];
+	unsigned int params[3];
 
 	params[0]=fullpath;
 	params[1]=flags;
-	params[2]=system->root_fs;
 	SYSCALL(18,params);
-	return  params[3];
+	return  params[2];
 }
 
 #endif
