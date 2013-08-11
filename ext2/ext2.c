@@ -1,7 +1,6 @@
-#include "data_types/hashtable.h"
 #include "ext2/ext2.h"
 #include "ext2/ext2_utils_1.h"
-#include "ext2/ext2_utils_2.h"
+//#include "ext2/ext2_utils_2.h"
 
 void init_ext2(t_ext2 *ext2,t_device_desc* device_desc)
 {
@@ -93,7 +92,7 @@ int _read(t_ext2* ext2,int fd, void *buf, size_t count)
 			{
 				indirect_lba=inode->i_block[12];
         			sector_count=BLOCK_SIZE/SECTOR_SIZE;
-				_read_28_ata(sector_count,indirect_lba,iob_indirect_block);
+				READ(sector_count,indirect_lba,iob_indirect_block);
 				allocated_indirect_block=1;
 			}
 			lba=iob_indirect_block[inode_block-12];	
@@ -144,6 +143,7 @@ int _write(t_ext2* ext2,int fd, const void *buf, size_t count)
 	u32 byte_read;
 	u32 byte_count;
 	u32 load_block;
+	u32 update_indirct_block;
 	t_inode* inode;
 	void* iob_data_block;
 	void* iob_indirect_block;
@@ -153,6 +153,7 @@ int _write(t_ext2* ext2,int fd, const void *buf, size_t count)
 	kfillmem(iob_data_block,0,BLOCK_SIZE);
 	kfillmem(iob_indirect_block,0,BLOCK_SIZE);
 
+	update_indirect_block=FALSE;
 	byte_written=0;
 	inode=hashtable_get(current_process_context->file_desc,fd);
 	first_inode_block=inode->file_offset/BLOCK_SIZE;
@@ -171,7 +172,7 @@ int _write(t_ext2* ext2,int fd, const void *buf, size_t count)
 		else
 		{
 			sector_count=BLOCK_SIZE/SECTOR_SIZE;
-			_read_28_ata(sector_count,inode->i_block[12],iob_indirect_block);
+			READ(sector_count,inode->i_block[12],iob_indirect_block);
 		}
 	}
 
@@ -186,6 +187,7 @@ int _write(t_ext2* ext2,int fd, const void *buf, size_t count)
 				{
 					iob_indirect_block[i-12]=alloc_block(ext2,inode,i);
 					load_block=0;
+					update_indirect_block=TRUE;
 				}
 				lba=iob_indirect_block[i-12];
 			}
@@ -224,6 +226,7 @@ int _write(t_ext2* ext2,int fd, const void *buf, size_t count)
 				if (iob_indirect_block[i-12]==0)
 				{
 					iob_indirect_block[i-12]=alloc_block(ext2,inode,i);
+					update_indirect_block=TRUE;
 				}
 				lba=iob_indirect_block[i-12];
 			}
@@ -244,6 +247,10 @@ int _write(t_ext2* ext2,int fd, const void *buf, size_t count)
 		inode->file_offset+=byte_count;
 		buf+=byte_count;
 		byte_written+=byte_count;
+	}
+	if (update_indirect_block)
+	{
+		WRITE(sector_count,inode->i_block[12],iob_indirect_block);
 	}
 	kfree(iob_data_block);
 	kfree(iob_indirect_block);
@@ -275,7 +282,7 @@ int _mkdir(t_ext2* ext2,const char* fullpath)
 {
 	t_inode* inode;
 	t_inode* inode_parent_dir;
-	void* iob_dir;
+	char* iob_dir;
 	
 	inode=kmalloc(sizeof(t_inode));
 	inode_parent_dir=kmalloc(sizeof(t_inode));

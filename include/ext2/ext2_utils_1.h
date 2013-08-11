@@ -4,22 +4,26 @@ void free_inode(t_inode* i_node,t_ext2 *ext2)
         u32 lba;
         u32 sector_count;
         u32 inode_index;
-        u32 buffer_index;
+        u32 buffer_byte;
         u32 byte_bit;
-        void* io_buffer;
-	void* io_buffer2;
+	u32 group_block_key;
+	u32 offset;
+        char* io_buffer;
+	char* io_buffer2;
         t_group_block*  group_block;
 	t_hashtable* group_hash;
 	t_llist* block_list;
+	t_llist* group_list;
 	t_llist_node* next;
 	t_llist_node* sentinel;
+	t_llist_node* sentinel2;
 	t_device_desc* device_desc;
 
 	//1)find block descriptor conteinig inode	
 	//2)clear inode_bitmap bit
 	//3)clear_data_block_bitmap bit
 
-        group_block_index=(i_node->i_number-1)/ext2->superblock->inodes_per_group;
+        group_block_index=(i_node->i_number-1)/ext2->superblock->s_inodes_per_group;
 	group_block=kmalloc(sizeof(t_group_block));
 	read_group_block(ext2,group_block_index,group_block);
 	group_block->bg_free_inodes_count++;
@@ -31,10 +35,10 @@ void free_inode(t_inode* i_node,t_ext2 *ext2)
         io_buffer=kmalloc(BLOCK_SIZE);
        	read(device_desc,sector_count,lba,io_buffer); 
 	
-        inode_index = (i_node->i_number – 1) % ext2->superblock->s_blocks_per_group;
-        buffer_index=(inode_index-1) / 8;
+	inode_index=(i_node->i_number - 1)%ext2->superblock->s_blocks_per_group;
+        buffer_byte=(inode_index-1) / 8;
         byte_bit=(inode_index-1) % 8;
-        io_buffer[buffer_index]&= (255 & (2>>byte_bit));
+        io_buffer[buffer_byte]&= (255 & (2>>byte_bit));
 
 	WRITE(sector_count,lba,io_buffer);
         
@@ -55,22 +59,22 @@ void free_inode(t_inode* i_node,t_ext2 *ext2)
 	while (next!=sentinel) 
 	{
 		group_block_key=next->val;
-		block_list=hashtable_get(group_hash,group_block_key))];
+		block_list=hashtable_get(group_hash,group_block_key);
 
 		read_group_block(ext2,group_block_key,group_block);
 		read_block_bitmap(ext2->partition_start_sector,group_block->bg_block_bitmap,io_buffer);
 		
 		sentinel2=ll_sentinel(block_list);
 		next=ll_first(block_list);
-		while (next!=sentinel) 
+		while (next!=sentinel2) 
 		{
 			offset=next->val;
 			buffer_byte=(offset-1) / 8;
                 	byte_bit=byte_bit=(offset-1) % 8;
-			io_buffer[buffer_index]&= (255 & (2>>byte_bit));
+			io_buffer[buffer_byte]&= (255 & (2>>byte_bit));
 			next=ll_next(next);
 			group_block->bg_free_blocks_count++;
-			ext2->superblock->free_blocks_count++;
+			ext2->superblock->s_free_blocks_count++;
 		}
 		write_block_bitmap(ext2->partition_start_sector,group_block->bg_block_bitmap,io_buffer);
 		write_group_block(ext2,group_block_key,group_block);
@@ -82,42 +86,43 @@ void free_inode(t_inode* i_node,t_ext2 *ext2)
 	}
 	hashtable_free(group_hash);
 	free_llist(group_list);
-	ext2->superblock->free_inodes_count++;
+	ext2->superblock->s_free_inodes_count++;
 	kfree(group_block);
 	kfree(io_buffer);
 }
 
-u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
+u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)--------------------------qui
 {
         void* io_buffer;        
         u32 preferred_block;
         u32 lba;
         u32 block;
         u32 offset;
-        u32 group_block;
+        t_group_block group_block;
 	u32 group_block_index;
 	u32 block_bitmap;
         u32 sector_count;
         u32 free_block;
 	u32 block_sector;
+	u32 discard_preallocated_block;
         u32 i;
 	
 	block=0;
         preferred_block=0;
         discard_preallocated_block=1;
-        group_block_index=(i-node->i_number – 1)/ ext2->s_inodes_per_group;
+	group_block_index=(i_node->i_number-1)/ext2->superblock->s_inodes_per_group;
 	group_block=kmalloc(sizeof(t_group_block));
 	read_group_block(ext2,group_block_index,group_block);
 	
         io_buffer=kmalloc(BLOCK_SIZE);
 	read_block_bitmap(ext2->partition_start_sector,group_block->bg_block_bitmap,io_buffer);
 
-        if (block_num=ext2->last_file_block_num+1)
+        if (block_num=i_node->last_file_block_num+1)
         {
-                preferred_block=ext2->last_file_block_num+1;
+		preferred_block=read_indirect_block(i_node,i_node_->last_file_block_num+1); 
         }
         //block count start from 1
-        else if (ext2->last_file_block_num!=0)
+        else if (i_node->last_file_block_num!=0)
         {
                 offset=block_num-1;
                 while(preferred_block==0 && offset!=0)
@@ -127,7 +132,7 @@ u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
                 }
                 if (preferred_block==0)
                 {
-                        preferred_block=1;
+			preferred_block=ABSOLUTE_BLOCK_ADDRESS(group_block_index,1);
                 }
         }
 
@@ -218,6 +223,7 @@ u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
 	kfree(group_block);
         kfree(io_buffer);
 	ext2->superblock->free_blocks_count--;
+	i_node->last_file_block_num=block_num;
 	return BLOCK_SECTOR_ADDRESS(group_block_index,block);
 }
 

@@ -2,7 +2,9 @@
 #define EXT2_H
 
 #include "system.h"
+#include "general.h"
 #include "data_types/primitive_types.h"
+#include "data_types/hashtable.h"
 
 #define BLOCK_SIZE 1024
 #define SECTOR_SIZE 512
@@ -29,55 +31,55 @@
 
 typedef struct s_superblock
 {	
-	u32 block_group_size;
-	u32 block_group_header_size;
+	u32 s_block_group_size;
+	u32 s_block_group_header_size;
 	//disk fields	
-	u32 inodes_count; 
-	u32 blocks_count; 
-	u32 r_blocks_count;
-	u32 free_blocks_count;
-	u32 free_inodes_count; 
-	u32 first_data_block; 
-	u32 log_block_size;
-	u32 log_frag_size;
-	u32 blocks_per_group;
-	u32 frags_per_group;
-	u32 inodes_per_group;
-	u32 mtime;
-	u32 wtime;
+	u32 s_inodes_count; 
+	u32 s_blocks_count; 
+	u32 s_r_blocks_count;
+	u32 s_free_blocks_count;
+	u32 s_free_inodes_count; 
+	u32 s_first_data_block; 
+	u32 s_log_block_size;
+	u32 s_log_frag_size;
+	u32 s_blocks_per_group;
+	u32 s_frags_per_group;
+	u32 s_inodes_per_group;
+	u32 s_mtime;
+	u32 s_wtime;
 	
-	u16 mnt_count;
-	u16 max_mnt_count;
-	u16 magic; 
-	u16 state; 
-	u16 errors;
-	u16 minor_rev_level;
+	u16 s_mnt_count;
+	u16 s_max_mnt_count;
+	u16 s_magic; 
+	u16 s_state; 
+	u16 s_errors;
+	u16 s_minor_rev_level;
 	
-	u32 lastcheck;
-	u32 checkinterval;
-	u32 creator_os;	
-	u32 rev_level;
+	u32 s_lastcheck;
+	u32 s_checkinterval;
+	u32 s_creator_os;	
+	u32 s_rev_level;
 	
-	u16 def_resuid;
-	u16 def_resgid;
+	u16 s_def_resuid;
+	u16 s_def_resgid;
 	
 	u32 first_ino;
 	
-	u16 inode_size;
-	u16 block_group_nr;
+	u16 s_inode_size;
+	u16 s_block_group_nr;
 	
-	u32 feature_compat;
-	u32 feature_incompat;
-	u32 feature_ro_compat;
+	u32 s_feature_compat;
+	u32 s_feature_incompat;
+	u32 s_feature_ro_compat;
 	
-	u8 uuid[16];
-	char volume_name[16];
-	char last_mounted[64];
-	u32 algorithm_usage_bitmap; 
-	u8 prealloc_blocks;
-	u8 prealloc_dir_blocks;
-	u16 padding1;
-	u32 reserved[204]; 
+	u8 s_uuid[16];
+	char s_volume_name[16];
+	char s_last_mounted[64];
+	u32 s_algorithm_usage_bitmap; 
+	u8 s_prealloc_blocks;
+	u8 s_prealloc_dir_blocks;
+	u16 s_padding1;
+	u32 s_reserved[204]; 
 }
 t_superblock;
 
