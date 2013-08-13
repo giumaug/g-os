@@ -5,17 +5,17 @@
 void init_ext2(t_ext2 *ext2,t_device_desc* device_desc)
 {
 	ext2->superblock=kmalloc(sizeof(t_superblock));
-        ext2>partition_start_sector=lookup_partition(1);        
+        ext2->partition_start_sector=lookup_partition(1);        
         read_superblock(ext2->superblock,ext2->partition_start_sector);
 	ext2->device_desc=device_desc;
 }
 
-void free_ext2()
+void free_ext2(t_ext2* ext2)
 {
 	kfree(ext2->superblock);
 }
 
-int _open(t_ext2* ext2,const char* fullpath, int flags); 
+int _open(t_ext2* ext2,const char* fullpath, int flags)
 {
 	u32 fd;
 	struct t_process_context* current_process_context;
@@ -23,25 +23,25 @@ int _open(t_ext2* ext2,const char* fullpath, int flags);
 	t_inode* inode_dir;
 	t_llist_node* node;
 	char path[NAME_MAX];
-	char filename[NAME_MAX]:
+	char filename[NAME_MAX];
 
 	extract_filename(fullpath,path,filename);
-	inode=kmalloc(sizeof(t_inode);
-	inode_dir=kmalloc(sizeof(t_inode);
+	inode=kmalloc(sizeof(t_inode));
+	inode_dir=kmalloc(sizeof(t_inode));
 	node=system.process_info.current_process;	
 	current_process_context=node->val;
 	fd=current_process_context->next_fd++;
 	
 	if (flags & O_CREAT & O_RDWR)
 	{
-		inode=alloc_inode(fullpath,0,system->ext2,inode);
+		alloc_inode(fullpath,0,system.root_fs,inode);
 		hashtable_put(current_process_context->file_desc,fd,inode);
 	}
 	else if (flags & O_APPEND & O_RDWR)
 	{
 		lookup_inode(path,ext2,NULL,inode_dir);
 		lookup_inode(filename,ext2,inode_dir,inode);		
-		add_dir_entry(ext2,t_inode* inode_dir,u32 inode->i_number,filename,1);
+		add_dir_entry(ext2,inode_dir,inode->i_number,filename,1);
 		hashtable_put(current_process_context->file_desc,fd,inode);
 	}
 	inode->file_offset=0;
@@ -51,13 +51,13 @@ int _open(t_ext2* ext2,const char* fullpath, int flags);
 int _close(t_ext2* ext2,int fd)
 {
 	t_inode* inode;
-	
-	inode=hashtable_get(current_process_context->file_desc,fd);
-	write_inode(system->ext2,inode);
+
+	inode=hashtable_get(((struct t_process_context*)system.process_info.current_process)->file_desc,fd);
+	write_inode(system.root_fs,inode);
 	kfree(inode);
 }
 
-int _read(t_ext2* ext2,int fd, void *buf, size_t count)
+int _read(t_ext2* ext2,int fd, void *buf,u32 count)
 {
 	u32 i;	
 	u32 first_inode_block;
@@ -72,13 +72,13 @@ int _read(t_ext2* ext2,int fd, void *buf, size_t count)
 	u32 byte_read;
 	u32 byte_count;
 	t_inode* inode;
-	void* iob_indirect_block;
-	void* iob_data_block;
+	char* iob_indirect_block;
+	char* iob_data_block;
 
 	byte_read=0;
 	iob_indirect_block=kmalloc(BLOCK_SIZE);
 	iob_data_block=kmalloc(BLOCK_SIZE);
-	inode=hashtable_get(current_process_context->file_desc,fd);
+	inode=hashtable_get(((struct t_process_context*)system.process_info.current_process)->file_desc,fd);
 	first_inode_block=inode->file_offset/BLOCK_SIZE;
 	first_data_offset=inode->file_offset%BLOCK_SIZE;
 	last_inode_block=(inode->file_offset+count)/BLOCK_SIZE;
@@ -126,7 +126,7 @@ int _read(t_ext2* ext2,int fd, void *buf, size_t count)
 	return byte_read;
 }
 
-int _write(t_ext2* ext2,int fd, const void *buf, size_t count)
+int _write(t_ext2* ext2,int fd, const void *buf,u32 count)
 {
 	{
 	u32 i;	
@@ -145,8 +145,11 @@ int _write(t_ext2* ext2,int fd, const void *buf, size_t count)
 	u32 load_block;
 	u32 update_indirct_block;
 	t_inode* inode;
-	void* iob_data_block;
-	void* iob_indirect_block;
+	char* iob_data_block;
+	char* iob_indirect_block;
+	u32 update_indirect_block;
+	u32 byte_written;
+	u32 byte_to_write;
 
 	iob_data_block=kmalloc(BLOCK_SIZE);
 	iob_indirect_block=kmalloc(BLOCK_SIZE);
@@ -155,7 +158,7 @@ int _write(t_ext2* ext2,int fd, const void *buf, size_t count)
 
 	update_indirect_block=FALSE;
 	byte_written=0;
-	inode=hashtable_get(current_process_context->file_desc,fd);
+	inode=hashtable_get(((struct t_process_context*)system.process_info.current_process)->file_desc,fd);
 	first_inode_block=inode->file_offset/BLOCK_SIZE;
 	first_data_offset=inode->file_offset%BLOCK_SIZE;
 	last_inode_block=(inode->file_offset+count)/BLOCK_SIZE;
@@ -320,3 +323,5 @@ int _mkdir(t_ext2* ext2,const char* fullpath)
 	kfree(iob_dir);
 	return 0;
 }
+
+//manca cd
