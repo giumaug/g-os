@@ -55,6 +55,7 @@ struct t_process_context {
 	char* current_dir;
 	u32 next_fd;
 	t_hashtable* file_desc;
+	u32 current_dir_inode;
 };
 
 struct t_process_info {

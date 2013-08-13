@@ -1,3 +1,5 @@
+extern t_system system;
+
 static void* read_block_bitmap(u32 partition_start_sector,u32 bg_block_bitmap,void* io_buffer)
 {
 	u32 lba;
@@ -597,7 +599,7 @@ u32 static find_free_block(void* io_buffer,u32 prealloc)
         {
                 buffer_byte=i/8;
                 byte_bit=i % 8;
-                selected_bit=io_buffer[buffer_byte]&=(2>>byte_bit);
+                selected_bit=io_buffer[buffer_byte] & (2>>byte_bit);
                 if (selected_bit==0)
                 {
 			if (!prealloc)
@@ -611,7 +613,7 @@ u32 static find_free_block(void* io_buffer,u32 prealloc)
 				{
 					buffer_byte2=j/8;
 					byte_bit2=j%8;
-					selected_bit2=io_buffer[buffer_byte2]&=(2>>byte_bit2);
+					selected_bit2=io_buffer[buffer_byte2] & (2>>byte_bit2);
 					if (selected_bit2==0)
 					{
 						free_block++;
