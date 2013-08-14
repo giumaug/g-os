@@ -67,7 +67,7 @@ static u32 alloc_indirect_block(t_ext2* ext2,t_inode* i_node)
 	return ret;	       
 }
 
-static void free_indirect_block(t_inode* i_node)
+static void free_indirect_block(t_ext2* ext2,t_inode* i_node)
 {
 	u32 buffer_byte;
 	u32 byte_bit;
@@ -99,7 +99,7 @@ static u32 read_indirect_block(t_inode* inode,u32 key)
 	}
 	else
 	{
-		return inode>indirect_block[key-12];
+		return inode->indirect_block[key-12];
 	} 
 }
 
@@ -111,16 +111,18 @@ static void write_indirect_block(t_inode* inode,u32 key,u32 value)
 	}
 	else
 	{
-		inode>indirect_block[key-12]=value;
+		inode->indirect_block[key-12]=value;
 	}
 }
 
-void static read_superblock(t_superblock* superblock,u32 partition_start_sector)
+void static read_superblock(t_ext2* ext2)
 {
         char* io_buffer;
+	t_superblock* superblock;
 	
         io_buffer=kmalloc(512);
-        READ(2,(1024+partition_start_sector),io_buffer);
+        READ(2,(1024+ext2->partition_start_sector),io_buffer);
+	superblock=ext2->superblock;
        
         //u32
         superblock->s_inodes_count=io_buffer[0];        
@@ -152,7 +154,7 @@ void static read_superblock(t_superblock* superblock,u32 partition_start_sector)
         superblock->s_def_resuid=io_buffer[80];            
         superblock->s_def_resgid=io_buffer[82];
         //u32
-        superblock->s_first_ino=io_buffer[84];                      
+        superblock->s_first_inode=io_buffer[84];                      
         //u16
         superblock->s_inode_size=io_buffer[88];
         superblock->s_block_group_nr=io_buffer[90];
@@ -167,7 +169,7 @@ void static read_superblock(t_superblock* superblock,u32 partition_start_sector)
         //u64
         kmemcpy(&superblock->s_last_mounted,&io_buffer[136],64);
         //u32
-        superblock->s_algorithm_usage_bitmap=io_buffer[200]);
+        superblock->s_algorithm_usage_bitmap=io_buffer[200];
         //u8
         superblock->s_prealloc_blocks=io_buffer[204];        
         superblock->s_prealloc_dir_blocks=io_buffer[205];
@@ -177,17 +179,19 @@ void static read_superblock(t_superblock* superblock,u32 partition_start_sector)
         kmemcpy(&superblock->s_reserved,&io_buffer[208],204);
 	superblock->s_block_group_header_size=3*BLOCK_SIZE
 				    	   +32*superblock->s_blocks_count/superblock->s_blocks_per_group
-				           +128*s_inodes_per_group;
+				           +128*superblock->s_inodes_per_group;
 
 	superblock->s_block_group_size=superblock->s_block_group_header_size+BLOCK_SIZE*superblock->s_blocks_per_group;
 	kfree(io_buffer);
 }
 
-void static write_superblock(t_superblock* superblock,u32 partition_start_sector)
+void static write_superblock(t_ext2* ext2)
 {
         char* io_buffer;
+	t_superblock* superblock;
 	
         io_buffer=kmalloc(512);
+	superblock=ext2->superblock;
    
         //u32
         io_buffer[0]=superblock->s_inodes_count;
@@ -219,7 +223,7 @@ void static write_superblock(t_superblock* superblock,u32 partition_start_sector
         io_buffer[80]=superblock->s_def_resuid;            
         io_buffer[82]=superblock->s_def_resgid;
         //u32
-        io_buffer[84]=superblock->s_first_ino;                     
+        io_buffer[84]=superblock->s_first_inode;                     
         //u16
         io_buffer[88]=superblock->s_inode_size;
         io_buffer[90]=superblock->s_block_group_nr;
@@ -234,7 +238,7 @@ void static write_superblock(t_superblock* superblock,u32 partition_start_sector
         //u64
 	kmemcpy(&io_buffer[136],&superblock->s_last_mounted,64);
         //u32
-        io_buffer[200])=superblock->s_algorithm_usage_bitmap;
+        io_buffer[200]=superblock->s_algorithm_usage_bitmap;
         //u8
         io_buffer[204]=superblock->s_prealloc_blocks;    
         io_buffer[205]=superblock->s_prealloc_dir_blocks;
@@ -243,12 +247,13 @@ void static write_superblock(t_superblock* superblock,u32 partition_start_sector
         //u32[204]
 	kmemcpy(&io_buffer[208],&superblock->s_reserved,204);
 
-	WRITE(2,(1024+partition_start_sector),io_buffer);	
+	WRITE(2,(1024+ext2->partition_start_sector),io_buffer);	
 	kfree(io_buffer);
 }
 
-write_group_block(t_ext2 *ext2,group_block_number,t_group_block* group_block)
+write_group_block(t_ext2 *ext2,u32 group_block_number,t_group_block* group_block)
 {
+	u32 block_number;
 	u32 sector_number;
 	u32 sector_offset;
 	u32 lba;
@@ -281,7 +286,7 @@ write_group_block(t_ext2 *ext2,group_block_number,t_group_block* group_block)
 	free(io_buffer);
 }
 
-read_group_block(t_ext2 *ext2,group_block_number,t_group_block* group_block)
+read_group_block(t_ext2 *ext2,u32 group_block_number,t_group_block* group_block)
 {
 	u32 sector_number;
 	u32 sector_offset;
@@ -306,7 +311,7 @@ read_group_block(t_ext2 *ext2,group_block_number,t_group_block* group_block)
 	//u16
 	group_block->bg_free_inodes_count=io_buffer[14+sector_offset];
 	//u16
-	group_block->bg_usread_inodeed_dirs_count=io_buffer[16+sector_offset];
+	group_block->bg_used_dirs_count=io_buffer[16+sector_offset];
 	//u16
 	group_block->bg_pad=io_buffer[18+sector_offset];
 	//u32[3]
@@ -329,8 +334,8 @@ void static read_inode(t_ext2* ext2,t_inode* inode)
 	io_buffer=kmalloc(BLOCK_SIZE);	
 	group_block=kmalloc(sizeof(t_group_block));
 	
-	group_number=inode_number/ext2->superblock->s_inodes_per_group; 
-	group_offset=inode_number%ext2->superblock->s_inodes_per_group;
+	group_number=inode->i_number/ext2->superblock->s_inodes_per_group; 
+	group_offset=inode->i_number%ext2->superblock->s_inodes_per_group;
 	read_group_block(ext2,group_block_index,group_block);
 
 	inode_table_offset=group_offset/(BLOCK_SIZE/128);

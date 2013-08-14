@@ -4,6 +4,7 @@ static void* read_block_bitmap(t_ext2* ext2,u32 bg_block_bitmap,void* io_buffer)
 static void* write_block_bitmap(t_ext2* ext2,u32 bg_block_bitmap,void* io_buffer);
 static u32 read_indirect_block(t_inode* inode,u32 key);
 static void write_indirect_block(t_inode* inode,u32 key,u32 value);
+static void free_indirect_block(t_ext2* ext2,t_inode* i_node);
 
 static void fill_group_hash(t_ext2* ext2,t_llist* group_list,t_hashtable* group_hash,u32 start_block,u32 end_block,t_inode* i_node)
 {
@@ -126,7 +127,7 @@ void free_inode(t_inode* i_node,t_ext2 *ext2)
 	}
 	if (i_node->i_block[12]!=NULL)
 	{
-		free_indirect_block(i_node);
+		free_indirect_block(ext2,i_node);
 	}
 	hashtable_free(group_hash);
 	free_llist(group_list);
