@@ -23,7 +23,7 @@
 							+ext2->superblock->s_block_group_header_size+(BLOCK_SIZE*(block+1)))    \
 							/SECTOR_SIZE;
 
-#define ABSOLUTE_BLOCK_ADDRESS(group_block_index,relative_block_address) ext2->superblock->s_blocks_per_group*(group_block_index-1)+block
+#define ABSOLUTE_BLOCK_ADDRESS(group_block_index,relative_block_address) ext2->superblock->s_blocks_per_group*(group_block_index-1)+relative_block_address
 
 #define WRITE(sector_count,lba,io_buffer) ext2->device_desc->write(ext2->device_desc,sector_count,lba,io_buffer)
 

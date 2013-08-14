@@ -1,6 +1,6 @@
 #include "ext2/ext2.h"
 #include "ext2/ext2_utils_1.h"
-//#include "ext2/ext2_utils_2.h"
+#include "ext2/ext2_utils_2.h"
 
 void init_ext2(t_ext2 *ext2,t_device_desc* device_desc)
 {
@@ -128,7 +128,6 @@ int _read(t_ext2* ext2,int fd, void *buf,u32 count)
 
 int _write(t_ext2* ext2,int fd, const void *buf,u32 count)
 {
-	{
 	u32 i;	
 	u32 first_inode_block;
 	u32 first_data_offset;
@@ -246,7 +245,7 @@ int _write(t_ext2* ext2,int fd, const void *buf,u32 count)
 		}
 		kmemcpy(iob_data_block,buf,byte_count);
 		sector_count=BLOCK_SIZE/SECTOR_SIZE;
-		WRITE(sector_count,lba,io_buffer_2);
+		WRITE(sector_count,lba,iob_data_block);
 		inode->file_offset+=byte_count;
 		buf+=byte_count;
 		byte_written+=byte_count;
@@ -286,17 +285,20 @@ int _mkdir(t_ext2* ext2,const char* fullpath)
 	t_inode* inode;
 	t_inode* inode_parent_dir;
 	char* iob_dir;
+	char path[NAME_MAX];
+	char filename[NAME_MAX];
+	u32 sector_count;
 	
 	inode=kmalloc(sizeof(t_inode));
 	inode_parent_dir=kmalloc(sizeof(t_inode));
 	iob_dir=kmalloc(BLOCK_SIZE);
 	kfillmem(iob_dir,0,BLOCK_SIZE);
 		
-	alloc_inode(path,1,ext2,inode);
-	lookup_inode(path,ext2,inode_parent_dir);
+	alloc_inode(fullpath,1,ext2,inode);
+	lookup_inode(fullpath,ext2,inode_parent_dir,inode);
 	inode->i_block[0]=alloc_block(ext2,inode,0);
 	
-	iob_dir[0]=inode->inode_number;
+	iob_dir[0]=inode->i_number;
 	iob_dir[4]=12;
 	iob_dir[6]=1;
 	iob_dir[7]=2;
@@ -305,7 +307,7 @@ int _mkdir(t_ext2* ext2,const char* fullpath)
 	iob_dir[10]='\0';
 	iob_dir[11]='\0';
 	
-	iob_dir[12]=inode_parent_dir->inode_number;
+	iob_dir[12]=inode_parent_dir->i_number;
 	iob_dir[16]=24;
 	iob_dir[18]=1;
 	iob_dir[19]=2;
@@ -314,9 +316,10 @@ int _mkdir(t_ext2* ext2,const char* fullpath)
 	iob_dir[22]='\0';
 	iob_dir[23]='\0';
 
+	extract_filename(fullpath,path,filename);
 	sector_count=BLOCK_SIZE/SECTOR_SIZE;
 	WRITE(sector_count,inode->i_block[0],iob_dir);
-	add_dir_entry(ext2,inode_parent_dir,inode->inode_number,filename,2);
+	add_dir_entry(ext2,inode_parent_dir,inode->i_number,filename,2);
 
 	kfree(inode);
 	kfree(inode_parent_dir);
