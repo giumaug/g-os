@@ -3,15 +3,71 @@
 #define CLI asm ("cli");
 #define EXIT_SYSCALL_HANDLER asm("pop %ebp;iret;");
 
-#define PROCESSOR_REG ((struct t_process_context*)system.process_info.current_process->val)->processor_reg
-
 #define SAVE_PROCESSOR_REG	asm("push %ebp");                                     \
 				asm("push %edi");                                     \
 				asm("push %esi");                                     \
 				asm("push %edx");                                     \
 				asm("push %ecx");                                     \
 				asm("push %ebx");                                     \
-				asm ("movl %%eax, %0;":"=r"(PROCESSOR_REG.eax));      \
+				asm ("movl %%eax, %0;":"=r"(processor_reg.eax));      \
+				asm("pop %ebx");                                      \
+				asm ("movl %%ebx, %0;":"=r"(processor_reg.ebx));      \
+				asm("pop %ecx");                                      \
+				asm ("movl %%ecx, %0;":"=r"(processor_reg.ecx));      \
+				asm("pop %edx");                                      \
+				asm ("movl %%edx, %0;":"=r"(processor_reg.edx));      \
+				asm("pop %esi");                                      \
+				asm ("movl %%esi, %0;":"=r"(processor_reg.esi));      \
+				asm("pop %edi");                                      \
+				asm ("movl %%edi, %0;":"=r"(processor_reg.edi));      \
+				asm("pop %ebp");                                      \
+				asm ("movl %%ebp, %0;":"=r"(processor_reg.esp));      \
+				((struct t_process_context*)system.process_info.current_process->val)->processor_reg=processor_reg;
+
+// push and pop registers on stack to avoid inline asm dirties them
+#define RESTORE_PROCESSOR_REG	processor_reg=((struct t_process_context*)system.process_info.current_process->val)->processor_reg; \
+				asm ("movl %0,%%esp;"::"r"(processor_reg.esp)); \
+				asm ("movl %0,%%eax;"::"r"(processor_reg.eax)); \
+				asm ("push %eax;");                             \
+				asm ("movl %0,%%ebx;"::"r"(processor_reg.ebx)); \
+				asm ("push %ebx;");                             \
+				asm ("movl %0,%%ecx;"::"r"(processor_reg.ecx)); \
+				asm ("push %ecx;");                             \
+				asm ("movl %0,%%edx;"::"r"(processor_reg.edx)); \
+				asm ("push %edx;");                             \
+				asm ("movl %0,%%esi;"::"r"(processor_reg.esi)); \
+				asm ("push %esi;");                             \
+				asm ("movl %0,%%edi;"::"r"(processor_reg.edi)); \
+				asm ("push %edi;");                             \
+				asm ("pop %edi;");                              \
+				asm ("pop %esi;");                              \
+				asm ("pop %edx;");                              \
+				asm ("pop %ecx;");                              \
+				asm ("pop %ebx;");                              \
+				asm ("pop %eax;");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//#define PROCESSOR_REG ((struct t_process_context*)system.process_info.current_process->val)->processor_reg
+
+//#define SAVE_PROCESSOR_REG	asm("push %ebp");                                     \
+				asm("push %edi");                                     \
+				asm("push %esi");                                     \
+				asm("push %edx");                                     \
+				asm("push %ecx");                                     \
+				asm("push %ebx");                                     \
+				asm ("movl %%eax, %0;":"=r"(PROCESSOR_REG.eax)::"%eax");      \
 				asm("pop %ebx");                                      \
 				asm ("movl %%ebx, %0;":"=r"(PROCESSOR_REG.ebx));      \
 				asm("pop %ecx");                                      \
@@ -26,7 +82,7 @@
 				asm ("movl %%ebp, %0;":"=r"(PROCESSOR_REG.esp));
 
 // push and pop registers on stack to avoid inline asm dirties them
-#define RESTORE_PROCESSOR_REG	asm ("movl %0,%%esp;"::"r"(PROCESSOR_REG.esp)); \
+//#define RESTORE_PROCESSOR_REG	asm ("movl %0,%%esp;"::"r"(PROCESSOR_REG.esp)); \
 				asm ("movl %0,%%eax;"::"r"(PROCESSOR_REG.eax)); \
 				asm ("push %eax;");                             \
 				asm ("movl %0,%%ebx;"::"r"(PROCESSOR_REG.ebx)); \
@@ -47,46 +103,46 @@
 				asm ("pop %eax;");
 
 //#define SAVE_PROCESSOR_REG	asm("push %ebp");                                     \
-//				asm("push %edi");                                     \
-//				asm("push %esi");                                     \
-//				asm("push %edx");                                     \
-//				asm("push %ecx");                                     \
-//				asm("push %ebx");                                     \
-//				asm ("movl %%eax, %0;":"=r"(processor_reg.eax));      \
-//				asm("pop %ebx");                                      \
-//				asm ("movl %%ebx, %0;":"=r"(processor_reg.ebx));      \
-//				asm("pop %ecx");                                      \
-//				asm ("movl %%ecx, %0;":"=r"(processor_reg.ecx));      \
-//				asm("pop %edx");                                      \
-//				asm ("movl %%edx, %0;":"=r"(processor_reg.edx));      \
-//				asm("pop %esi");                                      \
-//				asm ("movl %%esi, %0;":"=r"(processor_reg.esi));      \
-//				asm("pop %edi");                                      \
-//				asm ("movl %%edi, %0;":"=r"(processor_reg.edi));      \
-//				asm("pop %ebp");                                      \
-//				asm ("movl %%ebp, %0;":"=r"(processor_reg.esp));
-//
-//// push and pop registers on stack to avoid inline asm dirties them
+				asm("push %edi");                                     \
+				asm("push %esi");                                     \
+				asm("push %edx");                                     \
+				asm("push %ecx");                                     \
+				asm("push %ebx");                                     \
+				asm ("movl %%eax, %0;":"=r"(processor_reg.eax));      \
+				asm("pop %ebx");                                      \
+				asm ("movl %%ebx, %0;":"=r"(processor_reg.ebx));      \
+				asm("pop %ecx");                                      \
+				asm ("movl %%ecx, %0;":"=r"(processor_reg.ecx));      \
+				asm("pop %edx");                                      \
+				asm ("movl %%edx, %0;":"=r"(processor_reg.edx));      \
+				asm("pop %esi");                                      \
+				asm ("movl %%esi, %0;":"=r"(processor_reg.esi));      \
+				asm("pop %edi");                                      \
+				asm ("movl %%edi, %0;":"=r"(processor_reg.edi));      \
+				asm("pop %ebp");                                      \
+				asm ("movl %%ebp, %0;":"=r"(processor_reg.esp));
+
+// push and pop registers on stack to avoid inline asm dirties them
 //#define RESTORE_PROCESSOR_REG	asm ("movl %0,%%esp;"::"r"(processor_reg.esp)); \
-//				asm ("movl %0,%%eax;"::"r"(processor_reg.eax)); \
-//				asm ("push %eax;");                             \
-//				asm ("movl %0,%%ebx;"::"r"(processor_reg.ebx)); \
-//				asm ("push %ebx;");                             \
-//				asm ("movl %0,%%ecx;"::"r"(processor_reg.ecx)); \
-//				asm ("push %ecx;");                             \
-//				asm ("movl %0,%%edx;"::"r"(processor_reg.edx)); \
-//				asm ("push %edx;");                             \
-//				asm ("movl %0,%%esi;"::"r"(processor_reg.esi)); \
-//				asm ("push %esi;");                             \
-//				asm ("movl %0,%%edi;"::"r"(processor_reg.edi)); \
-//				asm ("push %edi;");                             \
-//				asm ("pop %edi;");                              \
-//				asm ("pop %esi;");                              \
-//				asm ("pop %edx;");                              \
-//				asm ("pop %ecx;");                              \
-//				asm ("pop %ebx;");                              \
-//				asm ("pop %eax;");
-//                                
+				asm ("movl %0,%%eax;"::"r"(processor_reg.eax)); \
+				asm ("push %eax;");                             \
+				asm ("movl %0,%%ebx;"::"r"(processor_reg.ebx)); \
+				asm ("push %ebx;");                             \
+				asm ("movl %0,%%ecx;"::"r"(processor_reg.ecx)); \
+				asm ("push %ecx;");                             \
+				asm ("movl %0,%%edx;"::"r"(processor_reg.edx)); \
+				asm ("push %edx;");                             \
+				asm ("movl %0,%%esi;"::"r"(processor_reg.esi)); \
+				asm ("push %esi;");                             \
+				asm ("movl %0,%%edi;"::"r"(processor_reg.edi)); \
+				asm ("push %edi;");                             \
+				asm ("pop %edi;");                              \
+				asm ("pop %esi;");                              \
+				asm ("pop %edx;");                              \
+				asm ("pop %ecx;");                              \
+				asm ("pop %ebx;");                              \
+				asm ("pop %eax;");
+                                
 #define RET_FROM_INT_HANDLER 	asm("mov %ebp,%esp;pop %ebp;iret");
 
 #define SWITCH_TO_USER_MODE     asm("                                              \
