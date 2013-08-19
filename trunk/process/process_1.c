@@ -5,6 +5,7 @@
 static int elements[MAXSIZE],maxsize;
 void selection(int elements[], int array_size);
 
+/*--------------------------------------------
 void process_1()
 {
 	void *write_buffer;
@@ -21,13 +22,13 @@ void process_1()
 	read_sector(100,1,read_buffer);
 	exit(0);
 }
+----------------------------------------------*/
 
-/*-------------------------------------
 void process_1()
 {
 	int i=0;	
 	int pid;
-	for (i=0;i<=10;i++)
+	for (i=0;i<=5;i++)
 	{
 		pid=fork();
 		if (pid==0)
@@ -36,8 +37,7 @@ void process_1()
 		}
 	}
 	exit(0);
----------------------------------------*/
-
+}
 
 /*--------------------------------
 	int i;

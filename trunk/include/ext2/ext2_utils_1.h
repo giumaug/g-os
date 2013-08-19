@@ -5,6 +5,9 @@ static void* write_block_bitmap(t_ext2* ext2,u32 bg_block_bitmap,void* io_buffer
 static u32 read_indirect_block(t_inode* inode,u32 key);
 static void write_indirect_block(t_inode* inode,u32 key,u32 value);
 static void free_indirect_block(t_ext2* ext2,t_inode* i_node);
+void static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext2,t_inode* inode);
+u32 static find_free_inode(u32 group_block_index,t_ext2 *ext2,u32 check_threshold);
+u32 static find_free_block(char* io_buffer,u32 prealloc);
 
 static void fill_group_hash(t_ext2* ext2,t_llist* group_list,t_hashtable* group_hash,u32 start_block,u32 end_block,t_inode* i_node)
 {
@@ -89,7 +92,7 @@ void free_inode(t_inode* i_node,t_ext2 *ext2)
         
 	lba=ext2->partition_start_sector+i_node->i_block[12]*(BLOCK_SIZE/SECTOR_SIZE)-1;
 	sector_count=BLOCK_SIZE/SECTOR_SIZE;
-       	read(device_desc,sector_count,lba,io_buffer);
+       	READ(sector_count,lba,io_buffer);
 
 	group_hash=hashtable_init(50);
 	group_list=new_dllist();
@@ -220,7 +223,7 @@ u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
                 }
                 if (block==0)
                 {
-                        block=find_free_block(io_buffer,i_node,1);
+                        block=find_free_block(io_buffer,1);
                 }
                 if (block!=0)
                 {
@@ -232,7 +235,7 @@ u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
                         {
 				read_group_block(ext2,i,group_block);
 				read_block_bitmap(ext2,group_block->bg_block_bitmap,io_buffer);
-                                block=find_free_block(io_buffer,i_node,1);
+                                block=find_free_block(io_buffer,1);
                                 if (block!=0)
                                 {
 					group_block_index=i;
@@ -464,7 +467,7 @@ static int del_dir_entry(t_ext2* ext2,t_inode* inode_dir,u32 inode_number)
 	offset=0;
 	while (inode_dir->i_block[offset]<12 && !found_entry)
 	{
-		read(BLOCK_SIZE/SECTOR_SIZE,inode_dir->i_block[offset],iob_dir);
+		READ(BLOCK_SIZE/SECTOR_SIZE,inode_dir->i_block[offset],iob_dir);
 		for (block_offset=0;block_offset<BLOCK_SIZE;block_offset++)
 		{
 			if (iob_dir[block_offset]==inode_number)

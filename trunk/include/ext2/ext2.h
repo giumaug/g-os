@@ -63,7 +63,7 @@ typedef struct s_superblock
 	u16 s_def_resuid;
 	u16 s_def_resgid;
 	
-	u32 first_ino;
+	u32 s_first_ino;
 	
 	u16 s_inode_size;
 	u16 s_block_group_nr;

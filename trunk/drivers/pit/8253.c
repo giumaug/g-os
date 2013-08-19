@@ -128,26 +128,26 @@ void int_handler_pit()
 		//NOW PROCESS_CONTEXT IS NEW PROCESS TO SCHEDULE!!!!!
 		process_context=system.process_info.current_process->val;
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) process_context->page_dir)))
-		asm ("movl %0,%%esp;"::"r"(processor_reg.esp)); 
-		asm ("movl %0,%%eax;"::"r"(processor_reg.eax)); 
-		asm ("push %eax;");                             
-		asm ("movl %0,%%ebx;"::"r"(processor_reg.ebx)); 
-		asm ("push %ebx;");                             
-		asm ("movl %0,%%ecx;"::"r"(processor_reg.ecx)); 
-		asm ("push %ecx;");                             
-		asm ("movl %0,%%edx;"::"r"(processor_reg.edx)); 
-		asm ("push %edx;");                             
-		asm ("movl %0,%%esi;"::"r"(processor_reg.esi)); 
-		asm ("push %esi;");                             
-		asm ("movl %0,%%edi;"::"r"(processor_reg.edi)); 
-		asm ("push %edi;");                             
-		asm ("pop %edi;");                              
-		asm ("pop %esi;");                              
-		asm ("pop %edx;");                              
-		asm ("pop %ecx;");                              
-		asm ("pop %ebx;");                              
-		asm ("pop %eax;");
-		//---RESTORE_PROCESSOR_REG
+//		asm ("movl %0,%%esp;"::"r"(processor_reg.esp)); 
+//		asm ("movl %0,%%eax;"::"r"(processor_reg.eax)); 
+//		asm ("push %eax;");                             
+//		asm ("movl %0,%%ebx;"::"r"(processor_reg.ebx)); 
+//		asm ("push %ebx;");                             
+//		asm ("movl %0,%%ecx;"::"r"(processor_reg.ecx)); 
+//		asm ("push %ecx;");                             
+//		asm ("movl %0,%%edx;"::"r"(processor_reg.edx)); 
+//		asm ("push %edx;");                             
+//		asm ("movl %0,%%esi;"::"r"(processor_reg.esi)); 
+//		asm ("push %esi;");                             
+//		asm ("movl %0,%%edi;"::"r"(processor_reg.edi)); 
+//		asm ("push %edi;");                             
+//		asm ("pop %edi;");                              
+//		asm ("pop %esi;");                              
+//		asm ("pop %edx;");                              
+//		asm ("pop %ecx;");                              
+//		asm ("pop %ebx;");                              
+//		asm ("pop %eax;");
+		RESTORE_PROCESSOR_REG
 		SWITCH_DS_TO_USER_MODE
 		EXIT_SYSCALL_HANDLER
  	}

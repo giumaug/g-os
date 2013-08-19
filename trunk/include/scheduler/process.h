@@ -46,7 +46,7 @@ struct t_process_context {
 	unsigned int phy_space_size;
 	char* page_dir;
 	int sleep_time;
-	//when io queue manager iplemented create a sleep managert too and move
+	//when io queue manager implemented create a sleep manager too and move
 	//this filed inside it
 	int assigned_sleep_time;
 	unsigned int static_priority;

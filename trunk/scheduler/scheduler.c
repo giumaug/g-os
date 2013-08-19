@@ -103,7 +103,8 @@ void schedule()
 			next_process_context=next->val;
 			if (current_process_context->pid!=next_process_context->pid)
 			{
-				//do_context_switch(current_process_context,processor_reg,next_process_context);	
+				//do_context_switch(current_process_context,processor_reg,next_process_context);
+				*(system.process_info.tss.esp)=0x1FFFFF;	
 				system.process_info.current_process=next;
 				if (current_process_context->proc_status==RUNNING)
 				{
