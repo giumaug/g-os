@@ -28,7 +28,7 @@ void process_1()
 {
 	int i=0;	
 	int pid;
-	for (i=0;i<=5;i++)
+	for (i=0;i<20;i++)
 	{
 		pid=fork();
 		if (pid==0)
