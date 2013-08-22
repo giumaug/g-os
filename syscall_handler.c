@@ -13,8 +13,9 @@ void syscall_handler()
 	static int free_vm_proc;        
 	int syscall_num;
 	unsigned int mem_size;
-	static struct t_process_context *current_process_context;
-	static struct t_process_context *old_process_context;
+	static struct t_process_context* new_process_context;
+	static struct t_process_context* current_process_context;
+	static struct t_process_context* old_process_context;
 	static struct t_processor_reg processor_reg;
 	int* params;
 	char data;
@@ -29,7 +30,7 @@ void syscall_handler()
 	params=processor_reg.ecx;
 	if (syscall_num==1) 
 	{
-		params[0]=_fork();
+		params[0]=_fork(processor_reg);
 		goto exit_1;
 	}
 	else if (syscall_num==2)
@@ -158,14 +159,31 @@ exit_1:
         SWITCH_DS_TO_USER_MODE
 	RESTORE_PROCESSOR_REG
 	RET_FROM_INT_HANDLER
+////USED SEMICOLON WORKAROUND TO AVOID "a label can only be part of a statement and a declaration is not a statement" ERROR.
+//// A SEMICOLON DEFINE A EMPTY STATEMENT.
+//exit_2:;
+//	//NOT USED SAVE_IF_STATUS BECAUSE PAGE SWITCH
+//	CLI
+//	current_process_context=system.process_info.current_process->val;
+//	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir)))
+//	if (free_vm_proc) 
+//	{
+//		DO_STACK_FRAME(processor_reg.esp-8);
+//		free_vm_process(old_process_context->page_dir);
+//	}
+//	SWITCH_DS_TO_USER_MODE
+//	RESTORE_PROCESSOR_REG
+//	STI
+//	EXIT_SYSCALL_HANDLER
+
 //USED SEMICOLON WORKAROUND TO AVOID "a label can only be part of a statement and a declaration is not a statement" ERROR.
 // A SEMICOLON DEFINE A EMPTY STATEMENT.
 exit_2:;
 	//NOT USED SAVE_IF_STATUS BECAUSE PAGE SWITCH
 	CLI
-	current_process_context=system.process_info.current_process->val;
-	
-	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir)))
+	schedule(current_process_context,&processor_reg);
+	new_process_context=system.process_info.current_process->val;
+	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) new_process_context->page_dir)))
 	if (free_vm_proc) 
 	{
 		DO_STACK_FRAME(processor_reg.esp-8);
@@ -174,5 +192,5 @@ exit_2:;
 	SWITCH_DS_TO_USER_MODE
 	RESTORE_PROCESSOR_REG
 	STI
-	EXIT_SYSCALL_HANDLER 
+	EXIT_SYSCALL_HANDLER
 }

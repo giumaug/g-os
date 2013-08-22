@@ -14,29 +14,29 @@ extern unsigned int *master_page_dir;
 
 int t_sched_debug[10][10];
 
-//void do_context_switch(struct t_process_context *current_process_context,
-//		       struct t_processor_reg *processor_reg,
-//		       struct t_process_context *new_process_context)
-//{
-//	*(system.process_info.tss.esp)=0x1FFFFF;
-//	//save current process state 
-//	current_process_context->processor_reg.eax=processor_reg->eax;
-//	current_process_context->processor_reg.ebx=processor_reg->ebx;
-//	current_process_context->processor_reg.ecx=processor_reg->ecx;
-//	current_process_context->processor_reg.edx=processor_reg->edx;
-//	current_process_context->processor_reg.esi=processor_reg->esi;
-//	current_process_context->processor_reg.edi=processor_reg->edi;
-//	current_process_context->processor_reg.esp=processor_reg->esp;
-//
-//	//restore new process state
-//	processor_reg->eax=new_process_context->processor_reg.eax;
-//	processor_reg->ebx=new_process_context->processor_reg.ebx;
-//	processor_reg->ecx=new_process_context->processor_reg.ecx;
-//	processor_reg->edx=new_process_context->processor_reg.edx;
-//	processor_reg->esi=new_process_context->processor_reg.esi;
-//	processor_reg->edi=new_process_context->processor_reg.edi;
-//	processor_reg->esp=new_process_context->processor_reg.esp;
-//}
+void do_context_switch(struct t_process_context *current_process_context,
+		       struct t_processor_reg *processor_reg,
+		       struct t_process_context *new_process_context)
+{
+	*(system.process_info.tss.esp)=0x1FFFFF;
+	//save current process state 
+	current_process_context->processor_reg.eax=processor_reg->eax;
+	current_process_context->processor_reg.ebx=processor_reg->ebx;
+	current_process_context->processor_reg.ecx=processor_reg->ecx;
+	current_process_context->processor_reg.edx=processor_reg->edx;
+	current_process_context->processor_reg.esi=processor_reg->esi;
+	current_process_context->processor_reg.edi=processor_reg->edi;
+	current_process_context->processor_reg.esp=processor_reg->esp;
+
+	//restore new process state
+	processor_reg->eax=new_process_context->processor_reg.eax;
+	processor_reg->ebx=new_process_context->processor_reg.ebx;
+	processor_reg->ecx=new_process_context->processor_reg.ecx;
+	processor_reg->edx=new_process_context->processor_reg.edx;
+	processor_reg->esi=new_process_context->processor_reg.esi;
+	processor_reg->edi=new_process_context->processor_reg.edi;
+	processor_reg->esp=new_process_context->processor_reg.esp;
+}
 
 void init_scheduler()
 {
@@ -78,9 +78,9 @@ void sched_debug()
 
 //SCHEDULE SHOULD BE OUTSIDE SLEEP PAUSE ECC... TO AVOID PROPAGATION OF PROCESSOR_REG.THIS
 //REQUIRE SOME LOT OF REFACTORING ON CODE 
-void schedule()
+void schedule(struct t_process_context *current_process_context,struct t_processor_reg *processor_reg)
 {
-	struct t_process_context* current_process_context;
+//	struct t_process_context* current_process_context;
 	struct t_process_context* next_process_context;
 	t_llist_node* node;
 	t_llist_node* next;
@@ -103,8 +103,7 @@ void schedule()
 			next_process_context=next->val;
 			if (current_process_context->pid!=next_process_context->pid)
 			{
-				//do_context_switch(current_process_context,processor_reg,next_process_context);
-				*(system.process_info.tss.esp)=0x1FFFFF;	
+				do_context_switch(current_process_context,processor_reg,next_process_context);	
 				system.process_info.current_process=next;
 				if (current_process_context->proc_status==RUNNING)
 				{
@@ -112,6 +111,15 @@ void schedule()
 					ll_delete_node(node);
 					queue_index=current_process_context->curr_sched_queue_index;
 					ll_append(system.scheduler_desc.scheduler_queue[queue_index],current_process_context);
+				}
+				else if (current_process_context->proc_status==SLEEPING)
+				{
+					ll_delete_node(node);	
+				}
+				else if (current_process_context->proc_status==EXITING)
+				{
+					kfree(current_process_context);	
+					ll_delete_node(node);
 				}
 				stop=1;
 			}
@@ -211,8 +219,8 @@ void _sleep()
 	current_process=system.process_info.current_process->val;
 	t_llist_node* current_node=system.process_info.current_process;
 	current_process->proc_status=SLEEPING;
-	schedule();
-	ll_delete_node(current_node);	
+//	schedule();
+//	ll_delete_node(current_node);	
 	RESTORE_IF_STATUS 
 }
 
@@ -282,13 +290,13 @@ void _exit(int status)
 		next_process=next->val;
 	}
 	//IF PARENT PROCESS SLEEP AWAKE OTHERWISE (ZOMBIE PROCESS) SCHEDULE
-	schedule();	
-	kfree(current_node->val);	
-	ll_delete_node(current_node);
+//	schedule();	
+//	kfree(current_node->val);	
+//	ll_delete_node(current_node);
 	RESTORE_IF_STATUS
 }
 
-int _fork() 
+int _fork(struct t_processor_reg processor_reg) 
 {
 	unsigned int parent_add_space;
 	unsigned int child_add_space;
@@ -307,6 +315,7 @@ int _fork()
 	kmemcpy(child_process_context,parent_process_context,sizeof(struct t_process_context));
 	child_process_context->pid=system.process_info.next_pid++;
 	child_process_context->parent=parent_process_context;
+	child_process_context->processor_reg=processor_reg;
 	mem_size=parent_process_context->phy_space_size;
 	proc_mem=buddy_alloc_page(&system.buddy_desc,mem_size);
 	child_process_context->phy_add_space=FROM_VIRT_TO_PHY(proc_mem);
