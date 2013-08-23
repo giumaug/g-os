@@ -39,8 +39,9 @@ void int_handler_pit()
 	
 	SAVE_PROCESSOR_REG
 	EOI
-	disable_irq_line(0);
-	STI
+//	disable_irq_line(0);
+//	STI
+	CLI
 	GET_DS(ds)
 	if (ds==0x20) 
 	{
@@ -123,16 +124,8 @@ void int_handler_pit()
 			is_schedule=1;	
 		}
 	}
-	CLI
-	enable_irq_line(0);
-//	if (is_schedule==1) {
-//		//NOW PROCESS_CONTEXT IS NEW PROCESS TO SCHEDULE!!!!!
-//		process_context=system.process_info.current_process->val;
-//		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) process_context->page_dir)))
-//		RESTORE_PROCESSOR_REG
-//		SWITCH_DS_TO_USER_MODE
-//		EXIT_SYSCALL_HANDLER
-//	}
+//	CLI
+//	enable_irq_line(0);
 	if (is_schedule==1) {
 		process_context=system.process_info.current_process->val;
 		schedule(process_context,&processor_reg);
