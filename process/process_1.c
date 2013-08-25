@@ -24,6 +24,29 @@ void process_1()
 }
 ----------------------------------------------*/
 
+/*
+void process_1()
+{
+	int i;
+	int pid;
+
+	pid=fork();
+	if (pid==0)
+	{	
+		exec(0x700000,0x100000);
+	}
+	for (i=0;i<20;i++)
+	{
+		pid=fork();
+		if (pid==0)
+		{	
+			exec(0x800000,0x100000);
+		}
+	}		
+	exit(0);
+}
+*/
+
 void process_1()
 {
 	int i=0;	

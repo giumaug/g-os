@@ -4,6 +4,17 @@
 //static int list[MAXSIZE];
 void swap(int *x,int *y);
 void bublesort(int n,int* list);
+
+/*
+void  process_3() 
+{
+	while(1)
+	{
+		printf("inside process_3 \n");
+	}
+	exit(0);
+}
+*/
 	
 void process_3()
 {
