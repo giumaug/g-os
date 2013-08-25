@@ -6,6 +6,17 @@
 
 static void quicksort(int low, int high,int* array);
 
+/*
+void  process_2() 
+{
+	while(1)
+	{
+		printf("inside process_2 \n");
+	}
+	exit(0);
+}
+*/
+
 void  process_2() 
 {
 	int pid;
@@ -19,6 +30,7 @@ void  process_2()
 		exit(0);
 	}
 	exit(0);
+}
 /*
 	int array[MAXSIZE];
  	int i = 0;
@@ -44,7 +56,6 @@ void  process_2()
 	printf("end process_2 \n");
 	exit(0);
 */
-}
 
 static void quicksort(int low, int high,int* array) 
 {
