@@ -303,6 +303,7 @@ void int_handler_kbc()
 	struct t_processor_reg processor_reg;
 	
 	SAVE_PROCESSOR_REG
+	//system.race_tracker.buffer[system.race_tracker.index++]=6;
 	EOI
 	disable_irq_line(1);
 	STI
@@ -331,6 +332,7 @@ void int_handler_kbc()
 	}
  	CLI
 	enable_irq_line(1);
+	//system.race_tracker.buffer[system.race_tracker.index++]=7;
 	RESTORE_PROCESSOR_REG
 	RET_FROM_INT_HANDLER
 }

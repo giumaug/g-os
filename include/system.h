@@ -21,6 +21,13 @@ t_device_desc;
 
 struct s_ext2;
 
+typedef struct s_race_tracker
+{
+	unsigned char buffer[255];
+	unsigned char index;
+}
+t_race_tracker;
+
 typedef struct s_system
 {
 	struct t_process_info process_info;
@@ -31,6 +38,7 @@ typedef struct s_system
 	t_scheduler_desc scheduler_desc;
 	struct s_ext2* root_fs;
 	t_device_desc* device_desc;
+	t_race_tracker race_tracker;
 }
 t_system;
 
