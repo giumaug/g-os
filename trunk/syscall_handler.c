@@ -20,8 +20,10 @@ void syscall_handler()
 	int* params;
 	char data;
  	
+	CLI
 	SAVE_PROCESSOR_REG
 	SWITCH_DS_TO_KERNEL_MODE
+	system.race_tracker.buffer[system.race_tracker.index++]=0;
 	free_vm_proc=0;
 	current_process_context=system.process_info.current_process->val;
 	old_process_context=current_process_context;
@@ -156,6 +158,7 @@ void syscall_handler()
 		goto exit_2; 
 	}
 exit_1:
+	system.race_tracker.buffer[system.race_tracker.index++]=2;
         SWITCH_DS_TO_USER_MODE
 	RESTORE_PROCESSOR_REG
 	RET_FROM_INT_HANDLER
@@ -180,8 +183,9 @@ exit_1:
 // A SEMICOLON DEFINE A EMPTY STATEMENT.
 exit_2:;
 	//NOT USED SAVE_IF_STATUS BECAUSE PAGE SWITCH
-	CLI
+//	CLI
 	schedule(current_process_context,&processor_reg);
+	system.race_tracker.buffer[system.race_tracker.index++]=1;
 	new_process_context=system.process_info.current_process->val;
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) new_process_context->page_dir)))
 	if (free_vm_proc) 
@@ -189,8 +193,9 @@ exit_2:;
 		DO_STACK_FRAME(processor_reg.esp-8);
 		free_vm_process(old_process_context->page_dir);
 	}
+	system.race_tracker.buffer[system.race_tracker.index++]=2;
 	SWITCH_DS_TO_USER_MODE
 	RESTORE_PROCESSOR_REG
-	STI
+//	STI
 	EXIT_SYSCALL_HANDLER
 }

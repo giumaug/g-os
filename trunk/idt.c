@@ -203,6 +203,14 @@ void int_handler_generic_19()
 void init_idt()
 {
 	int i;
+	
+	for (i=0;i<255;i++)
+	{
+		idt[i].baseLow=((int)(&int_handler_generic)) & 0xFFFF;
+		idt[i].selector=0x8;
+		idt[i].flags=0x08e00;
+		idt[i].baseHi=((int)(&int_handler_generic))>>0x010;
+	}
 
 	idt[0].baseLow=((int)(&int_handler_generic_0)) & 0xFFFF;
 	idt[0].selector=0x8;
@@ -304,13 +312,13 @@ void init_idt()
 	idt[19].flags=0x08e00;
 	idt[19].baseHi=((int)(&int_handler_generic_19))>>0x010;
 	
-	for (i=0;i<19;i++)
-	{
-		idt[i].baseLow=((int)(&int_handler_generic)) & 0xFFFF;
-		idt[i].selector=0x8;
-		idt[i].flags=0x08e00;
-		idt[i].baseHi=((int)(&int_handler_generic))>>0x010;
-	}
+//	for (i=0;i<19;i++)
+//	{
+//		idt[i].baseLow=((int)(&int_handler_generic)) & 0xFFFF;
+//		idt[i].selector=0x8;
+//		idt[i].flags=0x08e00;
+//		idt[i].baseHi=((int)(&int_handler_generic))>>0x010;
+//	}
 	idt_ptr.idt_size=64*256;
         idt_ptr.idt_address=(int)idt;
 	asm ("lidt idt_ptr");

@@ -39,9 +39,10 @@ void int_handler_pit()
 	
 	SAVE_PROCESSOR_REG
 	EOI
-	disable_irq_line(0);
-	STI
-//	CLI
+//	disable_irq_line(0);
+	system.race_tracker.buffer[system.race_tracker.index++]=3;
+//	STI
+	CLI
 	GET_DS(ds)
 	if (ds==0x20) 
 	{
@@ -124,12 +125,14 @@ void int_handler_pit()
 			is_schedule=1;	
 		}
 	}
-	CLI
-	enable_irq_line(0);
+//	CLI
+//	enable_irq_line(0);
 	if (is_schedule==1) {
+		system.race_tracker.buffer[system.race_tracker.index++]=4;
 		process_context=system.process_info.current_process->val;
 		schedule(process_context,&processor_reg);
 		new_process_context=system.process_info.current_process->val;
+		system.race_tracker.buffer[system.race_tracker.index++]=5;
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) new_process_context->page_dir)))
 		RESTORE_PROCESSOR_REG
 		SWITCH_DS_TO_USER_MODE
@@ -138,6 +141,7 @@ void int_handler_pit()
 	else {
 		if (ds==0x20) 
 		{
+			system.race_tracker.buffer[system.race_tracker.index++]=5;
 			SWITCH_DS_TO_USER_MODE
 		}
 		RESTORE_PROCESSOR_REG
