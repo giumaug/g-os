@@ -9,6 +9,12 @@
 
 extern t_system system;
 
+void stop1()
+{
+	int xx;
+	xx++;
+}
+
 void init_pit()
 {	
 	static struct t_i_desc i_desc;
@@ -41,6 +47,10 @@ void int_handler_pit()
 	EOI
 //	disable_irq_line(0);
 	system.race_tracker.buffer[system.race_tracker.index++]=3;
+	if (*(int*)0x1ffffb!=0x23)
+	{
+		stop1();
+	}
 //	STI
 	CLI
 	GET_DS(ds)
@@ -129,11 +139,19 @@ void int_handler_pit()
 //	enable_irq_line(0);
 	if (is_schedule==1) {
 		system.race_tracker.buffer[system.race_tracker.index++]=4;
+		if (*(int*)0x1ffffb!=0x23)
+		{
+			stop1();
+		}
 		process_context=system.process_info.current_process->val;
 		schedule(process_context,&processor_reg);
 		new_process_context=system.process_info.current_process->val;
 		system.race_tracker.buffer[system.race_tracker.index++]=5;
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) new_process_context->page_dir)))
+		if (*(int*)0x1ffffb!=0x23)
+		{
+			stop1();
+		}
 		RESTORE_PROCESSOR_REG
 		SWITCH_DS_TO_USER_MODE
 		EXIT_SYSCALL_HANDLER
@@ -142,6 +160,10 @@ void int_handler_pit()
 		if (ds==0x20) 
 		{
 			system.race_tracker.buffer[system.race_tracker.index++]=5;
+			if (*(int*)0x1ffffb!=0x23)
+			{
+				stop1();
+			}
 			SWITCH_DS_TO_USER_MODE
 		}
 		RESTORE_PROCESSOR_REG
