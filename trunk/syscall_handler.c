@@ -8,8 +8,15 @@
 
 extern t_system system;
 
+void stop()
+{
+	int xx;
+	xx++;
+}
+
 void syscall_handler()
 {
+	int xx=0;
 	static int free_vm_proc;        
 	int syscall_num;
 	unsigned int mem_size;
@@ -23,6 +30,10 @@ void syscall_handler()
 	CLI
 	SAVE_PROCESSOR_REG
 	SWITCH_DS_TO_KERNEL_MODE
+	if (*(int*)0x1ffffb!=0x23)
+	{
+		stop();
+	}	
 	system.race_tracker.buffer[system.race_tracker.index++]=0;
 	free_vm_proc=0;
 	current_process_context=system.process_info.current_process->val;
@@ -159,6 +170,10 @@ void syscall_handler()
 	}
 exit_1:
 	system.race_tracker.buffer[system.race_tracker.index++]=2;
+	if (*(int*)0x1ffffb!=0x23)
+	{
+		stop();
+	}
         SWITCH_DS_TO_USER_MODE
 	RESTORE_PROCESSOR_REG
 	RET_FROM_INT_HANDLER
@@ -186,6 +201,10 @@ exit_2:;
 //	CLI
 	schedule(current_process_context,&processor_reg);
 	system.race_tracker.buffer[system.race_tracker.index++]=1;
+	if (*(int*)0x1ffffb!=0x23)
+	{
+		stop();
+	}
 	new_process_context=system.process_info.current_process->val;
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) new_process_context->page_dir)))
 	if (free_vm_proc) 
@@ -194,6 +213,10 @@ exit_2:;
 		free_vm_process(old_process_context->page_dir);
 	}
 	system.race_tracker.buffer[system.race_tracker.index++]=2;
+	if (*(int*)0x1ffffb!=0x23)
+	{
+		stop();
+	}
 	SWITCH_DS_TO_USER_MODE
 	RESTORE_PROCESSOR_REG
 //	STI
