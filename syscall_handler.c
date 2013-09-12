@@ -17,6 +17,7 @@ void stop()
 void syscall_handler()
 {
 	int xx=0;
+	static temp_sys_num;
 	static int free_vm_proc;        
 	int syscall_num;
 	unsigned int mem_size;
@@ -40,6 +41,8 @@ void syscall_handler()
 	old_process_context=current_process_context;
 	t_console_desc *console_desc=current_process_context->console_desc;
 	syscall_num=processor_reg.eax;
+	temp_sys_num=syscall_num;
+	system.race_tracker.buffer[system.race_tracker.index++]=syscall_num;
 	params=processor_reg.ecx;
 	if (syscall_num==1) 
 	{

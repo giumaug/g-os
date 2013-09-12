@@ -146,7 +146,7 @@ void int_handler_pit()
 		process_context=system.process_info.current_process->val;
 		schedule(process_context,&processor_reg);
 		new_process_context=system.process_info.current_process->val;
-		system.race_tracker.buffer[system.race_tracker.index++]=5;
+		//system.race_tracker.buffer[system.race_tracker.index++]=5;
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) new_process_context->page_dir)))
 		if (*(int*)0x1ffffb!=0x23)
 		{
@@ -157,7 +157,7 @@ void int_handler_pit()
 		EXIT_SYSCALL_HANDLER
  	}
 	else {
-		system.race_tracker.buffer[system.race_tracker.index++]=5;
+		//system.race_tracker.buffer[system.race_tracker.index++]=5;
 		if (*(int*)0x1ffffb!=0x23)
 		{
 			stop1();
@@ -169,5 +169,6 @@ void int_handler_pit()
 		RESTORE_PROCESSOR_REG
 		RET_FROM_INT_HANDLER
 	}
+	system.race_tracker.buffer[system.race_tracker.index++]=5;
 }
 
