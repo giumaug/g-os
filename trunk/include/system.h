@@ -23,8 +23,9 @@ struct s_ext2;
 
 typedef struct s_race_tracker
 {
-	unsigned char buffer[255];
+	unsigned char buffer[256];
 	unsigned char index;
+	char* stack;
 }
 t_race_tracker;
 
