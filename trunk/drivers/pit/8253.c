@@ -52,7 +52,7 @@ void int_handler_pit()
 		stop1();
 	}
 //	STI
-	CLI
+//	CLI
 	GET_DS(ds)
 	if (ds==0x20) 
 	{
@@ -157,13 +157,13 @@ void int_handler_pit()
 		EXIT_SYSCALL_HANDLER
  	}
 	else {
+		system.race_tracker.buffer[system.race_tracker.index++]=5;
+		if (*(int*)0x1ffffb!=0x23)
+		{
+			stop1();
+		}
 		if (ds==0x20) 
 		{
-			system.race_tracker.buffer[system.race_tracker.index++]=5;
-			if (*(int*)0x1ffffb!=0x23)
-			{
-				stop1();
-			}
 			SWITCH_DS_TO_USER_MODE
 		}
 		RESTORE_PROCESSOR_REG

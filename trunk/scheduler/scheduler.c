@@ -214,26 +214,24 @@ void adjust_sched_queue(struct t_process_context *current_process_context)
 void _sleep()
 {
 	struct t_process_context* current_process;
-	SAVE_IF_STATUS
-	CLI        
+//	SAVE_IF_STATUS
+//	CLI        
 	current_process=system.process_info.current_process->val;
 	t_llist_node* current_node=system.process_info.current_process;
 	current_process->proc_status=SLEEPING;
-//	schedule();
-//	ll_delete_node(current_node);	
-	RESTORE_IF_STATUS 
+//	RESTORE_IF_STATUS 
 }
 
 void _awake(struct t_process_context *new_process)
 {
 	t_llist_node* new_node;
 
-	SAVE_IF_STATUS
-	CLI
+//	SAVE_IF_STATUS
+//	CLI
 	new_process->proc_status=RUNNING;
 	adjust_sched_queue(new_process);
 	ll_prepend(system.scheduler_desc.scheduler_queue[new_process->curr_sched_queue_index],new_process);
-	RESTORE_IF_STATUS
+//	RESTORE_IF_STATUS
 }
 
 void _pause()
@@ -241,13 +239,13 @@ void _pause()
 	struct t_process_context* current_process;
 	t_llist* pause_queue;
 
-	SAVE_IF_STATUS	
-	CLI 
+//	SAVE_IF_STATUS	
+//	CLI 
 	pause_queue=system.process_info.pause_queue;
 	current_process=system.process_info.current_process->val;
 	ll_prepend(pause_queue,current_process);	
 	_sleep();
-	RESTORE_IF_STATUS
+//	RESTORE_IF_STATUS
 }
 
 void _exit(int status)
@@ -258,8 +256,8 @@ void _exit(int status)
 	struct t_process_context* current_process;
 	struct t_process_context* next_process;
 	
-	SAVE_IF_STATUS
-	CLI
+//	SAVE_IF_STATUS
+//	CLI
 	t_llist_node* current_node=system.process_info.current_process;
 	//process 0 never die
 	current_process=system.process_info.current_process->val;
@@ -289,11 +287,7 @@ void _exit(int status)
 		next=ll_next(next);
 		next_process=next->val;
 	}
-	//IF PARENT PROCESS SLEEP AWAKE OTHERWISE (ZOMBIE PROCESS) SCHEDULE
-//	schedule();	
-//	kfree(current_node->val);	
-//	ll_delete_node(current_node);
-	RESTORE_IF_STATUS
+//	RESTORE_IF_STATUS
 }
 
 int _fork(struct t_processor_reg processor_reg) 
@@ -310,7 +304,7 @@ int _fork(struct t_processor_reg processor_reg)
 	struct t_process_context* parent_process_context;
 
 	child_process_context=kmalloc(sizeof(struct t_process_context));
-	CLI
+//	CLI
 	parent_process_context=system.process_info.current_process->val;
 	kmemcpy(child_process_context,parent_process_context,sizeof(struct t_process_context));
 	child_process_context->pid=system.process_info.next_pid++;
@@ -322,7 +316,7 @@ int _fork(struct t_processor_reg processor_reg)
 	kmemcpy(proc_mem,FROM_PHY_TO_VIRT(parent_process_context->phy_add_space),mem_size);
 	ll_prepend(system.scheduler_desc.scheduler_queue[parent_process_context->curr_sched_queue_index],child_process_context);
 	child_process_context->page_dir=init_vm_process(system.master_page_dir,child_process_context->phy_add_space,child_process_context);
-      	STI
+//      STI
 	return child_process_context->pid;
 }
 
@@ -335,7 +329,7 @@ void _exec(unsigned int start_addr,unsigned int size)
 	static unsigned int old_proc_phy_addr;
 	static void* old_page_dir;
 	
-	CLI
+//	CLI
 	current_process_context->proc_status=RUNNING;
 	current_process_context->sleep_time=0;
 	current_process_context->assigned_sleep_time=0;
@@ -365,12 +359,12 @@ void _sleep_time(unsigned int time)
 	struct t_process_context* current_process;
 	t_llist* sleep_wait_queue;
 
-	SAVE_IF_STATUS	
-	CLI 
+//	SAVE_IF_STATUS	
+//	CLI 
 	sleep_wait_queue=system.sleep_wait_queue;
 	current_process=system.process_info.current_process->val;
 	current_process->assigned_sleep_time=time;
 	ll_prepend(sleep_wait_queue,current_process);	
 	_sleep();
-	RESTORE_IF_STATUS
+//	RESTORE_IF_STATUS
 }

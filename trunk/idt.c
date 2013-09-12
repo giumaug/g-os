@@ -13,7 +13,8 @@ void exception()
 }
 
 void int_handler_generic() 
-{  
+{ 
+	exception(); 
 	EOI
 	STI
 	asm("pop %ebp;iret");
@@ -204,6 +205,14 @@ void init_idt()
 {
 	int i;
 	
+	for (i=0;i<255;i++)
+	{
+		idt[i].baseLow=((int)(&int_handler_generic)) & 0xFFFF;
+		idt[i].selector=0x8;
+		idt[i].flags=0x08e00;
+		idt[i].baseHi=((int)(&int_handler_generic))>>0x010;
+	}
+
 	for (i=0;i<255;i++)
 	{
 		idt[i].baseLow=((int)(&int_handler_generic)) & 0xFFFF;
