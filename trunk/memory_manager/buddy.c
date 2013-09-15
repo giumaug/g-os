@@ -1,11 +1,18 @@
 #include "general.h"
+#include "system.h"
 #include "asm.h"
 #include "synchro_types/spin_lock.h"
 #include "memory_manager/general.h"
 #include "virtual_memory/vm.h"
 #include "memory_manager/buddy.h"
 
+extern t_system system;
 static unsigned int mem;
+
+void panic()
+{
+	return;
+}
 
 void buddy_init(t_buddy_desc* buddy)
 {	
@@ -16,6 +23,7 @@ void buddy_init(t_buddy_desc* buddy)
 	unsigned int align_offset;
 	unsigned int* mem_addr_bucket;
 	int i,j;
+	int s1,s2;
 	
 	mem_addr=0;
 	max_page_size=PAGE_SIZE*(1<<(NUM_LIST-1));
@@ -34,6 +42,8 @@ void buddy_init(t_buddy_desc* buddy)
 		buddy->page_list_ref[BLOCK_INDEX(mem_addr)]=0;
 		mem_addr+=max_page_size;
 	}
+	s1=BUDDY_START_ADDR + VIRT_MEM_START_ADDR;
+	s2=s1+mem_addr;
 	return;
 }
 	
@@ -49,6 +59,7 @@ void* buddy_alloc_page(t_buddy_desc* buddy,unsigned int mem_size)
 	unsigned int* mem_addr_bucket;
 	void* new_mem_addr;
 	int i;
+	int y;
 
 	SAVE_IF_STATUS
 	CLI	
@@ -69,6 +80,10 @@ void* buddy_alloc_page(t_buddy_desc* buddy,unsigned int mem_size)
 		{
 			next_list_index++;
 		}
+	}
+	if (next_list_index==NUM_LIST)
+	{
+		panic();
 	}
 	page_addr=*(unsigned int*)(node->val);
 	kfree(node->val);
@@ -91,6 +106,13 @@ void* buddy_alloc_page(t_buddy_desc* buddy,unsigned int mem_size)
 	new_mem_addr=page_addr+BUDDY_START_ADDR + VIRT_MEM_START_ADDR;
 	SPINLOCK_UNLOCK
 	RESTORE_IF_STATUS
+	if (mem_size==0x100000)
+	{
+		y=system.race_tracker.mem_index;
+		system.race_tracker.f[y]=FROM_VIRT_TO_PHY(new_mem_addr);
+		system.race_tracker.v[y]=new_mem_addr;
+		system.race_tracker.mem_index++;
+	}
 	return new_mem_addr;
 }
 
@@ -155,6 +177,8 @@ void buddy_free_page(t_buddy_desc* buddy,void* to_free_page_addr)
 	node_buddy=ll_prepend(buddy->page_list[free_page_order],mem_addr_bucket);
 	buddy->page_list_ref[BLOCK_INDEX(free_page_addr)]=node_buddy;
 	buddy->order[BLOCK_INDEX(free_page_addr)]=free_page_order;
+	//system.race_tracker.phy_mem_buffer[system.race_tracker.mem_index++]=FROM_VIRT_TO_PHY(to_free_page_addr);
+	//system.race_tracker.vrt_mem_buffer[system.race_tracker.mem_index++]=to_free_page_addr;
 	SPINLOCK_UNLOCK
 	RESTORE_IF_STATUS
 }

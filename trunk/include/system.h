@@ -26,6 +26,9 @@ typedef struct s_race_tracker
 	unsigned char buffer[256];
 	unsigned char index;
 	char* stack;
+	int f[1000];
+	int v[1000];
+	int mem_index;
 }
 t_race_tracker;
 
