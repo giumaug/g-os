@@ -6,6 +6,8 @@
 #include "drivers/ata/ata.h"
 #include "syscall_handler.h"
 
+#define K_STACK 0x1FFFFB
+
 extern t_system system;
 
 void stop()
@@ -31,7 +33,7 @@ void syscall_handler()
 	CLI
 	SAVE_PROCESSOR_REG
 	SWITCH_DS_TO_KERNEL_MODE
-	if (*(int*)0x1ffffb!=0x23)
+	if (*(int*)K_STACK!=0x23)
 	{
 		stop();
 	}	
@@ -42,7 +44,6 @@ void syscall_handler()
 	t_console_desc *console_desc=current_process_context->console_desc;
 	syscall_num=processor_reg.eax;
 	temp_sys_num=syscall_num;
-	system.race_tracker.buffer[system.race_tracker.index++]=syscall_num;
 	params=processor_reg.ecx;
 	if (syscall_num==1) 
 	{
@@ -173,7 +174,7 @@ void syscall_handler()
 	}
 exit_1:
 	system.race_tracker.buffer[system.race_tracker.index++]=2;
-	if (*(int*)0x1ffffb!=0x23)
+	if (*(int*)K_STACK!=0x23)
 	{
 		stop();
 	}
@@ -204,7 +205,7 @@ exit_2:;
 //	CLI
 	schedule(current_process_context,&processor_reg);
 	system.race_tracker.buffer[system.race_tracker.index++]=1;
-	if (*(int*)0x1ffffb!=0x23)
+	if (*(int*)K_STACK!=0x23)
 	{
 		stop();
 	}
@@ -215,8 +216,9 @@ exit_2:;
 		DO_STACK_FRAME(processor_reg.esp-8);
 		free_vm_process(old_process_context->page_dir);
 	}
+	system.race_tracker.buffer[system.race_tracker.index++]=temp_sys_num;
 	system.race_tracker.buffer[system.race_tracker.index++]=2;
-	if (*(int*)0x1ffffb!=0x23)
+	if (*(int*)K_STACK!=0x23)
 	{
 		stop();
 	}

@@ -43,6 +43,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
  	CLI
 	system.race_tracker.index=0;
 	system.race_tracker.stack=0x1ffffb;
+	system.race_tracker.mem_index=0;
 	system.process_info.current_process=NULL;
 	init_kmalloc();
    	init_idt();

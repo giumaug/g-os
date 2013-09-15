@@ -7,6 +7,8 @@
 #include "drivers/pic/8259A.h" 
 #include "drivers/pit/8253.h" 
 
+#define K_STACK 0x1FFFFB
+
 extern t_system system;
 
 void stop1()
@@ -47,7 +49,7 @@ void int_handler_pit()
 	EOI
 //	disable_irq_line(0);
 	system.race_tracker.buffer[system.race_tracker.index++]=3;
-	if (*(int*)0x1ffffb!=0x23)
+	if (*(int*)K_STACK!=0x23)
 	{
 		stop1();
 	}
@@ -139,7 +141,7 @@ void int_handler_pit()
 //	enable_irq_line(0);
 	if (is_schedule==1) {
 		system.race_tracker.buffer[system.race_tracker.index++]=4;
-		if (*(int*)0x1ffffb!=0x23)
+		if (*(int*)K_STACK!=0x23)
 		{
 			stop1();
 		}
@@ -148,7 +150,7 @@ void int_handler_pit()
 		new_process_context=system.process_info.current_process->val;
 		//system.race_tracker.buffer[system.race_tracker.index++]=5;
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) new_process_context->page_dir)))
-		if (*(int*)0x1ffffb!=0x23)
+		if (*(int*)K_STACK!=0x23)
 		{
 			stop1();
 		}
@@ -157,8 +159,8 @@ void int_handler_pit()
 		EXIT_SYSCALL_HANDLER
  	}
 	else {
-		//system.race_tracker.buffer[system.race_tracker.index++]=5;
-		if (*(int*)0x1ffffb!=0x23)
+		system.race_tracker.buffer[system.race_tracker.index++]=5;
+		if (*(int*)K_STACK!=0x23)
 		{
 			stop1();
 		}
