@@ -21,6 +21,7 @@ void check_stack_change()
 	node=system.process_info.current_process;	
 	current_process_context=node->val;
 	int* stack;
+	unsigned int tmp;
 		
 	while(index<10)
 	{
@@ -29,6 +30,7 @@ void check_stack_change()
 		while(next!=sentinel_node)
 		{
 			next_process_context=next->val;
+			tmp=FROM_PHY_TO_VIRT(next_process_context->phy_add_space);
 			stack=FROM_PHY_TO_VIRT(next_process_context->phy_add_space+0x1ffffb);
 			if ((*stack)!=0x23)
 			{
