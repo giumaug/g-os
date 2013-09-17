@@ -30,8 +30,8 @@ void check_stack_change()
 		while(next!=sentinel_node)
 		{
 			next_process_context=next->val;
-			tmp=FROM_PHY_TO_VIRT(next_process_context->phy_add_space);
-			stack=FROM_PHY_TO_VIRT(next_process_context->phy_add_space+0x1ffffb);
+			tmp=FROM_PHY_TO_VIRT(next_process_context->phy_add_space);//BUDDY_START_ADDR + VIRT_MEM_START_ADDR;
+			stack=FROM_PHY_TO_VIRT(next_process_context->phy_add_space)+0xffffb;
 			if ((*stack)!=0x23)
 			{
 				stop(stack,next_process_context,current_process_context);
