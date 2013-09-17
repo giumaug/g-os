@@ -7,6 +7,7 @@ all:	kmain.o                       \
         syscall_handler.o             \
         asm.o loader.o                \
         kernel_init.o                 \
+	debug.o                       \
         scheduler.o                   \
         memory_manager.o              \
         virtual_memory.o              \
@@ -49,6 +50,9 @@ loader.o: loader.s
 kernel_init.o: kernel_init.s
 	$(CC) $(CFLAGS) kernel_init.s
 
+debug.o:
+	$(CC) $(CPPFLAGS) $(CFLAGS) debug.c
+
 scheduler.o:
 	$(MAKE) -C scheduler
 
@@ -87,7 +91,7 @@ bochs:all
 	cp /home/peppe2/Desktop/g-os/kernel.bin /mnt/boot/kernel.bin
 	umount /mnt
 clean:	
-	rm -f kmain.o idt.o syscall_handler.o asm.o loader.o kernel_init.o
+	rm -f kmain.o idt.o syscall_handler.o asm.o loader.o kernel_init.o debug.o
 	$(MAKE) -C scheduler clean
 	$(MAKE) -C memory_manager clean
 	$(MAKE) -C virtual_memory clean
