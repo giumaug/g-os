@@ -1,5 +1,7 @@
-qemu -s -S -m 200M  -kernel ./kernel.bin
+qemu -monitor stdio -s -S -m 200M  -kernel ./kernel.bin
 gdb ./kernel.bin
 dentro gdb:
 target remote: 1234
 b kmain
+
+debug remote 1 (log su remote debug)
