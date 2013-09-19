@@ -4,7 +4,12 @@
 
 extern t_system system;
 
-void stop(int* stack,struct t_process_context* process_context,struct t_process_context* current_process_context)
+void panic()
+{
+	return;
+}
+
+void stop(int* stack,struct t_process_context* fault_process_context,struct t_process_context* current_process_context)
 {
 	int xx;
 	xx++;

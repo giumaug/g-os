@@ -8,11 +8,7 @@
 
 extern t_system system;
 static unsigned int mem;
-
-void panic()
-{
-	return;
-}
+extern panic();
 
 void buddy_init(t_buddy_desc* buddy)
 {	

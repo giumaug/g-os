@@ -7,7 +7,8 @@
 #include "virtual_memory/vm.h"
 #include "memory_manager/kmalloc.h"
 
- t_a_fixed_size_desc a_fixed_size_desc[POOL_NUM];
+extern panic();
+t_a_fixed_size_desc a_fixed_size_desc[POOL_NUM];
 
 void init_kmalloc() 
 {
@@ -48,6 +49,10 @@ void* kmalloc(unsigned int mem_size)
 	if (i!=POOL_NUM) 
 	{	
 		mem_add=a_fixed_size_alloc(&a_fixed_size_desc[i]);
+	}
+	else 
+	{
+		panic();
 	}
 	if (mem_add==0xc1936c86)
 	{
