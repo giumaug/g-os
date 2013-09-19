@@ -201,24 +201,28 @@ exit_2:;
 //	CLI
 	schedule(current_process_context,&processor_reg);
 	check_stack_change();
-//	system.race_tracker.buffer[system.race_tracker.index++]=1;
+	system.race_tracker.buffer[system.race_tracker.index++]=1;
 //	if (*(int*)K_STACK!=0x23)
 //	{
 //		stop();
 //	}
 	new_process_context=system.process_info.current_process->val;
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) new_process_context->page_dir)))
+	DO_STACK_FRAME(processor_reg.esp-8);
 	if (free_vm_proc) 
 	{
 		DO_STACK_FRAME(processor_reg.esp-8);
+		check_stack_change();
 		free_vm_process(old_process_context->page_dir);
+		check_stack_change();
 	}
 	system.race_tracker.buffer[system.race_tracker.index++]=temp_sys_num;
 	system.race_tracker.buffer[system.race_tracker.index++]=2;
-	if (*(int*)K_STACK!=0x23)
-	{
-		stop();
-	}
+	check_stack_change();
+//	if (*(int*)K_STACK!=0x23)
+//	{
+//		stop();
+//	}
 	SWITCH_DS_TO_USER_MODE
 	RESTORE_PROCESSOR_REG
 //	STI

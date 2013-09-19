@@ -146,6 +146,7 @@ void int_handler_pit()
 		new_process_context=system.process_info.current_process->val;
 		//system.race_tracker.buffer[system.race_tracker.index++]=5;
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) new_process_context->page_dir)))
+		DO_STACK_FRAME(processor_reg.esp-8);
 		check_stack_change();
 //		if (*(int*)K_STACK!=0x23)
 //		{
