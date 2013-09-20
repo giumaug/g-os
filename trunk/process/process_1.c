@@ -57,8 +57,6 @@ void process_1()
 	while (1)
 	{
 		age++;
-		printf("\nage=");
-		d_printf(age);
 		for (i=0;i<20;i++)
 		{
 			pid=fork();
@@ -67,6 +65,8 @@ void process_1()
 				exec(0x700000,0x100000);
 			}
 		}
+		printf("\nage=");
+		d_printf(age);
 		sleep(20000);
 		printf("\nage=");
 		d_printf(age);

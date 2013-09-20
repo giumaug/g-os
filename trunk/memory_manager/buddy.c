@@ -102,13 +102,6 @@ void* buddy_alloc_page(t_buddy_desc* buddy,unsigned int mem_size)
 	new_mem_addr=page_addr+BUDDY_START_ADDR + VIRT_MEM_START_ADDR;
 	SPINLOCK_UNLOCK
 //	RESTORE_IF_STATUS
-	if (mem_size==0x100000)
-	{
-		y=system.race_tracker.mem_index;
-		system.race_tracker.f[y]=FROM_VIRT_TO_PHY(new_mem_addr);
-		system.race_tracker.v[y]=new_mem_addr;
-		system.race_tracker.mem_index++;
-	}
 	return new_mem_addr;
 }
 

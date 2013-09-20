@@ -42,7 +42,7 @@ void int_handler_pit()
 	SAVE_PROCESSOR_REG
 	EOI
 //	disable_irq_line(0);
-	system.race_tracker.buffer[system.race_tracker.index++]=3;
+//	system.race_tracker.buffer[system.race_tracker.index++]=3;
 	check_stack_change();
 //	if (*(int*)K_STACK!=0x23)
 //	{
@@ -135,7 +135,7 @@ void int_handler_pit()
 //	CLI
 //	enable_irq_line(0);
 	if (is_schedule==1) {
-		system.race_tracker.buffer[system.race_tracker.index++]=4;
+//		system.race_tracker.buffer[system.race_tracker.index++]=4;
 		check_stack_change();
 //		if (*(int*)K_STACK!=0x23)
 //		{
@@ -157,7 +157,7 @@ void int_handler_pit()
 		EXIT_SYSCALL_HANDLER
  	}
 	else {
-		system.race_tracker.buffer[system.race_tracker.index++]=5;
+//		system.race_tracker.buffer[system.race_tracker.index++]=5;
 		check_stack_change();
 //		if (*(int*)K_STACK!=0x23)
 //		{
@@ -170,6 +170,6 @@ void int_handler_pit()
 		RESTORE_PROCESSOR_REG
 		RET_FROM_INT_HANDLER
 	}
-	system.race_tracker.buffer[system.race_tracker.index++]=5;
+//	system.race_tracker.buffer[system.race_tracker.index++]=5;
 }
 
