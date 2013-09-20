@@ -168,8 +168,8 @@ void syscall_handler()
 		goto exit_2; 
 	}
 exit_1:
-	system.race_tracker.buffer[system.race_tracker.index++]=2;
-	check_stack_change();
+//	system.race_tracker.buffer[system.race_tracker.index++]=2;
+//	check_stack_change();
 //	if (*(int*)K_STACK!=0x23)
 //	{
 //		stop();
@@ -201,7 +201,7 @@ exit_2:;
 //	CLI
 	schedule(current_process_context,&processor_reg);
 	check_stack_change();
-	system.race_tracker.buffer[system.race_tracker.index++]=1;
+//	system.race_tracker.buffer[system.race_tracker.index++]=1;
 //	if (*(int*)K_STACK!=0x23)
 //	{
 //		stop();
@@ -216,9 +216,9 @@ exit_2:;
 		free_vm_process(old_process_context->page_dir);
 		check_stack_change();
 	}
-	system.race_tracker.buffer[system.race_tracker.index++]=temp_sys_num;
-	system.race_tracker.buffer[system.race_tracker.index++]=2;
-	check_stack_change();
+//	system.race_tracker.buffer[system.race_tracker.index++]=temp_sys_num;
+//	system.race_tracker.buffer[system.race_tracker.index++]=2;
+//	check_stack_change();
 //	if (*(int*)K_STACK!=0x23)
 //	{
 //		stop();
