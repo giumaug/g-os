@@ -6,6 +6,7 @@ void* kmalloc(unsigned int mem_size);
 void kfree(void *address);
 void  *_malloc(unsigned int mem_size);
 void  _free(void *address);
+unsigned int kfree_mem();
 
 #endif
 

@@ -9,6 +9,7 @@
 
 extern panic();
 t_a_fixed_size_desc a_fixed_size_desc[POOL_NUM];
+unsigned int free_mem_list[POOL_NUM];
 
 void init_kmalloc() 
 {
@@ -38,7 +39,6 @@ void* kmalloc(unsigned int mem_size)
 {		
 	int i;	
 	void *mem_add;
-	int xx=0;
 	SAVE_IF_STATUS
 	CLI	
 	SPINLOCK_LOCK
@@ -54,10 +54,6 @@ void* kmalloc(unsigned int mem_size)
 	{
 		panic();
 	}
-	if (mem_add==0xc1936c86)
-	{
-		xx++;	
-	}
 	SPINLOCK_UNLOCK
 	RESTORE_IF_STATUS
 	return mem_add;
@@ -66,7 +62,6 @@ void* kmalloc(unsigned int mem_size)
 void kfree(void *address) 
 {	
 	unsigned int pool_index;
-	int xx=0;
 
 	SAVE_IF_STATUS
 	CLI	
@@ -76,11 +71,21 @@ void kfree(void *address)
 	{
 		pool_index++;
 	}
-	if (address==0xc1936c86)
-	{
-		xx++;	
-	}
 	a_fixed_size_free(&a_fixed_size_desc[pool_index],address);
 	SPINLOCK_UNLOCK
 	RESTORE_IF_STATUS
+}
+
+unsigned int kfree_mem()
+{
+	int i;
+	unsigned int tot;
+
+	tot=0;
+	for (i=0;i<POOL_NUM;i++)
+	{
+		free_mem_list[i]=a_fixed_size_desc[i].current_free_block;
+		tot+=a_fixed_size_desc[i].current_free_block;
+	}
+	return tot;
 }

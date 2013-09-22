@@ -1,8 +1,10 @@
 #include "system.h"
 #include "data_types/dllist.h"
 #include "virtual_memory/vm.h"
+#include "memory_manager/general.h"
 
 extern t_system system;
+extern unsigned int free_mem_list[POOL_NUM];
 
 void panic()
 {
@@ -13,6 +15,14 @@ void stop(int* stack,struct t_process_context* fault_process_context,struct t_pr
 {
 	int xx;
 	xx++;
+}
+
+void check_free_mem()
+{
+	unsigned int buddy_mem;
+	unsigned int pool_mem;
+	buddy_mem=buddy_free_mem(&system.buddy_desc);
+	pool_mem=kfree_mem();
 }
 
 void check_stack_change()

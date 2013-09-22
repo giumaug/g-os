@@ -25,6 +25,6 @@ extern t_llist_node *ll_next(t_llist_node *n);
 extern t_llist_node *ll_prev(t_llist_node *n);
 extern int ll_empty(t_llist *l);
 extern void *ll_val(t_llist_node *n);
-extern void ll_dump(t_llist *l); 
+extern unsigned int ll_dump(t_llist *l); 
 
 #endif

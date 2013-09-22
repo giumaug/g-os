@@ -12,12 +12,13 @@ struct s_buddy
 	t_llist* page_list[11];
 	char order[BUDDY_MEM_SIZE/PAGE_SIZE];
 	void* page_list_ref[BUDDY_MEM_SIZE/PAGE_SIZE];
+	unsigned int free_mem_list[11];
 }
 typedef t_buddy_desc;
 
 void buddy_init(t_buddy_desc* buddy);
 void* buddy_alloc_page(t_buddy_desc* buddy,unsigned int mem_size);
 void buddy_free_page(t_buddy_desc* buddy,void* page_addr);
-//void buddy_dump_mem(t_buddy*);
+unsigned int buddy_free_mem(t_buddy_desc* buddy);
 
 #endif

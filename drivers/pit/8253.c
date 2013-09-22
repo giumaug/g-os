@@ -43,11 +43,7 @@ void int_handler_pit()
 	EOI
 //	disable_irq_line(0);
 //	system.race_tracker.buffer[system.race_tracker.index++]=3;
-	check_stack_change();
-//	if (*(int*)K_STACK!=0x23)
-//	{
-//		stop1();
-//	}
+//	check_stack_change();
 //	STI
 //	CLI
 	GET_DS(ds)
@@ -136,33 +132,20 @@ void int_handler_pit()
 //	enable_irq_line(0);
 	if (is_schedule==1) {
 //		system.race_tracker.buffer[system.race_tracker.index++]=4;
-		check_stack_change();
-//		if (*(int*)K_STACK!=0x23)
-//		{
-//			stop1();
-//		}
+//		check_stack_change();
 		process_context=system.process_info.current_process->val;
 		schedule(process_context,&processor_reg);
 		new_process_context=system.process_info.current_process->val;
 		//system.race_tracker.buffer[system.race_tracker.index++]=5;
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) new_process_context->page_dir)))
 		DO_STACK_FRAME(processor_reg.esp-8);
-		check_stack_change();
-//		if (*(int*)K_STACK!=0x23)
-//		{
-//			stop1();
-//		}
 		RESTORE_PROCESSOR_REG
 		SWITCH_DS_TO_USER_MODE
 		EXIT_SYSCALL_HANDLER
  	}
 	else {
 //		system.race_tracker.buffer[system.race_tracker.index++]=5;
-		check_stack_change();
-//		if (*(int*)K_STACK!=0x23)
-//		{
-//			stop1();
-//		}
+//		check_stack_change();
 		if (ds==0x20) 
 		{
 			SWITCH_DS_TO_USER_MODE

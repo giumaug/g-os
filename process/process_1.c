@@ -67,9 +67,10 @@ void process_1()
 		}
 		printf("\nage=");
 		d_printf(age);
-		sleep(20000);
+		sleep(10000);
 		printf("\nage=");
 		d_printf(age);
+		check_free_mem();
 	}
 	exit(0);
 }
