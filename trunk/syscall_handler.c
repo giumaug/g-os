@@ -169,11 +169,6 @@ void syscall_handler()
 	}
 exit_1:
 //	system.race_tracker.buffer[system.race_tracker.index++]=2;
-//	check_stack_change();
-//	if (*(int*)K_STACK!=0x23)
-//	{
-//		stop();
-//	}
         SWITCH_DS_TO_USER_MODE
 	RESTORE_PROCESSOR_REG
 	RET_FROM_INT_HANDLER
@@ -198,14 +193,10 @@ exit_1:
 // A SEMICOLON DEFINE A EMPTY STATEMENT.
 exit_2:;
 	//NOT USED SAVE_IF_STATUS BECAUSE PAGE SWITCH
-//	CLI
+//	CLI-----------------414
 	schedule(current_process_context,&processor_reg);
-	check_stack_change();
+//	check_stack_change();
 //	system.race_tracker.buffer[system.race_tracker.index++]=1;
-//	if (*(int*)K_STACK!=0x23)
-//	{
-//		stop();
-//	}
 	new_process_context=system.process_info.current_process->val;
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) new_process_context->page_dir)))
 	DO_STACK_FRAME(processor_reg.esp-8);
@@ -219,10 +210,6 @@ exit_2:;
 //	system.race_tracker.buffer[system.race_tracker.index++]=temp_sys_num;
 //	system.race_tracker.buffer[system.race_tracker.index++]=2;
 //	check_stack_change();
-//	if (*(int*)K_STACK!=0x23)
-//	{
-//		stop();
-//	}
 	SWITCH_DS_TO_USER_MODE
 	RESTORE_PROCESSOR_REG
 //	STI

@@ -172,6 +172,21 @@ void buddy_free_page(t_buddy_desc* buddy,void* to_free_page_addr)
 //	RESTORE_IF_STATUS
 }
 
+unsigned int buddy_free_mem(t_buddy_desc* buddy_desc)
+{
+	int i;
+	unsigned int tot;
+	unsigned int tmp;
+
+	tot=0;
+	for (i=0;i<11;i++)
+	{
+		tmp=ll_size(buddy_desc->page_list[i]);
+		buddy_desc->free_mem_list[i]=tmp;
+		tot=tot+4096*(1<<i)*tmp;
+	}
+	return tot;
+}
 //void buddy_dump_mem(t_buddy* buddy)
 //{
 //	t_llist* list;

@@ -100,15 +100,18 @@ t_llist_node *dll_prev(t_llist_node *n)
   return n->prev;
 }
 
-void ll_dump(t_llist *l) 
+unsigned int ll_size(t_llist *l) 
 {
 	t_llist_node* next;
 	t_llist_node* sentinel;
+	int size=0;
 	
 	sentinel=ll_sentinel(l);
 	next=ll_first(l);
 	while(next!=sentinel)
 	{
 		next=ll_next(next);
+		size++;
 	}
+	return size;
 }
