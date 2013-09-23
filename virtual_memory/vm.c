@@ -42,8 +42,8 @@ void* init_vm_process(void* master_page_dir,unsigned int proc_phy_addr,struct t_
 
 void free_vm_process(void* page_dir)
 {
-	umap_vm_mem(page_dir,0,0x100000);
-	umap_vm_mem(page_dir,PROC_VIRT_MEM_START_ADDR,0x100000);
+	umap_vm_mem(page_dir,0,0x100000,1);
+	umap_vm_mem(page_dir,PROC_VIRT_MEM_START_ADDR,0x100000,1);
 	//check_stack_change();
 	//kfree(page_dir);
 	buddy_free_page(&system.buddy_desc,page_dir);
@@ -118,7 +118,7 @@ void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_ad
 	}
 }
 
-void umap_vm_mem(void* page_dir,unsigned int virt_mem_addr,unsigned int mem_size)
+void umap_vm_mem(void* page_dir,unsigned int virt_mem_addr,unsigned int mem_size,unsigned int flush)
 {
 	unsigned int *page_table;
 	unsigned int start,end;
@@ -164,7 +164,7 @@ void umap_vm_mem(void* page_dir,unsigned int virt_mem_addr,unsigned int mem_size
 			end=1024;
 		}
 
-		if (start==0 && end==1024) 
+		if ((start==0 && end==1024) || flush) 
 		{
 			//kfree(page_table);
 			buddy_free_page(&system.buddy_desc,page_table);
