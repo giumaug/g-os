@@ -44,10 +44,7 @@ void free_vm_process(void* page_dir)
 {
 	umap_vm_mem(page_dir,0,0x100000,1);
 	umap_vm_mem(page_dir,PROC_VIRT_MEM_START_ADDR,0x100000,1);
-	//check_stack_change();
-	//kfree(page_dir);
 	buddy_free_page(&system.buddy_desc,page_dir);
-	//check_stack_change();
 }
 
 void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_addr,int mem_size)
@@ -166,9 +163,7 @@ void umap_vm_mem(void* page_dir,unsigned int virt_mem_addr,unsigned int mem_size
 
 		if ((start==0 && end==1024) || flush) 
 		{
-			//kfree(page_table);
 			buddy_free_page(&system.buddy_desc,page_table);
-			//check_stack_change();
 			((unsigned int*)page_dir)[i]=0;
 		}
 	}
