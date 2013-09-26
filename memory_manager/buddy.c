@@ -57,8 +57,8 @@ void* buddy_alloc_page(t_buddy_desc* buddy,unsigned int mem_size)
 	int i;
 	int y;
 
-//	SAVE_IF_STATUS
-//	CLI	
+	SAVE_IF_STATUS
+	CLI	
 	SPINLOCK_LOCK	
 	for (list_index=0;list_index<NUM_LIST;list_index++) 
 	{	
@@ -101,7 +101,7 @@ void* buddy_alloc_page(t_buddy_desc* buddy,unsigned int mem_size)
 	buddy->page_list_ref[BLOCK_INDEX((int)page_addr)]=node;
 	new_mem_addr=page_addr+BUDDY_START_ADDR + VIRT_MEM_START_ADDR;
 	SPINLOCK_UNLOCK
-//	RESTORE_IF_STATUS
+	RESTORE_IF_STATUS
 	return new_mem_addr;
 }
 
@@ -120,8 +120,8 @@ void buddy_free_page(t_buddy_desc* buddy,void* to_free_page_addr)
 	t_llist_node* node_buddy;
 	int i;
 
-//	SAVE_IF_STATUS
-//	CLI	
+	SAVE_IF_STATUS
+	CLI	
 	SPINLOCK_LOCK
 	page_addr=to_free_page_addr;
 	page_addr-=(BUDDY_START_ADDR + VIRT_MEM_START_ADDR);
@@ -166,10 +166,8 @@ void buddy_free_page(t_buddy_desc* buddy,void* to_free_page_addr)
 	node_buddy=ll_prepend(buddy->page_list[free_page_order],mem_addr_bucket);
 	buddy->page_list_ref[BLOCK_INDEX(free_page_addr)]=node_buddy;
 	buddy->order[BLOCK_INDEX(free_page_addr)]=free_page_order;
-	//system.race_tracker.phy_mem_buffer[system.race_tracker.mem_index++]=FROM_VIRT_TO_PHY(to_free_page_addr);
-	//system.race_tracker.vrt_mem_buffer[system.race_tracker.mem_index++]=to_free_page_addr;
 	SPINLOCK_UNLOCK
-//	RESTORE_IF_STATUS
+	RESTORE_IF_STATUS
 }
 
 unsigned int buddy_free_mem(t_buddy_desc* buddy_desc)

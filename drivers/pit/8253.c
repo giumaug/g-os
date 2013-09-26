@@ -31,7 +31,7 @@ void int_handler_pit()
 	struct t_process_context* process_context;
 	struct t_process_context* sleeping_process;
 	struct t_process_context* new_process_context;
-	static struct t_processor_reg processor_reg;
+	struct t_processor_reg processor_reg;
 	t_llist_node* next;
 	t_llist_node* sentinel;
 	t_llist_node* old_node;
@@ -41,11 +41,6 @@ void int_handler_pit()
 	
 	SAVE_PROCESSOR_REG
 	EOI
-//	disable_irq_line(0);
-//	system.race_tracker.buffer[system.race_tracker.index++]=3;
-//	check_stack_change();
-//	STI
-//	CLI
 	GET_DS(ds)
 	if (ds==0x20) 
 	{
@@ -124,35 +119,28 @@ void int_handler_pit()
 		if (process_context->tick==0) 
 		{
 			process_context->tick=TICK;
-			//schedule();
 			is_schedule=1;	
 		}
 	}
-//	CLI
-//	enable_irq_line(0);
-	if (is_schedule==1) {
-//		system.race_tracker.buffer[system.race_tracker.index++]=4;
-//		check_stack_change();
-		process_context=system.process_info.current_process->val;
-		schedule(process_context,&processor_reg);
-		new_process_context=system.process_info.current_process->val;
-		//system.race_tracker.buffer[system.race_tracker.index++]=5;
-		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) new_process_context->page_dir)))
-		DO_STACK_FRAME(processor_reg.esp-8);
-		RESTORE_PROCESSOR_REG
-		SWITCH_DS_TO_USER_MODE
-		EXIT_SYSCALL_HANDLER
- 	}
-	else {
-//		system.race_tracker.buffer[system.race_tracker.index++]=5;
-//		check_stack_change();
-		if (ds==0x20) 
-		{
-			SWITCH_DS_TO_USER_MODE
-		}
-		RESTORE_PROCESSOR_REG
-		RET_FROM_INT_HANDLER
-	}
-//	system.race_tracker.buffer[system.race_tracker.index++]=5;
+	exit_int_handler(is_schedule,processor_reg,ds);
+
+//	if (is_schedule==1) {
+//		process_context=system.process_info.current_process->val;
+//		schedule(process_context,&processor_reg);
+//		new_process_context=system.process_info.current_process->val;
+//		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) new_process_context->page_dir)))
+//		DO_STACK_FRAME(processor_reg.esp-8);
+//		RESTORE_PROCESSOR_REG
+//		SWITCH_DS_TO_USER_MODE
+//		EXIT_SYSCALL_HANDLER
+// 	}
+//	else {
+//		if (ds==0x20) 
+//		{
+//			SWITCH_DS_TO_USER_MODE
+//		}
+//		RESTORE_PROCESSOR_REG
+//		RET_FROM_INT_HANDLER
+//	}
 }
 
