@@ -122,7 +122,7 @@ void int_handler_pit()
 			is_schedule=1;	
 		}
 	}
-	exit_int_handler(is_schedule,processor_reg,ds);
+	EXIT_INT_HANDLER(is_schedule,processor_reg,ds);
 
 //	if (is_schedule==1) {
 //		process_context=system.process_info.current_process->val;
