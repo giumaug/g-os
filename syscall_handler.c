@@ -1,6 +1,7 @@
 #include "general.h"
 #include "system.h"
 #include "asm.h"
+#include "idt.h"
 #include "scheduler/scheduler.h"
 #include "virtual_memory/vm.h"
 #include "drivers/ata/ata.h"
@@ -156,7 +157,7 @@ void syscall_handler()
 //		goto exit_2;
 		on_exit_action=1; 
 	}
-	exit_int_handler(on_exit_action,processor_reg,0);
+	EXIT_INT_HANDLER(on_exit_action,processor_reg,0)
 //exit_1:
 //        SWITCH_DS_TO_USER_MODE
 //	RESTORE_PROCESSOR_REG

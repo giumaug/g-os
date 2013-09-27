@@ -327,6 +327,7 @@ void set_idt_entry(int entry,struct t_i_desc* i_desc)
 	idt[entry]=*i_desc;
 }
 
+/*
 void exit_int_handler(unsigned int action,struct t_processor_reg processor_reg,short ds)
 {
 	static struct t_process_context* new_process_context;
@@ -361,3 +362,4 @@ void exit_int_handler(unsigned int action,struct t_processor_reg processor_reg,s
 		RET_FROM_INT_HANDLER
 	}
 }
+*/
