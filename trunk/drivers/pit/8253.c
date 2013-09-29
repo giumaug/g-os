@@ -30,7 +30,6 @@ void int_handler_pit()
 	short ds;
 	struct t_process_context* process_context;
 	struct t_process_context* sleeping_process;
-	struct t_process_context* new_process_context;
 	struct t_processor_reg processor_reg;
 	t_llist_node* next;
 	t_llist_node* sentinel;
@@ -122,7 +121,46 @@ void int_handler_pit()
 			is_schedule=1;	
 		}
 	}
-	EXIT_INT_HANDLER(is_schedule,processor_reg,ds);
+//	EXIT_INT_HANDLER(is_schedule,processor_reg,ds);
+
+	static struct t_process_context* _current_process_context;                                          
+	static struct t_process_context* _old_process_context;                                              
+	static struct t_process_context* _new_process_context;	                                            
+	static struct t_processor_reg _processor_reg;                                                       
+                                                                                                            
+	CLI                                                                                                 
+	_current_process_context=system.process_info.current_process->val;                                  
+	_old_process_context=_current_process_context;                                                      
+	_processor_reg=processor_reg;                                                                       
+	if (is_schedule>0)                                                                                       
+	{                                                                                                   
+		schedule(_current_process_context,&_processor_reg);                                         
+		_new_process_context=system.process_info.current_process->val;                              
+		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context->page_dir)))      
+		DO_STACK_FRAME(_processor_reg.esp-8);                                                       
+		if (is_schedule==2)                                                                              
+		{                                                                                           
+			DO_STACK_FRAME(_processor_reg.esp-8);                                               
+			free_vm_process(_old_process_context->page_dir);                                    
+		}                                                                                           
+		SWITCH_DS_TO_USER_MODE                                                                      
+		RESTORE_PROCESSOR_REG                                                                       
+		EXIT_SYSCALL_HANDLER                                                                        
+	}                                                                                                   
+	else                                                                                                
+	{                                                                                                   
+		if (ds==0x20)                                                                               
+		{                                                                                           
+			SWITCH_DS_TO_USER_MODE                                                              
+		}                                                                                           
+		RESTORE_PROCESSOR_REG                                                                       
+		RET_FROM_INT_HANDLER                                                                        
+	}
+
+
+
+
+
 
 //	if (is_schedule==1) {
 //		process_context=system.process_info.current_process->val;

@@ -34,8 +34,7 @@ void int_handler_ata()
 	system.device_desc->status=REQUEST_COMPLETED;	
 	EOI
 	_awake(system.device_desc->serving_process_context);
-	RESTORE_PROCESSOR_REG
-	RET_FROM_INT_HANDLER
+	EXIT_INT_HANDLER(0,processor_reg,0)
 }
 
 unsigned int _read_28_ata(t_device_desc* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer)
