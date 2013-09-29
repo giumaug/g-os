@@ -1,6 +1,7 @@
 #include "general.h"
 #include "system.h"
-#include "asm.h"  
+#include "asm.h"
+#include "idt.h"  
 #include "memory_manager/kmalloc.h" 
 #include "idt.h" 
 #include "drivers/kbc/8042.h" 
@@ -332,9 +333,7 @@ void int_handler_kbc()
 	}
  	CLI
 	enable_irq_line(1);
-	//system.race_tracker.buffer[system.race_tracker.index++]=7;
-	RESTORE_PROCESSOR_REG
-	RET_FROM_INT_HANDLER
+	EXIT_INT_HANDLER(0,processor_reg,0)
 }
 
 char read_buf()

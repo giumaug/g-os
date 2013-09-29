@@ -16,9 +16,7 @@ void syscall_handler()
 	static int free_vm_proc;        
 	int syscall_num;
 	unsigned int mem_size;
-	struct t_process_context* new_process_context;
 	struct t_process_context* current_process_context;
-	struct t_process_context* old_process_context;
 	struct t_processor_reg processor_reg;
 	int* params;
 	char data;
