@@ -1,6 +1,7 @@
 #include "asm.h" 
 #include "idt.h"
 #include "general.h"
+#include "virtual_memory/vm.h"
 #include "drivers/ata/ata.h"
 
 extern t_system system;

@@ -23,6 +23,10 @@ void check_free_mem()
 	unsigned int pool_mem;
 	buddy_mem=buddy_free_mem(&system.buddy_desc);
 	pool_mem=kfree_mem();
+	if (buddy_mem!=160194560)
+	{
+		panic();
+	}
 }
 
 void check_stack_change()

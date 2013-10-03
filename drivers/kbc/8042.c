@@ -1,7 +1,8 @@
 #include "general.h"
 #include "system.h"
 #include "asm.h"
-#include "idt.h"  
+#include "idt.h"
+#include "virtual_memory/vm.h"  
 #include "memory_manager/kmalloc.h" 
 #include "idt.h" 
 #include "drivers/kbc/8042.h" 
@@ -304,12 +305,10 @@ void int_handler_kbc()
 	struct t_processor_reg processor_reg;
 	
 	SAVE_PROCESSOR_REG
-	//system.race_tracker.buffer[system.race_tracker.index++]=6;
 	EOI
-	disable_irq_line(1);
-	STI
+//	disable_irq_line(1);
+//	STI
 	scan_code=in(0x60);
-	//printk("inside int_handler_kbc \n");
 	switch(scan_code) 
 	{
         	case 0x2a: 
@@ -331,8 +330,8 @@ void int_handler_kbc()
 		}
            	break;
 	}
- 	CLI
-	enable_irq_line(1);
+// 	CLI
+//	enable_irq_line(1);
 	EXIT_INT_HANDLER(0,processor_reg,0)
 }
 

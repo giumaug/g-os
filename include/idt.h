@@ -22,25 +22,27 @@ void exit_int_handler(unsigned int action,struct t_processor_reg processor_reg,s
 
 #define EXIT_INT_HANDLER(action,processor_reg,ds)                                                           \
                                                                                                             \
-	static struct t_process_context* _current_process_context;                                          \
-	static struct t_process_context* _old_process_context;                                              \
-	static struct t_process_context* _new_process_context;	                                            \
+	static struct t_process_context _current_process_context;                                          \
+	static struct t_process_context _old_process_context;                                              \
+	static struct t_process_context _new_process_context;	                                            \
 	static struct t_processor_reg _processor_reg;                                                       \
+	static unsigned int _action;                                                                        \
                                                                                                             \
 	CLI                                                                                                 \
-	_current_process_context=system.process_info.current_process->val;                                  \
+	_action=action;                                                                                     \
+	_current_process_context=*(struct t_process_context*)system.process_info.current_process->val;                                  \
 	_old_process_context=_current_process_context;                                                      \
 	_processor_reg=processor_reg;                                                                       \
-	if (action>0)                                                                                       \
+	if (_action>0)                                                                                      \
 	{                                                                                                   \
-		schedule(_current_process_context,&_processor_reg);                                         \
-		_new_process_context=system.process_info.current_process->val;                              \
-		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context->page_dir)))      \
+		schedule(&_current_process_context,&_processor_reg);                                         \
+		_new_process_context=*(struct t_process_context*)system.process_info.current_process->val;                              \
+		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))          \
 		DO_STACK_FRAME(_processor_reg.esp-8);                                                       \
-		if (action==2)                                                                              \
+		if (_action==2)                                                                              \
 		{                                                                                           \
-			DO_STACK_FRAME(_processor_reg.esp-8);                                               \
-			free_vm_process(_old_process_context->page_dir);                                    \
+			DO_STACK_FRAME(&_processor_reg.esp-8);                                               \
+			free_vm_process(_old_process_context.page_dir);                                    \
 		}                                                                                           \
 		SWITCH_DS_TO_USER_MODE                                                                      \
 		RESTORE_PROCESSOR_REG                                                                       \
