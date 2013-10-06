@@ -3,12 +3,12 @@
 
 int dumpq[1000];
 
-t_queue *new_queue()
+t_queue* new_queue()
 {
 	return new_dllist();
 }
 
-void enqueue(t_queue *queue,void *data)
+void enqueue(t_queue* queue,void* data)
 {
 	ll_prepend(queue,data);
 }

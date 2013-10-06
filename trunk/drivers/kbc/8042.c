@@ -11,6 +11,7 @@
 extern t_system system;
 static int dump[1000];
 static int xx=0;
+int lll=1;
 
 char lowercase_charset[0x80] = {
 			[0x00]='\0',			
@@ -305,7 +306,9 @@ void int_handler_kbc()
 	struct t_processor_reg processor_reg;
 	
 	SAVE_PROCESSOR_REG
+	CLI
 	EOI
+	xx++;
 //	disable_irq_line(1);
 //	STI
 	scan_code=in(0x60);
@@ -318,12 +321,15 @@ void int_handler_kbc()
 			shift_state = 0;
 			break;
         	default:
-		// need exlude 56 and 29 because i use ctrl+alt in debug mode 
+		// need exclude 56 and 29 because i use ctrl+alt in debug mode 
 		if (!(scan_code & 0x80) && scan_code!=29 && scan_code!=56) 
 		{
 			//printk("key pressed \n");
 			char_code=&(shift_state ? uppercase_charset:lowercase_charset)[scan_code];
-			enqueue(in_buf,char_code);
+			if (lll==1)
+			{
+				enqueue(in_buf,char_code);
+			}
 			system.active_console_desc->is_empty=0;
 			xx++;
 			dump[xx]=*char_code;
@@ -341,7 +347,7 @@ char read_buf()
 	char_code=dequeue(in_buf);
 	if (char_code!=NULL) 
 	{	
-		xx--;
+		//xx--;
 		return *char_code;	
 	}
 	else system.active_console_desc->is_empty=1;
