@@ -326,9 +326,11 @@ void int_handler_kbc()
 		{
 			//printk("key pressed \n");
 			char_code=&(shift_state ? uppercase_charset:lowercase_charset)[scan_code];
+			enqueue(in_buf,char_code);
 			if (lll==1)
 			{
-				enqueue(in_buf,char_code);
+				//enqueue(in_buf,char_code);
+				dump_queue(in_buf);
 			}
 			system.active_console_desc->is_empty=0;
 			xx++;

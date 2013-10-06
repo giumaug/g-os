@@ -2,6 +2,7 @@
 #include "data_types/queue.h"
 
 int dumpq[1000];
+int sss=0;
 
 t_queue* new_queue()
 {
@@ -32,11 +33,16 @@ void *dequeue(t_queue *queue)
 
 void dump_queue(t_queue *queue)
 {
-//	int xx=-1;
-//	if (!ll_empty(queue))
-//        {
-//		t_llist_node *node=ll_last(queue);
-//		xx++;
-//		dumpq[xx]=node->val;	
-//	}
+	t_llist_node* node;
+	t_llist_node* next;
+	t_llist_node* sentinel_node;
+	sss=-1;
+	sentinel_node=ll_sentinel(queue);
+	next=ll_first(queue);
+	while(next!=sentinel_node)
+        {
+		sss++;
+		dumpq[sss]=next->val;
+		next=ll_next(next);	
+	}
 }
