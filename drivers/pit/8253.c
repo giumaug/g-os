@@ -45,6 +45,7 @@ void int_handler_pit()
 	{
 		SWITCH_DS_TO_KERNEL_MODE
 	}
+
 	sleeping_process=system.active_console_desc->sleeping_process;
 	
 	sentinel=ll_sentinel(system.sleep_wait_queue);
