@@ -25,6 +25,7 @@ void syscall_handler()
 	CLI
 	SAVE_PROCESSOR_REG
 	SWITCH_DS_TO_KERNEL_MODE
+	system.race_tracker.buffer[system.race_tracker.index++]=2;
 	on_exit_action=0;
 	current_process_context=system.process_info.current_process->val;
 	t_console_desc *console_desc=current_process_context->console_desc;
@@ -157,6 +158,8 @@ void syscall_handler()
 		on_exit_action=1; 
 	}
 //	EXIT_INT_HANDLER(on_exit_action,processor_reg,0)
+
+	system.race_tracker.buffer[system.race_tracker.index++]=3;
 
 	static struct t_process_context _current_process_context;                                          
 	static struct t_process_context _old_process_context;                                              
