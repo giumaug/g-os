@@ -311,6 +311,7 @@ void int_handler_kbc()
 	xx++;
 //	disable_irq_line(1);
 //	STI
+	system.race_tracker.buffer[system.race_tracker.index++]=4;
 	scan_code=in(0x60);
 	switch(scan_code) 
 	{
@@ -327,11 +328,11 @@ void int_handler_kbc()
 			//printk("key pressed \n");
 			char_code=&(shift_state ? uppercase_charset:lowercase_charset)[scan_code];
 			enqueue(in_buf,char_code);
-			if (lll==1)
-			{
+			//if (lll==1)
+			//{
 				//enqueue(in_buf,char_code);
-				dump_queue(in_buf);
-			}
+				//dump_queue(in_buf);
+			//}
 			system.active_console_desc->is_empty=0;
 			xx++;
 			dump[xx]=*char_code;
@@ -340,6 +341,7 @@ void int_handler_kbc()
 	}
 // 	CLI
 //	enable_irq_line(1);
+	system.race_tracker.buffer[system.race_tracker.index++]=5;
 	EXIT_INT_HANDLER(0,processor_reg,0)
 }
 

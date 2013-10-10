@@ -39,8 +39,11 @@ void int_handler_pit()
 	unsigned int priority;
 	
 	SAVE_PROCESSOR_REG
+	CLI
 	EOI
 	GET_DS(ds)
+	system.race_tracker.index++;
+	system.race_tracker.buffer[system.race_tracker.index++]=0;
 	if (ds==0x20) 
 	{
 		SWITCH_DS_TO_KERNEL_MODE
@@ -122,6 +125,7 @@ void int_handler_pit()
 			is_schedule=1;	
 		}
 	}
+	system.race_tracker.buffer[system.race_tracker.index++]=1;
 	EXIT_INT_HANDLER(is_schedule,processor_reg,ds);
 
 //	if (is_schedule==1) {
