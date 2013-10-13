@@ -6,6 +6,7 @@
 #include "virtual_memory/vm.h"
 #include "drivers/ata/ata.h"
 #include "syscall_handler.h"
+#include "debug.h"
 
 #define K_STACK 0x1FFFFB
 
@@ -22,10 +23,10 @@ void syscall_handler()
 	char data;
 	unsigned int on_exit_action;
  	
-	CLI
+	//CLI
 	SAVE_PROCESSOR_REG
 	SWITCH_DS_TO_KERNEL_MODE
-	system.race_tracker.buffer[system.race_tracker.index++]=2;
+	check_race(2);
 	on_exit_action=0;
 	current_process_context=system.process_info.current_process->val;
 	t_console_desc *console_desc=current_process_context->console_desc;
@@ -159,7 +160,7 @@ void syscall_handler()
 	}
 //	EXIT_INT_HANDLER(on_exit_action,processor_reg,0)
 
-	system.race_tracker.buffer[system.race_tracker.index++]=3;
+	check_race(3);
 
 	static struct t_process_context _current_process_context;                                          
 	static struct t_process_context _old_process_context;                                              
@@ -167,7 +168,7 @@ void syscall_handler()
 	static struct t_processor_reg _processor_reg;                                                       
 	static unsigned int _action;                                                                        
                                                                                                             
-//	CLI                                                                                                 
+	CLI                                                                                                 
 	_action=on_exit_action;                                                                                     
 	_current_process_context=*(struct t_process_context*)system.process_info.current_process->val;                                  
 	_old_process_context=_current_process_context;                                                      
@@ -176,8 +177,7 @@ void syscall_handler()
 	{                                                                                                   
 		schedule(&_current_process_context,&_processor_reg);                                         
 		_new_process_context=*(struct t_process_context*)(system.process_info.current_process->val);                              
-		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))          
-		DO_STACK_FRAME(_processor_reg.esp-8);                                                       
+		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))                                                          
 		if (_action==2)                                                                              
 		{                                                                                           
 			DO_STACK_FRAME(&_processor_reg.esp-8);                                               
