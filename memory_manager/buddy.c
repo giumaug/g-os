@@ -7,7 +7,7 @@
 #include "memory_manager/buddy.h"
 
 extern t_system system;
-static unsigned int mem;
+static unsigned int mem;dd
 extern panic();
 
 void buddy_init(t_buddy_desc* buddy)
