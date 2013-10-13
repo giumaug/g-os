@@ -7,9 +7,10 @@
 #include "idt.h" 
 #include "drivers/kbc/8042.h" 
 #include "klib/printk.h"
+#include "debug.h"
 
 extern t_system system;
-static int dump[1000];
+static int dump[3000];
 static int xx=0;
 int lll=1;
 
@@ -308,10 +309,9 @@ void int_handler_kbc()
 	SAVE_PROCESSOR_REG
 	CLI
 	EOI
-	xx++;
 //	disable_irq_line(1);
 //	STI
-	system.race_tracker.buffer[system.race_tracker.index++]=4;
+	check_race(4);
 	scan_code=in(0x60);
 	switch(scan_code) 
 	{
@@ -341,7 +341,7 @@ void int_handler_kbc()
 	}
 // 	CLI
 //	enable_irq_line(1);
-	system.race_tracker.buffer[system.race_tracker.index++]=5;
+	check_race(5);
 	EXIT_INT_HANDLER(0,processor_reg,0)
 }
 
@@ -351,7 +351,7 @@ char read_buf()
 	char_code=dequeue(in_buf);
 	if (char_code!=NULL) 
 	{	
-		//xx--;
+		xx--;
 		return *char_code;	
 	}
 	else system.active_console_desc->is_empty=1;

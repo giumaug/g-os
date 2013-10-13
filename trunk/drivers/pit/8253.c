@@ -6,6 +6,7 @@
 #include "virtual_memory/vm.h"
 #include "drivers/pic/8259A.h" 
 #include "drivers/pit/8253.h" 
+#include "debug.h"
 
 #define K_STACK 0x1FFFFB
 
@@ -42,8 +43,7 @@ void int_handler_pit()
 	CLI
 	EOI
 	GET_DS(ds)
-	system.race_tracker.index++;
-	system.race_tracker.buffer[system.race_tracker.index++]=0;
+	check_race(0);
 	if (ds==0x20) 
 	{
 		SWITCH_DS_TO_KERNEL_MODE
@@ -125,7 +125,7 @@ void int_handler_pit()
 			is_schedule=1;	
 		}
 	}
-	system.race_tracker.buffer[system.race_tracker.index++]=1;
+	check_race(1);
 	EXIT_INT_HANDLER(is_schedule,processor_reg,ds);
 
 //	if (is_schedule==1) {
