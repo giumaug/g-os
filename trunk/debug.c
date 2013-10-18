@@ -79,7 +79,31 @@ void check_race(int i)
 //race:panic();
 return;
 }
-	
+
+check_process_context()
+{
+	t_llist_node* next;
+	t_llist_node* sentinel_node;
+	struct t_process_context* process_context;
+	int index=0;
+
+	while(index<10)
+	{
+		sentinel_node=ll_sentinel(system.scheduler_desc.scheduler_queue[index]);
+		next=ll_first(system.scheduler_desc.scheduler_queue[index]);
+		while(next!=sentinel_node)
+		{
+			process_context=next->val;
+				if (process_context->curr_sched_queue_index>9 || process_context->curr_sched_queue_index<0)
+				{
+					panic();
+					return;
+				}
+				next=next=ll_next(next);
+		}
+		index++;
+	}
+}
 
 
 

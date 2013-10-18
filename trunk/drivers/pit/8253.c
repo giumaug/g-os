@@ -108,6 +108,8 @@ void int_handler_pit()
 		}
 		process_context=system.process_info.current_process->val;
 		process_context->sleep_time-=QUANTUM_DURATION;
+
+		//check_process_context();
 		
 		if (process_context->sleep_time>1000) 	
 		{

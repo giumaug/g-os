@@ -23,7 +23,7 @@ void syscall_handler()
 	char data;
 	unsigned int on_exit_action;
  	
-	//CLI
+//	CLI
 	SAVE_PROCESSOR_REG
 	SWITCH_DS_TO_KERNEL_MODE
 	check_race(2);
@@ -168,27 +168,33 @@ void syscall_handler()
 	static struct t_processor_reg _processor_reg;                                                       
 	static unsigned int _action;                                                                        
                                                                                                             
-	CLI                                                                                                 
+	CLI                                                                          
 	_action=on_exit_action;                                                                                     
 	_current_process_context=*(struct t_process_context*)system.process_info.current_process->val;                                  
 	_old_process_context=_current_process_context;                                                      
-	_processor_reg=processor_reg;                                                                       
+	_processor_reg=processor_reg;
+	if (_action>2) 
+	{
+		panic();
+	}                                                                    
 	if (_action>0)                                                                                      
 	{                                                                                                   
 		schedule(&_current_process_context,&_processor_reg);                                         
 		_new_process_context=*(struct t_process_context*)(system.process_info.current_process->val);                              
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))                                                          
+		DO_STACK_FRAME(_processor_reg.esp-8); 	
 		if (_action==2)                                                                              
 		{                                                                                           
-			DO_STACK_FRAME(&_processor_reg.esp-8);                                               
+			DO_STACK_FRAME(_processor_reg.esp-8);                                               
 			free_vm_process(_old_process_context.page_dir);                                    
-		}                                                                                           
+		}                                                                               
 		SWITCH_DS_TO_USER_MODE                                                                      
 		RESTORE_PROCESSOR_REG                                                                       
 		EXIT_SYSCALL_HANDLER                                                                        
 	}                                                                                                   
 	else                                                                                                
-	{                                                                                                  
+	{   
+		DO_STACK_FRAME(_processor_reg.esp-8);                                                                                                
 		if (0==0x20)                                                                               
 		{                                                                                           
 			SWITCH_DS_TO_USER_MODE                                                              

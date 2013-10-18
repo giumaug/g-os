@@ -41,6 +41,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
       		/* Something went not according to specs. Print an error */
    	}
  	CLI
+	system.scheduler_desc.scheduler_queue[0]=0;
 	system.race_tracker.index=0;
 	system.race_tracker.buffer[0]=1;
 //	system.race_tracker.stack=0x1ffffb;

@@ -8,7 +8,6 @@
 #include "process/process_1.h"
 
 extern t_system system;
-
 extern struct t_llist* kbc_wait_queue;
 extern unsigned int *master_page_dir;
 
@@ -93,7 +92,7 @@ void schedule(struct t_process_context *current_process_context,struct t_process
 	index=0;
 	node=system.process_info.current_process;	
 	current_process_context=node->val;
-		
+	
 	while(!stop && index<10)
 	{
 		sentinel_node=ll_sentinel(system.scheduler_desc.scheduler_queue[index]);
@@ -300,6 +299,7 @@ int _fork(struct t_processor_reg processor_reg)
 	unsigned int esp;
 	unsigned int eip;
 	char *proc_mem;
+
  	struct t_process_context* child_process_context;
 	struct t_process_context* parent_process_context;
 
@@ -332,11 +332,12 @@ void _exec(unsigned int start_addr,unsigned int size)
 	
 //	SAVE_IF_STATUS
 	CLI
+	current_process_context=system.process_info.current_process->val;
 	current_process_context->proc_status=RUNNING;
 	current_process_context->sleep_time=0;
 	current_process_context->assigned_sleep_time=0;
 	current_process_context->static_priority=0;
-	current_process_context=system.process_info.current_process->val;
+	//current_process_context=system.process_info.current_process->val;
 	current_process_context->phy_space_size=size;
 	process_space=buddy_alloc_page(&system.buddy_desc,size);
 	process_storage=FROM_PHY_TO_VIRT(start_addr);

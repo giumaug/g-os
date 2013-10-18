@@ -2,7 +2,7 @@
 #include "lib/stdio.h" 
 #include "process/process_1.h"
 
-extern int lll;
+int age=0;
 
 static int elements[MAXSIZE],maxsize;
 void selection(int elements[], int array_size);
@@ -55,7 +55,7 @@ void process_1()
 	int pid;
 	unsigned int age;
 
-	age=0;
+	//age=0;
 	while (1)
 	{
 		age++;
@@ -70,7 +70,6 @@ void process_1()
 		printf("\nage=");
 		d_printf(age);
 		sleep(10000);
-		lll=0;
 		printf("\nage=");
 		d_printf(age);
 		check_free_mem();

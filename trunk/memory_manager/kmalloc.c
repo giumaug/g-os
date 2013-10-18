@@ -47,7 +47,7 @@ void* kmalloc(unsigned int mem_size)
 		if (mem_size<=pow2(2+i)) break;
 	}
 	if (i!=POOL_NUM) 
-	{	
+	{
 		mem_add=a_fixed_size_alloc(&a_fixed_size_desc[i]);
 	}
 	else 

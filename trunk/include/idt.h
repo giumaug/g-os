@@ -40,7 +40,7 @@ void exit_int_handler(unsigned int action,struct t_processor_reg processor_reg,s
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))          \
 		if (_action==2)                                                                              \
 		{                                                                                           \
-			DO_STACK_FRAME(&_processor_reg.esp-8);                                               \
+			DO_STACK_FRAME(_processor_reg.esp-8);                                               \
 			free_vm_process(_old_process_context.page_dir);                                    \
 		}                                                                                           \
 		SWITCH_DS_TO_USER_MODE                                                                      \

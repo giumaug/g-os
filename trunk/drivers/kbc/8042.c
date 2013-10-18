@@ -12,7 +12,6 @@
 extern t_system system;
 static int dump[3000];
 static int xx=0;
-int lll=1;
 
 char lowercase_charset[0x80] = {
 			[0x00]='\0',			
