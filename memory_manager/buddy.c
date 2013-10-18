@@ -162,8 +162,11 @@ void buddy_free_page(t_buddy_desc* buddy,void* to_free_page_addr)
 		}
 		i++;
 	}
+//	check_process_context();
 	mem_addr_bucket=kmalloc(sizeof(unsigned int));
-	*mem_addr_bucket=free_page_addr;			
+//	check_process_context();
+	*mem_addr_bucket=free_page_addr;
+//	check_process_context();			
 	node_buddy=ll_prepend(buddy->page_list[free_page_order],mem_addr_bucket);
 	buddy->page_list_ref[BLOCK_INDEX(free_page_addr)]=node_buddy;
 	buddy->order[BLOCK_INDEX(free_page_addr)]=free_page_order;
@@ -176,10 +179,10 @@ unsigned int buddy_free_mem(t_buddy_desc* buddy_desc)
 	int i;
 	unsigned int tot;
 	unsigned int tmp;
-
+	
 	tot=0;
 	for (i=0;i<11;i++)
-	{
+	{	
 		tmp=ll_size(buddy_desc->page_list[i]);
 		buddy_desc->free_mem_list[i]=tmp;
 		tot=tot+4096*(1<<i)*tmp;

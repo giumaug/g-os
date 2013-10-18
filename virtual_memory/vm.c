@@ -5,6 +5,8 @@
 
 extern t_system system;
 
+struct t_process_context* process0;
+
 void* init_virtual_memory()
 {
 	unsigned int i;	
@@ -163,8 +165,10 @@ void umap_vm_mem(void* page_dir,unsigned int virt_mem_addr,unsigned int mem_size
 
 		if ((start==0 && end==1024) || flush) 
 		{
+			//check_process_context();
 			buddy_free_page(&system.buddy_desc,page_table);
 			((unsigned int*)page_dir)[i]=0;
+			//check_process_context();
 		}
 	}
 }
