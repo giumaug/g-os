@@ -13,8 +13,6 @@ extern panic();
 static void buddy_reset_block(void* address,unsigned int page_size);
 static void buddy_init_mem(t_buddy_desc* buddy);
 
-int xxx=0;
-
 void buddy_init(t_buddy_desc* buddy)
 {	
 	unsigned int mem_addr;
@@ -227,13 +225,8 @@ static void buddy_init_mem(t_buddy_desc* buddy)
 		next_tmp=ll_next(next);
 		while(next!=sentinel)
 		{
-			xxx++;
-			if (xxx>=33)
-			{
-				y=0;	
-			}
 			val=next->val;
-			mem_addr=FROM_PHY_TO_VIRT((unsigned int) *val);
+			mem_addr=BUDDY_START_ADDR + VIRT_MEM_START_ADDR+(unsigned int) *val;
 			if (mem_addr<0xc27b4000 || mem_addr>0xcc700000)
 			{
 				y=0;
@@ -286,8 +279,3 @@ static void buddy_reset_block(void* address,unsigned int page_size)
 		*(unsigned char*)(address)=0;
 	}
 }
-
-
-
-
-
