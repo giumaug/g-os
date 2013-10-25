@@ -5,6 +5,9 @@
 static void *dump_fx[100];
 extern t_a_fixed_size_desc a_fixed_size_desc[POOL_NUM];
 
+static void a_fixed_size_reset_block(void* address,unsigned int block_size);
+static void a_fixed_size_init_mem(t_a_fixed_size_desc *a_fixed_size_desc);
+
 void a_fixed_size_init(t_a_fixed_size_desc *a_fixed_size_desc,unsigned int block_size,void* mem_addr,int size) 
 {
         int index;
@@ -33,6 +36,7 @@ void a_fixed_size_init(t_a_fixed_size_desc *a_fixed_size_desc,unsigned int block
 	current_block_desc->next_block=first_block_desc;
 	current_block_desc->previous_block=previous_block_desc;
 	first_block_desc->previous_block=current_block_desc;
+	//a_fixed_size_init_mem(a_fixed_size_desc);
 }
 
 void *a_fixed_size_alloc(t_a_fixed_size_desc *a_fixed_size_desc) 
@@ -68,26 +72,54 @@ void a_fixed_size_free(t_a_fixed_size_desc *a_fixed_size_desc,void *address)
 	current_block_desc->next_block=first_block_desc;
 	current_block_desc->previous_block=NULL;
 	first_block_desc->previous_block=current_block_desc;
+	//a_fixed_size_reset_block(address,a_fixed_size_desc->block_size);
 }
 
-//void a_fixed_size_dump(t_a_fixed_size_desc *a_fixed_size_desc) 
-void a_fixed_size_dump() 
+static void a_fixed_size_init_mem(t_a_fixed_size_desc *a_fixed_size_desc)
 {
 	int i=0;
-	static int ss;	
-	t_a_fixed_size_desc *_a_fixed_size_desc=&a_fixed_size_desc[11];	
+	int y=0;
 	t_block_desc *current_block_desc;
-	current_block_desc=_a_fixed_size_desc->first_block;
 
-	for (i=0;i<100;i++)
+	current_block_desc=a_fixed_size_desc->first_block+1;
+	for (i=0;i<a_fixed_size_desc->current_free_block;i++)
 	{
-		dump_fx[i]=((char*)(current_block_desc)+0xc);
-		if (dump_fx[i]==0xc23a54c8)
+		for (y=0;y<a_fixed_size_desc->block_size;y++)
 		{
-			ss++;
+			
+			*((unsigned char*)(current_block_desc)+y)=0;
 		}
-		current_block_desc=current_block_desc->next_block;
+		current_block_desc=current_block_desc->next_block+1;
 	}
-	return;
 }
 
+void a_fixed_size_check_mem_status()
+{
+	int i;
+	int y;
+	t_a_fixed_size_desc* _a_fixed_size_desc;
+	t_block_desc* current_block_desc;
+
+	for(i=0;i<POOL_NUM;i++)
+	{
+		_a_fixed_size_desc=&a_fixed_size_desc[i];
+		current_block_desc=_a_fixed_size_desc->first_block+1;
+		for (y=0;y<_a_fixed_size_desc->current_free_block;y++)
+		{
+			if (*((unsigned char*)(current_block_desc)+y)!=0)
+			{
+				panic();
+			}
+			current_block_desc=current_block_desc->next_block+1;
+		}
+	}
+}
+
+static void a_fixed_size_reset_block(void* address,unsigned int block_size)
+{
+	int i;
+	for (i=0;i<block_size;i++)
+	{
+		*(unsigned char*)(address)=0;
+	}
+}

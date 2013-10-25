@@ -28,6 +28,7 @@ t_a_fixed_size_desc;
 void a_fixed_size_init(t_a_fixed_size_desc *a_fixed_size_desc,unsigned int block_size,void* mem_addr,int size);
 void *a_fixed_size_alloc(t_a_fixed_size_desc *a_fixed_size_desc);
 void a_fixed_size_free(t_a_fixed_size_desc *a_fixed_size_desc,void *address);
+void a_fixed_size_check_mem_status();
 
 #endif
 

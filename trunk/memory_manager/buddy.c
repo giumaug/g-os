@@ -10,6 +10,11 @@ extern t_system system;
 static unsigned int mem;
 extern panic();
 
+static void buddy_reset_block(void* address,unsigned int page_size);
+static void buddy_init_mem(t_buddy_desc* buddy);
+
+int xxx=0;
+
 void buddy_init(t_buddy_desc* buddy)
 {	
 	unsigned int mem_addr;
@@ -40,6 +45,7 @@ void buddy_init(t_buddy_desc* buddy)
 	}
 	s1=BUDDY_START_ADDR + VIRT_MEM_START_ADDR;
 	s2=s1+mem_addr;
+	buddy_init_mem(buddy);
 	return;
 }
 	
@@ -137,6 +143,7 @@ void buddy_free_page(t_buddy_desc* buddy,void* to_free_page_addr)
 	free_page_order=list_index;
 	stop_coalesce=0;	
 	i=list_index;
+	buddy_reset_block(to_free_page_addr,(1<<list_index));
 	while(i<NUM_LIST-1 && !stop_coalesce)
 	{
 		page_size=PAGE_SIZE*(1<<i);
@@ -189,29 +196,98 @@ unsigned int buddy_free_mem(t_buddy_desc* buddy_desc)
 	}
 	return tot;
 }
-//void buddy_dump_mem(t_buddy* buddy)
-//{
-//	t_llist* list;
-//	t_llist_node* next;
-//	t_llist_node* sentinel;
-//	unsigned int* val;
-//	unsigned int i;
-//	unsigned int counter;
-//
-//	for (i=0;i<NUM_LIST;i++)
-//	{
-//		printf("--------------------------list %d --------------------------------\n",i);
-//		counter=1;		
-//		list=buddy->page_list[i];
-//		sentinel=ll_sentinel(list);
-//		next=ll_first(list);
-//		while(next!=sentinel)
-//		{
-//			val=next->val;
-//			printf("list entry=%d value=%x \n",counter,*val);
-//			counter++;
-//			next=ll_next(next);
-//		}
-//		printf("------------------------------------------------------------------\n");
-//	}
-//}
+
+static void buddy_init_mem(t_buddy_desc* buddy)
+{
+	t_llist* list;
+	t_llist_node* next;
+	t_llist_node* sentinel;
+	unsigned int* val;
+	unsigned int i;
+	unsigned int y;
+	unsigned int page_size;
+	t_llist_node* next_tmp;
+	unsigned char* mem_addr;
+
+	for (i=0;i<NUM_LIST;i++)
+	{
+		int rr=BUDDY_START_ADDR+VIRT_MEM_START_ADDR;	
+		int bu=FROM_PHY_TO_VIRT(BUDDY_START_ADDR);
+		int po=FROM_PHY_TO_VIRT(POOL_START_ADDR);
+		int bu_end=FROM_PHY_TO_VIRT(BUDDY_END_ADDR);
+		int bu_size=FROM_PHY_TO_VIRT(BUDDY_MEM_SIZE);
+		int po_end=FROM_PHY_TO_VIRT(POOL_END_ADDR);
+
+
+	
+		page_size=PAGE_SIZE*(1<<i);
+		list=buddy->page_list[i];
+		sentinel=ll_sentinel(list);
+		next=ll_first(list);
+		next_tmp=ll_next(next);
+		while(next!=sentinel)
+		{
+			xxx++;
+			if (xxx>=33)
+			{
+				y=0;	
+			}
+			val=next->val;
+			mem_addr=FROM_PHY_TO_VIRT((unsigned int) *val);
+			if (mem_addr<0xc27b4000 || mem_addr>0xcc700000)
+			{
+				y=0;
+			}
+			for (y=0;y<page_size;y++)
+			{
+				*(mem_addr+y)=0;
+			}	
+			next=ll_next(next);
+		}
+	}
+}
+
+void buddy_check_mem_status(t_buddy_desc* buddy)
+{
+	t_llist* list;
+	t_llist_node* next;
+	t_llist_node* sentinel;
+	unsigned int* val;
+	unsigned int i;
+	unsigned int y;
+	unsigned int page_size;
+
+	for (i=0;i<NUM_LIST;i++)
+	{	
+		page_size=PAGE_SIZE*(1<<i);
+		list=buddy->page_list[i];
+		sentinel=ll_sentinel(list);
+		next=ll_first(list);
+		while(next!=sentinel)
+		{
+			val=next->val;
+			for (y=0;i<page_size;y++)
+			{
+				if (*(((unsigned char*) val)+y)==0)
+				{
+					panic();
+				}
+			}	
+			next=ll_next(next);
+		}
+	}
+}
+
+static void buddy_reset_block(void* address,unsigned int page_size)
+{
+	int i;
+	for (i=0;i<page_size;i++)
+	{
+		*(unsigned char*)(address)=0;
+	}
+}
+
+
+
+
+
