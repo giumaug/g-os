@@ -97,6 +97,7 @@ void a_fixed_size_check_mem_status()
 {
 	int i;
 	int y;
+	int z;
 	t_a_fixed_size_desc* _a_fixed_size_desc;
 	t_block_desc* current_block_desc;
 
@@ -106,9 +107,12 @@ void a_fixed_size_check_mem_status()
 		current_block_desc=_a_fixed_size_desc->first_block+1;
 		for (y=0;y<_a_fixed_size_desc->current_free_block;y++)
 		{
-			if (*((unsigned char*)(current_block_desc)+y)!=0)
+			for (z=0;z<a_fixed_size_desc->block_size;z++)
 			{
-				panic();
+				if (*((unsigned char*)(current_block_desc)+z)!=0)
+				{
+					panic();
+				}
 			}
 			current_block_desc=current_block_desc->next_block+1;
 		}

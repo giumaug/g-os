@@ -268,7 +268,7 @@ void _exit(int status)
 		}
 	}
 	current_process->proc_status=EXITING;
-	buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(current_process->phy_add_space));
+//	buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(current_process->phy_add_space));
 	sentinel=ll_sentinel(system.process_info.pause_queue);
 	next=ll_first(system.process_info.pause_queue);
 	next_process=next->val;
