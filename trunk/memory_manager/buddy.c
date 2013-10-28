@@ -141,7 +141,7 @@ void buddy_free_page(t_buddy_desc* buddy,void* to_free_page_addr)
 	free_page_order=list_index;
 	stop_coalesce=0;	
 	i=list_index;
-	buddy_reset_block(to_free_page_addr,(1<<list_index));
+	buddy_reset_block(to_free_page_addr,(1<<list_index)*PAGE_SIZE);
 	while(i<NUM_LIST-1 && !stop_coalesce)
 	{
 		page_size=PAGE_SIZE*(1<<i);
@@ -227,10 +227,6 @@ static void buddy_init_mem(t_buddy_desc* buddy)
 		{
 			val=next->val;
 			mem_addr=BUDDY_START_ADDR + VIRT_MEM_START_ADDR+(unsigned int) *val;
-			if (mem_addr<0xc27b4000 || mem_addr>0xcc700000)
-			{
-				y=0;
-			}
 			for (y=0;y<page_size;y++)
 			{
 				*(mem_addr+y)=0;
@@ -249,6 +245,7 @@ void buddy_check_mem_status(t_buddy_desc* buddy)
 	unsigned int i;
 	unsigned int y;
 	unsigned int page_size;
+	unsigned char* mem_addr;
 
 	for (i=0;i<NUM_LIST;i++)
 	{	
@@ -259,9 +256,10 @@ void buddy_check_mem_status(t_buddy_desc* buddy)
 		while(next!=sentinel)
 		{
 			val=next->val;
-			for (y=0;i<page_size;y++)
+			mem_addr=BUDDY_START_ADDR + VIRT_MEM_START_ADDR+(unsigned int) *val;
+			for (y=0;y<page_size;y++)
 			{
-				if (*(((unsigned char*) val)+y)==0)
+				if (*(mem_addr+y)!=0)
 				{
 					panic();
 				}
@@ -274,8 +272,9 @@ void buddy_check_mem_status(t_buddy_desc* buddy)
 static void buddy_reset_block(void* address,unsigned int page_size)
 {
 	int i;
+	
 	for (i=0;i<page_size;i++)
 	{
-		*(unsigned char*)(address)=0;
+		*(unsigned char*)(address+i)=0;
 	}
 }
