@@ -7,6 +7,8 @@
 	#define ADD_HEADER
 #endif
 
+#define RAND_MAX 4294967296
+
 extern inline int atoi (char *data) __attribute__((always_inline));
 extern inline void itoa (int val,char *char_val,unsigned int base) __attribute__((always_inline));
 extern inline void exit(int status) __attribute__((always_inline));
@@ -88,4 +90,21 @@ extern inline void free(void *address)
 	SYSCALL(2,params);
 	return;
 }
+
+extern inline int rand_r(unsigned int *seed)
+{
+        *seed = *seed * 1103515245 + 12345;
+        return (*seed % ((unsigned int)RAND_MAX + 1));
+}
+
+//extern inline int rand(void)
+//{
+//        return (rand_r(&next));
+//}
+//
+//extern inline void srand(unsigned int seed)
+//{
+//        next = seed;
+//}
+
 #endif
