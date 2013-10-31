@@ -43,7 +43,7 @@ void buddy_init(t_buddy_desc* buddy)
 	}
 	s1=BUDDY_START_ADDR + VIRT_MEM_START_ADDR;
 	s2=s1+mem_addr;
-	buddy_init_mem(buddy);
+	//buddy_init_mem(buddy);
 	return;
 }
 	
@@ -141,7 +141,7 @@ void buddy_free_page(t_buddy_desc* buddy,void* to_free_page_addr)
 	free_page_order=list_index;
 	stop_coalesce=0;	
 	i=list_index;
-	buddy_reset_block(to_free_page_addr,(1<<list_index)*PAGE_SIZE);
+	//buddy_reset_block(to_free_page_addr,(1<<list_index)*PAGE_SIZE);
 	while(i<NUM_LIST-1 && !stop_coalesce)
 	{
 		page_size=PAGE_SIZE*(1<<i);

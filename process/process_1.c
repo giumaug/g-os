@@ -59,7 +59,7 @@ void process_1()
 	while (1)
 	{
 		age++;
-		for (i=0;i<20;i++)
+		for (i=0;i<1;i++)
 		{
 			pid=fork();
 			if (pid==0)
@@ -69,7 +69,7 @@ void process_1()
 		}
 		printf("\nage=");
 		d_printf(age);
-		sleep(10000);
+		sleep(2000);
 		printf("\nage=");
 		d_printf(age);
 		check_free_mem();
