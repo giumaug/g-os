@@ -12,6 +12,8 @@
 
 extern t_system system;
 
+extern unsigned int free_mem_count;
+
 void syscall_handler()
 {
 	static int free_vm_proc;        
@@ -183,8 +185,13 @@ void syscall_handler()
 		_new_process_context=*(struct t_process_context*)(system.process_info.current_process->val);                              
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))                                                          
 		DO_STACK_FRAME(_processor_reg.esp-8); 	
+		if (_action>2) 
+		{
+			panic();
+		}   
 		if (_action==2)                                                                              
-		{                                                                                           
+		{        
+			free_mem_count++;                                                                                   
 			DO_STACK_FRAME(_processor_reg.esp-8);                                               
 			free_vm_process(_old_process_context.page_dir); 
 			buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_add_space));                                   

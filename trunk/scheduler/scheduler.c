@@ -11,6 +11,8 @@ extern t_system system;
 extern struct t_llist* kbc_wait_queue;
 extern unsigned int *master_page_dir;
 
+extern unsigned int exit_count;
+
 int t_sched_debug[10][10];
 
 void do_context_switch(struct t_process_context *current_process_context,
@@ -257,6 +259,7 @@ void _exit(int status)
 	
 	SAVE_IF_STATUS
 	CLI
+	exit_count++;
 	t_llist_node* current_node=system.process_info.current_process;
 	//process 0 never die
 	current_process=system.process_info.current_process->val;

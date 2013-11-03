@@ -6,6 +6,8 @@
 
 extern t_system system;
 extern unsigned int free_mem_list[POOL_NUM];
+unsigned int exit_count=0;
+unsigned int free_mem_count=0;
 
 void panic()
 {
@@ -27,6 +29,7 @@ void check_free_mem()
 	//buddy_check_mem_status(&system.buddy_desc);
 	//a_fixed_size_check_mem_status();
 	if (buddy_mem!=160194560)
+	//if (buddy_mem!=21934080)
 	{
 		panic();
 	}
