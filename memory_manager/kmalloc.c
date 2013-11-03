@@ -56,12 +56,21 @@ void* kmalloc(unsigned int mem_size)
 	}
 	SPINLOCK_UNLOCK
 	RESTORE_IF_STATUS
+	if (mem_add==0xc221100e)
+	{
+		i=0;
+	}
 	return mem_add;
 }
 
 void kfree(void *address) 
 {	
 	unsigned int pool_index;
+
+	if (address==0xc221100e)
+	{
+		pool_index=0;
+	}
 
 	SAVE_IF_STATUS
 	CLI	

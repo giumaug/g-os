@@ -167,11 +167,9 @@ void buddy_free_page(t_buddy_desc* buddy,void* to_free_page_addr)
 		}
 		i++;
 	}
-//	check_process_context();
+
 	mem_addr_bucket=kmalloc(sizeof(unsigned int));
-//	check_process_context();
 	*mem_addr_bucket=free_page_addr;
-//	check_process_context();			
 	node_buddy=ll_prepend(buddy->page_list[free_page_order],mem_addr_bucket);
 	buddy->page_list_ref[BLOCK_INDEX(free_page_addr)]=node_buddy;
 	buddy->order[BLOCK_INDEX(free_page_addr)]=free_page_order;
@@ -229,7 +227,7 @@ static void buddy_init_mem(t_buddy_desc* buddy)
 			mem_addr=BUDDY_START_ADDR + VIRT_MEM_START_ADDR+(unsigned int) *val;
 			for (y=0;y<page_size;y++)
 			{
-				*(mem_addr+y)=0;
+				*(mem_addr+y)=0xFF;
 			}	
 			next=ll_next(next);
 		}
@@ -259,7 +257,7 @@ void buddy_check_mem_status(t_buddy_desc* buddy)
 			mem_addr=BUDDY_START_ADDR + VIRT_MEM_START_ADDR+(unsigned int) *val;
 			for (y=0;y<page_size;y++)
 			{
-				if (*(mem_addr+y)!=0)
+				if (*(mem_addr+y)!=0xFF)
 				{
 					panic();
 				}
@@ -275,6 +273,6 @@ static void buddy_reset_block(void* address,unsigned int page_size)
 	
 	for (i=0;i<page_size;i++)
 	{
-		*(unsigned char*)(address+i)=0;
+		*(unsigned char*)(address+i)=0xFF;
 	}
 }

@@ -6,6 +6,8 @@ int age=0;
 
 static int elements[MAXSIZE],maxsize;
 void selection(int elements[], int array_size);
+extern unsigned int exit_count;
+extern unsigned int free_mem_count;
 
 /*--------------------------------------------
 void process_1()
@@ -54,12 +56,15 @@ void process_1()
 	int i=0;	
 	int pid;
 	unsigned int age;
+	unsigned char* xx;
 
 	//age=0;
 	while (1)
 	{
 		age++;
-		for (i=0;i<1;i++)
+		exit_count=0;
+		free_mem_count=0;
+		for (i=0;i<20;i++)
 		{
 			pid=fork();
 			if (pid==0)
@@ -69,7 +74,7 @@ void process_1()
 		}
 		printf("\nage=");
 		d_printf(age);
-		sleep(2000);
+		sleep(20000);
 		printf("\nage=");
 		d_printf(age);
 		check_free_mem();

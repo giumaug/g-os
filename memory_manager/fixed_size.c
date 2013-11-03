@@ -64,8 +64,13 @@ void a_fixed_size_free(t_a_fixed_size_desc *a_fixed_size_desc,void *address)
 	t_block_desc *current_block_desc;
         t_block_desc *next_block_desc;
 	t_block_desc *previous_block_desc;
+
+	if (address==0xc221100e)
+	{
+		index=0;
+	}
+
 	block_desc=(char *)address-sizeof(t_block_desc);
-        
 	a_fixed_size_desc->current_free_block++;
 	current_block_desc=address-sizeof(t_block_desc);
 	first_block_desc=a_fixed_size_desc->first_block;
@@ -80,17 +85,27 @@ static void a_fixed_size_init_mem(t_a_fixed_size_desc *a_fixed_size_desc)
 {
 	int i=0;
 	int y=0;
+	unsigned char* address;
+	int k;
+	
+
 	t_block_desc *current_block_desc;
 
-	current_block_desc=a_fixed_size_desc->first_block+1;
+	current_block_desc=a_fixed_size_desc->first_block;
+	address=current_block_desc+1;
 	for (i=0;i<a_fixed_size_desc->current_free_block;i++)
 	{
+		if (a_fixed_size_desc->block_size==2048)
+		{
+			k=1;
+		}
 		for (y=0;y<a_fixed_size_desc->block_size;y++)
 		{
 			
-			*((unsigned char*)(current_block_desc)+y)=0;
+			*(address+y)=0xFF;
 		}
-		current_block_desc=current_block_desc->next_block+1;
+		current_block_desc=current_block_desc->next_block;
+		address=current_block_desc+1;
 	}
 }
 
@@ -101,21 +116,24 @@ void a_fixed_size_check_mem_status()
 	int z;
 	t_a_fixed_size_desc* _a_fixed_size_desc;
 	t_block_desc* current_block_desc;
+	unsigned char* address;
 
 	for(i=0;i<POOL_NUM;i++)
 	{
 		_a_fixed_size_desc=&a_fixed_size_desc[i];
-		current_block_desc=_a_fixed_size_desc->first_block+1;
+		current_block_desc=_a_fixed_size_desc->first_block;
+		address=current_block_desc+1;
 		for (y=0;y<_a_fixed_size_desc->current_free_block;y++)
 		{
 			for (z=0;z<a_fixed_size_desc->block_size;z++)
 			{
-				if (*((unsigned char*)(current_block_desc)+z)!=0)
+				if (*(address+z)!=0xFF)
 				{
 					panic();
 				}
 			}
-			current_block_desc=current_block_desc->next_block+1;
+			current_block_desc=current_block_desc->next_block;
+			address=current_block_desc+1;
 		}
 	}
 }
@@ -125,6 +143,6 @@ static void a_fixed_size_reset_block(void* address,unsigned int block_size)
 	int i;
 	for (i=0;i<block_size;i++)
 	{
-		*(unsigned char*)(address+i)=0;
+		*(unsigned char*)(address+i)=0xFF;
 	}
 }
