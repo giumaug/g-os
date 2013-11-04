@@ -13,6 +13,9 @@
 extern t_system system;
 
 extern unsigned int free_mem_count;
+extern unsigned int free_mem_count_1;
+extern unsigned int free_mem_count_2;
+extern unsigned int free_mem_count_3;
 
 void syscall_handler()
 {
@@ -171,10 +174,12 @@ void syscall_handler()
 	static unsigned int _action;                                                                        
                                                                                                             
 	CLI                                                                          
-	_action=on_exit_action;                                                                                     
+	_action=on_exit_action;
+	if (_action==2) free_mem_count_1++;                                                                                     
 	_current_process_context=*(struct t_process_context*)system.process_info.current_process->val;                                  
 	_old_process_context=_current_process_context;                                                      
 	_processor_reg=processor_reg;
+	if (_action==2) free_mem_count_2++; 
 	if (_action>2) 
 	{
 		panic();
@@ -184,7 +189,8 @@ void syscall_handler()
 		schedule(&_current_process_context,&_processor_reg);                                         
 		_new_process_context=*(struct t_process_context*)(system.process_info.current_process->val);                              
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))                                                          
-		DO_STACK_FRAME(_processor_reg.esp-8); 	
+		DO_STACK_FRAME(_processor_reg.esp-8); 
+		if (_action==2) free_mem_count_3++; 	
 		if (_action>2) 
 		{
 			panic();
