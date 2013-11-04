@@ -8,6 +8,9 @@ extern t_system system;
 extern unsigned int free_mem_list[POOL_NUM];
 unsigned int exit_count=0;
 unsigned int free_mem_count=0;
+unsigned int free_mem_count_1=0;
+unsigned int free_mem_count_2=0;
+unsigned int free_mem_count_3=0;
 
 void panic()
 {
