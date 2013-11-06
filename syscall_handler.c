@@ -16,6 +16,10 @@ extern unsigned int free_mem_count;
 extern unsigned int free_mem_count_1;
 extern unsigned int free_mem_count_2;
 extern unsigned int free_mem_count_3;
+extern unsigned int free_mem_count_4;
+extern unsigned int free_mem_count_5;
+extern unsigned int free_mem_count_6;
+
 
 void syscall_handler()
 {
@@ -107,9 +111,13 @@ void syscall_handler()
 	else if (syscall_num==13)
 	{
 		_exit(params[0]);
+		free_mem_count_4++; 
 //		free_vm_proc=1;
 //		goto exit_2;
-		on_exit_action=2; 
+		free_mem_count_5++; 
+		on_exit_action=2;
+		free_mem_count_6++; 
+		 
 	}
 	else if (syscall_num==14) 
 	{

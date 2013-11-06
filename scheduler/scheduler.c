@@ -12,6 +12,9 @@ extern struct t_llist* kbc_wait_queue;
 extern unsigned int *master_page_dir;
 
 extern unsigned int exit_count;
+extern unsigned int free_mem_count_7;
+extern unsigned int free_mem_count_8;
+extern unsigned int free_mem_count_9;
 
 int t_sched_debug[10][10];
 
@@ -263,6 +266,7 @@ void _exit(int status)
 	t_llist_node* current_node=system.process_info.current_process;
 	//process 0 never die
 	current_process=system.process_info.current_process->val;
+	free_mem_count_8++;
 	if (current_process->pid==0)
 	{
 		while(1)
@@ -270,6 +274,7 @@ void _exit(int status)
 			asm("sti;hlt");
 		}
 	}
+	free_mem_count_9++;
 	current_process->proc_status=EXITING;
 //	buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(current_process->phy_add_space));
 	sentinel=ll_sentinel(system.process_info.pause_queue);
@@ -289,6 +294,7 @@ void _exit(int status)
 		next=ll_next(next);
 		next_process=next->val;
 	}
+	free_mem_count_7++;
 	RESTORE_IF_STATUS
 }
 
