@@ -11,6 +11,12 @@ unsigned int free_mem_count=0;
 unsigned int free_mem_count_1=0;
 unsigned int free_mem_count_2=0;
 unsigned int free_mem_count_3=0;
+unsigned int free_mem_count_4=0;
+unsigned int free_mem_count_5=0;
+unsigned int free_mem_count_6=0;
+unsigned int free_mem_count_7=0;
+unsigned int free_mem_count_8=0;
+unsigned int free_mem_count_9=0;
 
 void panic()
 {
