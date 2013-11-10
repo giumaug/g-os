@@ -130,23 +130,44 @@ void int_handler_pit()
 	check_race(1);
 	EXIT_INT_HANDLER(is_schedule,processor_reg,ds);
 
-//	if (is_schedule==1) {
-//		process_context=system.process_info.current_process->val;
-//		schedule(process_context,&processor_reg);
-//		new_process_context=system.process_info.current_process->val;
-//		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) new_process_context->page_dir)))
-//		DO_STACK_FRAME(processor_reg.esp-8);
-//		RESTORE_PROCESSOR_REG
-//		SWITCH_DS_TO_USER_MODE
-//		EXIT_SYSCALL_HANDLER
-// 	}
-//	else {
-//		if (ds==0x20) 
-//		{
-//			SWITCH_DS_TO_USER_MODE
-//		}
-//		RESTORE_PROCESSOR_REG
-//		RET_FROM_INT_HANDLER
-//	}
+/*
+	static struct t_process_context _current_process_context;                                          
+	static struct t_process_context _old_process_context;                                              
+	static struct t_process_context _new_process_context;	                                            
+	static struct t_processor_reg _processor_reg;                                                       
+	static unsigned int _action;                                                                        
+                                                                                                            
+	CLI                                                                          
+	_action=is_schedule;                                                                                   
+	_current_process_context=*(struct t_process_context*)system.process_info.current_process->val;                                  
+	_old_process_context=_current_process_context;                                                      
+	_processor_reg=processor_reg;                                              
+	if (_action>0)                                                                                      
+	{                                                                                                   
+		schedule(&_current_process_context,&_processor_reg);                                         
+		_new_process_context=*(struct t_process_context*)(system.process_info.current_process->val);                              
+		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))                                                          
+		DO_STACK_FRAME(_processor_reg.esp-8); 
+		if (_action==2)                                                                              
+		{                                                                                      
+			DO_STACK_FRAME(_processor_reg.esp-8);                                               
+			free_vm_process(_old_process_context.page_dir); 
+			buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_add_space));                                   
+		}                                                                               
+		SWITCH_DS_TO_USER_MODE                                                                      
+		RESTORE_PROCESSOR_REG                                                                       
+		EXIT_SYSCALL_HANDLER                                                                        
+	}                                                                                                   
+	else                                                                                                
+	{   
+		DO_STACK_FRAME(_processor_reg.esp-8);                                                                                                
+		if (0==0x20)                                                                               
+		{                                                                                           
+			SWITCH_DS_TO_USER_MODE                                                              
+		}                                                                                           
+		RESTORE_PROCESSOR_REG                                                                       
+		RET_FROM_INT_HANDLER                                                                        
+	}
+*/
 }
 
