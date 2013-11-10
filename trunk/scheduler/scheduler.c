@@ -259,9 +259,11 @@ void _exit(int status)
 	unsigned int awake_process=0;
 	struct t_process_context* current_process;
 	struct t_process_context* next_process;
+	unsigned int* ret;
 	
 	SAVE_IF_STATUS
 	CLI
+	ret=0x1fff6b;
 	exit_count++;
 	t_llist_node* current_node=system.process_info.current_process;
 	//process 0 never die
@@ -295,6 +297,10 @@ void _exit(int status)
 		next_process=next->val;
 	}
 	free_mem_count_7++;
+	if (*ret!=0xc0000cef) 
+	{
+		panic();
+	}
 	RESTORE_IF_STATUS
 }
 

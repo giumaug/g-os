@@ -15,6 +15,8 @@ extern unsigned int free_mem_count_4;
 extern unsigned int free_mem_count_5;
 extern unsigned int free_mem_count_6;
 extern unsigned int free_mem_count_7;
+extern unsigned int free_mem_count_8;
+extern unsigned int free_mem_count_9;
 
 /*--------------------------------------------
 void process_1()
@@ -78,6 +80,8 @@ void process_1()
 		free_mem_count_5=0;
 		free_mem_count_6=0;
 		free_mem_count_7=0;
+		free_mem_count_8=0;
+		free_mem_count_9=0;
 		for (i=0;i<20;i++)
 		{
 			pid=fork();
