@@ -276,6 +276,7 @@ void _exit(int status)
 			asm("sti;hlt");
 		}
 	}
+	current_process->tick=0;
 	free_mem_count_9++;
 	current_process->proc_status=EXITING;
 //	buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(current_process->phy_add_space));

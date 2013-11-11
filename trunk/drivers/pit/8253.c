@@ -27,6 +27,7 @@ void init_pit()
 
 void int_handler_pit()
 {	
+	int x;
 	int is_schedule=0;
 	short ds;
 	struct t_process_context* process_context;
@@ -125,6 +126,10 @@ void int_handler_pit()
 		{
 			process_context->tick=TICK;
 			is_schedule=1;	
+		}
+		if (process_context->proc_status==EXITING)
+		{
+			x=0;
 		}
 	}
 	check_race(1);
