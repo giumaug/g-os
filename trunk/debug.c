@@ -18,6 +18,9 @@ unsigned int free_mem_count_7=0;
 unsigned int free_mem_count_8=0;
 unsigned int free_mem_count_9=0;
 
+index_2=0;
+unsigned int proc[100];
+
 void panic()
 {
 	return;
@@ -37,6 +40,7 @@ void check_free_mem()
 	pool_mem=kfree_mem();
 	//buddy_check_mem_status(&system.buddy_desc);
 	//a_fixed_size_check_mem_status();
+	check_active_process();
 	if (buddy_mem!=160194560)
 	//if (buddy_mem!=21934080)
 	{
@@ -118,6 +122,33 @@ check_process_context()
 		index++;
 	}
 }
+
+check_active_process()
+{
+	t_llist_node* next;
+	t_llist_node* sentinel_node;
+	struct t_process_context* process_context;
+	int index=0;
+	
+	index_2=0;
+
+
+	while(index<10)
+	{
+		sentinel_node=ll_sentinel(system.scheduler_desc.scheduler_queue[index]);
+		next=ll_first(system.scheduler_desc.scheduler_queue[index]);
+		while(next!=sentinel_node)
+		{
+			process_context=next->val;
+			proc[index_2]=process_context->pid;
+			index_2++;
+			next=next=ll_next(next);
+		}
+		index++;
+	}
+}
+
+
 
 
 

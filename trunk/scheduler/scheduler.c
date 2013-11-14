@@ -11,11 +11,6 @@ extern t_system system;
 extern struct t_llist* kbc_wait_queue;
 extern unsigned int *master_page_dir;
 
-extern unsigned int exit_count;
-extern unsigned int free_mem_count_7;
-extern unsigned int free_mem_count_8;
-extern unsigned int free_mem_count_9;
-
 int t_sched_debug[10][10];
 
 void do_context_switch(struct t_process_context *current_process_context,
@@ -263,12 +258,9 @@ void _exit(int status)
 	
 	SAVE_IF_STATUS
 	CLI
-	ret=0x1fff6b;
-	exit_count++;
 	t_llist_node* current_node=system.process_info.current_process;
 	//process 0 never die
 	current_process=system.process_info.current_process->val;
-	free_mem_count_8++;
 	if (current_process->pid==0)
 	{
 		while(1)
@@ -276,10 +268,7 @@ void _exit(int status)
 			asm("sti;hlt");
 		}
 	}
-	current_process->tick=0;
-	free_mem_count_9++;
 	current_process->proc_status=EXITING;
-//	buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(current_process->phy_add_space));
 	sentinel=ll_sentinel(system.process_info.pause_queue);
 	next=ll_first(system.process_info.pause_queue);
 	next_process=next->val;
@@ -296,11 +285,6 @@ void _exit(int status)
 		}
 		next=ll_next(next);
 		next_process=next->val;
-	}
-	free_mem_count_7++;
-	if (*ret!=0xc0000cef) 
-	{
-		panic();
 	}
 	RESTORE_IF_STATUS
 }
@@ -353,7 +337,6 @@ void _exec(unsigned int start_addr,unsigned int size)
 	current_process_context->sleep_time=0;
 	current_process_context->assigned_sleep_time=0;
 	current_process_context->static_priority=0;
-	//current_process_context=system.process_info.current_process->val;
 	current_process_context->phy_space_size=size;
 	process_space=buddy_alloc_page(&system.buddy_desc,size);
 	process_storage=FROM_PHY_TO_VIRT(start_addr);
