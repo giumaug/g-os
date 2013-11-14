@@ -1,5 +1,6 @@
 #include "general.h"
 #include "system.h"
+#include "asm.h"
 #include "scheduler/process.h"
 #include "memory_manager/kmalloc.h"
 #include "drivers/kbc/8042.h"
@@ -52,7 +53,9 @@ static int write_out_buf(t_console_desc *console_desc,char data)
 	unsigned int i;
 	unsigned int index_1;
 	unsigned int index_2;
-	
+
+	SAVE_IF_STATUS
+	CLI	
 	INC(console_desc->out_buf_index,console_desc->out_buf_len,1,0);
 	console_desc->out_buf[console_desc->out_buf_index]=data;
 	if (console_desc->out_buf_index==0 && console_desc->first_char) 
@@ -91,34 +94,45 @@ static int write_out_buf(t_console_desc *console_desc,char data)
 	console_desc->video_buf[console_desc->video_buf_index]=console_desc->out_buf[console_desc->out_buf_index];
 	console_desc->video_buf_index++;
 	console_desc->video_buf[console_desc->video_buf_index]=SCREEN_FOREGROUND_COLOR;
+	RESTORE_IF_STATUS
 }
 
 void _write_char(t_console_desc *console_desc,char data)
 {
 	unsigned int to_end_line;
 	unsigned int i;
+
+	SAVE_IF_STATUS
+	CLI
 	if (data=='\n')
 	{
 		to_end_line=SCREEN_WIDTH -1 - (console_desc->out_buf_index %  SCREEN_WIDTH);
 		for (i=0;i<to_end_line;i++) write_out_buf(console_desc,'\0');
 	}
 	else write_out_buf(console_desc,data);
+	RESTORE_IF_STATUS
 }
 
 void _echo_char(t_console_desc *console_desc,char data)
 {
+	SAVE_IF_STATUS
+	CLI
 	_write_char(console_desc,data);	
 	_update_cursor(console_desc);
+	RESTORE_IF_STATUS
 }
 
 void _delete_char(t_console_desc *console_desc)
 {
+	SAVE_IF_STATUS
+	CLI
 	if (console_desc->out_buf_index/SCREEN_WIDTH==(console_desc->out_buf_index+1)/SCREEN_WIDTH)
 	{
 		console_desc->out_buf[--console_desc->out_buf_index]='\0';
 		console_desc->video_buf[--console_desc->video_buf_index]=CHAR_NULL;
 		console_desc->video_buf[--console_desc->video_buf_index]=SCREEN_FOREGROUND_COLOR;
 	}
+	RESTORE_IF_STATUS
 }
 
 void _enable_cursor(t_console_desc *console_desc)
@@ -133,10 +147,13 @@ void _disable_cursor(t_console_desc *console_desc)
 
 void _update_cursor(t_console_desc *console_desc)
 {
+	SAVE_IF_STATUS
+	CLI
 	unsigned int cursor_position=(console_desc->video_buf_index/2)+1;
 	out(0x0F,0x3D4);
     	out((unsigned char)(cursor_position&0xFF),0x3D5);
    	out(0x0E,0x3D4);
     	out((unsigned char )((cursor_position>>8)&0xFF),0x3D5);
+	RESTORE_IF_STATUS
 }
 

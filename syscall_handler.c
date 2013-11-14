@@ -12,15 +12,6 @@
 
 extern t_system system;
 
-extern unsigned int free_mem_count;
-extern unsigned int free_mem_count_1;
-extern unsigned int free_mem_count_2;
-extern unsigned int free_mem_count_3;
-extern unsigned int free_mem_count_4;
-extern unsigned int free_mem_count_5;
-extern unsigned int free_mem_count_6;
-
-
 void syscall_handler()
 {
 	static int free_vm_proc;        
@@ -44,22 +35,18 @@ void syscall_handler()
 	if (syscall_num==1) 
 	{
 		params[0]=_fork(processor_reg);
-//		goto exit_1;
 	}
 	else if (syscall_num==2)
 	{ 
 		params[1]=_malloc(params[0]);
-//		goto exit_1;
 	}
 	else if (syscall_num==3)
 	{ 
 		_free(params[0]);
-//		goto exit_1;
 	}
 	else if (syscall_num==4)
 	{ 
 		_write_char(console_desc,params[0]);
-//		goto exit_1;
 	}
 	else if (syscall_num==5)
 	{ 
@@ -67,56 +54,42 @@ void syscall_handler()
 		*((char*)params[0])=data;	
 		if (data==NULL)
 		{
-//			goto exit_2;
 			on_exit_action=1; 
 		}
-//		goto exit_1;
 	}
 	else if (syscall_num==6)
 	{ 
 		_echo_char(console_desc,params[0]);
-//		goto exit_1;	
 	}
 	else if (syscall_num==7)
 	{ 
-		_enable_cursor(console_desc);
-//		goto exit_1;	
+		_enable_cursor(console_desc);	
 	}
 	else if (syscall_num==8)
 	{ 
 		_disable_cursor(console_desc);
-//		goto exit_1;	
 	}
 	else if (syscall_num==9)
 	{ 
-		_update_cursor(console_desc);
-//		goto exit_1;		
+		_update_cursor(console_desc);	
 	}
 	else if (syscall_num==10)
 	{
 		_delete_char(console_desc);
-//		goto exit_1;	 
 	}
 	else if (syscall_num==11)
 	{
 		_pause();	
-//		goto exit_2;
 		on_exit_action=1; 
 	}
 	else if (syscall_num==12)
 	{
 		_awake(params[0]);
-//		goto exit_1; 
 	}
 	else if (syscall_num==13)
 	{
 		_exit(params[0]);
-		free_mem_count_4++; 
-//		free_vm_proc=1;
-//		goto exit_2;
-		free_mem_count_5++; 
 		on_exit_action=2;
-		free_mem_count_6++; 
 		 
 	}
 	else if (syscall_num==14) 
@@ -127,48 +100,41 @@ void syscall_handler()
 	else if (syscall_num==15) 
 	{
 		_sleep_time(params[0]);	
-//		goto exit_2;
 		on_exit_action=1; 
 	}
 	else if (syscall_num==18) 
 	{
 		params[3]=_open(system.root_fs,(char*) params[0],params[1],params[2]); 
-//		goto exit_2;
 		on_exit_action=1; 
 	}
 
 	else if (syscall_num==19) 
 	{
 		params[2]=_close(system.root_fs,params[0],params[1]);
-//		goto exit_2;
 		on_exit_action=1; 
 	}
 
 	else if (syscall_num==20) 
 	{
 		params[4]=_read(system.root_fs,(void*)params[0],params[1],params[2],params[3]); 
-//		goto exit_2;
 		on_exit_action=1; 
 	}
 
 	else if (syscall_num==21) 
 	{
 		params[4]=_write(system.root_fs,(void*)params[0],params[1],params[2],params[3]);
-//		goto exit_2;
 		on_exit_action=1;  
 	}
 	
 	else if (syscall_num==22)
 	{
 		params[2]=_rm(system.root_fs,(char*)params[0],params[1]);
-//		goto exit_2;
 		on_exit_action=1; 
 	}
 
 	else if (syscall_num==23) 
 	{
 		params[2]=_mkdir(system.root_fs,params[0],params[1]);
-//		goto exit_2;
 		on_exit_action=1; 
 	}
 //	EXIT_INT_HANDLER(on_exit_action,processor_reg,0)
@@ -182,12 +148,10 @@ void syscall_handler()
 	static unsigned int _action;                                                                        
                                                                                                             
 	CLI                                                                          
-	_action=on_exit_action;
-	if (_action==2) free_mem_count_1++;                                                                                     
+	_action=on_exit_action;                                                                                
 	_current_process_context=*(struct t_process_context*)system.process_info.current_process->val;                                  
 	_old_process_context=_current_process_context;                                                      
 	_processor_reg=processor_reg;
-	if (_action==2) free_mem_count_2++; 
 	if (_action>2) 
 	{
 		panic();
@@ -197,15 +161,13 @@ void syscall_handler()
 		schedule(&_current_process_context,&_processor_reg);                                         
 		_new_process_context=*(struct t_process_context*)(system.process_info.current_process->val);                              
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))                                                          
-		DO_STACK_FRAME(_processor_reg.esp-8); 
-		if (_action==2) free_mem_count_3++; 	
+		DO_STACK_FRAME(_processor_reg.esp-8); 	
 		if (_action>2) 
 		{
 			panic();
 		}   
 		if (_action==2)                                                                              
-		{        
-			free_mem_count++;                                                                                   
+		{                                                                                  
 			DO_STACK_FRAME(_processor_reg.esp-8);                                               
 			free_vm_process(_old_process_context.page_dir); 
 			buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_add_space));                                   

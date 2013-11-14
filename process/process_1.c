@@ -6,17 +6,6 @@ int age=0;
 
 static int elements[MAXSIZE],maxsize;
 void selection(int elements[], int array_size);
-extern unsigned int exit_count;
-extern unsigned int free_mem_count;
-extern unsigned int free_mem_count_1;
-extern unsigned int free_mem_count_2;
-extern unsigned int free_mem_count_3;
-extern unsigned int free_mem_count_4;
-extern unsigned int free_mem_count_5;
-extern unsigned int free_mem_count_6;
-extern unsigned int free_mem_count_7;
-extern unsigned int free_mem_count_8;
-extern unsigned int free_mem_count_9;
 
 /*--------------------------------------------
 void process_1()
@@ -71,17 +60,6 @@ void process_1()
 	while (1)
 	{
 		age++;
-		exit_count=0;
-		free_mem_count=0;
-		free_mem_count_1=0;
-                free_mem_count_2=0;
-                free_mem_count_3=0;
-		free_mem_count_4=0;
-		free_mem_count_5=0;
-		free_mem_count_6=0;
-		free_mem_count_7=0;
-		free_mem_count_8=0;
-		free_mem_count_9=0;
 		for (i=0;i<20;i++)
 		{
 			pid=fork();
