@@ -370,3 +370,56 @@ void _sleep_time(unsigned int time)
 	_sleep();
 	RESTORE_IF_STATUS
 }
+
+unsigned int _rand(unsigned int *seed)
+{
+	unsigned int x;
+        *seed = *seed * 1103515245 + 12345;
+        x= (*seed % ((unsigned int)4294967294 + 1));
+	return x;
+}
+
+void _itoa (int val,char *char_val,unsigned int base)
+{
+	unsigned int mod;
+	unsigned int res;
+	unsigned index=-1;
+	unsigned int i;
+	char digit;
+	char _char_val[32];
+	if (val<0) *char_val='-';
+	res=val;	
+	do
+	{
+		val=res;
+		mod=val % 10;
+		res=val/10;
+		if (res==0) digit=48+val;
+		else digit=48+mod;
+		_char_val[++index]=digit;
+	}
+	while(res!=0);
+        for (i=0;i<=index;i++) char_val[i]=_char_val[index-i];
+	char_val[++index]='\0';
+	//while(_char_val[++index]=='\0') char_val[++index]==_char_val[index];
+	return;
+}
+
+_print_num(int val)
+{
+	unsigned int mod;
+	unsigned int res;
+	unsigned index=-1;
+	unsigned int i;
+	char digit;
+	char _char_val[32];
+	char char_val[32]; //int32
+	int params[1];
+	
+	_itoa (val,char_val,10);	
+	while (char_val[++index]!='\0') 
+	{
+		params[0]=char_val[index];
+		SYSCALL(4,params);
+	}
+}
