@@ -24,8 +24,8 @@ extern inline void print_num(int val)
 	unsigned index=-1;
 	unsigned int i;
 	char digit;
-	char _char_val[11];
-	char char_val[11]; //int32
+	char _char_val[32];
+	char char_val[32]; //int32
 	int params[1];
 	
 	itoa (val,char_val,10);	

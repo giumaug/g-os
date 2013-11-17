@@ -7,13 +7,14 @@
 	#define ADD_HEADER
 #endif
 
-#define RAND_MAX 4294967296
+#define RAND_MAX 4294967294
 
 extern inline int atoi (char *data) __attribute__((always_inline));
 extern inline void itoa (int val,char *char_val,unsigned int base) __attribute__((always_inline));
 extern inline void exit(int status) __attribute__((always_inline));
 extern inline void *malloc(unsigned int mem_size) __attribute__((always_inline));
 extern inline void free(void *address) __attribute__((always_inline));
+extern inline unsigned int rand(unsigned int *seed) __attribute__((always_inline));
 
 extern struct t_process_info process_info;
 
@@ -47,7 +48,7 @@ extern inline void itoa (int val,char *char_val,unsigned int base)
 	unsigned index=-1;
 	unsigned int i;
 	char digit;
-	char _char_val[11];
+	char _char_val[32];
 	if (val<0) *char_val='-';
 	res=val;	
 	do
@@ -87,11 +88,11 @@ extern inline void free(void *address)
 {	
 	int params[1];
 	params[0]=address;
-	SYSCALL(2,params);
+	SYSCALL(3,params);
 	return;
 }
 
-extern inline int rand_r(unsigned int *seed)
+extern inline unsigned int rand(unsigned int *seed)
 {
         *seed = *seed * 1103515245 + 12345;
         return (*seed % ((unsigned int)RAND_MAX + 1));
