@@ -14,7 +14,7 @@ process_1()
 	
 	while(1)
 	{
-		n_request=(rand(&seed) % 40 + 1); //+200;
+		n_request=(rand(&seed) % 100 + 1); //+200;
 		printf("\nage=");
 		d_printf(age);
 		printf("\nrequest number=");
