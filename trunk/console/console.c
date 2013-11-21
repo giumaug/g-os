@@ -13,6 +13,9 @@ void init_console(t_console_desc *console_desc,int out_buf_len,int in_buf_len)
 {
 	int i,j=0;
 	SPINLOCK_INIT(console_desc->spinlock);
+	SPINLOCK_LOCK(console_desc->spinlock);
+	i++;
+	SPINLOCK_UNLOCK(console_desc->spinlock);
 	console_desc->out_buf=kmalloc(out_buf_len);
 	console_desc->out_buf_len=out_buf_len;
 	console_desc->out_buf_index=-1;
@@ -97,7 +100,7 @@ static int write_out_buf(t_console_desc *console_desc,char data)
 	console_desc->video_buf[console_desc->video_buf_index]=console_desc->out_buf[console_desc->out_buf_index];
 	console_desc->video_buf_index++;
 	console_desc->video_buf[console_desc->video_buf_index]=SCREEN_FOREGROUND_COLOR;
-	SPINLOCK_ULOCK(console_desc->spinlock);
+	SPINLOCK_UNLOCK(console_desc->spinlock);
 //	RESTORE_IF_STATUS
 }
 
@@ -115,7 +118,7 @@ void _write_char(t_console_desc *console_desc,char data)
 		for (i=0;i<to_end_line;i++) write_out_buf(console_desc,'\0');
 	}
 	else write_out_buf(console_desc,data);
-	SPINLOCK_LOCK(console_desc->spinlock);
+	SPINLOCK_UNLOCK(console_desc->spinlock);
 //	RESTORE_IF_STATUS
 }
 
@@ -139,7 +142,7 @@ void _delete_char(t_console_desc *console_desc)
 		console_desc->video_buf[--console_desc->video_buf_index]=CHAR_NULL;
 		console_desc->video_buf[--console_desc->video_buf_index]=SCREEN_FOREGROUND_COLOR;
 	}
-	SPINLOCK_ULOCK(console_desc->spinlock);
+	SPINLOCK_UNLOCK(console_desc->spinlock);
 //	RESTORE_IF_STATUS
 }
 
@@ -163,7 +166,7 @@ void _update_cursor(t_console_desc *console_desc)
     	out((unsigned char)(cursor_position&0xFF),0x3D5);
    	out(0x0E,0x3D4);
     	out((unsigned char )((cursor_position>>8)&0xFF),0x3D5);
-	SPINLOCK_ULOCK(console_desc->spinlock);
+	SPINLOCK_UNLOCK(console_desc->spinlock);
 //	RESTORE_IF_STATUS
 }
 
