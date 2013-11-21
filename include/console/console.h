@@ -3,6 +3,7 @@
 
 #include "data_types/dllist.h"
 #include "scheduler/process.h"
+#include "synchro_types/spin_lock.h"
 
 #define VIDEO_MEM_ADD 0xb8000;
 #define SCREEN_FOREGROUND_COLOR 0x07;
@@ -28,6 +29,7 @@ typedef struct s_console_desc
 	unsigned int first_char;
 	struct t_process_context* sleeping_process;
 	unsigned int is_empty;
+	t_spinlock_desc spinlock;
 }
 t_console_desc;
 

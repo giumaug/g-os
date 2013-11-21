@@ -12,6 +12,7 @@ static void update_cursor(unsigned int curs_pos);
 void init_console(t_console_desc *console_desc,int out_buf_len,int in_buf_len)
 {
 	int i,j=0;
+	SPINLOCK_INIT(console_desc->spinlock);
 	console_desc->out_buf=kmalloc(out_buf_len);
 	console_desc->out_buf_len=out_buf_len;
 	console_desc->out_buf_index=-1;
@@ -30,6 +31,7 @@ void init_console(t_console_desc *console_desc,int out_buf_len,int in_buf_len)
 
 void free_console(t_console_desc *console_desc)
 {
+	SPINLOCK_UNLOCK(console_desc->spinlock);
 	kfree(console_desc->out_buf);
 }
 
@@ -54,8 +56,9 @@ static int write_out_buf(t_console_desc *console_desc,char data)
 	unsigned int index_1;
 	unsigned int index_2;
 
-	SAVE_IF_STATUS
-	CLI	
+//	SAVE_IF_STATUS
+//	CLI
+	SPINLOCK_LOCK(console_desc->spinlock);	
 	INC(console_desc->out_buf_index,console_desc->out_buf_len,1,0);
 	console_desc->out_buf[console_desc->out_buf_index]=data;
 	if (console_desc->out_buf_index==0 && console_desc->first_char) 
@@ -94,7 +97,8 @@ static int write_out_buf(t_console_desc *console_desc,char data)
 	console_desc->video_buf[console_desc->video_buf_index]=console_desc->out_buf[console_desc->out_buf_index];
 	console_desc->video_buf_index++;
 	console_desc->video_buf[console_desc->video_buf_index]=SCREEN_FOREGROUND_COLOR;
-	RESTORE_IF_STATUS
+	SPINLOCK_ULOCK(console_desc->spinlock);
+//	RESTORE_IF_STATUS
 }
 
 void _write_char(t_console_desc *console_desc,char data)
@@ -102,37 +106,41 @@ void _write_char(t_console_desc *console_desc,char data)
 	unsigned int to_end_line;
 	unsigned int i;
 
-	SAVE_IF_STATUS
-	CLI
+//	SAVE_IF_STATUS
+//	CLI
+	SPINLOCK_LOCK(console_desc->spinlock);
 	if (data=='\n')
 	{
 		to_end_line=SCREEN_WIDTH -1 - (console_desc->out_buf_index %  SCREEN_WIDTH);
 		for (i=0;i<to_end_line;i++) write_out_buf(console_desc,'\0');
 	}
 	else write_out_buf(console_desc,data);
-	RESTORE_IF_STATUS
+	SPINLOCK_LOCK(console_desc->spinlock);
+//	RESTORE_IF_STATUS
 }
 
 void _echo_char(t_console_desc *console_desc,char data)
 {
-	SAVE_IF_STATUS
-	CLI
+//	SAVE_IF_STATUS
+//	CLI
 	_write_char(console_desc,data);	
 	_update_cursor(console_desc);
-	RESTORE_IF_STATUS
+//	RESTORE_IF_STATUS
 }
 
 void _delete_char(t_console_desc *console_desc)
 {
-	SAVE_IF_STATUS
-	CLI
+//	SAVE_IF_STATUS
+//	CLI
+	SPINLOCK_LOCK(console_desc->spinlock);
 	if (console_desc->out_buf_index/SCREEN_WIDTH==(console_desc->out_buf_index+1)/SCREEN_WIDTH)
 	{
 		console_desc->out_buf[--console_desc->out_buf_index]='\0';
 		console_desc->video_buf[--console_desc->video_buf_index]=CHAR_NULL;
 		console_desc->video_buf[--console_desc->video_buf_index]=SCREEN_FOREGROUND_COLOR;
 	}
-	RESTORE_IF_STATUS
+	SPINLOCK_ULOCK(console_desc->spinlock);
+//	RESTORE_IF_STATUS
 }
 
 void _enable_cursor(t_console_desc *console_desc)
@@ -147,13 +155,15 @@ void _disable_cursor(t_console_desc *console_desc)
 
 void _update_cursor(t_console_desc *console_desc)
 {
-	SAVE_IF_STATUS
-	CLI
+//	SAVE_IF_STATUS
+//	CLI
+	SPINLOCK_LOCK(console_desc->spinlock);
 	unsigned int cursor_position=(console_desc->video_buf_index/2)+1;
 	out(0x0F,0x3D4);
     	out((unsigned char)(cursor_position&0xFF),0x3D5);
    	out(0x0E,0x3D4);
     	out((unsigned char )((cursor_position>>8)&0xFF),0x3D5);
-	RESTORE_IF_STATUS
+	SPINLOCK_ULOCK(console_desc->spinlock);
+//	RESTORE_IF_STATUS
 }
 
