@@ -16,13 +16,6 @@
 extern unsigned int PAGE_DIR;
 t_system system;
 
-//t_data data[3]=
-//{
-//	{100,50000000,10},//4 sec on home 3 sec at work 10=100ms
-//	{1000,50000000,10}, //1s
-//	{10000,50000000,10}  //10s
-//};
-
 void kmain( void* mbd, unsigned int magic,int init_data_add)
 {	
 	unsigned int *init_data=init_data_add;
@@ -44,8 +37,6 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	system.scheduler_desc.scheduler_queue[0]=0;
 	system.race_tracker.index=0;
 	system.race_tracker.buffer[0]=1;
-//	system.race_tracker.stack=0x1ffffb;
-//	system.race_tracker.mem_index=0;
 	system.process_info.current_process=NULL;
 	init_kmalloc();
    	init_idt();
@@ -58,7 +49,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	init_ata(&device_desc);
 //	init_ext2(&ext2,&device_desc);
 //	system.root_fs=&ext2;
-//	system.device_desc=&device_desc;
+	system.device_desc=&device_desc;
 	
 	system.master_page_dir=init_virtual_memory();
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int)system.master_page_dir)))
@@ -99,7 +90,6 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	process_context.page_dir=init_vm_process(system.master_page_dir,proc_phy_addr,&process_context);
 	*(system.process_info.tss.ss)=0x18;
 	*(system.process_info.tss.esp)=0x1FFFFF;//64K kernel mode stack
-	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) process_context.page_dir)))
-//	STI                                 	
+	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) process_context.page_dir)))                               	
 	SWITCH_TO_USER_MODE				       	
 }

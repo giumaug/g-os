@@ -153,7 +153,7 @@ void _enable_cursor(t_console_desc *console_desc)
 
 void _disable_cursor(t_console_desc *console_desc)
 {
-	_update_cursor(-1);
+	_update_cursor(console_desc);
 }
 
 void _update_cursor(t_console_desc *console_desc)
