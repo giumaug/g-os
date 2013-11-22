@@ -3,24 +3,22 @@
 
 //HINT:%= expands in unique integer
 
-//#define SPINLOCK_LOCK(lock)     \				\
-//asm ("                          \
-//	_spin%=:		\
- //    	mov $0x1,%%eax;           \
-//"); 
-asm("		\
+#define SPINLOCK_LOCK(lock)     \				
+asm ("                          \
+	_spin%=:		\
+     	mov $0x1,%%eax;         \
 	xchg %%eax,%0;		\
 	cmp $0,%%eax;		\
 	jne _spin%=;		\
-     "		\
-     ::"r"(lock):"%eax");
+     "		                \
+     ::"r"(lock.status):"%eax");
 			
 
 #define SPINLOCK_UNLOCK(lock) 	\
 asm("				\
 	mov $0,%0		\
     "				\
-    :"=r"(lock));
+    :"=r"(lock.status));
 
 #define SPINLOCK_INIT(lock)     SPINLOCK_UNLOCK(lock)
 
