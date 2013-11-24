@@ -89,7 +89,7 @@ extern inline void scanf(char *text,void *val)
 	{
 		params[0]=&data;
 		SYSCALL(5,params);
-		if (data!=NULL && data!='\r') 
+		if (data!='\r') 
 		{
 			if (data=='\b' && index!=0) 
 			{
