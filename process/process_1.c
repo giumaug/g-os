@@ -12,9 +12,10 @@ process_1()
 	unsigned int age=0;
 	unsigned int pid;
 	
-	while(1)
-	{
-		n_request=(rand(&seed) % 100 + 1); //+200;
+//	while(1)
+//	{
+		n_request=(rand(&seed) % 100 + 1);
+		n_request=1;
 		printf("\nage=");
 		d_printf(age);
 		printf("\nrequest number=");
@@ -30,5 +31,5 @@ process_1()
 		age++;
 		sleep(20000);
 		check_free_mem();
-	}
+//	}
 }

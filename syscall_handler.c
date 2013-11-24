@@ -137,6 +137,21 @@ void syscall_handler()
 		params[2]=_mkdir(system.root_fs,params[0],params[1]);
 		on_exit_action=1; 
 	}
+	//syscall 24 and 25 test only
+	else if (syscall_num==24) 
+	{
+		_read_28_ata(system.device_desc,params[0],params[1],params[2]);	
+	}
+	else if (syscall_num==25) 
+	{
+		_write_28_ata(system.device_desc,params[0],params[1],params[2]);
+	}
+
+	else if (syscall_num==255) 
+	{
+		on_exit_action=1; 
+	}
+	
 //	EXIT_INT_HANDLER(on_exit_action,processor_reg,0)
 
 	check_race(3);

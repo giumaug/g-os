@@ -41,13 +41,13 @@ void free_console(t_console_desc *console_desc)
 char _read_char(t_console_desc *console_desc)
 {
 	char data;
-	if (data=read_buf()) 
+
+	while (!(data=read_buf())) 
 	{
-		return data;
-	}
-	system.active_console_desc->sleeping_process=system.process_info.current_process->val;
-	_sleep();	
-	return NULL;
+		system.active_console_desc->sleeping_process=system.process_info.current_process->val;
+		_sleep();
+	}	
+	return data;	
 }
 
 static int write_out_buf(t_console_desc *console_desc,char data)

@@ -47,15 +47,13 @@ unsigned int _read_28_ata(t_device_desc* device_desc,unsigned int sector_count,u
 	SAVE_IF_STATUS
 	CLI
 	current_process_context=system.process_info.current_process->val;
-	if (device_desc->status==REQUEST_WAITING)
+	while(device_desc->status==REQUEST_WAITING)
 	{
-		_sleep();
 		ll_append(device_desc->pending_request,current_process_context);
+		_sleep();
+		
 	}
-	else 
-	{
-		device_desc->status=REQUEST_WAITING;
-	}
+	device_desc->status=REQUEST_WAITING;
 	out(0xE0 | (lba >> 24),0x1F6);
 	out(0x00,0x1F1);
 	out((unsigned char)sector_count,0x1F2);
@@ -69,18 +67,20 @@ unsigned int _read_28_ata(t_device_desc* device_desc,unsigned int sector_count,u
 	}
 	if (system.process_info.current_process->val!=NULL)
 	{
+		system.device_desc->serving_process_context=system.process_info.current_process;
 		_sleep();
 	}
 	else
 	{
 		while(device_desc->status!=REQUEST_COMPLETED);
 	}
-	for (i=0;i<256;i++)
-	{  
-		//out(*(char*)io_buffer++,0x1F0); 
-		int zz=inw(0x1F0);
-		((char*)io_buffer)[i]=zz;
-	}
+	
+//	for (i=0;i<256;i++)
+//	{  
+//		//out(*(char*)io_buffer++,0x1F0); 
+//		int zz=inw(0x1F0);
+//		((char*)io_buffer)[i]=zz;
+//	}
 
 	if (!ll_empty(device_desc->pending_request))
 	{
@@ -103,8 +103,8 @@ unsigned int _write_28_ata(t_device_desc* device_desc,unsigned int sector_count,
 	current_process_context=system.process_info.current_process->val;
 	if (device_desc->status==REQUEST_WAITING)
 	{
-		_sleep();
 		ll_append(device_desc->pending_request,current_process_context);
+		_sleep();
 	}	
 	else 
 	{
@@ -123,13 +123,14 @@ unsigned int _write_28_ata(t_device_desc* device_desc,unsigned int sector_count,
 		return -1;
 	}
 
-	for (i=0;i<256;i++)
-	{  
-		//out(*(char*)io_buffer++,0x1F0); 
-		outw((unsigned short)55,0x1F0);
-	}
+//	for (i=0;i<256;i++)
+//	{  
+//		//out(*(char*)io_buffer++,0x1F0); 
+//		outw((unsigned short)55,0x1F0);
+//	}
 	if (system.process_info.current_process->val!=NULL)
 	{
+		system.device_desc->serving_process_context=system.process_info.current_process;
 		_sleep();
 	}
 	else
