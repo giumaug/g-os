@@ -30,18 +30,35 @@ process_2()
 //		free(mem_addr);
 //	}
 
+	for (z=0;z<512;z++)
+	{
+		*(write_mem_addr+z)=0xFF;
+	}
+
 	write_mem_addr=malloc(512);
 	read_mem_addr=malloc(512);
+
 	write_params[0]=1;
 	write_params[1]=10;
 	write_params[2]=write_mem_addr;
-	//_write_28_ata(system.device_desc,1,10,write_mem_addr);
-	SYSCALL(25,params);
+	SYSCALL(25,write_params);
+
 	write_params[0]=1;
 	write_params[1]=10;
-	write_params[2]=read_mem_addr;
-	//_read_28_ata(system.device_desc,1,10,read_mem_addr);
-	SYSCALL(24,params);
+	write_params[2]=write_mem_addr;
+	SYSCALL(25,write_params);
+
+/*	
+	read_params[0]=1;
+	read_params[1]=10;
+	read_params[2]=read_mem_addr;
+	SYSCALL(24,read_params);
+
+	read_params[0]=1;
+	read_params[1]=10;
+	read_params[2]=read_mem_addr;
+	SYSCALL(24,read_params);
+*/
 	free(write_mem_addr);
 	free(read_mem_addr);
 	exit(0);

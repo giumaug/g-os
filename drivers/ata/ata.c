@@ -20,6 +20,7 @@ void init_ata(t_device_desc* device_desc)
 	device_desc->pending_request=new_dllist();
 	device_desc->read=_read_28_ata;
 	device_desc->write=_write_28_ata;
+	device_desc->status=REQUEST_COMPLETED;
 }
 
 void free_ata(t_device_desc* device_desc)
@@ -28,11 +29,13 @@ void free_ata(t_device_desc* device_desc)
 }
 
 void int_handler_ata()
-{	
+{	unsigned int pippo;
 	struct t_processor_reg processor_reg;
 
 	SAVE_PROCESSOR_REG
-	system.device_desc->status=REQUEST_COMPLETED;	
+	system.device_desc->status=REQUEST_COMPLETED;
+	//pippo=in(0x1F7);
+	pippo=in(0x3F6);
 	EOI
 	_awake(system.device_desc->serving_process_context);
 	EXIT_INT_HANDLER(0,processor_reg,0)
@@ -51,7 +54,6 @@ unsigned int _read_28_ata(t_device_desc* device_desc,unsigned int sector_count,u
 	{
 		ll_append(device_desc->pending_request,current_process_context);
 		_sleep();
-		
 	}
 	device_desc->status=REQUEST_WAITING;
 	out(0xE0 | (lba >> 24),0x1F6);
@@ -61,13 +63,15 @@ unsigned int _read_28_ata(t_device_desc* device_desc,unsigned int sector_count,u
 	out((unsigned char)(lba >> 8),0x1F4);
 	out((unsigned char)(lba >> 16),0x1F5);
 	out(READ_28,0x1F7);
+	
 	if (!in(0x1F7) & 1)
 	{
 		return -1;
 	}
+
 	if (system.process_info.current_process->val!=NULL)
 	{
-		system.device_desc->serving_process_context=system.process_info.current_process;
+		system.device_desc->serving_process_context=system.process_info.current_process->val;
 		_sleep();
 	}
 	else
@@ -75,12 +79,12 @@ unsigned int _read_28_ata(t_device_desc* device_desc,unsigned int sector_count,u
 		while(device_desc->status!=REQUEST_COMPLETED);
 	}
 	
-//	for (i=0;i<256;i++)
-//	{  
-//		//out(*(char*)io_buffer++,0x1F0); 
-//		int zz=inw(0x1F0);
-//		((char*)io_buffer)[i]=zz;
-//	}
+	for (i=0;i<256;i++)
+	{  
+		//out(*(char*)io_buffer++,0x1F0); 
+		int zz=inw(0x1F0);
+		((char*)io_buffer)[i]=zz;
+	}
 
 	if (!ll_empty(device_desc->pending_request))
 	{
@@ -94,6 +98,7 @@ unsigned int _read_28_ata(t_device_desc* device_desc,unsigned int sector_count,u
 
 unsigned int _write_28_ata(t_device_desc* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer)
 {
+	unsigned int pippo;
 	int i;
 	struct t_process_context* process_context;
 	struct t_process_context *current_process_context;
@@ -118,19 +123,29 @@ unsigned int _write_28_ata(t_device_desc* device_desc,unsigned int sector_count,
 	out((unsigned char)(lba >> 16),0x1F5);
 	out(WRITE_28,0x1F7);
 
-	if (!in(0x1F7) & 1)
-	{
-		return -1;
+//	pippo=in(0x1F7);
+//
+//	if (!in(0x1F7) & 1)
+//	{
+//		return -1;
+//	}
+
+	for (i=0;i<256;i++)
+	{  
+		//out(*(char*)io_buffer++,0x1F0); 
+		outw((unsigned short)55,0x1F0);
+		if (i==100)
+		{
+			//pippo=in(0x1F7);
+		}
 	}
 
-//	for (i=0;i<256;i++)
-//	{  
-//		//out(*(char*)io_buffer++,0x1F0); 
-//		outw((unsigned short)55,0x1F0);
-//	}
+	//pippo=in(0x1F7);
+	pippo=in(0x3F6);
+
 	if (system.process_info.current_process->val!=NULL)
 	{
-		system.device_desc->serving_process_context=system.process_info.current_process;
+		system.device_desc->serving_process_context=system.process_info.current_process->val;
 		_sleep();
 	}
 	else
@@ -138,7 +153,7 @@ unsigned int _write_28_ata(t_device_desc* device_desc,unsigned int sector_count,
 		while(device_desc->status!=REQUEST_COMPLETED);
 	}
 	
-	_awake(current_process_context);
+	//_awake(current_process_context);
 	if (!ll_empty(device_desc->pending_request))
 	{
 		process_context=(struct t_process_context*)ll_sentinel(device_desc->pending_request);
