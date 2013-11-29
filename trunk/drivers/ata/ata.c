@@ -34,8 +34,8 @@ void int_handler_ata()
 
 	SAVE_PROCESSOR_REG
 	system.device_desc->status=REQUEST_COMPLETED;
-	//pippo=in(0x1F7);
-	pippo=in(0x3F6);
+	pippo=in(0x1F7);
+	//pippo=in(0x3F6);
 	EOI
 	_awake(system.device_desc->serving_process_context);
 	EXIT_INT_HANDLER(0,processor_reg,0)
@@ -56,6 +56,7 @@ unsigned int _read_28_ata(t_device_desc* device_desc,unsigned int sector_count,u
 		_sleep();
 	}
 	device_desc->status=REQUEST_WAITING;
+	out(0x08,0x3F6);
 	out(0xE0 | (lba >> 24),0x1F6);
 	out(0x00,0x1F1);
 	out((unsigned char)sector_count,0x1F2);
@@ -115,7 +116,7 @@ unsigned int _write_28_ata(t_device_desc* device_desc,unsigned int sector_count,
 	{
 		device_desc->status=REQUEST_WAITING;
 	}
-	
+	out(0x08,0x3F6);
 	out(0xE0 | (lba >> 24),0x1F6);
 	out((unsigned char)sector_count,0x1F2);
 	out((unsigned char)lba,0x1F3);
@@ -141,7 +142,7 @@ unsigned int _write_28_ata(t_device_desc* device_desc,unsigned int sector_count,
 	}
 
 	//pippo=in(0x1F7);
-	pippo=in(0x3F6);
+	//pippo=in(0x3F6);
 
 	if (system.process_info.current_process->val!=NULL)
 	{
