@@ -29,13 +29,26 @@ void free_ata(t_device_desc* device_desc)
 }
 
 void int_handler_ata()
-{	unsigned int pippo;
+{	
+	int i;	
+	unsigned int pippo;
 	struct t_processor_reg processor_reg;
 
 	SAVE_PROCESSOR_REG
+	CLI
+//	out(0x1,0x3F6);
 	system.device_desc->status=REQUEST_COMPLETED;
+
+
+	for (i=0;i<256;i++)
+	{  
+		//out(*(char*)io_buffer++,0x1F0); 
+		int zz=inw(0x1F0);
+	}
+
 	pippo=in(0x1F7);
-	//pippo=in(0x3F6);
+//	pippo=in(0x3F6);
+//	out(0x0,0x3F6);
 	EOI
 	_awake(system.device_desc->serving_process_context);
 	EXIT_INT_HANDLER(0,processor_reg,0)
@@ -65,10 +78,10 @@ unsigned int _read_28_ata(t_device_desc* device_desc,unsigned int sector_count,u
 	out((unsigned char)(lba >> 16),0x1F5);
 	out(READ_28,0x1F7);
 	
-	if (!in(0x1F7) & 1)
-	{
-		return -1;
-	}
+//	if (!in(0x1F7) & 1)
+//	{
+//		return -1;
+//	}
 
 	if (system.process_info.current_process->val!=NULL)
 	{
@@ -80,12 +93,12 @@ unsigned int _read_28_ata(t_device_desc* device_desc,unsigned int sector_count,u
 		while(device_desc->status!=REQUEST_COMPLETED);
 	}
 	
-	for (i=0;i<256;i++)
-	{  
-		//out(*(char*)io_buffer++,0x1F0); 
-		int zz=inw(0x1F0);
-		((char*)io_buffer)[i]=zz;
-	}
+//	for (i=0;i<256;i++)
+//	{  
+//		//out(*(char*)io_buffer++,0x1F0); 
+//		int zz=inw(0x1F0);
+//		((char*)io_buffer)[i]=zz;
+//	}
 
 	if (!ll_empty(device_desc->pending_request))
 	{
