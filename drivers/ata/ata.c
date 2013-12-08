@@ -56,6 +56,7 @@ void int_handler_ata()
 
 unsigned int _read_28_ata(t_device_desc* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer)
 {
+	unsigned int pippo;	
 	int i;
 	struct t_process_context* process_context;
 	struct t_process_context *current_process_context;	
@@ -69,13 +70,20 @@ unsigned int _read_28_ata(t_device_desc* device_desc,unsigned int sector_count,u
 		_sleep();
 	}
 	device_desc->status=REQUEST_WAITING;
-	out(0x08,0x3F6);
-	out(0xE0 | (lba >> 24),0x1F6);
-	out(0x00,0x1F1);
+//	pippo=in(0x1F7);
+//	out(0x08,0x3F6);
+//	out(0xE0 | (lba >> 24),0x1F6);
+//	pippo=in(0x1F7);
+//	pippo=in(0x1F7);
+//	pippo=in(0x1F7);
+//	pippo=in(0x1F7);
+//	pippo=in(0x1F7);
+//	out(0x00,0x1F1);
 	out((unsigned char)sector_count,0x1F2);
 	out((unsigned char)lba,0x1F3);
 	out((unsigned char)(lba >> 8),0x1F4);
 	out((unsigned char)(lba >> 16),0x1F5);
+	out(0xE0 | (lba >> 24),0x1F6);
 	out(READ_28,0x1F7);
 	
 //	if (!in(0x1F7) & 1)
