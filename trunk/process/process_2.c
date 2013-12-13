@@ -55,10 +55,10 @@ process_2()
 	read_params[2]=read_mem_addr;
 	SYSCALL(24,read_params);
 
-	read_params[0]=1;
-	read_params[1]=10;
-	read_params[2]=read_mem_addr;
-	SYSCALL(24,read_params);
+//	read_params[0]=1;
+//	read_params[1]=10;
+//	read_params[2]=read_mem_addr;
+//	SYSCALL(24,read_params);
 
 	free(write_mem_addr);
 	free(read_mem_addr);
