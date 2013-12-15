@@ -65,7 +65,7 @@ void int_handler_ata()
 	system.device_desc->status=REQUEST_COMPLETED;
 //	pippo=in(0x3F6);
 //	out(0x0,0x3F6);
-//	EOI
+	EOI
 	_awake(system.device_desc->serving_process_context);
 	EXIT_INT_HANDLER(0,processor_reg,0)
 }
@@ -95,16 +95,16 @@ unsigned int _read_28_ata(t_device_desc* device_desc,unsigned int sector_count,u
 //	out(0xE0 | (lba >> 24),0x1F6);
 //	out(READ_28,0x1F7);
 
-	out(0x4,0x3F6);
-	for (ii=0;ii<1000000000;ii++);
-	for (ii=0;ii<1000000000;ii++);
-	for (ii=0;ii<1000000000;ii++);
-	pippo=in(0x1F7);
-	out(0x0,0x3F6);
-	for (ii=0;ii<1000000000;ii++);
-	for (ii=0;ii<1000000000;ii++);
-	for (ii=0;ii<1000000000;ii++);
-	pippo=in(0x1F7);
+//	out(0x4,0x3F6);
+//	for (ii=0;ii<1000000000;ii++);
+//	for (ii=0;ii<1000000000;ii++);
+//	for (ii=0;ii<1000000000;ii++);
+//	pippo=in(0x1F7);
+//	out(0x0,0x3F6);
+//	for (ii=0;ii<1000000000;ii++);
+//	for (ii=0;ii<1000000000;ii++);
+//	for (ii=0;ii<1000000000;ii++);
+//	pippo=in(0x1F7);
 
 	_outb(0x1F2,(unsigned char)sector_count);
 	_outb(0x1F3,(unsigned char)lba);
@@ -112,6 +112,11 @@ unsigned int _read_28_ata(t_device_desc* device_desc,unsigned int sector_count,u
 	_outb(0x1F5,(unsigned char)(lba >> 16));
 	_outb(0x1F6,0xE0 | (lba >> 24));
 	_outb(0x1F7,0x20);
+
+//	pippo=_inb(0x1F7);
+
+//	int zz=_inw(0x1F0);
+//	zz=_inw(0x1F0);
 
 
 	
@@ -168,7 +173,7 @@ unsigned int _write_28_ata(t_device_desc* device_desc,unsigned int sector_count,
 	{
 		device_desc->status=REQUEST_WAITING;
 	}
-	out(0x08,0x3F6);
+//	out(0x08,0x3F6);
 	out(0xE0 | (lba >> 24),0x1F6);
 	out((unsigned char)sector_count,0x1F2);
 	out((unsigned char)lba,0x1F3);
@@ -176,7 +181,7 @@ unsigned int _write_28_ata(t_device_desc* device_desc,unsigned int sector_count,
 	out((unsigned char)(lba >> 16),0x1F5);
 	out(WRITE_28,0x1F7);
 
-//	pippo=in(0x1F7);
+	pippo=in(0x1F7);
 //
 //	if (!in(0x1F7) & 1)
 //	{
@@ -193,7 +198,7 @@ unsigned int _write_28_ata(t_device_desc* device_desc,unsigned int sector_count,
 		}
 	}
 
-	//pippo=in(0x1F7);
+	pippo=in(0x1F7);
 	//pippo=in(0x3F6);
 
 	if (system.process_info.current_process->val!=NULL)

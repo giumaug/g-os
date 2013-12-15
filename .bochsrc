@@ -1,0 +1,25 @@
+megs: 8
+romimage: file=/opt/bochs-2.6.2/share/bochs/BIOS-bochs-latest
+vgaromimage: file=/opt/bochs-2.6.2/share/bochs/VGABIOS-lgpl-latest
+
+#floppya: 1_44="/home/peppe/Scrivania/simplix/floppy.img", status=inserted
+ata0-master: type=disk, path="/home/peppe/Desktop/g-os/disk.img", mode=flat, cylinders=10, heads=16, spt=63
+#ata0-slave: type=cdrom, path="/home/peppe/Scrivania/simplix/ubuntu.iso", status=inserted
+#ata1: enabled=0, ioaddr1=0x170, ioaddr2=0x370, irq=15
+
+boot: disk
+cpu: count=1, ips=10000000
+memory: guest=256, host=256
+#mouse: enabled=0
+log: out.bochs
+
+# Make the PIT emulated by bochs tick at the correct interval. Note that
+# enabling this feature sacrifices reproducibility, which may be a problem
+# at times when tracking a specific bug.
+clock: sync=realtime, time0=utc
+
+# For debugging with gdb.
+# Keep this line when using bochs-gdb.
+# Comment it out when using bochs-dbg
+# See http://bochs.sourceforge.net/doc/docbook/user/bochsrc.html#BOCHSOPT-GDBSTUB
+ gdbstub: enabled=1, port=1234, text_base=0, data_base=0, bss_base=0

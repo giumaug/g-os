@@ -38,17 +38,17 @@ process_2()
 	write_mem_addr=malloc(512);
 	read_mem_addr=malloc(512);
 
-/*
-	write_params[0]=1;
-	write_params[1]=10;
-	write_params[2]=write_mem_addr;
-	SYSCALL(25,write_params);
 
-	write_params[0]=1;
-	write_params[1]=10;
-	write_params[2]=write_mem_addr;
-	SYSCALL(25,write_params);
-*/
+//	write_params[0]=1;
+//	write_params[1]=10;
+//	write_params[2]=write_mem_addr;
+//	SYSCALL(25,write_params);
+
+//	write_params[0]=1;
+//	write_params[1]=10;
+//	write_params[2]=write_mem_addr;
+//	SYSCALL(25,write_params);
+
 	
 	read_params[0]=1;
 	read_params[1]=10;
