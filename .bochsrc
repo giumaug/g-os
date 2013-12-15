@@ -11,6 +11,7 @@ boot: disk
 cpu: count=1, ips=10000000
 memory: guest=256, host=256
 #mouse: enabled=0
+debug: action=ignore, harddrv=report
 log: out.bochs
 
 # Make the PIT emulated by bochs tick at the correct interval. Note that

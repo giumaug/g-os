@@ -60,7 +60,7 @@ void int_handler_ata()
 	struct t_processor_reg processor_reg;
 
 	SAVE_PROCESSOR_REG
-//	CLI
+	CLI
 //	out(0x1,0x3F6);
 	system.device_desc->status=REQUEST_COMPLETED;
 //	pippo=in(0x3F6);
