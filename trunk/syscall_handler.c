@@ -25,7 +25,15 @@ void syscall_handler()
  	
 //	CLI
 	SAVE_PROCESSOR_REG
-	SWITCH_DS_TO_KERNEL_MODE
+//	SWITCH_DS_TO_KERNEL_MODE
+
+	asm(".comm TMP_1,2;");                             
+        asm("mov  %ax,TMP_1;"); 				   
+	asm("mov $0x18,%ax;");                             
+	asm("mov  %ax,%ds;");				   
+	asm("mov %ax,%es;");				   
+	asm("mov TMP_1,%ax;");	                           
+				   
 	check_race(2);
 	on_exit_action=0;
 	current_process_context=system.process_info.current_process->val;
@@ -194,7 +202,7 @@ void syscall_handler()
 	else                                                                                                
 	{   
 		DO_STACK_FRAME(_processor_reg.esp-8);                                                                                                
-		if (0==0x20)                                                                               
+		if (1)                                                                               
 		{                                                                                           
 			SWITCH_DS_TO_USER_MODE                                                              
 		}                                                                                           
