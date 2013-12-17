@@ -19,7 +19,6 @@ void exception()
 void int_handler_generic() 
 { 
 	exception(); 
-	EOI
 	STI
 	asm("pop %ebp;iret");
 	return;
@@ -28,7 +27,6 @@ void int_handler_generic()
 void int_handler_generic_0() 
 {
 	exception();  
-	EOI
 	STI
 	asm("pop %ebp;iret");
 	return;
@@ -37,7 +35,6 @@ void int_handler_generic_0()
 void int_handler_generic_1() 
 {
 	exception();  
-	EOI
 	STI
 	asm("pop %ebp;iret");
 	return;
@@ -46,7 +43,6 @@ void int_handler_generic_1()
 void int_handler_generic_2() 
 {
 	exception();  
-	EOI
 	STI
 	asm("pop %ebp;iret");
 	return;
@@ -55,7 +51,6 @@ void int_handler_generic_2()
 void int_handler_generic_3() 
 { 
 	exception(); 
-	EOI
 	STI
 	asm("pop %ebp;iret");
 	return;
@@ -64,7 +59,6 @@ void int_handler_generic_3()
 void int_handler_generic_4() 
 {
 	exception();  
-	EOI
 	STI
 	asm("pop %ebp;iret");
 	return;
@@ -73,7 +67,6 @@ void int_handler_generic_4()
 void int_handler_generic_5() 
 {
 	exception();  
-	EOI
 	STI
 	asm("pop %ebp;iret");
 	return;
@@ -82,7 +75,6 @@ void int_handler_generic_5()
 void int_handler_generic_6() 
 {
 	exception();  
-	EOI
 	STI
 	asm("pop %ebp;iret");
 	return;
@@ -91,7 +83,6 @@ void int_handler_generic_6()
 void int_handler_generic_7() 
 {
 	exception();  
-	EOI
 	STI
 	asm("pop %ebp;iret");
 	return;
@@ -100,7 +91,6 @@ void int_handler_generic_7()
 void int_handler_generic_8() 
 {
 	exception();  
-	EOI
 	STI
 	asm("pop %ebp;iret");
 	return;
@@ -109,7 +99,6 @@ void int_handler_generic_8()
 void int_handler_generic_9() 
 {
 	exception();  
-	EOI
 	STI
 	asm("pop %ebp;iret");
 	return;
@@ -118,7 +107,6 @@ void int_handler_generic_9()
 void int_handler_generic_10() 
 {
 	exception();  
-	EOI
 	STI
 	asm("pop %ebp;iret");
 	return;
@@ -127,7 +115,6 @@ void int_handler_generic_10()
 void int_handler_generic_11() 
 {
 	exception();  
-	EOI
 	STI
 	asm("pop %ebp;iret");
 	return;
@@ -136,7 +123,6 @@ void int_handler_generic_11()
 void int_handler_generic_12() 
 {
 	exception();  
-	EOI
 	STI
 	asm("pop %ebp;iret");
 	return;
@@ -145,7 +131,6 @@ void int_handler_generic_12()
 void int_handler_generic_13() 
 {
 	exception();  
-	EOI
 	STI
 	asm("pop %ebp;iret");
 	return;
@@ -154,7 +139,6 @@ void int_handler_generic_13()
 void int_handler_generic_14() 
 {
 	exception();  
-	EOI
 	STI
 	asm("pop %ebp;iret");
 	return;
@@ -163,7 +147,6 @@ void int_handler_generic_14()
 void int_handler_generic_15() 
 {
 	exception();  
-	EOI
 	STI
 	asm("pop %ebp;iret");
 	return;
@@ -172,7 +155,6 @@ void int_handler_generic_15()
 void int_handler_generic_16() 
 {
 	exception();  
-	EOI
 	STI
 	asm("pop %ebp;iret");
 	return;
@@ -181,7 +163,6 @@ void int_handler_generic_16()
 void int_handler_generic_17() 
 {
 	exception();  
-	EOI
 	STI
 	asm("pop %ebp;iret");
 	return;
@@ -190,7 +171,6 @@ void int_handler_generic_17()
 void int_handler_generic_18() 
 {
 	exception();  
-	EOI
 	STI
 	asm("pop %ebp;iret");
 	return;
@@ -199,7 +179,6 @@ void int_handler_generic_18()
 void int_handler_generic_19() 
 {
 	exception();  
-	EOI
 	STI
 	asm("pop %ebp;iret");
 	return;

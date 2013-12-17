@@ -55,22 +55,12 @@ void free_ata(t_device_desc* device_desc)
 
 void int_handler_ata()
 {	
-	int i;	
-	unsigned int pippo;
 	struct t_processor_reg processor_reg;
 
 	SAVE_PROCESSOR_REG
-	CLI
-//	out(0x1,0x3F6);
+	CLI-------------------qui
 	system.device_desc->status=REQUEST_COMPLETED;
-//	pippo=in(0x3F6);
-//	out(0x0,0x3F6);
-	
-	asm("mov $0x20,%%al;out %%al,$0xa0;" : : :"%eax");
-
-
-
-
+	EOI_TO_SLAVE_PIC
 	_awake(system.device_desc->serving_process_context);
 	EXIT_INT_HANDLER(0,processor_reg,0)
 }

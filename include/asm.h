@@ -136,10 +136,16 @@
                 asm ("			mov TMP,%ax;                               \
 		    ");			           
 
-#define EOI asm("mov $0x20,%%al; \
-		 out %%al,$0x20;" \
-		: \
-		: \
+#define EOI_TO_MASTER_PIC asm("mov $0x20,%%al; \
+		 out %%al,$0x20;"              \
+		:                              \
+		:                              \
+		:"%eax");
+
+#define EOI_TO_SLAVE_PIC asm("mov $0x20,%%al;  \
+		 out %%al,$0xa0;"              \
+		:                              \
+		:                              \
 		:"%eax");
 
 #define SAVE_IF_STATUS          unsigned int if_status;          \
