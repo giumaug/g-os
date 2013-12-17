@@ -65,7 +65,12 @@ void int_handler_ata()
 	system.device_desc->status=REQUEST_COMPLETED;
 //	pippo=in(0x3F6);
 //	out(0x0,0x3F6);
-	EOI
+	
+	asm("mov $0x20,%%al;out %%al,$0xa0;" : : :"%eax");
+
+
+
+
 	_awake(system.device_desc->serving_process_context);
 	EXIT_INT_HANDLER(0,processor_reg,0)
 }
