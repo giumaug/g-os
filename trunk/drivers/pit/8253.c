@@ -45,7 +45,7 @@ void int_handler_pit()
 	
 	SAVE_PROCESSOR_REG
 	CLI
-	EOI
+	EOI_TO_MASTER_PIC
 	GET_DS(ds)
 	check_race(0);
 	if (ds==0x20) 

@@ -307,7 +307,7 @@ void int_handler_kbc()
 	
 	SAVE_PROCESSOR_REG
 	CLI
-	EOI
+	EOI_TO_MASTER_PIC
 //	disable_irq_line(1);
 //	STI
 	check_race(4);
