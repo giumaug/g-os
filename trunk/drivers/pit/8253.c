@@ -47,7 +47,6 @@ void int_handler_pit()
 	CLI
 	EOI_TO_MASTER_PIC
 	GET_DS(ds)
-	check_race(0);
 	if (ds==0x20) 
 	{
 		SWITCH_DS_TO_KERNEL_MODE
@@ -137,16 +136,8 @@ void int_handler_pit()
 				is_schedule=1;	
 			}
 		}
-
-//		if (process_context->proc_status==EXITING)
-//		{
-//			x=0;
-//			check_active_process();
-//		}
 	}
-	check_race(1);
 //	EXIT_INT_HANDLER(is_schedule,processor_reg,ds);
-
 
 	static struct t_process_context _current_process_context;                                          
 	static struct t_process_context _old_process_context;                                              

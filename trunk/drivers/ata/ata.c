@@ -8,31 +8,6 @@ extern t_system system;
 
 void static int_handler_ata();
 
-static inline void _outb(int port, unsigned char data)
-{
-    asm volatile("outb %0, %w1" : : "a" (data), "d" (port));
-}
-
-static inline char _inb(int port)
-{
-    unsigned char data;
-    asm volatile("inb %w1, %0" : "=a" (data) : "d" (port));
-    return data;
-}
-
-static inline void _outw(int port, short data)
-{
-    asm volatile("outw %0, %w1" : : "a" (data), "d" (port));
-}
-
-static inline short _inw(int port)
-{
-    short data;
-    asm volatile("inw %w1, %0" : "=a" (data) : "d" (port));
-    return data;
-}
- 
-
 void init_ata(t_device_desc* device_desc)
 {	
 	struct t_i_desc i_desc;
@@ -58,8 +33,8 @@ void int_handler_ata()
 	struct t_processor_reg processor_reg;
 
 	SAVE_PROCESSOR_REG
-	CLI-------------------qui
 	system.device_desc->status=REQUEST_COMPLETED;
+	EOI_TO_MASTER_PIC
 	EOI_TO_SLAVE_PIC
 	_awake(system.device_desc->serving_process_context);
 	EXIT_INT_HANDLER(0,processor_reg,0)
@@ -67,9 +42,7 @@ void int_handler_ata()
 
 unsigned int _read_28_ata(t_device_desc* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer)
 {
-	unsigned int pippo;	
 	int i;
-	long ii;
 	struct t_process_context* process_context;
 	struct t_process_context *current_process_context;	
 	
@@ -83,42 +56,12 @@ unsigned int _read_28_ata(t_device_desc* device_desc,unsigned int sector_count,u
 	}
 	device_desc->status=REQUEST_WAITING;
 	
-//	out((unsigned char)sector_count,0x1F2);
-//	out((unsigned char)lba,0x1F3);
-//	out((unsigned char)(lba >> 8),0x1F4);
-//	out((unsigned char)(lba >> 16),0x1F5);
-//	out(0xE0 | (lba >> 24),0x1F6);
-//	out(READ_28,0x1F7);
-
-//	out(0x4,0x3F6);
-//	for (ii=0;ii<1000000000;ii++);
-//	for (ii=0;ii<1000000000;ii++);
-//	for (ii=0;ii<1000000000;ii++);
-//	pippo=in(0x1F7);
-//	out(0x0,0x3F6);
-//	for (ii=0;ii<1000000000;ii++);
-//	for (ii=0;ii<1000000000;ii++);
-//	for (ii=0;ii<1000000000;ii++);
-//	pippo=in(0x1F7);
-
-	_outb(0x1F2,(unsigned char)sector_count);
-	_outb(0x1F3,(unsigned char)lba);
-	_outb(0x1F4,(unsigned char)(lba >> 8));
-	_outb(0x1F5,(unsigned char)(lba >> 16));
-	_outb(0x1F6,0xE0 | (lba >> 24));
-	_outb(0x1F7,0x20);
-
-//	pippo=_inb(0x1F7);
-
-//	int zz=_inw(0x1F0);
-//	zz=_inw(0x1F0);
-
-
-	
-//	if (!in(0x1F7) & 1)
-//	{
-//		return -1;
-//	}
+	out((unsigned char)sector_count,0x1F2);
+	out((unsigned char)lba,0x1F3);
+	out((unsigned char)(lba >> 8),0x1F4);
+	out((unsigned char)(lba >> 16),0x1F5);
+	out(0xE0 | (lba >> 24),0x1F6);
+	out(READ_28,0x1F7);
 
 	if (system.process_info.current_process->val!=NULL)
 	{
@@ -130,12 +73,17 @@ unsigned int _read_28_ata(t_device_desc* device_desc,unsigned int sector_count,u
 	{
 		while(device_desc->status!=REQUEST_COMPLETED);
 	}
+
+	if (!in(0x1F7) & 1)
+	{
+		panic();
+		return -1;
+	}
 	
-	pippo=_inb(0x1F7);
 	for (i=0;i<256;i++)
 	{  
 		//out(*(char*)io_buffer++,0x1F0); 
-		int zz=_inw(0x1F0);
+		int zz=inw(0x1F0);
 		((char*)io_buffer)[i]=zz;
 	}
 
@@ -168,7 +116,7 @@ unsigned int _write_28_ata(t_device_desc* device_desc,unsigned int sector_count,
 	{
 		device_desc->status=REQUEST_WAITING;
 	}
-//	out(0x08,0x3F6);
+
 	out(0xE0 | (lba >> 24),0x1F6);
 	out((unsigned char)sector_count,0x1F2);
 	out((unsigned char)lba,0x1F3);
@@ -176,25 +124,11 @@ unsigned int _write_28_ata(t_device_desc* device_desc,unsigned int sector_count,
 	out((unsigned char)(lba >> 16),0x1F5);
 	out(WRITE_28,0x1F7);
 
-	pippo=in(0x1F7);
-//
-//	if (!in(0x1F7) & 1)
-//	{
-//		return -1;
-//	}
-
 	for (i=0;i<256;i++)
 	{  
 		//out(*(char*)io_buffer++,0x1F0); 
-		outw((unsigned short)55,0x1F0);
-		if (i==100)
-		{
-			//pippo=in(0x1F7);
-		}
+		outw((unsigned short)57,0x1F0);
 	}
-
-	pippo=in(0x1F7);
-	//pippo=in(0x3F6);
 
 	if (system.process_info.current_process->val!=NULL)
 	{
@@ -205,8 +139,13 @@ unsigned int _write_28_ata(t_device_desc* device_desc,unsigned int sector_count,
 	{
 		while(device_desc->status!=REQUEST_COMPLETED);
 	}
-	
-	//_awake(current_process_context);
+
+	if (!in(0x1F7) & 1)
+	{
+		panic();
+		return -1;
+	}
+
 	if (!ll_empty(device_desc->pending_request))
 	{
 		process_context=(struct t_process_context*)ll_sentinel(device_desc->pending_request);
