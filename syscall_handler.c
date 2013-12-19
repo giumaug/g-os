@@ -23,18 +23,8 @@ void syscall_handler()
 	char data;
 	unsigned int on_exit_action;
  	
-//	CLI
 	SAVE_PROCESSOR_REG
-//	SWITCH_DS_TO_KERNEL_MODE
-
-	asm(".comm TMP_1,2;");                             
-        asm("mov  %ax,TMP_1;"); 				   
-	asm("mov $0x18,%ax;");                             
-	asm("mov  %ax,%ds;");				   
-	asm("mov %ax,%es;");				   
-	asm("mov TMP_1,%ax;");	                           
-				   
-	check_race(2);
+	SWITCH_DS_TO_KERNEL_MODE
 	on_exit_action=0;
 	current_process_context=system.process_info.current_process->val;
 	t_console_desc *console_desc=current_process_context->console_desc;
@@ -162,8 +152,6 @@ void syscall_handler()
 	
 //	EXIT_INT_HANDLER(on_exit_action,processor_reg,0)
 
-	check_race(3);
-
 	static struct t_process_context _current_process_context;                                          
 	static struct t_process_context _old_process_context;                                              
 	static struct t_process_context _new_process_context;	                                            
@@ -209,41 +197,4 @@ void syscall_handler()
 		RESTORE_PROCESSOR_REG                                                                       
 		RET_FROM_INT_HANDLER                                                                        
 	}
-
-
-
-
-
-
-
-
-
-
-
-
-
-//exit_1:
-//        SWITCH_DS_TO_USER_MODE
-//	RESTORE_PROCESSOR_REG
-//	RET_FROM_INT_HANDLER
-//
-////USED SEMICOLON WORKAROUND TO AVOID "a label can only be part of a statement and a declaration is not a statement" ERROR.
-//// A SEMICOLON DEFINE A EMPTY STATEMENT.
-//exit_2:;
-////	NOT USED SAVE_IF_STATUS BECAUSE PAGE SWITCH
-////	CLI
-//	schedule(current_process_context,&processor_reg);
-//	new_process_context=system.process_info.current_process->val;
-//	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) new_process_context->page_dir)))
-//	DO_STACK_FRAME(processor_reg.esp-8);
-//	if (free_vm_proc) 
-//	{
-//		DO_STACK_FRAME(processor_reg.esp-8);
-//		check_stack_change();
-//		free_vm_process(old_process_context->page_dir);
-//		check_stack_change();
-//	}
-//	SWITCH_DS_TO_USER_MODE
-//	RESTORE_PROCESSOR_REG
-//	EXIT_SYSCALL_HANDLER
 }

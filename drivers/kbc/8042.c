@@ -10,8 +10,6 @@
 #include "debug.h"
 
 extern t_system system;
-static int dump[3000];
-static int xx=0;
 
 char lowercase_charset[0x80] = {
 			[0x00]='\0',			
@@ -309,8 +307,7 @@ void int_handler_kbc()
 	CLI
 	EOI_TO_MASTER_PIC
 //	disable_irq_line(1);
-//	STI
-	check_race(4);
+
 	scan_code=in(0x60);
 	switch(scan_code) 
 	{
@@ -327,20 +324,11 @@ void int_handler_kbc()
 			//printk("key pressed \n");
 			char_code=&(shift_state ? uppercase_charset:lowercase_charset)[scan_code];
 			enqueue(in_buf,char_code);
-			//if (lll==1)
-			//{
-				//enqueue(in_buf,char_code);
-				//dump_queue(in_buf);
-			//}
 			system.active_console_desc->is_empty=0;
-			xx++;
-			dump[xx]=*char_code;
 		}
            	break;
 	}
-// 	CLI
 //	enable_irq_line(1);
-	check_race(5);
 	EXIT_INT_HANDLER(0,processor_reg,0)
 }
 
@@ -350,7 +338,6 @@ char read_buf()
 	char_code=dequeue(in_buf);
 	if (char_code!=NULL) 
 	{	
-		xx--;
 		return *char_code;	
 	}
 	else system.active_console_desc->is_empty=1;
