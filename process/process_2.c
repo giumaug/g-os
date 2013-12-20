@@ -22,6 +22,7 @@ process_2()
 	printf("\nrequest workload=");
         d_printf(workload);
 	printf("\n");
+	//workload=100;
 	for (y=0;y<workload;y++)
 	{
 		write_mem_addr=malloc(512);
