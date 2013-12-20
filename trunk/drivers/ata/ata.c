@@ -31,11 +31,14 @@ void free_ata(t_device_desc* device_desc)
 void int_handler_ata()
 {	
 	struct t_processor_reg processor_reg;
+	int pippo;
 
+	CLI
 	SAVE_PROCESSOR_REG
 	system.device_desc->status=REQUEST_COMPLETED;
 	EOI_TO_MASTER_PIC
 	EOI_TO_SLAVE_PIC
+	pippo=in(0x1F7);
 	_awake(system.device_desc->serving_process_context);
 	EXIT_INT_HANDLER(0,processor_reg,0)
 }
@@ -140,11 +143,11 @@ unsigned int _write_28_ata(t_device_desc* device_desc,unsigned int sector_count,
 		while(device_desc->status!=REQUEST_COMPLETED);
 	}
 
-	if (!in(0x1F7) & 1)
-	{
-		panic();
-		return -1;
-	}
+//	if (!in(0x1F7) & 1)
+//	{
+//		panic();
+//		return -1;
+//	}
 
 	if (!ll_empty(device_desc->pending_request))
 	{
