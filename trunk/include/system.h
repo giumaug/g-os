@@ -14,7 +14,7 @@ typedef struct s_device_desc
 	u32 (*write)(void* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer);
 	unsigned int status;
 	t_llist* pending_request;
-	struct t_process_context* serving_process_context;
+	struct t_process_context* serving_request;
 	
 }
 t_device_desc;

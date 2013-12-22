@@ -14,9 +14,10 @@ extern inline void itoa (int val,char *char_val,unsigned int base) __attribute__
 extern inline void exit(int status) __attribute__((always_inline));
 extern inline void *malloc(unsigned int mem_size) __attribute__((always_inline));
 extern inline void free(void *address) __attribute__((always_inline));
-extern inline unsigned int rand(unsigned int *seed) __attribute__((always_inline));
+extern inline unsigned int rand() __attribute__((always_inline));
 
 extern struct t_process_info process_info;
+extern unsigned int seed;
 
 extern inline int atoi (char *data)
 {
@@ -92,10 +93,10 @@ extern inline void free(void *address)
 	return;
 }
 
-extern inline unsigned int rand(unsigned int *seed)
+extern inline unsigned int rand()
 {
-        *seed = *seed * 1103515245 + 12345;
-        return (*seed % ((unsigned int)RAND_MAX + 1));
+        seed = seed * 1103515245 + 12345;
+        return (seed % ((unsigned int)RAND_MAX + 1));
 }
 
 //extern inline int rand(void)

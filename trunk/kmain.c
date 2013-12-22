@@ -13,6 +13,8 @@
 #include "system.h"
 #include "process/process_1.h"
 
+//to fix when file system working!!
+unsigned int seed=105491;
 extern unsigned int PAGE_DIR;
 t_system system;
 
