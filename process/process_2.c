@@ -2,8 +2,6 @@
 #include "lib/stdlib.h"
 #include "system.h"
 
-#define SEED 212430
-
 extern t_system system;
 
 process_2()
@@ -15,9 +13,8 @@ process_2()
 	unsigned char* read_mem_addr;
 	unsigned char* mem_addr;
 	unsigned int workload;
-	unsigned int seed=SEED;
 
-	workload=(_rand(&seed) % 20 + 1);
+	workload=(rand() % 20 + 1);
 
 	printf("\nrequest workload=");
         d_printf(workload);

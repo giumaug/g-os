@@ -138,11 +138,23 @@ void syscall_handler()
 	//syscall 24 and 25 test only
 	else if (syscall_num==24) 
 	{
-		_read_28_ata(system.device_desc,params[0],params[1],params[2]);	
+		t_io_request io_request;
+		io_request.device_desc=system.device_desc;
+		io_request.sector_count=params[0];
+		io_request.lba=params[1];
+		io_request.io_buffer=params[2];
+		io_request->process_context=current_process_context;
+		_read_28_ata(&io_request);	
 	}
 	else if (syscall_num==25) 
 	{
-		_write_28_ata(system.device_desc,params[0],params[1],params[2]);
+		t_io_request io_request;
+		io_request.device_desc=system.device_desc;
+		io_request.sector_count=params[0];
+		io_request.lba=params[1];
+		io_request.io_buffer=params[2];
+		io_request->process_context=current_process_context;
+		_write_28_ata(&io_request);
 	}
 
 	else if (syscall_num==255) 

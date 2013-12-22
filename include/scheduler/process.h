@@ -18,12 +18,14 @@ typedef enum s_proc_status
 } 
 t_proc_status;
 
-struct t_tss {
+struct t_tss 
+{
 	unsigned int* ss;
 	unsigned int* esp;
 };
 
-struct t_processor_reg {
+struct t_processor_reg 
+{
 	unsigned int eax;            
 	unsigned int ebx;
 	unsigned int ecx;            
@@ -36,7 +38,8 @@ struct t_processor_reg {
 
 struct s_console_desc;
 
-struct t_process_context {
+struct t_process_context 
+{
 	struct t_processor_reg processor_reg;
         unsigned int pid; 
 	struct t_process_context* parent;
@@ -58,7 +61,8 @@ struct t_process_context {
 	u32 current_dir_inode;
 };
 
-struct t_process_info {
+struct t_process_info 
+{
 	t_llist* process_context_list;
 	t_llist_node* current_process;
 	unsigned int next_pid;
@@ -66,5 +70,16 @@ struct t_process_info {
 	t_llist* pause_queue;
 	struct t_processor_reg current_processor_reg;
 };
+
+typedef struct s_io_request 
+{
+	unsigned int sector_count;
+	unsigned int lba;
+	t_device_desc* device_desc;
+	void* io_buffer;
+	unsigned int status;
+	struct t_process_context* process_context;
+}
+t_io_request;
 
 #endif

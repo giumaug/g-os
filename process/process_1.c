@@ -2,11 +2,8 @@
 #include "lib/stdio.h" 
 #include "lib/stdlib.h" 
 
-#define SEED 105491
-
 process_1()
 {
-	unsigned int seed=SEED;
 	unsigned int n_request;
 	unsigned int i;
 	unsigned int age=0;
@@ -14,8 +11,8 @@ process_1()
 	
 	while(1)
 	{
-		n_request=(rand(&seed) % 100 + 1);
-		n_request=2;
+		n_request=(rand() % 100 + 1);
+		//n_request=2;
 		printf("\nage=");
 		d_printf(age);
 		printf("\nrequest number=");
@@ -30,7 +27,7 @@ process_1()
 		}
 		age++;
 		sleep(20000);
-		//check_free_mem();
+		check_free_mem();
 	}
 	exit(0);
 }
