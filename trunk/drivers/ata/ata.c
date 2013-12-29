@@ -31,6 +31,7 @@ void free_ata(t_device_desc* device_desc)
 void int_handler_ata()
 {	
 	struct t_processor_reg processor_reg;
+	t_io_request* io_request;
 
 	CLI
 	SAVE_PROCESSOR_REG
@@ -40,79 +41,82 @@ void int_handler_ata()
 	if ((in(0x1F7)&1))
 	{
 		system.device_desc->status=REQUEST_ERROR;
+		system.device_desc->serving_request->status=REQUEST_ERROR;
 		panic();
 	}
 	else 
 	{
-		system.device_desc->status=REQUEST_COMPLETED;	
+		system.device_desc->status=REQUEST_COMPLETED;
+		system.device_desc->serving_request->status=REQUEST_COMPLETED;
 	}
-
-	_awake(system.device_desc->serving_process_context);
+	if (system.device_desc->serving_request->process_context!=NULL)
+	{
+		_awake(system.device_desc->serving_request->process_context);
+	}
 	EXIT_INT_HANDLER(0,processor_reg,0)
 }
 
-//unsigned int _read_28_ata(t_device_desc* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer)
-unsigned int _read_28_ata(t_io_request* io_request)
-{
-	int i;
-	struct t_process_context* process_context;
-	struct t_process_context *current_process_context;
-	t_device_desc* device_desc;	
-	
-	SAVE_IF_STATUS
-	CLI
-	device_desc->io_request;
-	current_process_context=system.process_info.current_process->val;
-	while(device_desc->status==REQUEST_WAITING)
-	{
-		ll_append(device_desc->pending_request,current_process_context);
-		_sleep();
-	}
-	device_desc->status=REQUEST_WAITING;
-	
-	out((unsigned char)io_request->sector_count,0x1F2);
-	out((unsigned char)io_request->lba,0x1F3);
-	out((unsigned char)(io_request->lba >> 8),0x1F4);
-	out((unsigned char)(io_request->lba >> 16),0x1F5);
-	out(0xE0 | (io_request->lba >> 24),0x1F6);
-	out(READ_28,0x1F7);
+////unsigned int _read_28_ata(t_device_desc* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer)
+//unsigned int _read_28_ata(t_io_request* io_request)
+//{
+//	int i;
+//	struct t_process_context* process_context;
+//	struct t_process_context *current_process_context;
+//	t_device_desc* device_desc;	
+//	
+//	SAVE_IF_STATUS
+//	CLI
+//	device_desc->io_request;
+//	current_process_context=system.process_info.current_process->val;
+//	while(device_desc->status==REQUEST_WAITING)
+//	{
+//		ll_append(device_desc->pending_request,current_process_context);
+//		_sleep();
+//	}
+//	device_desc->status=REQUEST_WAITING;
+//	
+//	out((unsigned char)io_request->sector_count,0x1F2);
+//	out((unsigned char)io_request->lba,0x1F3);
+//	out((unsigned char)(io_request->lba >> 8),0x1F4);
+//	out((unsigned char)(io_request->lba >> 16),0x1F5);
+//	out(0xE0 | (io_request->lba >> 24),0x1F6);
+//	out(READ_28,0x1F7);
+//
+//	if (system.process_info.current_process->val!=NULL)
+//	{
+//		system.device_desc->serving_process_context=system.process_info.current_process->val;
+//		_sleep();
+//
+//	}
+//	else
+//	{
+//		while(device_desc->status==REQUEST_WAITING);
+//	}
+//
+//	if (device_desc->status!=REQUEST_COMPLETED)
+//	{
+//		panic();
+//		return -1;
+//	}
+//	
+//	for (i=0;i<256;i++)
+//	{  
+//		//out(*(char*)io_buffer++,0x1F0); 
+//		int zz=inw(0x1F0);
+//		((char*)io_buffer)[i]=zz;
+//	}
+//
+//	if (!ll_empty(device_desc->pending_request))
+//	{
+//		process_context=(struct t_process_context*)ll_sentinel(device_desc->pending_request);
+//		_awake(process_context);
+//	}
+//
+//	RESTORE_IF_STATUS
+//	return 0;
+//}
 
-	if (system.process_info.current_process->val!=NULL)
-	{
-		system.device_desc->serving_process_context=system.process_info.current_process->val;
-		_sleep();
-
-	}
-	else
-	{
-		while(device_desc->status==REQUEST_WAITING);
-	}
-
-	if (device_desc->status!=REQUEST_COMPLETED)
-	{
-		panic();
-		return -1;
-	}
-	
-	for (i=0;i<256;i++)
-	{  
-		//out(*(char*)io_buffer++,0x1F0); 
-		int zz=inw(0x1F0);
-		((char*)io_buffer)[i]=zz;
-	}
-
-	if (!ll_empty(device_desc->pending_request))
-	{
-		process_context=(struct t_process_context*)ll_sentinel(device_desc->pending_request);
-		_awake(process_context);
-	}
-
-	RESTORE_IF_STATUS
-	return 0;
-}
-
-//unsigned int _write_28_ata(t_device_desc* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer)
-unsigned int _write_28_ata(t_io_request* io_request)
+static unsigned int _read_write_28_ata(t_io_request* io_request)
 {
 	int i;
 	struct t_process_context* process_context;
@@ -122,6 +126,7 @@ unsigned int _write_28_ata(t_io_request* io_request)
 	
 	SAVE_IF_STATUS
 	CLI
+	io_request->status=REQUEST_WAITING;
 	device_desc=io_request->device_desc;
 	if (device_desc->status==REQUEST_WAITING)
 	{
@@ -138,37 +143,61 @@ unsigned int _write_28_ata(t_io_request* io_request)
 	out((unsigned char)io_request->lba,0x1F3);
 	out((unsigned char)(io_request->lba >> 8),0x1F4);
 	out((unsigned char)(io_request->lba >> 16),0x1F5);
-	out(WRITE_28,0x1F7);
+	out(io_request->command,0x1F7);
 
-	for (i=0;i<256;i++)
-	{  
-		//out(*(char*)io_buffer++,0x1F0); 
-		outw((unsigned short)57,0x1F0);
-	}
-
-//	if (system.process_info.current_process->val!=NULL)
-	if (io_request->process_context!=NULL)
+	if (io_request->command==WRITE_28)
 	{
-		system.device_desc->serving_request=io_request;
+		for (i=0;i<256;i++)
+		{  
+			//out(*(char*)io_request->io_buffer++,0x1F0); 
+			outw((unsigned short)57,0x1F0);
+		}
+	}
+	system.device_desc->serving_request=io_request;
+	if (system.process_info.current_process->val!=NULL)
+	{
+		io_request->process_context=system.process_info.current_process->val;
 		_sleep();
 	}
 	else
 	{
-		while(device_desc->status==REQUEST_WAITING);
+		while(io_request->status==REQUEST_WAITING);
 	}
 
-	if (device_desc->status!=REQUEST_COMPLETED)
+	if (io_request->status!=REQUEST_COMPLETED)
 	{
 		panic();
 		return -1;
 	}
 
+	if (io_request->command==READ_28)
+	{
+		for (i=0;i<256;i++)
+		{  
+			//out(*(char*)io_buffer++,0x1F0); 
+			int zz=inw(0x1F0);
+			((char*)io_request->io_buffer)[i]=zz;
+		}
+	}
+
 	if (!ll_empty(device_desc->pending_request))
 	{
 		pending_request=(t_io_request*) ll_sentinel(device_desc->pending_request);
-		_awake(pendig_request->process_context);
+		_awake(pending_request->process_context);
 	}
 	
 	RESTORE_IF_STATUS
 	return 0;
+}
+
+unsigned int _read_28_ata(t_io_request* io_request)
+{
+	io_request->command=READ_28;
+	return _read_write_28_ata(io_request);	
+}
+
+unsigned int _write_28_ata(t_io_request* io_request)
+{
+	io_request->command=WRITE_28;
+	return _read_write_28_ata(io_request);	
 }

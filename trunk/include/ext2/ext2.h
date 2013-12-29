@@ -19,15 +19,35 @@
 
 #define BLOCK_SECTOR_ADDRESS(group_block_index,block)    ext2->partition_start_sector                                         \
 							+(BLOCK_SIZE                                                          \
-							+ext2->superblock->s_block_group_size*(group_block_index+1)             \
-							+ext2->superblock->s_block_group_header_size+(BLOCK_SIZE*(block+1)))    \
+							+ext2->superblock->s_block_group_size*(group_block_index+1)           \
+							+ext2->superblock->s_block_group_header_size+(BLOCK_SIZE*(block+1)))  \
 							/SECTOR_SIZE;
 
 #define ABSOLUTE_BLOCK_ADDRESS(group_block_index,relative_block_address) ext2->superblock->s_blocks_per_group*(group_block_index-1)+relative_block_address
 
-#define WRITE(sector_count,lba,io_buffer) ext2->device_desc->write(ext2->device_desc,sector_count,lba,io_buffer)
+//#define WRITE(sector_count,lba,io_buffer) ext2->device_desc->write(ext2->device_desc,sector_count,lba,io_buffer)
 
-#define READ(sector_count,lba,io_buffer) ext2->device_desc->write(ext2->device_desc,sector_count,lba,io_buffer)
+#define WRITE(_sector_count,_lba,_io_buffer)     do {                                                                   \
+						t_io_request io_request; 						\
+					  	io_request.device_desc=ext2->device_desc;				\
+						io_request.sector_count=_sector_count;					\
+						io_request.lba=_lba;							\
+						io_request.io_buffer=_io_buffer;					\
+						io_request.process_context=system.process_info.current_process->val;	\
+						ext2->device_desc->write(&io_request);                                  \
+                                                } while(0);
+
+//#define READ(sector_count,lba,io_buffer) ext2->device_desc->write(ext2->device_desc,sector_count,lba,io_buffer)
+
+#define READ(_sector_count,_lba,_io_buffer)     do{                                                                     \
+						t_io_request io_request; 						\
+					  	io_request.device_desc=ext2->device_desc;				\
+						io_request.sector_count=_sector_count;					\
+						io_request.lba=_lba;							\
+						io_request.io_buffer=_io_buffer;					\
+						io_request.process_context=system.process_info.current_process->val;	\
+						ext2->device_desc->read(&io_request);					\
+						} while(0);
 
 typedef struct s_superblock
 {	

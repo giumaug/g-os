@@ -14,8 +14,6 @@
 #define SCREEN_AREA SCREEN_WIDTH*SCREEN_LENGTH
 #define INC(x,y,z,w) if ((x+=z)>=y) x=w;
 
-
-
 typedef struct s_console_desc 
 {
 	char *out_buf;
