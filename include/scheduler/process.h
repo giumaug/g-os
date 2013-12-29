@@ -1,6 +1,7 @@
 #ifndef PROCESS_H                
 #define PROCESS_H
 
+//#include "system.h"
 #include "console/console.h"
 #include "data_types/dllist.h"
 #include "data_types/hashtable.h"
@@ -36,8 +37,6 @@ struct t_processor_reg
 	unsigned int esp;
 };
 
-struct s_console_desc;
-
 struct t_process_context 
 {
 	struct t_processor_reg processor_reg;
@@ -70,16 +69,5 @@ struct t_process_info
 	t_llist* pause_queue;
 	struct t_processor_reg current_processor_reg;
 };
-
-typedef struct s_io_request 
-{
-	unsigned int sector_count;
-	unsigned int lba;
-	t_device_desc* device_desc;
-	void* io_buffer;
-	unsigned int status;
-	struct t_process_context* process_context;
-}
-t_io_request;
 
 #endif

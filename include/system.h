@@ -8,13 +8,27 @@
 #include "data_types/dllist.h"
 #include "ext2/ext2.h"
 
+//struct s_device_desc;
+
+typedef struct s_io_request 
+{
+	unsigned int sector_count;
+	unsigned int lba;
+	struct s_device_desc* device_desc;
+	void* io_buffer;
+	unsigned int status;
+	struct t_process_context* process_context;
+	unsigned int command;
+}
+t_io_request;
+
 typedef struct s_device_desc
 {
-	u32 (*read)(void* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer);
-	u32 (*write)(void* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer);
+	u32 (*read)(t_io_request* io_request);
+	u32 (*write)(t_io_request* io_request);
 	unsigned int status;
 	t_llist* pending_request;
-	struct t_process_context* serving_request;
+	t_io_request* serving_request;
 	
 }
 t_device_desc;
@@ -31,6 +45,8 @@ typedef struct s_race_tracker
 	int mem_index;
 }
 t_race_tracker;
+
+//struct t_process_info;
 
 typedef struct s_system
 {

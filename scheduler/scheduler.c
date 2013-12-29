@@ -229,8 +229,9 @@ void _awake(struct t_process_context *new_process)
 	SAVE_IF_STATUS
 	CLI
 	new_process->proc_status=RUNNING;
-	adjust_sched_queue(new_process);
+	//adjust_sched_queue(new_process);
 	ll_prepend(system.scheduler_desc.scheduler_queue[new_process->curr_sched_queue_index],new_process);
+	//system.process_info.current_process->val=new_process;
 	RESTORE_IF_STATUS
 }
 
@@ -250,6 +251,7 @@ void _pause()
 
 void _exit(int status)
 {
+	unsigned int exit_action=2;
 	t_llist_node* next;
 	t_llist_node* sentinel;
 	unsigned int awake_process=0;

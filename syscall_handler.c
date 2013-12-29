@@ -138,23 +138,27 @@ void syscall_handler()
 	//syscall 24 and 25 test only
 	else if (syscall_num==24) 
 	{
-		t_io_request io_request;
-		io_request.device_desc=system.device_desc;
-		io_request.sector_count=params[0];
-		io_request.lba=params[1];
-		io_request.io_buffer=params[2];
+		t_io_request* io_request;
+		io_request=kmalloc(sizeof(t_io_request));
+		io_request->device_desc=system.device_desc;
+		io_request->sector_count=params[0];
+		io_request->lba=params[1];
+		io_request->io_buffer=params[2];
 		io_request->process_context=current_process_context;
-		_read_28_ata(&io_request);	
+		_read_28_ata(io_request);
+		kfree(io_request);
 	}
 	else if (syscall_num==25) 
 	{
-		t_io_request io_request;
-		io_request.device_desc=system.device_desc;
-		io_request.sector_count=params[0];
-		io_request.lba=params[1];
-		io_request.io_buffer=params[2];
+		t_io_request* io_request;
+		io_request=kmalloc(sizeof(t_io_request));
+		io_request->device_desc=system.device_desc;
+		io_request->sector_count=params[0];
+		io_request->lba=params[1];
+		io_request->io_buffer=params[2];
 		io_request->process_context=current_process_context;
-		_write_28_ata(&io_request);
+		_write_28_ata(io_request);
+		kfree(io_request);
 	}
 
 	else if (syscall_num==255) 
@@ -174,21 +178,16 @@ void syscall_handler()
 	_action=on_exit_action;                                                                                
 	_current_process_context=*(struct t_process_context*)system.process_info.current_process->val;                                  
 	_old_process_context=_current_process_context;                                                      
-	_processor_reg=processor_reg;
-	if (_action>2) 
-	{
-		panic();
-	}                                                                    
+	_processor_reg=processor_reg;                                                                
 	if (_action>0)                                                                                      
-	{                                                                                                   
-		schedule(&_current_process_context,&_processor_reg);                                         
+	{
+		if (_action!=3)
+		{                                                                                                   
+			schedule(&_current_process_context,&_processor_reg);
+		}                                         
 		_new_process_context=*(struct t_process_context*)(system.process_info.current_process->val);                              
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))                                                          
-		DO_STACK_FRAME(_processor_reg.esp-8); 	
-		if (_action>2) 
-		{
-			panic();
-		}   
+		DO_STACK_FRAME(_processor_reg.esp-8); 	 
 		if (_action==2)                                                                              
 		{                                                                                  
 			DO_STACK_FRAME(_processor_reg.esp-8);                                               

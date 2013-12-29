@@ -37,7 +37,10 @@ void exit_int_handler(unsigned int action,struct t_processor_reg processor_reg,s
 	_processor_reg=processor_reg;                                                                              \
 	if (_action2>0)                                                                                            \
 	{                                                                                                          \
-		schedule(&_current_process_context,&_processor_reg);                                               \
+		if (_action2!=3)                                                                                   \
+		{                                                                                                  \
+			schedule(&_current_process_context,&_processor_reg);                                       \
+		}                                                                                                  \
 		_new_process_context=*(struct t_process_context*)system.process_info.current_process->val;         \
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))                  \
 		if (_action2==2)                                                                                   \
