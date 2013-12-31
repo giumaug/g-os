@@ -46,15 +46,14 @@ typedef struct s_race_tracker
 }
 t_race_tracker;
 
-//struct t_process_info;
-
 typedef struct s_system
 {
+	unsigned int time;
 	struct t_process_info process_info;
 	t_console_desc* active_console_desc;
 	t_buddy_desc buddy_desc;
 	unsigned int *master_page_dir;
-	t_llist* sleep_wait_queue;
+	//t_llist* sleep_wait_queue;
 	t_scheduler_desc scheduler_desc;
 	struct s_ext2* root_fs;
 	t_device_desc* device_desc;

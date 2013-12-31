@@ -67,6 +67,7 @@ struct t_process_info
 	unsigned int next_pid;
 	struct t_tss tss;	
 	t_llist* pause_queue;
+	t_llist* sleep_wait_queue;
 	struct t_processor_reg current_processor_reg;
 };
 
