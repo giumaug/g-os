@@ -19,8 +19,9 @@ extern unsigned int PAGE_DIR;
 t_system system;
 
 void kmain( void* mbd, unsigned int magic,int init_data_add)
-{	
-	unsigned int *init_data=init_data_add;
+{
+	system.time=0;	
+	unsigned int* init_data=init_data_add;
 	static struct t_process_context process_context;
 	static struct t_i_desc i_desc;
 	static t_console_desc console_desc;

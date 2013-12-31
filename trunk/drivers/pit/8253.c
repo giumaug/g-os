@@ -52,9 +52,10 @@ void int_handler_pit()
 		SWITCH_DS_TO_KERNEL_MODE
 	}
 
+	system.time=+=QUANTUM_DURATION;
 	sleeping_process=system.active_console_desc->sleeping_process;
 	
-	sentinel=ll_sentinel(system.sleep_wait_queue);
+	sentinel=ll_sentinel(system.process_info.sleep_wait_queue);
 	next=ll_first(system.sleep_wait_queue);
 	next_process=next->val;
 	//THIS STUFF MUST BE MOVED INSIDE ASSIGNED SLEEP MANAGER LIKE IO
@@ -97,22 +98,20 @@ void int_handler_pit()
 	}
 	else
 	{	
-		if (sleeping_process!=NULL)
-		{
-			sleeping_process->sleep_time+=QUANTUM_DURATION;
-			if (sleeping_process->sleep_time>1000) 	
-			{
-				sleeping_process->sleep_time=1000;
-			}
-			else if (sleeping_process->sleep_time<0)
-			{		
-				sleeping_process->sleep_time=0;
-			}
-		}
+//		if (sleeping_process!=NULL)
+//		{
+//			sleeping_process->sleep_time+=QUANTUM_DURATION;
+//			if (sleeping_process->sleep_time>1000) 	
+//			{
+//				sleeping_process->sleep_time=1000;
+//			}
+//			else if (sleeping_process->sleep_time<0)
+//			{		
+//				sleeping_process->sleep_time=0;
+//			}
+//		}
 		process_context=system.process_info.current_process->val;
 		process_context->sleep_time-=QUANTUM_DURATION;
-
-		//check_process_context();
 		
 		if (process_context->sleep_time>1000) 	
 		{

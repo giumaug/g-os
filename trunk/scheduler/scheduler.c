@@ -216,6 +216,7 @@ void _sleep()
 	SAVE_IF_STATUS
 	CLI        
 	current_process=system.process_info.current_process->val;
+	current_process->sleep_time=system.time;
 	t_llist_node* current_node=system.process_info.current_process;
 	current_process->proc_status=SLEEPING;
 	RESTORE_IF_STATUS
@@ -228,10 +229,10 @@ void _awake(struct t_process_context *new_process)
 
 	SAVE_IF_STATUS
 	CLI
+	new_process->sleep_time=(system.time-new_process->sleep_time>=1000) ? 1000 : (system.time-new_process->sleep_time);-----------------qui
 	new_process->proc_status=RUNNING;
-	//adjust_sched_queue(new_process);
+	adjust_sched_queue(new_process);
 	ll_prepend(system.scheduler_desc.scheduler_queue[new_process->curr_sched_queue_index],new_process);
-	//system.process_info.current_process->val=new_process;
 	RESTORE_IF_STATUS
 }
 
