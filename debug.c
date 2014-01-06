@@ -20,6 +20,7 @@ unsigned int free_mem_count_9=0;
 
 index_2=0;
 unsigned int proc[100];
+int t_sched_debug[10][10];
 
 void panic()
 {
@@ -43,6 +44,10 @@ void check_free_mem()
 	check_active_process();
 	if (buddy_mem!=160194560)
 	//if (buddy_mem!=21934080)
+	{
+		panic();
+	}
+	if (pool_mem!=279852)
 	{
 		panic();
 	}
@@ -148,7 +153,31 @@ check_active_process()
 	}
 }
 
+void sched_debug()
+{
+	struct t_process_context* next_process_context;
+	t_llist_node* next;
+	t_llist_node* sentinel_node;
+	unsigned int i,j;
 
-
-
-
+	for (i=0;i<10;i++)
+	{
+		for (j=0;j<10;j++)
+		{
+			t_sched_debug[i][j]=-1;
+		}
+	}
+	for (i=0;i<10;i++)
+	{
+		sentinel_node=ll_sentinel(system.scheduler_desc.scheduler_queue[i]);
+		next=ll_first(system.scheduler_desc.scheduler_queue[i]);
+		j=0;
+		while(next!=sentinel_node)
+		{
+			next_process_context=next->val;
+			t_sched_debug[i][j++]=next_process_context->pid;
+			next=ll_next(next);	
+		} 
+	}
+	return;
+}

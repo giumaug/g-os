@@ -16,8 +16,12 @@ process_2()
 
 	workload=(rand() % 20 + 1);
 
+	unsigned int pid=((struct t_process_context*)system.process_info.current_process->val)->pid;
 	printf("\nrequest workload=");
         d_printf(workload);
+	printf("\n");
+	printf("\npid=");
+	d_printf(pid);
 	printf("\n");
 	//workload=100;
 	for (y=0;y<workload;y++)
@@ -33,6 +37,7 @@ process_2()
 		SYSCALL(25,write_params);
 		free(write_mem_addr);
 		printf(".");
+		d_printf(pid);
 	}
 
 //	for (z=0;z<512;z++)
