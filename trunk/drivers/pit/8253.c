@@ -52,11 +52,11 @@ void int_handler_pit()
 		SWITCH_DS_TO_KERNEL_MODE
 	}
 
-	system.time=+=QUANTUM_DURATION;
+	system.time+=QUANTUM_DURATION;
 	sleeping_process=system.active_console_desc->sleeping_process;
 	
 	sentinel=ll_sentinel(system.process_info.sleep_wait_queue);
-	next=ll_first(system.sleep_wait_queue);
+	next=ll_first(system.process_info.sleep_wait_queue);
 	next_process=next->val;
 	//THIS STUFF MUST BE MOVED INSIDE ASSIGNED SLEEP MANAGER LIKE IO
 	while(next!=sentinel)
@@ -150,11 +150,8 @@ void int_handler_pit()
 	_old_process_context=_current_process_context;                                                      
 	_processor_reg=processor_reg;                                              
 	if (_action2>0)                                                                                      
-	{
-		if (_action2!=3)
-		{                                                                                                   
-			schedule(&_current_process_context,&_processor_reg);
-		}                                         
+	{                                                                                               
+		schedule(&_current_process_context,&_processor_reg);                          
 		_new_process_context=*(struct t_process_context*)(system.process_info.current_process->val);                              
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))                                                          
 		DO_STACK_FRAME(_processor_reg.esp-8); 

@@ -11,8 +11,6 @@ extern t_system system;
 extern struct t_llist* kbc_wait_queue;
 extern unsigned int *master_page_dir;
 
-int t_sched_debug[10][10];
-
 void do_context_switch(struct t_process_context *current_process_context,
 		       struct t_processor_reg *processor_reg,
 		       struct t_process_context *new_process_context)
@@ -44,35 +42,6 @@ void init_scheduler()
 	{
 		system.scheduler_desc.scheduler_queue[i]=new_dllist();
 	}
-}
-
-void sched_debug()
-{
-	struct t_process_context* next_process_context;
-	t_llist_node* next;
-	t_llist_node* sentinel_node;
-	unsigned int i,j;
-
-	for (i=0;i<10;i++)
-	{
-		for (j=0;j<10;j++)
-		{
-			t_sched_debug[i][j]=-1;
-		}
-	}
-	for (i=0;i<10;i++)
-	{
-		sentinel_node=ll_sentinel(system.scheduler_desc.scheduler_queue[i]);
-		next=ll_first(system.scheduler_desc.scheduler_queue[i]);
-		j=0;
-		while(next!=sentinel_node)
-		{
-			next_process_context=next->val;
-			t_sched_debug[i][j++]=next_process_context->pid;
-			next=ll_next(next);	
-		} 
-	}
-	return;
 }
 
 //SCHEDULE SHOULD BE OUTSIDE SLEEP PAUSE ECC... TO AVOID PROPAGATION OF PROCESSOR_REG.THIS
@@ -229,7 +198,7 @@ void _awake(struct t_process_context *new_process)
 
 	SAVE_IF_STATUS
 	CLI
-	new_process->sleep_time=(system.time-new_process->sleep_time>=1000) ? 1000 : (system.time-new_process->sleep_time);-----------------qui
+	new_process->sleep_time=(system.time-new_process->sleep_time>=1000) ? 1000 : (system.time-new_process->sleep_time);
 	new_process->proc_status=RUNNING;
 	adjust_sched_queue(new_process);
 	ll_prepend(system.scheduler_desc.scheduler_queue[new_process->curr_sched_queue_index],new_process);
@@ -367,7 +336,7 @@ void _sleep_time(unsigned int time)
 
 	SAVE_IF_STATUS	
 	CLI 
-	sleep_wait_queue=system.sleep_wait_queue;
+	sleep_wait_queue=system.process_info.sleep_wait_queue;
 	current_process=system.process_info.current_process->val;
 	current_process->assigned_sleep_time=time;
 	ll_prepend(sleep_wait_queue,current_process);	

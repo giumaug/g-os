@@ -56,86 +56,34 @@ void int_handler_ata()
 	EXIT_INT_HANDLER(0,processor_reg,0)
 }
 
-////unsigned int _read_28_ata(t_device_desc* device_desc,unsigned int sector_count,unsigned int lba,void* io_buffer)
-//unsigned int _read_28_ata(t_io_request* io_request)
-//{
-//	int i;
-//	struct t_process_context* process_context;
-//	struct t_process_context *current_process_context;
-//	t_device_desc* device_desc;	
-//	
-//	SAVE_IF_STATUS
-//	CLI
-//	device_desc->io_request;
-//	current_process_context=system.process_info.current_process->val;
-//	while(device_desc->status==REQUEST_WAITING)
-//	{
-//		ll_append(device_desc->pending_request,current_process_context);
-//		_sleep();
-//	}
-//	device_desc->status=REQUEST_WAITING;
-//	
-//	out((unsigned char)io_request->sector_count,0x1F2);
-//	out((unsigned char)io_request->lba,0x1F3);
-//	out((unsigned char)(io_request->lba >> 8),0x1F4);
-//	out((unsigned char)(io_request->lba >> 16),0x1F5);
-//	out(0xE0 | (io_request->lba >> 24),0x1F6);
-//	out(READ_28,0x1F7);
-//
-//	if (system.process_info.current_process->val!=NULL)
-//	{
-//		system.device_desc->serving_process_context=system.process_info.current_process->val;
-//		_sleep();
-//
-//	}
-//	else
-//	{
-//		while(device_desc->status==REQUEST_WAITING);
-//	}
-//
-//	if (device_desc->status!=REQUEST_COMPLETED)
-//	{
-//		panic();
-//		return -1;
-//	}
-//	
-//	for (i=0;i<256;i++)
-//	{  
-//		//out(*(char*)io_buffer++,0x1F0); 
-//		int zz=inw(0x1F0);
-//		((char*)io_buffer)[i]=zz;
-//	}
-//
-//	if (!ll_empty(device_desc->pending_request))
-//	{
-//		process_context=(struct t_process_context*)ll_sentinel(device_desc->pending_request);
-//		_awake(process_context);
-//	}
-//
-//	RESTORE_IF_STATUS
-//	return 0;
-//}
-
 static unsigned int _read_write_28_ata(t_io_request* io_request)
 {
+	static test=0;
 	int i;
 	struct t_process_context* process_context;
 	struct t_process_context *current_process_context;
 	t_device_desc* device_desc;
 	t_io_request* pending_request;
+	t_llist_node* node;
 	
 	SAVE_IF_STATUS
 	CLI
 	io_request->status=REQUEST_WAITING;
 	device_desc=io_request->device_desc;
-	if (device_desc->status==REQUEST_WAITING)
+	if (device_desc->status==REQUEST_WAITING || test==1000)
 	{
 		ll_append(device_desc->pending_request,io_request);
+		test=io_request->process_context->pid;
 		_sleep();
 	}	
 	else 
 	{
 		device_desc->status=REQUEST_WAITING;
+	}
+
+	if (io_request->process_context->pid==test)
+	{
+		i++;
 	}
 
 	out(0xE0 | (io_request->lba >> 24),0x1F6);
@@ -164,6 +112,12 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 		while(io_request->status==REQUEST_WAITING);
 	}
 
+	if (io_request->process_context->pid==test)
+	{
+		i++;
+	}
+
+
 	if (io_request->status!=REQUEST_COMPLETED)
 	{
 		panic();
@@ -182,7 +136,9 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 
 	if (!ll_empty(device_desc->pending_request))
 	{
-		pending_request=(t_io_request*) ll_sentinel(device_desc->pending_request);
+		node=ll_first(device_desc->pending_request);
+		pending_request=(t_io_request*) node->val;
+		ll_delete_node(node);
 		_awake(pending_request->process_context);
 	}
 	

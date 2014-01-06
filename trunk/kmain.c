@@ -63,7 +63,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	i_desc.baseHi=((int)&syscall_handler)>>0x10;
 	set_idt_entry(0x80,&i_desc);
 
-	system.sleep_wait_queue=new_dllist();	
+	system.process_info.sleep_wait_queue=new_dllist();	
 	system.process_info.process_context_list=new_dllist();
 	system.process_info.next_pid=1;
 	
