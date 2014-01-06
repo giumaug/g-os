@@ -6,21 +6,16 @@
 
 extern t_system system;
 extern unsigned int free_mem_list[POOL_NUM];
-unsigned int exit_count=0;
-unsigned int free_mem_count=0;
-unsigned int free_mem_count_1=0;
-unsigned int free_mem_count_2=0;
-unsigned int free_mem_count_3=0;
-unsigned int free_mem_count_4=0;
-unsigned int free_mem_count_5=0;
-unsigned int free_mem_count_6=0;
-unsigned int free_mem_count_7=0;
-unsigned int free_mem_count_8=0;
-unsigned int free_mem_count_9=0;
+unsigned int exit_count_1=0;
+unsigned int exit_count_2=0;
+unsigned int exit_count_3=0;
+unsigned int exit_count_4=0;
+unsigned int exit_count_5=0;
+unsigned int exit_count_6=0;
 
-index_2=0;
 unsigned int proc[100];
 int t_sched_debug[10][10];
+int index_2=0;
 
 void panic()
 {

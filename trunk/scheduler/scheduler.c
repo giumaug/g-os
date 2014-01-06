@@ -7,6 +7,13 @@
 #include "klib/printk.h"
 #include "process/process_1.h"
 
+int test=0;
+extern unsigned int exit_count_1;
+extern unsigned int exit_count_2;
+extern unsigned int exit_count_3;
+extern unsigned int exit_count_4;
+extern unsigned int exit_count_5;
+extern unsigned int exit_count_6;
 extern t_system system;
 extern struct t_llist* kbc_wait_queue;
 extern unsigned int *master_page_dir;
@@ -231,6 +238,7 @@ void _exit(int status)
 	
 	SAVE_IF_STATUS
 	CLI
+	exit_count_1++;
 	t_llist_node* current_node=system.process_info.current_process;
 	//process 0 never die
 	current_process=system.process_info.current_process->val;

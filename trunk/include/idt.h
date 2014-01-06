@@ -3,7 +3,12 @@
 
 #include "scheduler/process.h"
 
-extern unsigned int free_mem_count;
+extern unsigned int exit_count_1;
+extern unsigned int exit_count_2;
+extern unsigned int exit_count_3;
+extern unsigned int exit_count_4;
+extern unsigned int exit_count_5;
+extern unsigned int exit_count_6;
 
 struct t_i_desc {
    unsigned short int baseLow;    	 
@@ -42,7 +47,7 @@ void exit_int_handler(unsigned int action,struct t_processor_reg processor_reg,s
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))                  \
 		if (_action2==2)                                                                                   \
 		{                                                                                                  \
-			free_mem_count++;                                                                          \
+			exit_count_2++;                                                                            \
 			DO_STACK_FRAME(_processor_reg.esp-8);                                                      \
 			free_vm_process(_old_process_context.page_dir);                                            \
 			buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_add_space));  \
