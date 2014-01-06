@@ -4,6 +4,7 @@
 #include "virtual_memory/vm.h"
 #include "drivers/ata/ata.h"
 
+extern int test;
 extern t_system system;
 
 void static int_handler_ata();
@@ -58,7 +59,6 @@ void int_handler_ata()
 
 static unsigned int _read_write_28_ata(t_io_request* io_request)
 {
-	static test=0;
 	int i;
 	struct t_process_context* process_context;
 	struct t_process_context *current_process_context;
@@ -70,7 +70,7 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	CLI
 	io_request->status=REQUEST_WAITING;
 	device_desc=io_request->device_desc;
-	if (device_desc->status==REQUEST_WAITING || test==1000)
+	if (device_desc->status==REQUEST_WAITING || test==0)
 	{
 		ll_append(device_desc->pending_request,io_request);
 		test=io_request->process_context->pid;

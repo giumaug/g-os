@@ -10,6 +10,13 @@
 
 #define K_STACK 0x1FFFFB
 
+extern unsigned int exit_count_1;
+extern unsigned int exit_count_2;
+extern unsigned int exit_count_3;
+extern unsigned int exit_count_4;
+extern unsigned int exit_count_5;
+extern unsigned int exit_count_6;
+
 extern t_system system;
 
 void syscall_handler()
@@ -88,6 +95,7 @@ void syscall_handler()
 	{
 		_exit(params[0]);
 		on_exit_action=2;
+		exit_count_3++;
 		 
 	}
 	else if (syscall_num==14) 
@@ -174,7 +182,7 @@ void syscall_handler()
 	static struct t_processor_reg _processor_reg;                                                       
 	static unsigned int _action;                                                                        
                                                                                                             
-	CLI                                                                          
+	CLI                                                                         
 	_action=on_exit_action;                                                                                
 	_current_process_context=*(struct t_process_context*)system.process_info.current_process->val;                                  
 	_old_process_context=_current_process_context;                                                      
@@ -186,7 +194,8 @@ void syscall_handler()
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))                                                          
 		DO_STACK_FRAME(_processor_reg.esp-8); 	 
 		if (_action==2)                                                                              
-		{                                                                                  
+		{          
+			exit_count_2++;                                                                        
 			DO_STACK_FRAME(_processor_reg.esp-8);                                               
 			free_vm_process(_old_process_context.page_dir); 
 			buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_add_space));                                   
