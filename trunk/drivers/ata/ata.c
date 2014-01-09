@@ -39,17 +39,18 @@ void int_handler_ata()
 	EOI_TO_MASTER_PIC
 	EOI_TO_SLAVE_PIC
 
-	if ((in(0x1F7)&1))
-	{
-		system.device_desc->status=REQUEST_ERROR;
-		system.device_desc->serving_request->status=REQUEST_ERROR;
-		panic();
-	}
-	else 
-	{
-		system.device_desc->status=REQUEST_COMPLETED;
-		system.device_desc->serving_request->status=REQUEST_COMPLETED;
-	}
+//	if ((in(0x1F7)&1))
+//	{
+//		system.device_desc->status=REQUEST_ERROR;
+//		system.device_desc->serving_request->status=REQUEST_ERROR;
+//		panic();
+//	}
+//	else 
+//	{
+//		system.device_desc->status=REQUEST_COMPLETED;
+//		system.device_desc->serving_request->status=REQUEST_COMPLETED;
+//	}
+
 	if (system.device_desc->serving_request->process_context!=NULL)
 	{
 		_awake(system.device_desc->serving_request->process_context);
@@ -66,6 +67,7 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	t_io_request* pending_request;
 	t_llist_node* node;
 	
+	//SE METTO UN SEMAFORO?????????????????????	
 	SAVE_IF_STATUS
 	CLI
 	io_request->status=REQUEST_WAITING;
@@ -79,11 +81,6 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	else 
 	{
 		device_desc->status=REQUEST_WAITING;
-	}
-
-	if (io_request->process_context->pid==test)
-	{
-		i++;
 	}
 
 	out(0xE0 | (io_request->lba >> 24),0x1F6);
@@ -112,18 +109,14 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 		while(io_request->status==REQUEST_WAITING);
 	}
 
-	if (io_request->process_context->pid==test)
+	if ((in(0x1F7)&1))
 	{
-		i++;
-	}
-
-
-	if (io_request->status!=REQUEST_COMPLETED)
-	{
+		io_request->status=REQUEST_ERROR;
+		device_desc->status=REQUEST_COMPLETED;
 		panic();
 		return -1;
 	}
-
+	
 	if (io_request->command==READ_28)
 	{
 		for (i=0;i<256;i++)
@@ -141,7 +134,8 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 		ll_delete_node(node);
 		_awake(pending_request->process_context);
 	}
-	
+	device_desc->status=REQUEST_COMPLETED;
+	io_request->status=REQUEST_COMPLETED;
 	RESTORE_IF_STATUS
 	return 0;
 }

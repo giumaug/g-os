@@ -14,6 +14,11 @@ extern unsigned int exit_count_3;
 extern unsigned int exit_count_4;
 extern unsigned int exit_count_5;
 extern unsigned int exit_count_6;
+extern unsigned int exit_count_7;
+extern unsigned int exit_count_8;
+extern unsigned int exit_count_9;
+extern unsigned int exit_count_10;
+
 extern t_system system;
 extern struct t_llist* kbc_wait_queue;
 extern unsigned int *master_page_dir;
@@ -242,6 +247,7 @@ void _exit(int status)
 	t_llist_node* current_node=system.process_info.current_process;
 	//process 0 never die
 	current_process=system.process_info.current_process->val;
+	exit_count_4++;
 	if (current_process->pid==0)
 	{
 		while(1)

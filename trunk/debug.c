@@ -12,6 +12,10 @@ unsigned int exit_count_3=0;
 unsigned int exit_count_4=0;
 unsigned int exit_count_5=0;
 unsigned int exit_count_6=0;
+unsigned int exit_count_7=0;
+unsigned int exit_count_8=0;
+unsigned int exit_count_9=0;
+unsigned int exit_count_10=0;
 
 unsigned int proc[100];
 int t_sched_debug[10][10];
@@ -30,6 +34,7 @@ void stop(int* stack,struct t_process_context* fault_process_context,struct t_pr
 
 void check_free_mem()
 {
+	int i=0;
 	unsigned int buddy_mem;
 	unsigned int pool_mem;
 	buddy_mem=buddy_free_mem(&system.buddy_desc);
