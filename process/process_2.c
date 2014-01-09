@@ -4,6 +4,13 @@
 
 extern t_system system;
 
+extern unsigned int exit_count_1;
+extern unsigned int exit_count_2;
+extern unsigned int exit_count_3;
+extern unsigned int exit_count_4;
+extern unsigned int exit_count_5;
+extern unsigned int exit_count_6;
+
 process_2()
 {
 	unsigned int read_params[3];
@@ -14,6 +21,7 @@ process_2()
 	unsigned char* mem_addr;
 	unsigned int workload;
 
+	exit_count_5++;
 	workload=(rand() % 20 + 1);
 
 	unsigned int pid=((struct t_process_context*)system.process_info.current_process->val)->pid;
@@ -23,7 +31,7 @@ process_2()
 	printf("\npid=");
 	d_printf(pid);
 	printf("\n");
-	//workload=100;
+	workload=2;
 	for (y=0;y<workload;y++)
 	{
 		write_mem_addr=malloc(512);

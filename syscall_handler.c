@@ -16,6 +16,10 @@ extern unsigned int exit_count_3;
 extern unsigned int exit_count_4;
 extern unsigned int exit_count_5;
 extern unsigned int exit_count_6;
+extern unsigned int exit_count_7;
+extern unsigned int exit_count_8;
+extern unsigned int exit_count_9;
+extern unsigned int exit_count_10;
 
 extern t_system system;
 
@@ -95,8 +99,6 @@ void syscall_handler()
 	{
 		_exit(params[0]);
 		on_exit_action=2;
-		exit_count_3++;
-		 
 	}
 	else if (syscall_num==14) 
 	{

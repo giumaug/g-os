@@ -12,7 +12,7 @@ process_1()
 	while(1)
 	{
 		n_request=(rand() % 100 + 1);
-		//n_request=2;
+		n_request=2;
 		printf("\nage=");
 		d_printf(age);
 		printf("\nrequest number=");
