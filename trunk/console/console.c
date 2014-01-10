@@ -13,9 +13,6 @@ void init_console(t_console_desc *console_desc,int out_buf_len,int in_buf_len)
 {
 	int i,j=0;
 	SPINLOCK_INIT(console_desc->spinlock);
-	SPINLOCK_LOCK(console_desc->spinlock);
-	i++;
-	SPINLOCK_UNLOCK(console_desc->spinlock);
 	console_desc->out_buf=kmalloc(out_buf_len);
 	console_desc->out_buf_len=out_buf_len;
 	console_desc->out_buf_index=-1;
