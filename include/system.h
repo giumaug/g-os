@@ -6,6 +6,7 @@
 #include "scheduler/scheduler.h"
 #include "memory_manager/buddy.h"
 #include "data_types/dllist.h"
+#include "synchro_types/semaphore.h"
 #include "ext2/ext2.h"
 
 //struct s_device_desc;
@@ -29,6 +30,7 @@ typedef struct s_device_desc
 	unsigned int status;
 	t_llist* pending_request;
 	t_io_request* serving_request;
+	t_semaphore sem;
 	
 }
 t_device_desc;
