@@ -22,6 +22,7 @@ void init_ata(t_device_desc* device_desc)
 	device_desc->read=_read_28_ata;
 	device_desc->write=_write_28_ata;
 	device_desc->status=REQUEST_COMPLETED;
+	sem_int(device_desc->sem);
 }
 
 void free_ata(t_device_desc* device_desc)
@@ -34,27 +35,18 @@ void int_handler_ata()
 	struct t_processor_reg processor_reg;
 	t_io_request* io_request;
 
+	disable_irq_line(1);?????
+
 	CLI
 	SAVE_PROCESSOR_REG
 	EOI_TO_MASTER_PIC
 	EOI_TO_SLAVE_PIC
 
-//	if ((in(0x1F7)&1))
-//	{
-//		system.device_desc->status=REQUEST_ERROR;
-//		system.device_desc->serving_request->status=REQUEST_ERROR;
-//		panic();
-//	}
-//	else 
-//	{
-//		system.device_desc->status=REQUEST_COMPLETED;
-//		system.device_desc->serving_request->status=REQUEST_COMPLETED;
-//	}
-
 	if (system.device_desc->serving_request->process_context!=NULL)
 	{
 		_awake(system.device_desc->serving_request->process_context);
 	}
+	//enable_irq_line(1); put inside exit handler
 	EXIT_INT_HANDLER(0,processor_reg,0)
 }
 

@@ -1,15 +1,9 @@
-typedef struct s_sem_desc 
-{
-	t_llist* wait_queue wait_queue;
-	unsigned int count;
-	unsigned int spinlock;
-}
-t_sem_desc;
+
 
 void sem_int(t_sem_desc sem_desc)
 {
 	sem_desc->wait_queue=new_dllist();
-	count=0;
+	sem_desc->count=1;
 	SPINLOCK_INIT(sem_desc->spinlock);		
 }
 
