@@ -18,11 +18,10 @@ void init_ata(t_device_desc* device_desc)
 	i_desc.flags=0x0EF00;
 	i_desc.baseHi=((int)&int_handler_ata)>>0x10;
 	set_idt_entry(0x2E,&i_desc);
-	device_desc->pending_request=new_dllist();
 	device_desc->read=_read_28_ata;
 	device_desc->write=_write_28_ata;
-	device_desc->status=REQUEST_COMPLETED;
-	sem_int(device_desc->sem);
+	device_desc->status=DEVICE_IDLE;
+	sem_init(device_desc->sem);
 }
 
 void free_ata(t_device_desc* device_desc)
@@ -35,18 +34,18 @@ void int_handler_ata()
 	struct t_processor_reg processor_reg;
 	t_io_request* io_request;
 
-	disable_irq_line(1);?????
-
-	CLI
+//	CLI
 	SAVE_PROCESSOR_REG
-	EOI_TO_MASTER_PIC
+	disable_irq_line(14);
+	system.int_path_count++;
 	EOI_TO_SLAVE_PIC
+	EOI_TO_MASTER_PIC
 
 	if (system.device_desc->serving_request->process_context!=NULL)
 	{
 		_awake(system.device_desc->serving_request->process_context);
 	}
-	//enable_irq_line(1); put inside exit handler
+	enable_irq_line(14);
 	EXIT_INT_HANDLER(0,processor_reg,0)
 }
 
@@ -59,22 +58,10 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	t_io_request* pending_request;
 	t_llist_node* node;
 	
-	//SE METTO UN SEMAFORO?????????????????????	
-	SAVE_IF_STATUS
-	CLI
-	io_request->status=REQUEST_WAITING;
 	device_desc=io_request->device_desc;
-	if (device_desc->status==REQUEST_WAITING || test==0)
-	{
-		ll_append(device_desc->pending_request,io_request);
-		test=io_request->process_context->pid;
-		_sleep();
-	}	
-	else 
-	{
-		device_desc->status=REQUEST_WAITING;
-	}
-
+	sem_down(device_desc->sem);
+	device_desc->status=DEVICE_BUSY;
+	
 	out(0xE0 | (io_request->lba >> 24),0x1F6);
 	out((unsigned char)io_request->sector_count,0x1F2);
 	out((unsigned char)io_request->lba,0x1F3);
@@ -98,13 +85,12 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	}
 	else
 	{
-		while(io_request->status==REQUEST_WAITING);
+		while(device_desc->status==DEVICE_BUSY);
 	}
 
 	if ((in(0x1F7)&1))
 	{
-		io_request->status=REQUEST_ERROR;
-		device_desc->status=REQUEST_COMPLETED;
+		device_desc->status=DEVICE_IDLE;
 		panic();
 		return -1;
 	}
@@ -118,17 +104,8 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 			((char*)io_request->io_buffer)[i]=zz;
 		}
 	}
-
-	if (!ll_empty(device_desc->pending_request))
-	{
-		node=ll_first(device_desc->pending_request);
-		pending_request=(t_io_request*) node->val;
-		ll_delete_node(node);
-		_awake(pending_request->process_context);
-	}
-	device_desc->status=REQUEST_COMPLETED;
-	io_request->status=REQUEST_COMPLETED;
-	RESTORE_IF_STATUS
+	device_desc->status=DEVICE_IDLE;
+	sem_up(device_desc->sem);
 	return 0;
 }
 

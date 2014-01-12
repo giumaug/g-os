@@ -37,9 +37,8 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
       		/* Something went not according to specs. Print an error */
    	}
  	CLI
+	system.int_path_count=0;
 	system.scheduler_desc.scheduler_queue[0]=0;
-	system.race_tracker.index=0;
-	system.race_tracker.buffer[0]=1;
 	system.process_info.current_process=NULL;
 	init_kmalloc();
    	init_idt();

@@ -304,10 +304,10 @@ void int_handler_kbc()
 	struct t_processor_reg processor_reg;
 	
 	SAVE_PROCESSOR_REG
-	CLI
+//	CLI
+	disable_irq_line(1);
 	EOI_TO_MASTER_PIC
-//	disable_irq_line(1);
-
+	system.int_path_count++; 
 	scan_code=in(0x60);
 	switch(scan_code) 
 	{
@@ -328,7 +328,7 @@ void int_handler_kbc()
 		}
            	break;
 	}
-//	enable_irq_line(1);
+	enable_irq_line(1);
 	EXIT_INT_HANDLER(0,processor_reg,0)
 }
 

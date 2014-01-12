@@ -53,6 +53,11 @@ void int_handler_pit()
 	}
 
 	system.time+=QUANTUM_DURATION;
+	system.int_path_count++
+	if (system.int_path_count>1)
+	{
+		goto exit;
+	}
 	sleeping_process=system.active_console_desc->sleeping_process;
 	
 	sentinel=ll_sentinel(system.process_info.sleep_wait_queue);
@@ -136,6 +141,7 @@ void int_handler_pit()
 			}
 		}
 	}
+exit_hander:;
 //	EXIT_INT_HANDLER(is_schedule,processor_reg,ds);
 
 	static struct t_process_context _current_process_context;                                          
@@ -144,7 +150,8 @@ void int_handler_pit()
 	static struct t_processor_reg _processor_reg;                                                       
 	static unsigned int _action2;                                                                        
                                                                                                             
-	CLI                                                                          
+	CLI
+	system.int_path_count--;                                                                         
 	_action2=is_schedule;                                                                                   
 	_current_process_context=*(struct t_process_context*)system.process_info.current_process->val;                                  
 	_old_process_context=_current_process_context;                                                      
