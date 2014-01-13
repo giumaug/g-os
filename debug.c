@@ -85,24 +85,6 @@ void check_stack_change()
 	}
 }
 
-void check_race(int i)
-{
-	int last_int;
-
-	last_int=system.race_tracker.buffer[system.race_tracker.index];
-	system.race_tracker.index++;
-	system.race_tracker.buffer[system.race_tracker.index]=(char)i;
-//	if (i==0 && last_int!=1 && last_int!=3 && last_int!=5) goto race;
-//		else if (i==1 && last_int!=0) goto race;
-//			else if (i==2 && last_int!=1 && last_int!=3 && last_int!=5) goto race;
-//				else if (i==3 && last_int!=2) goto race;
-//					else if (i==4 && last_int!=1 && last_int!=3 && last_int!=5) goto race;
-//						else if (i==5 && last_int!=4) goto race;
-//return;
-//race:panic();
-return;
-}
-
 check_process_context()
 {
 	t_llist_node* next;

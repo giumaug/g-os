@@ -4,7 +4,6 @@
 #include "virtual_memory/vm.h"
 #include "drivers/ata/ata.h"
 
-extern int test;
 extern t_system system;
 
 void static int_handler_ata();
@@ -26,7 +25,8 @@ void init_ata(t_device_desc* device_desc)
 
 void free_ata(t_device_desc* device_desc)
 {
-	free_llist(device_desc->pending_request);
+	device_desc->status=DEVICE_IDLE;
+	sem_down(device_desc->sem);
 }
 
 void int_handler_ata()
