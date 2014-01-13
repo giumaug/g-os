@@ -15,6 +15,7 @@ all:	kmain.o                       \
         drivers.o                     \
         process.o                     \
         data_types.o		      \
+	synchro_types.o               \
 	ext2.o
 
 	ld -T linker.ld -o kernel.bin \
@@ -30,6 +31,7 @@ all:	kmain.o                       \
 	drivers/ata/*.o               \
 	process/*.o                   \
 	data_types/*.o		      \
+	synchro_types/*.o             \
 	ext2/*.o                
 
 kmain.o:kmain.c
@@ -80,6 +82,9 @@ process.o:
 data_types.o:
 	$(MAKE) -C data_types
 
+synchro_types.o:
+	$(MAKE) -C synchro_types
+
 ext2.o:
 	$(MAKE) -C ext2
 
@@ -100,6 +105,7 @@ clean:
 	$(MAKE) -C drivers clean
 	$(MAKE) -C process clean
 	$(MAKE) -C data_types clean
+	$(MAKE) -C synchro_types clean
 	$(MAKE) -C ext2 clean
 	rm -f kernel.bin
 

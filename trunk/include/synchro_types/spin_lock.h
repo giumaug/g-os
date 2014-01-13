@@ -3,15 +3,15 @@
 
 //HINT:%= expands in unique integer
 
-#define SPINLOCK_LOCK(lock)     \				
+#define SPINLOCK_LOCK(lock)     \
 asm ("                          \
 	_spin%=:		\
      	mov $0x1,%%eax;         \
 	xchg %%eax,%0;		\
 	cmp $0,%%eax;		\
 	jne _spin%=;		\
-     "		                \
-     ::"r"(lock.status):"%eax");
+     "                          \
+    ::"r"(lock.status):"%eax");
 			
 
 #define SPINLOCK_UNLOCK(lock) 	\

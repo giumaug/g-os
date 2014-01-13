@@ -53,10 +53,10 @@ void int_handler_pit()
 	}
 
 	system.time+=QUANTUM_DURATION;
-	system.int_path_count++
+	system.int_path_count++;
 	if (system.int_path_count>1)
 	{
-		goto exit;
+		goto exit_handler;
 	}
 	sleeping_process=system.active_console_desc->sleeping_process;
 	
@@ -141,7 +141,7 @@ void int_handler_pit()
 			}
 		}
 	}
-exit_hander:;
+exit_handler:;
 //	EXIT_INT_HANDLER(is_schedule,processor_reg,ds);
 
 	static struct t_process_context _current_process_context;                                          
