@@ -45,6 +45,7 @@ void int_handler_ata()
 	{
 		_awake(system.device_desc->serving_request->process_context);
 	}
+	system.device_desc->status=DEVICE_IDLE;
 	enable_irq_line(14);
 	EXIT_INT_HANDLER(0,processor_reg,0)
 }
@@ -61,6 +62,7 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	device_desc=io_request->device_desc;
 	sem_down(device_desc->sem);
 	device_desc->status=DEVICE_BUSY;
+	system.device_desc->serving_request=io_request;
 	
 	out(0xE0 | (io_request->lba >> 24),0x1F6);
 	out((unsigned char)io_request->sector_count,0x1F2);
@@ -77,13 +79,13 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 			outw((unsigned short)57,0x1F0);
 		}
 	}
-	system.device_desc->serving_request=io_request;
-	if (system.process_info.current_process->val!=NULL)
+	
+	if (device_desc->status=DEVICE_BUSY && system.process_info.current_process->val!=NULL)
 	{
 		io_request->process_context=system.process_info.current_process->val;
 		_sleep();
 	}
-	else
+	else if (device_desc->status=DEVICE_BUSY) 
 	{
 		while(device_desc->status==DEVICE_BUSY);
 	}
@@ -104,7 +106,7 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 			((char*)io_request->io_buffer)[i]=zz;
 		}
 	}
-	device_desc->status=DEVICE_IDLE;
+	//device_desc->status=DEVICE_IDLE;
 	sem_up(device_desc->sem);
 	return 0;
 }
