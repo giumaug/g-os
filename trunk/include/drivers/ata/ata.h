@@ -7,9 +7,6 @@
 
 #define READ_28 0x20
 #define WRITE_28 0x30
-#define REQUEST_WAITING 0x0
-#define REQUEST_COMPLETED 0x1
-#define REQUEST_ERROR 0x2
 
 #define READ(sector_count,lba,io_buffer) ext2->device_desc->write(ext2->device_desc,sector_count,lba,io_buffer);
 #define WRITE(sector_count,lba,io_buffer) ext2->device_desc->write(ext2->device_desc,sector_count,lba,io_buffer);
