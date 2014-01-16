@@ -29,7 +29,7 @@ typedef struct s_device_desc
 	u32 (*write)(t_io_request* io_request);
 	unsigned int status;
 	t_io_request* serving_request;
-	t_sem_desc* sem;	
+	t_sem_desc sem;	
 }
 t_device_desc;
 

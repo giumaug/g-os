@@ -20,13 +20,13 @@ void init_ata(t_device_desc* device_desc)
 	device_desc->read=_read_28_ata;
 	device_desc->write=_write_28_ata;
 	device_desc->status=DEVICE_IDLE;
-	sem_init(device_desc->sem);
+	sem_init(&device_desc->sem);
 }
 
 void free_ata(t_device_desc* device_desc)
 {
 	device_desc->status=DEVICE_IDLE;
-	sem_down(device_desc->sem);
+	sem_down(&device_desc->sem);
 }
 
 void int_handler_ata()
@@ -38,8 +38,8 @@ void int_handler_ata()
 	SAVE_PROCESSOR_REG
 	disable_irq_line(14);
 	system.int_path_count++;
-	EOI_TO_SLAVE_PIC
-	EOI_TO_MASTER_PIC
+//	EOI_TO_SLAVE_PIC-
+//	EOI_TO_MASTER_PIC-
 
 	if (system.device_desc->serving_request->process_context!=NULL)
 	{
@@ -53,14 +53,12 @@ void int_handler_ata()
 static unsigned int _read_write_28_ata(t_io_request* io_request)
 {
 	int i;
-	struct t_process_context* process_context;
-	struct t_process_context *current_process_context;
 	t_device_desc* device_desc;
 	t_io_request* pending_request;
 	t_llist_node* node;
 	
 	device_desc=io_request->device_desc;
-	sem_down(device_desc->sem);
+	sem_down(&device_desc->sem);
 	device_desc->status=DEVICE_BUSY;
 	system.device_desc->serving_request=io_request;
 	
@@ -80,12 +78,12 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 		}
 	}
 	
-	if (device_desc->status=DEVICE_BUSY && system.process_info.current_process->val!=NULL)
+	if (device_desc->status==DEVICE_BUSY && system.process_info.current_process->val!=NULL)
 	{
 		io_request->process_context=system.process_info.current_process->val;
 		_sleep();
 	}
-	else if (device_desc->status=DEVICE_BUSY) 
+	else if (device_desc->status==DEVICE_BUSY) 
 	{
 		while(device_desc->status==DEVICE_BUSY);
 	}
@@ -107,7 +105,7 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 		}
 	}
 	//device_desc->status=DEVICE_IDLE;
-	sem_up(device_desc->sem);
+	sem_up(&device_desc->sem);
 	return 0;
 }
 
