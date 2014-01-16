@@ -44,7 +44,7 @@ void int_handler_pit()
 	unsigned int priority;
 	
 	SAVE_PROCESSOR_REG
-	CLI
+//	CLI
 	EOI_TO_MASTER_PIC
 	GET_DS(ds)
 	if (ds==0x20) 
