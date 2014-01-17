@@ -286,7 +286,7 @@ void init_kbc()
 	in_buf=new_queue();
 	i_desc.baseLow=((int)&int_handler_kbc) & 0xFFFF;
 	i_desc.selector=0x8;
-	i_desc.flags=0x0EF00;//0x08e00;
+	i_desc.flags=0x08e00; //0x0EF00;
 	i_desc.baseHi=((int)&int_handler_kbc)>>0x10;
 	set_idt_entry(0x21,&i_desc);
 }
@@ -305,9 +305,11 @@ void int_handler_kbc()
 	
 	SAVE_PROCESSOR_REG
 //	CLI
-	disable_irq_line(1);
-//	EOI_TO_MASTER_PIC---
 	system.int_path_count++; 
+	disable_irq_line(1);
+	EOI_TO_MASTER_PIC
+	STI	
+	
 	scan_code=in(0x60);
 	switch(scan_code) 
 	{
