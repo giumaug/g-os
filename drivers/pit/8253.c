@@ -23,7 +23,7 @@ void init_pit()
 	out(HI_QUANTUM,COUNTER_0);
 	i_desc.baseLow=((int)&int_handler_pit) & 0xFFFF;
 	i_desc.selector=0x8;
-	i_desc.flags=0x08e00;
+	i_desc.flags=0x08e00; //0x0EF00;
 	i_desc.baseHi=((int)&int_handler_pit)>>0x10;
 	set_idt_entry(0x20,&i_desc);
 }

@@ -14,7 +14,7 @@ void init_ata(t_device_desc* device_desc)
 	
 	i_desc.baseLow=((int)&int_handler_ata) & 0xFFFF;
 	i_desc.selector=0x8;
-	i_desc.flags=0x0EF00;
+	i_desc.flags=0x08e00;
 	i_desc.baseHi=((int)&int_handler_ata)>>0x10;
 	set_idt_entry(0x2E,&i_desc);
 	device_desc->read=_read_28_ata;
@@ -38,8 +38,9 @@ void int_handler_ata()
 	SAVE_PROCESSOR_REG
 	disable_irq_line(14);
 	system.int_path_count++;
-//	EOI_TO_SLAVE_PIC-
-//	EOI_TO_MASTER_PIC-
+	EOI_TO_SLAVE_PIC
+	EOI_TO_MASTER_PIC
+	STI
 
 	if (system.device_desc->serving_request->process_context!=NULL)
 	{
