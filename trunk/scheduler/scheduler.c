@@ -7,7 +7,6 @@
 #include "klib/printk.h"
 #include "process/process_1.h"
 
-int test=0;
 extern unsigned int exit_count_1;
 extern unsigned int exit_count_2;
 extern unsigned int exit_count_3;
@@ -98,9 +97,7 @@ void schedule(struct t_process_context *current_process_context,struct t_process
 				}
 				else if (current_process_context->proc_status==EXITING)
 				{
-					check_active_process();
 					kfree(current_process_context);
-					check_active_process();
 					ll_delete_node(node);
 				}
 				stop=1;

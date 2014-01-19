@@ -4,6 +4,7 @@
 #include "virtual_memory/vm.h"
 #include "drivers/ata/ata.h"
 
+int test=0;
 extern t_system system;
 
 void static int_handler_ata();
@@ -33,6 +34,7 @@ void int_handler_ata()
 {	
 	struct t_processor_reg processor_reg;
 	t_io_request* io_request;
+	struct t_process_context* process_context;
 
 //	CLI
 	SAVE_PROCESSOR_REG
@@ -42,7 +44,9 @@ void int_handler_ata()
 	EOI_TO_MASTER_PIC
 	STI
 
-	if (system.device_desc->serving_request->process_context!=NULL)
+	process_context=system.device_desc->serving_request->process_context;
+
+	if (process_context!=NULL && process_context->proc_status==SLEEPING)
 	{
 		_awake(system.device_desc->serving_request->process_context);
 	}
@@ -60,6 +64,8 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	
 	device_desc=io_request->device_desc;
 	sem_down(&device_desc->sem);
+	//some latency to trigger semaphore
+	//for (i=0;i<=100000;i++);
 	device_desc->status=DEVICE_BUSY;
 	system.device_desc->serving_request=io_request;
 	
