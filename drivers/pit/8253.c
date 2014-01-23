@@ -163,7 +163,8 @@ exit_handler:;
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))                                                          
 		DO_STACK_FRAME(_processor_reg.esp-8); 
 		if (_action2==2)                                                                              
-		{                                                                                      
+		{
+			exit_count_2++;                                                                                       
 			DO_STACK_FRAME(_processor_reg.esp-8);                                               
 			free_vm_process(_old_process_context.page_dir); 
 			buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_add_space));                                   

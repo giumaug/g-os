@@ -51,6 +51,10 @@ void check_free_mem()
 	{
 		panic();
 	}
+	if (exit_count_2<(exit_count_1-1))
+	{
+		panic();
+	}
 }
 
 void check_stack_change()
