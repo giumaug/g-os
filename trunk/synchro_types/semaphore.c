@@ -14,6 +14,7 @@ void sem_down(t_sem_desc* sem_desc)
 {
 	struct t_process_context* current_process_context;
 
+	current_process_context=system.process_info.current_process->val;
 	SPINLOCK_LOCK(sem_desc->spinlock);
 	if (sem_desc->count==0)
 	{
@@ -26,7 +27,6 @@ void sem_down(t_sem_desc* sem_desc)
 		sem_desc->count--;
 	}
 	SPINLOCK_UNLOCK(sem_desc->spinlock);
-
 }
 
 void sem_up(t_sem_desc* sem_desc)
