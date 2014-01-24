@@ -46,6 +46,7 @@ typedef struct s_system
 	struct s_ext2* root_fs;
 	t_device_desc* device_desc;
 	unsigned int int_path_count;
+	unsigned int proc_trace[10][20];
 }
 t_system;
 

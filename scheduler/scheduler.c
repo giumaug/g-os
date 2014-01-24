@@ -1,3 +1,4 @@
+#include "debug.h"
 #include "general.h"
 #include "system.h"
 #include "scheduler/scheduler.h"
@@ -6,17 +7,6 @@
 #include "asm.h"
 #include "klib/printk.h"
 #include "process/process_1.h"
-
-extern unsigned int exit_count_1;
-extern unsigned int exit_count_2;
-extern unsigned int exit_count_3;
-extern unsigned int exit_count_4;
-extern unsigned int exit_count_5;
-extern unsigned int exit_count_6;
-extern unsigned int exit_count_7;
-extern unsigned int exit_count_8;
-extern unsigned int exit_count_9;
-extern unsigned int exit_count_10;
 
 extern t_system system;
 extern struct t_llist* kbc_wait_queue;
@@ -242,11 +232,10 @@ void _exit(int status)
 	
 	SAVE_IF_STATUS
 	CLI
-	exit_count_1++;
 	t_llist_node* current_node=system.process_info.current_process;
 	//process 0 never die
+	track_proc(PROC_PID,0); 
 	current_process=system.process_info.current_process->val;
-	exit_count_4++;
 	if (current_process->pid==0)
 	{
 		while(1)
@@ -254,6 +243,7 @@ void _exit(int status)
 			asm("sti;hlt");
 		}
 	}
+	track_proc(PROC_PID,1); 
 	current_process->proc_status=EXITING;
 	sentinel=ll_sentinel(system.process_info.pause_queue);
 	next=ll_first(system.process_info.pause_queue);

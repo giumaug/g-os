@@ -6,16 +6,6 @@
 
 extern t_system system;
 extern unsigned int free_mem_list[POOL_NUM];
-unsigned int exit_count_1=0;
-unsigned int exit_count_2=0;
-unsigned int exit_count_3=0;
-unsigned int exit_count_4=0;
-unsigned int exit_count_5=0;
-unsigned int exit_count_6=0;
-unsigned int exit_count_7=0;
-unsigned int exit_count_8=0;
-unsigned int exit_count_9=0;
-unsigned int exit_count_10=0;
 
 unsigned int proc[100];
 int t_sched_debug[10][10];
@@ -51,10 +41,7 @@ void check_free_mem()
 	{
 		panic();
 	}
-	if (exit_count_2<(exit_count_1-1))
-	{
-		panic();
-	}
+	reset_proc_trace();
 }
 
 void check_stack_change()
@@ -166,4 +153,24 @@ void sched_debug()
 		} 
 	}
 	return;
+}
+
+void track_proc(unsigned int pid,unsigned int index)
+{
+	if (pid<=2) return;
+	system.proc_trace[pid-3][index]=1;
+}
+
+void reset_proc_trace()
+{
+	int i,j=0;
+
+	for (j=0;j<20;j++)
+	{
+		for (i=0;i<10;i++)
+		{
+			system.proc_trace[i][j]=0;
+		}
+	}
+	system.process_info.next_pid=3;
 }
