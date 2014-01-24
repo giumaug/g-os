@@ -10,17 +10,6 @@
 
 #define K_STACK 0x1FFFFB
 
-extern unsigned int exit_count_1;
-extern unsigned int exit_count_2;
-extern unsigned int exit_count_3;
-extern unsigned int exit_count_4;
-extern unsigned int exit_count_5;
-extern unsigned int exit_count_6;
-extern unsigned int exit_count_7;
-extern unsigned int exit_count_8;
-extern unsigned int exit_count_9;
-extern unsigned int exit_count_10;
-
 extern t_system system;
 
 void syscall_handler()
@@ -190,17 +179,21 @@ void syscall_handler()
 	_old_process_context=_current_process_context;                                                      
 	_processor_reg=processor_reg;                                                                
 	if (_action>0)                                                                                      
-	{                                                                                            
-		schedule(&_current_process_context,&_processor_reg);                                         
+	{           
+		track_proc(PROC_PID,2);                                                                                 
+		schedule(&_current_process_context,&_processor_reg);
+		track_proc(_old_process_context.pid,3);                                        
 		_new_process_context=*(struct t_process_context*)(system.process_info.current_process->val);                              
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))                                                          
-		DO_STACK_FRAME(_processor_reg.esp-8); 	 
+		DO_STACK_FRAME(_processor_reg.esp-8);
+		track_proc(_old_process_context.pid,4);	 
 		if (_action==2)                                                                              
-		{          
-			exit_count_2++;                                                                        
+		{
+			track_proc(_old_process_context.pid,5);                                                                                  
 			DO_STACK_FRAME(_processor_reg.esp-8);                                               
 			free_vm_process(_old_process_context.page_dir); 
-			buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_add_space));                                   
+			buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_add_space));
+			track_proc(_old_process_context.pid,6);                                 
 		}                                                                               
 		SWITCH_DS_TO_USER_MODE                                                                      
 		RESTORE_PROCESSOR_REG                                                                       

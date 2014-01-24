@@ -37,6 +37,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
       		/* Something went not according to specs. Print an error */
    	}
  	CLI
+	reset_proc_trace();
 	system.int_path_count=0;
 	system.scheduler_desc.scheduler_queue[0]=0;
 	system.process_info.current_process=NULL;

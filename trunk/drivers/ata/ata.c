@@ -1,3 +1,4 @@
+#include "debug.h" 
 #include "asm.h" 
 #include "idt.h"
 #include "general.h"
