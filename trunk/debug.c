@@ -158,6 +158,7 @@ void sched_debug()
 void track_proc(unsigned int pid,unsigned int index)
 {
 	if (pid<=2) return;
+	if ((pid-3)>10) panic();
 	system.proc_trace[pid-3][index]=1;
 }
 
@@ -173,4 +174,8 @@ void reset_proc_trace()
 		}
 	}
 	system.process_info.next_pid=3;
+	system.barrier_up[0]=0;
+	system.barrier_up[4094]=0;
+	system.barrier_down[0]=0;
+	system.barrier_down[4094]=0;
 }
