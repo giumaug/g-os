@@ -37,6 +37,7 @@ struct s_ext2;
 
 typedef struct s_system
 {
+	unsigned int barrier_up[2000];
 	unsigned int time;
 	struct t_process_info process_info;
 	t_console_desc* active_console_desc;
@@ -47,6 +48,7 @@ typedef struct s_system
 	t_device_desc* device_desc;
 	unsigned int int_path_count;
 	unsigned int proc_trace[10][20];
+	unsigned int barrier_down[2000];
 }
 t_system;
 

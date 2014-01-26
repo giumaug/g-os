@@ -26,7 +26,7 @@ process_1()
 			}
 		}
 		age++;
-		sleep(10000);
+		sleep(5000);
 		check_free_mem();
 	}
 	exit(0);
