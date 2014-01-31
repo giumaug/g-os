@@ -158,24 +158,24 @@ void sched_debug()
 void track_proc(unsigned int pid,unsigned int index)
 {
 	if (pid<=2) return;
-	if ((pid-3)>10) panic();
-	system.proc_trace[pid-3][index]=1;
+//	if ((pid-3)>10) panic();
+	system.proc_trace[pid-3][index]++;
 }
 
 void reset_proc_trace()
 {
 	int i,j=0;
 
-	for (j=0;j<20;j++)
+	for (j=0;j<100;j++)
 	{
-		for (i=0;i<10;i++)
+		for (i=0;i<100;i++)
 		{
 			system.proc_trace[i][j]=0;
 		}
 	}
 	system.process_info.next_pid=3;
-	system.barrier_up[0]=0;
-	system.barrier_up[4094]=0;
-	system.barrier_down[0]=0;
-	system.barrier_down[4094]=0;
+//	system.barrier_up[0]=0;
+//	system.barrier_up[4094]=0;
+//	system.barrier_down[0]=0;
+//	system.barrier_down[4094]=0;
 }

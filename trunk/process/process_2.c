@@ -14,7 +14,7 @@ process_2()
 	unsigned char* mem_addr;
 	unsigned int workload;
 
-	workload=(rand() % 20 + 1);
+	workload=(rand() % 100 + 1);
 
 	unsigned int pid=((struct t_process_context*)system.process_info.current_process->val)->pid;
 	printf("\nrequest workload=");
@@ -23,7 +23,7 @@ process_2()
 	printf("\npid=");
 	d_printf(pid);
 	printf("\n");
-//	workload=1;
+	workload=50;
 	for (y=0;y<workload;y++)
 	{
 		write_mem_addr=malloc(512);
