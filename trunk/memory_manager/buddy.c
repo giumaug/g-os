@@ -8,7 +8,6 @@
 
 extern t_system system;
 static unsigned int mem;
-extern panic();
 
 static void buddy_reset_block(void* address,unsigned int page_size);
 static void buddy_init_mem(t_buddy_desc* buddy);

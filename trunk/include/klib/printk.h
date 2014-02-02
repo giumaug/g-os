@@ -2,5 +2,6 @@
 #define PRINTK_H
 
 void printk(char *text,...);
+void getchk();
 
 #endif

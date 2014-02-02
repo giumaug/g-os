@@ -45,6 +45,7 @@ void printk(char *text,...)
 	int params[2];
 	struct t_process_context *current_process_context=system.process_info.current_process->val;
 	t_console_desc *console_desc=current_process_context->console_desc;
+
 	while (text[++index]!='\0')
 	{
 		if (text[index]=='%' && text[index+1]=='d')
@@ -56,4 +57,13 @@ void printk(char *text,...)
 		}
 		_write_char(console_desc,text[index]);
 	}
-} 
+}
+
+void getchk()
+{
+	char data;
+	struct t_process_context *current_process_context=system.process_info.current_process->val;
+	t_console_desc *console_desc=current_process_context->console_desc;
+
+	data=_read_char(console_desc);
+}

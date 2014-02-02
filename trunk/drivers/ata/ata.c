@@ -43,7 +43,8 @@ void int_handler_ata()
 	system.int_path_count++;
 	EOI_TO_SLAVE_PIC
 	EOI_TO_MASTER_PIC
-	track_proc(PROC_PID,7);
+	TRACE(17,PROC_PID)
+//	track_proc(PROC_PID,7);
 	STI
 
 	process_context=system.device_desc->serving_request->process_context;
@@ -52,7 +53,7 @@ void int_handler_ata()
 	{
 		_awake(system.device_desc->serving_request->process_context);
 	}
-	track_proc(process_context->pid,8);
+	TRACE(18,process_context->pid);
 	system.device_desc->status=DEVICE_IDLE;
 	enable_irq_line(14);
 	EXIT_INT_HANDLER(0,processor_reg,0)
@@ -67,6 +68,11 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	
 	device_desc=io_request->device_desc;
 	sem_down(&device_desc->sem);
+	test++;
+	if (test>1)
+	{
+		panic();
+	}
 	//some latency to trigger semaphore
 	for (i=0;i<=100000;i++);
 	device_desc->status=DEVICE_BUSY;
@@ -114,8 +120,8 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 			((char*)io_request->io_buffer)[i]=zz;
 		}
 	}
-	//device_desc->status=DEVICE_IDLE;
-        track_proc(PROC_PID,9);
+        TRACE(19,PROC_PID);
+	test--;
 	sem_up(&device_desc->sem);
 	return 0;
 }
