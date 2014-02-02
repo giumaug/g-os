@@ -158,20 +158,25 @@ exit_handler:;
 	_processor_reg=processor_reg;                                              
 	if (_action2>0)                                                                                      
 	{
-		track_proc(PROC_PID,2);                                                                                                
+//		track_proc(PROC_PID,2);
+		TRACE(7,PROC_PID)                                                                                                
 		schedule(&_current_process_context,&_processor_reg);
-		track_proc(_old_process_context.pid,3);                          
+//		track_proc(_old_process_context.pid,3);
+		TRACE(8,_old_process_context.pid)		                          
 		_new_process_context=*(struct t_process_context*)(system.process_info.current_process->val);                              
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))                                                          
 		DO_STACK_FRAME(_processor_reg.esp-8); 
-		track_proc(_old_process_context.pid,4);
+//		track_proc(_old_process_context.pid,4);
+		TRACE(9,_old_process_context.pid)
 		if (_action2==2)                                                                              
 		{
-			track_proc(_old_process_context.pid,5);                                                                                  
+//			track_proc(_old_process_context.pid,5);
+			TRACE(10,_old_process_context.pid)                                                                                  
 			DO_STACK_FRAME(_processor_reg.esp-8);                                               
 			free_vm_process(_old_process_context.page_dir); 
 			buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_add_space));
-			track_proc(_old_process_context.pid,6);                                   
+//			track_proc(_old_process_context.pid,6);
+			TRACE(11,_old_process_context.pid)                                   
 		}                                                                               
 		SWITCH_DS_TO_USER_MODE                                                                      
 		RESTORE_PROCESSOR_REG                                                                       

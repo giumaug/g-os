@@ -1,6 +1,7 @@
 #ifndef SYSTEM_H                
 #define SYSTEM_H
 
+#include "debug.h"
 #include "console/console.h"
 #include "scheduler/process.h"
 #include "scheduler/scheduler.h"
@@ -37,7 +38,6 @@ struct s_ext2;
 
 typedef struct s_system
 {
-//	unsigned int barrier_up[2000];
 	unsigned int time;
 	struct t_process_info process_info;
 	t_console_desc* active_console_desc;
@@ -47,8 +47,10 @@ typedef struct s_system
 	struct s_ext2* root_fs;
 	t_device_desc* device_desc;
 	unsigned int int_path_count;
-	unsigned int proc_trace[100][100];
-//	unsigned int barrier_down[2000];
+//	unsigned int proc_trace[100][100];
+	unsigned int tracepoint_index;
+	t_tracepoint tracepoint[5000];
+	unsigned int panic;
 }
 t_system;
 

@@ -20,7 +20,9 @@ t_system system;
 
 void kmain( void* mbd, unsigned int magic,int init_data_add)
 {
-	system.time=0;	
+	system.panic=0;
+	system.time=0;
+	system.tracepoint_index=-1;
 	unsigned int* init_data=init_data_add;
 	static struct t_process_context process_context;
 	static struct t_i_desc i_desc;
@@ -37,7 +39,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
       		/* Something went not according to specs. Print an error */
    	}
  	CLI
-	reset_proc_trace();
+//	reset_proc_trace();
 	system.int_path_count=0;
 	system.scheduler_desc.scheduler_queue[0]=0;
 	system.process_info.current_process=NULL;

@@ -13,14 +13,35 @@ int index_2=0;
 
 void panic()
 {
+	unsigned int i=0;
+	unsigned int c;
+
+	system.panic=1;
+	printk("\n");
+	printk("------trace dump-------\n");
+	for (i=0;i<system.tracepoint_index;i++)
+	{
+		printk("pid: %d \n",&system.tracepoint[i].pid);
+		printk("point: %d \n",&system.tracepoint[i].point);
+		if ((i % 20)==0) 
+		{
+			printk("press key...\n");
+			getchk();
+		}
+	}
 	return;
 }
 
-void stop(int* stack,struct t_process_context* fault_process_context,struct t_process_context* current_process_context)
-{
-	int xx;
-	xx++;
-}
+//void check_race()
+//{
+//	unsigned int i;
+//	for (i=0;i<system.tracepoint_index;i++)
+//	{
+//	 	pid=system.tracepoint[i].pid;
+//		point=system.tracepoint[i].point;
+//		if (pid==
+//	}
+//}
 
 void check_free_mem()
 {
@@ -33,7 +54,6 @@ void check_free_mem()
 	//a_fixed_size_check_mem_status();
 	check_active_process();
 	if (buddy_mem!=160194560)
-	//if (buddy_mem!=21934080)
 	{
 		panic();
 	}
@@ -41,7 +61,8 @@ void check_free_mem()
 	{
 		panic();
 	}
-	reset_proc_trace();
+	system.tracepoint_index=-1;
+//	reset_proc_trace();
 }
 
 void check_stack_change()
@@ -68,7 +89,7 @@ void check_stack_change()
 			stack=FROM_PHY_TO_VIRT(next_process_context->phy_add_space)+0xffffb;
 			if ((*stack)!=0x23)
 			{
-				stop(stack,next_process_context,current_process_context);
+//				stop(stack,next_process_context,current_process_context);
 			}
 			next=ll_next(next);	
 		}
@@ -155,27 +176,23 @@ void sched_debug()
 	return;
 }
 
-void track_proc(unsigned int pid,unsigned int index)
-{
-	if (pid<=2) return;
-//	if ((pid-3)>10) panic();
-	system.proc_trace[pid-3][index]++;
-}
-
-void reset_proc_trace()
-{
-	int i,j=0;
-
-	for (j=0;j<100;j++)
-	{
-		for (i=0;i<100;i++)
-		{
-			system.proc_trace[i][j]=0;
-		}
-	}
-	system.process_info.next_pid=3;
-//	system.barrier_up[0]=0;
-//	system.barrier_up[4094]=0;
-//	system.barrier_down[0]=0;
-//	system.barrier_down[4094]=0;
-}
+//void track_proc(unsigned int pid,unsigned int index)
+//{
+//	if (pid<=2) return;
+//	system.proc_trace[pid-3][index]++;
+//}
+//
+//void reset_proc_trace()
+//{
+//	int i,j=0;
+//
+//	for (j=0;j<100;j++)
+//	{
+//		for (i=0;i<100;i++)
+//		{
+//			system.proc_trace[i][j]=0;
+//		}
+//	}
+//	system.process_info.next_pid=3;
+//	index_3=0;
+//}
