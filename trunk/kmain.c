@@ -20,7 +20,6 @@ t_system system;
 
 void kmain( void* mbd, unsigned int magic,int init_data_add)
 {
-	system.panic=0;
 	system.time=0;
 	system.tracepoint_index=-1;
 	unsigned int* init_data=init_data_add;
