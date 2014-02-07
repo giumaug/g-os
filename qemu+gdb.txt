@@ -1,0 +1,73 @@
+qemu -monitor stdio -s -S -m 200M -monitor stdio -kernel ./kernel.bin
+gdb ./kernel.bin
+dentro gdb:
+target remote: 1234
+b kmain
+
+debug remote 1 (log su remote debug)
+
+
+qemu
+monitor control-alt-1/2
+
+log item in_asm --faccio dump su file programma in esecuzione su qemu
+
+lancire qemu con:qemu -s -S -m 200M -kernel
+
+lanciare gdb con:gdb
+connettersi a qemu con: target remote :1234
+
+
+gdb:
+
+attaccarsi a un processo in esecuzione gdb ./isdnsim 10987 
+(per caricare i dorgenti : dir path sorgenti
+
+b nome funzione per settare brekpoint
+d numero per eliminare breakpoint
+c per continuare dopo breakpoint
+q exit
+b *0x44444 breakpoint su indirizzo esadecimale
+p nome variabile per stamapre una variabile
+x /20b 0xa00e160 stampa n byte in esadecimale
+l stampa linee di codice
+
+settare linea di comando : set args aaa vvv ccc 
+
+core dump:
+gdb nome eseguibile nome file dumped(gdb) set logging on
+
+watchpoit: set watch nome variabile ---interessante
+
+vedere i registri :info register(gdb) set logging on
+vedere pc: p $pc
+
+andare avanti di un istruzione: step
+[100]
+disaasemblare: disas inizio fine
+
+watch address:break point quando scrivo su address
+
+
+log su file
+
+(gdb) set logging on
+
+(gdb) set logging file my_god_object.log
+
+(gdb) show logging
+
+(gdb) system.tracepoint[index]@200
+
+cat
+
+cat ./dump_copy.txt |  sed ':a;N;$!ba;s/\n//g' > new.txt
+
+
+cat ./new.txt | sed 's/ //g' > new2.txt
+
+
+
+
+
+

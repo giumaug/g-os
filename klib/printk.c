@@ -59,11 +59,11 @@ void printk(char *text,...)
 	}
 }
 
-void getchk()
-{
-	char data;
-	struct t_process_context *current_process_context=system.process_info.current_process->val;
-	t_console_desc *console_desc=current_process_context->console_desc;
-
-	data=_read_char(console_desc);
-}
+//void getchk()
+//{
+//	char data;
+//	struct t_process_context *current_process_context=system.process_info.current_process->val;
+//	t_console_desc *console_desc=current_process_context->console_desc;
+//
+//	data=_read_char(console_desc);
+//}

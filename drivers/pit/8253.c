@@ -155,7 +155,8 @@ exit_handler:;
 	_action2=is_schedule;                                                                                   
 	_current_process_context=*(struct t_process_context*)system.process_info.current_process->val;                                  
 	_old_process_context=_current_process_context;                                                      
-	_processor_reg=processor_reg;                                              
+	_processor_reg=processor_reg;
+        TRACE(20,PROC_PID)                             
 	if (_action2>0)                                                                                      
 	{
 //		track_proc(PROC_PID,2);
@@ -184,7 +185,8 @@ exit_handler:;
 	}                                                                                                   
 	else                                                                                                
 	{   
-		DO_STACK_FRAME(_processor_reg.esp-8);                                                                                                
+		DO_STACK_FRAME(_processor_reg.esp-8);
+		TRACE(21,PROC_PID)                                                                                                 
 		if (0==0x20)                                                                               
 		{                                                                                           
 			SWITCH_DS_TO_USER_MODE                                                              

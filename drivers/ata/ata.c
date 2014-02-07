@@ -74,7 +74,7 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 		panic();
 	}
 	//some latency to trigger semaphore
-	for (i=0;i<=100000;i++);
+	//for (i=0;i<=100000;i++);
 	device_desc->status=DEVICE_BUSY;
 	system.device_desc->serving_request=io_request;
 	

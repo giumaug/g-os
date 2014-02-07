@@ -49,7 +49,7 @@ typedef struct s_system
 	unsigned int int_path_count;
 //	unsigned int proc_trace[100][100];
 	unsigned int tracepoint_index;
-	t_tracepoint tracepoint[5000];
+	t_tracepoint tracepoint[30000];
 	unsigned int panic;
 }
 t_system;

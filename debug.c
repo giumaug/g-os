@@ -13,20 +13,20 @@ int index_2=0;
 
 void panic()
 {
-	unsigned int i=0;
+	int i=0;
 	unsigned int c;
 
 	system.panic=1;
 	printk("\n");
 	printk("------trace dump-------\n");
-	for (i=0;i<system.tracepoint_index;i++)
+	for (i=system.tracepoint_index;i>=0;i--)
 	{
-		printk("pid: %d \n",&system.tracepoint[i].pid);
-		printk("point: %d \n",&system.tracepoint[i].point);
+		printk("index: %d pid: %d point:%d \n",&i,&system.tracepoint[i].pid,&system.tracepoint[i].point);
+		
 		if ((i % 20)==0) 
 		{
+			printk("-----------------------\n");
 			printk("press key...\n");
-			getchk();
 		}
 	}
 	return;
