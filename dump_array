@@ -1,0 +1,13 @@
+define dump_array
+set height 0
+set width 0
+set logging on
+set $index = $arg0
+set $index= $index-$arg1
+p system.tracepoint[$index]@$arg1
+while ($index)
+set $index=$index-200
+p system.tracepoint[$index]@200
+end
+printf "Done\n"
+end
