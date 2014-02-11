@@ -159,11 +159,16 @@ void syscall_handler()
 		_write_28_ata(io_request);
 		kfree(io_request);
 	}
-
-	else if (syscall_num==255) 
+	else if (syscall_num==101) 
 	{
 		on_exit_action=1; 
 	}
+	else
+	{
+		panic();
+	}
+	
+	
 	
 //	EXIT_INT_HANDLER(on_exit_action,processor_reg,0)
 
