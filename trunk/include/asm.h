@@ -173,7 +173,7 @@
 
 #define SWITCH_PAGE_DIR(page_dir) asm("mov %0,%%eax;mov %%eax,%%cr3;"::"r"(page_dir):"%eax");
 #define SYSCALL(syscall_num,params) asm("mov %0,%%eax;mov %1,%%ecx;int $0x80"::"r"(syscall_num),"r"(params):"%eax","%ecx");
-#define SUSPEND asm("mov $0xFF,%%eax;int $0x80":::"%eax","%ecx");
+#define SUSPEND asm("mov $0x65,%%eax;int $0x80":::"%eax","%ecx");
 #define DO_STACK_FRAME(esp) asm("movl %0,%%esp;"::"r"(esp));
 
 unsigned char in(unsigned int address);
