@@ -3,8 +3,12 @@
 
 #define PROC_PID ((struct t_process_context*) system.process_info.current_process->val)->pid
 #define TRACE(POINT,PID) system.tracepoint_index++;                    \
-	      system.tracepoint[system.tracepoint_index].pid=PID;      \
-	      system.tracepoint[system.tracepoint_index].point=POINT;
+		if (system.tracepoint_index>200000)                    \
+		{                                                      \
+			panic();                                       \
+		}		                                       \
+		system.tracepoint[system.tracepoint_index].pid=PID;    \
+	       system.tracepoint[system.tracepoint_index].point=POINT;
 
 typedef struct s_tracepoint 
 {

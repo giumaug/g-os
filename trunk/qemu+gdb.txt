@@ -66,6 +66,11 @@ cat ./dump_copy.txt |  sed ':a;N;$!ba;s/\n//g' > new.txt
 
 cat ./new.txt | sed 's/ //g' > new2.txt
 
+cat ./gdb.txt |  sed ':a;N;$!ba;s/\n//g' > _gdb.txt.txt
+
+cat ./_gdb.txt | sed 's/ //g' > __gdb.txt
+
+
 
 
 
