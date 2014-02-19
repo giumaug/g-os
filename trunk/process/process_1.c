@@ -12,7 +12,8 @@ process_1()
 	while(1)
 	{
 		n_request=(rand() % 100 + 1);
-		n_request=30;
+//		n_request=35;
+		n_request=3;
 		printf("\nage=");
 		d_printf(age);
 		printf("\nrequest number=");
@@ -26,7 +27,7 @@ process_1()
 			}
 		}
 		age++;
-		sleep(15000);
+		sleep(30000);
 		check_free_mem();
 	}
 	exit(0);

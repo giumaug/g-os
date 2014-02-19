@@ -29,7 +29,6 @@ void exit_int_handler(unsigned int action,struct t_processor_reg processor_reg,s
 	static unsigned int _action2;                                                                              \
                                                                                                                    \
 	CLI                                                                                                        \
-	system.int_path_count--;                                                                                   \
 	_action2=action;                                                                                           \
 	_current_process_context=*(struct t_process_context*)system.process_info.current_process->val;             \
 	_old_process_context=_current_process_context;                                                             \

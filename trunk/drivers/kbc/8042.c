@@ -305,7 +305,7 @@ void int_handler_kbc()
 	
 	SAVE_PROCESSOR_REG
 //	CLI
-	system.int_path_count++; 
+	DISABLE_PREEMPTION
 	disable_irq_line(1);
 	EOI_TO_MASTER_PIC
 	STI	
@@ -331,6 +331,7 @@ void int_handler_kbc()
            	break;
 	}
 	enable_irq_line(1);
+	ENABLE_PREEMPTION
 	EXIT_INT_HANDLER(0,processor_reg,0)
 }
 

@@ -5,6 +5,7 @@
 #include "virtual_memory/vm.h"
 #include "drivers/ata/ata.h"
 
+static int race=0;
 int test=0;
 extern t_system system;
 
@@ -40,7 +41,7 @@ void int_handler_ata()
 //	CLI
 	SAVE_PROCESSOR_REG
 	disable_irq_line(14);
-	system.int_path_count++;
+	DISABLE_PREEMPTION
 	EOI_TO_SLAVE_PIC
 	EOI_TO_MASTER_PIC
 	TRACE(17,PROC_PID)
@@ -56,10 +57,28 @@ void int_handler_ata()
 	TRACE(18,process_context->pid);
 	system.device_desc->status=DEVICE_IDLE;
 	enable_irq_line(14);
+	ENABLE_PREEMPTION
 	EXIT_INT_HANDLER(0,processor_reg,0)
 }
 
 static unsigned int _read_write_28_ata(t_io_request* io_request)
+{
+	int i=0;
+	t_device_desc* device_desc;
+
+	device_desc=io_request->device_desc;
+	sem_down(&device_desc->sem);
+	race++;
+	for (i=0;i<1000000;i++);
+	race--;
+	if (race>0)
+	{
+		panic();
+	}
+	sem_up(&device_desc->sem);
+}
+
+static unsigned int _read_write_28_ata_(t_io_request* io_request)
 {
 	int i;
 	t_device_desc* device_desc;
