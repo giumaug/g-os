@@ -53,8 +53,8 @@ void int_handler_pit()
 	}
 
 	system.time+=QUANTUM_DURATION;
-	system.int_path_count++;
-	if (system.int_path_count>1)
+
+	if (system.int_path_count>0)
 	{
 		goto exit_handler;
 	}
@@ -150,8 +150,7 @@ exit_handler:;
 	static struct t_processor_reg _processor_reg;                                                       
 	static unsigned int _action2;                                                                        
                                                                                                             
-	CLI
-	system.int_path_count--;                                                                         
+	CLI                                                                        
 	_action2=is_schedule;                                                                                   
 	_current_process_context=*(struct t_process_context*)system.process_info.current_process->val;                                  
 	_old_process_context=_current_process_context;                                                      
