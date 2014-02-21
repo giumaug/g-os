@@ -69,7 +69,7 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	device_desc=io_request->device_desc;
 	sem_down(&device_desc->sem);
 	race++;
-	for (i=0;i<1000000;i++);
+	for (i=0;i<10000000;i++);
 	race--;
 	if (race>0)
 	{

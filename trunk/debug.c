@@ -17,7 +17,7 @@ void panic()
 	unsigned int c;
 
 	system.panic=1;
-	printk("\n");
+/*	printk("\n");
 	printk("------trace dump-------\n");
 	for (i=system.tracepoint_index;i>=0;i--)
 	{
@@ -29,6 +29,7 @@ void panic()
 			printk("press key...\n");
 		}
 	}
+*/
 	return;
 }
 

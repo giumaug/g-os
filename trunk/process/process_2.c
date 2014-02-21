@@ -24,7 +24,7 @@ process_2()
 	d_printf(pid);
 	printf("\n");
 //	workload=35;
-	workload=100;
+	workload=10;
 	for (y=0;y<workload;y++)
 	{
 		write_mem_addr=malloc(512);
