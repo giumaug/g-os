@@ -61,7 +61,7 @@ void int_handler_ata()
 	EXIT_INT_HANDLER(0,processor_reg,0)
 }
 
-static unsigned int _read_write_28_ata(t_io_request* io_request)
+static unsigned int _read_write_28_ata_(t_io_request* io_request)
 {
 	int i=0;
 	t_device_desc* device_desc;
@@ -78,7 +78,7 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	sem_up(&device_desc->sem);
 }
 
-static unsigned int _read_write_28_ata_(t_io_request* io_request)
+static unsigned int _read_write_28_ata(t_io_request* io_request)
 {
 	int i;
 	t_device_desc* device_desc;
@@ -87,11 +87,8 @@ static unsigned int _read_write_28_ata_(t_io_request* io_request)
 	
 	device_desc=io_request->device_desc;
 	sem_down(&device_desc->sem);
-	test++;
-	if (test>1)
-	{
-		panic();
-	}
+	race++;
+	
 	//some latency to trigger semaphore
 	//for (i=0;i<=100000;i++);
 	device_desc->status=DEVICE_BUSY;
@@ -140,7 +137,11 @@ static unsigned int _read_write_28_ata_(t_io_request* io_request)
 		}
 	}
         TRACE(19,PROC_PID);
-	test--;
+	race--;
+	if (race>0)
+	{
+		panic();
+	}
 	sem_up(&device_desc->sem);
 	return 0;
 }
