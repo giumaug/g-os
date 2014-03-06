@@ -44,8 +44,6 @@ process_2()
 		free(address[y]);
 	}
 */
-	while(1)
-	{
 	for (y=0;y<8;y++)
 	{
 		buddy_index=(rand() % 4194304);
@@ -56,17 +54,17 @@ process_2()
 		{
 			*((char*)address[y]+z)=0x55;
 		}
-		buddy_mem=buddy_free_mem(&system.buddy_desc);
+		//buddy_mem=buddy_free_mem(&system.buddy_desc);
+		buddy_mem=0;
 		printf("\npid=");
 		d_printf(pid);
 		printf(" free buddy mem=");
 		d_printf(buddy_mem);
 		printf("\n");
 	}
-	for (y=0;y<10;y++)
+	for (y=0;y<8;y++)
 	{
 		bigFree(address[y]);
-	}
 	}
 	exit(0);
 }

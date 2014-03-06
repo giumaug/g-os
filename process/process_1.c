@@ -5,7 +5,6 @@
 
 extern t_system system;
 
-/*
 process_1()
 {
 	unsigned int n_request;
@@ -19,7 +18,7 @@ process_1()
 		d_printf(age);
 		printf("\n");
 
-		for (i=0;i<1;i++)
+		for (i=0;i<10;i++)
 		{	
 			pid=fork();
 			if (pid==0)
@@ -33,8 +32,9 @@ process_1()
 	}
 	exit(0);
 }
-*/
 
+
+/*
 process_1()
 {
 	unsigned int pool_index;
@@ -51,31 +51,7 @@ process_1()
 
 	unsigned int pid=((struct t_process_context*)system.process_info.current_process->val)->pid;
 	
-/*	
-	for (y=0;y<1000;y++)
-	{
-		pool_index=5;
-
-		printf("\npid=");
-		d_printf(pid);
-		
-		address[y]=malloc(pool_index);
-		for (z=0;z<pool_index;z++)
-		{
-			*((char*)address[y]+z)=0x55;
-		}
-		pool_mem=kfree_mem();
-		printf("\npid=");
-		d_printf(pid);
-		printf(" free meme pool mem=");
-		d_printf(pool_mem);
-		printf("\n");
-	}
-	for (y=0;y<1000;y++)
-	{
-		free(address[y]);
-	}
-*/	buddy_mem=buddy_free_mem(&system.buddy_desc);
+	buddy_mem=buddy_free_mem(&system.buddy_desc);
 	printf("\n free buddy mem=");
 	d_printf(buddy_mem);
 	printf("\n");
@@ -123,3 +99,4 @@ process_1()
 	}
 	exit(0);
 }
+*/
