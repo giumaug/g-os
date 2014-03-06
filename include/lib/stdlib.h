@@ -14,6 +14,8 @@ extern inline void itoa (int val,char *char_val,unsigned int base) __attribute__
 extern inline void exit(int status) __attribute__((always_inline));
 extern inline void *malloc(unsigned int mem_size) __attribute__((always_inline));
 extern inline void free(void *address) __attribute__((always_inline));
+extern inline void *bigMalloc(unsigned int mem_size) __attribute__((always_inline));
+extern inline void bigFree(void *address) __attribute__((always_inline));
 extern inline unsigned int rand() __attribute__((always_inline));
 
 extern struct t_process_info process_info;
@@ -92,6 +94,24 @@ extern inline void free(void *address)
 	SYSCALL(3,params);
 	return;
 }
+
+extern inline void *bigMalloc(unsigned int mem_size) 
+{
+	int params[2];
+	params[0]=mem_size;
+	params[1]=NULL;
+	SYSCALL(150,params);
+	return params[1];
+}
+
+extern inline void bigFree(void *address) 
+{	
+	int params[1];
+	params[0]=address;
+	SYSCALL(151,params);
+	return;
+}
+
 
 extern inline unsigned int rand()
 {

@@ -1,5 +1,6 @@
 #include "general.h"
 #include "asm.h"
+#include "system.h"
 #include "lib/math.h" //ERROR USING USER SPACE LIB !!!!!!!!!!!!!!!
 #include "synchro_types/spin_lock.h"
 #include "memory_manager/fixed_size.h"
@@ -7,9 +8,10 @@
 #include "virtual_memory/vm.h"
 #include "memory_manager/kmalloc.h"
 
-extern panic();
 t_a_fixed_size_desc a_fixed_size_desc[POOL_NUM];
 unsigned int free_mem_list[POOL_NUM];
+
+extern t_system system;
 
 void init_kmalloc() 
 {
@@ -33,6 +35,16 @@ void  *_malloc(unsigned int mem_size)
 void  _free(void *address) 
 {
 	return kfree(address);
+}
+
+void  *_bigMalloc(unsigned int mem_size) 
+{
+	return buddy_alloc_page(&system.buddy_desc,mem_size);
+}
+
+void  _bigFree(void *address) 
+{
+	return buddy_free_page(&system.buddy_desc,address);
 }
 
 void* kmalloc(unsigned int mem_size) 

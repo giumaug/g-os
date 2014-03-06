@@ -6,6 +6,8 @@
 #include "virtual_memory/vm.h"
 #include "memory_manager/buddy.h"
 
+#include "lib/stdlib.h"
+
 extern t_system system;
 static unsigned int mem;
 
@@ -63,6 +65,11 @@ void* buddy_alloc_page(t_buddy_desc* buddy,unsigned int mem_size)
 	SAVE_IF_STATUS
 	CLI	
 	//SPINLOCK_LOCK	
+	
+	if (mem_size==2090607 || mem_size==3046027)
+	{
+		i=0;	
+	}
 	for (list_index=0;list_index<NUM_LIST;list_index++) 
 	{	
 		if (PAGE_SIZE*(1<<list_index)>=mem_size) break;
