@@ -42,6 +42,14 @@ void syscall_handler()
 	{ 
 		_free(params[0]);
 	}
+	else if (syscall_num==150)
+	{ 
+		params[1]=_bigMalloc(params[0]);
+	}
+	else if (syscall_num==151)
+	{ 
+		_bigFree(params[0]);
+	}
 	else if (syscall_num==4)
 	{ 
 		_write_char(console_desc,params[0]);
