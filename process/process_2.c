@@ -19,13 +19,9 @@ process_2()
 
 	unsigned int pid=((struct t_process_context*)system.process_info.current_process->val)->pid;
 	
-/*	
 	for (y=0;y<1000;y++)
 	{
 		pool_index=5;
-
-		printf("\npid=");
-		d_printf(pid);
 		
 		address[y]=malloc(pool_index);
 		for (z=0;z<pool_index;z++)
@@ -43,7 +39,7 @@ process_2()
 	{
 		free(address[y]);
 	}
-*/
+
 	for (y=0;y<8;y++)
 	{
 		buddy_index=(rand() % 4194304);
@@ -54,8 +50,8 @@ process_2()
 		{
 			*((char*)address[y]+z)=0x55;
 		}
-		//buddy_mem=buddy_free_mem(&system.buddy_desc);
-		buddy_mem=0;
+		buddy_mem=buddy_free_mem(&system.buddy_desc);
+		//buddy_mem=0;
 		printf("\npid=");
 		d_printf(pid);
 		printf(" free buddy mem=");
