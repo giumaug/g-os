@@ -14,11 +14,7 @@ process_1()
 	
 	while(1)
 	{
-		printf("\nage=");
-		d_printf(age);
-		printf("\n");
-
-		for (i=0;i<10;i++)
+		for (i=0;i<5;i++)
 		{	
 			pid=fork();
 			if (pid==0)
@@ -26,9 +22,12 @@ process_1()
 				exec(0x700000,0x100000);
 			}
 		}
-		age++;
-		sleep(30000);
+		sleep(20000);
 		check_free_mem();
+		age++;
+		printf("\nage=");
+		d_printf(age);
+		printf("\n");
 	}
 	exit(0);
 }

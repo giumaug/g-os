@@ -183,6 +183,22 @@ void int_handler_generic_19()
 	asm("pop %ebp;iret");
 	return;
 }
+
+void int_handler_generic_20() 
+{
+	exception();  
+	STI
+	asm("pop %ebp;iret");
+	return;
+}
+
+void int_handler_generic_31() 
+{
+	exception();  
+	STI
+	asm("pop %ebp;iret");
+	return;
+}
  
 void init_idt()
 {
@@ -195,6 +211,118 @@ void init_idt()
 		idt[i].flags=0x08e00;
 		idt[i].baseHi=((int)(&int_handler_generic))>>0x010;
 	}
+
+/*
+	idt[0].baseLow=((int)(&int_handler_generic_0)) & 0xFFFF;
+	idt[0].selector=0x8;
+	idt[0].flags=0x08e00;
+	idt[0].baseHi=((int)(&int_handler_generic_0))>>0x010;
+
+	idt[1].baseLow=((int)(&int_handler_generic_0)) & 0xFFFF;
+	idt[1].selector=0x8;
+	idt[1].flags=0x08e00;
+	idt[1].baseHi=((int)(&int_handler_generic_0))>>0x010;
+
+	idt[2].baseLow=((int)(&int_handler_generic_0)) & 0xFFFF;
+	idt[2].selector=0x8;
+	idt[2].flags=0x08e00;
+	idt[2].baseHi=((int)(&int_handler_generic_0))>>0x010;
+
+	idt[3].baseLow=((int)(&int_handler_generic_0)) & 0xFFFF;
+	idt[3].selector=0x8;
+	idt[3].flags=0x08e00;
+	idt[3].baseHi=((int)(&int_handler_generic_0))>>0x010;
+
+	idt[4].baseLow=((int)(&int_handler_generic_0)) & 0xFFFF;
+	idt[4].selector=0x8;
+	idt[4].flags=0x08e00;
+	idt[4].baseHi=((int)(&int_handler_generic_0))>>0x010;
+
+	idt[5].baseLow=((int)(&int_handler_generic_0)) & 0xFFFF;
+	idt[5].selector=0x8;
+	idt[5].flags=0x08e00;
+	idt[5].baseHi=((int)(&int_handler_generic_0))>>0x010;
+
+	idt[6].baseLow=((int)(&int_handler_generic_0)) & 0xFFFF;
+	idt[6].selector=0x8;
+	idt[6].flags=0x08e00;
+	idt[6].baseHi=((int)(&int_handler_generic_0))>>0x010;
+
+	idt[7].baseLow=((int)(&int_handler_generic_0)) & 0xFFFF;
+	idt[7].selector=0x8;
+	idt[7].flags=0x08e00;
+	idt[7].baseHi=((int)(&int_handler_generic_0))>>0x010;
+
+	idt[8].baseLow=((int)(&int_handler_generic_0)) & 0xFFFF;
+	idt[8].selector=0x8;
+	idt[8].flags=0x08e00;
+	idt[8].baseHi=((int)(&int_handler_generic_0))>>0x010;
+
+	idt[9].baseLow=((int)(&int_handler_generic_0)) & 0xFFFF;
+	idt[9].selector=0x8;
+	idt[9].flags=0x08e00;
+	idt[9].baseHi=((int)(&int_handler_generic_0))>>0x010;
+
+	idt[10].baseLow=((int)(&int_handler_generic_0)) & 0xFFFF;
+	idt[10].selector=0x8;
+	idt[10].flags=0x08e00;
+	idt[10].baseHi=((int)(&int_handler_generic_0))>>0x010;
+
+	idt[11].baseLow=((int)(&int_handler_generic_0)) & 0xFFFF;
+	idt[11].selector=0x8;
+	idt[11].flags=0x08e00;
+	idt[11].baseHi=((int)(&int_handler_generic_0))>>0x010;
+
+	idt[12].baseLow=((int)(&int_handler_generic_0)) & 0xFFFF;
+	idt[12].selector=0x8;
+	idt[12].flags=0x08e00;
+	idt[12].baseHi=((int)(&int_handler_generic_0))>>0x010;
+
+	idt[13].baseLow=((int)(&int_handler_generic_0)) & 0xFFFF;
+	idt[13].selector=0x8;
+	idt[13].flags=0x08e00;
+	idt[13].baseHi=((int)(&int_handler_generic_0))>>0x010;
+
+	idt[14].baseLow=((int)(&int_handler_generic_0)) & 0xFFFF;
+	idt[14].selector=0x8;
+	idt[14].flags=0x08e00;
+	idt[14].baseHi=((int)(&int_handler_generic_0))>>0x010;
+
+	idt[15].baseLow=((int)(&int_handler_generic_0)) & 0xFFFF;
+	idt[15].selector=0x8;
+	idt[15].flags=0x08e00;
+	idt[15].baseHi=((int)(&int_handler_generic_0))>>0x010;
+
+	idt[16].baseLow=((int)(&int_handler_generic_0)) & 0xFFFF;
+	idt[16].selector=0x8;
+	idt[16].flags=0x08e00;
+	idt[16].baseHi=((int)(&int_handler_generic_0))>>0x010;
+
+	idt[17].baseLow=((int)(&int_handler_generic_0)) & 0xFFFF;
+	idt[17].selector=0x8;
+	idt[17].flags=0x08e00;
+	idt[17].baseHi=((int)(&int_handler_generic_0))>>0x010;
+
+	idt[18].baseLow=((int)(&int_handler_generic_0)) & 0xFFFF;
+	idt[18].selector=0x8;
+	idt[18].flags=0x08e00;
+	idt[18].baseHi=((int)(&int_handler_generic_0))>>0x010;
+
+	idt[19].baseLow=((int)(&int_handler_generic_0)) & 0xFFFF;
+	idt[19].selector=0x8;
+	idt[19].flags=0x08e00;
+	idt[19].baseHi=((int)(&int_handler_generic_0))>>0x010;
+
+	idt[20].baseLow=((int)(&int_handler_generic_20)) & 0xFFFF;
+	idt[20].selector=0x8;
+	idt[20].flags=0x08e00;
+	idt[20].baseHi=((int)(&int_handler_generic_20))>>0x010;
+
+	idt[31].baseLow=((int)(&int_handler_generic_31)) & 0xFFFF;
+	idt[31].selector=0x8;
+	idt[31].flags=0x08e00;
+	idt[31].baseHi=((int)(&int_handler_generic_31))>>0x010;
+*/
 
 	idt[0].baseLow=((int)(&int_handler_generic_0)) & 0xFFFF;
 	idt[0].selector=0x8;
@@ -295,6 +423,17 @@ void init_idt()
 	idt[19].selector=0x8;
 	idt[19].flags=0x08e00;
 	idt[19].baseHi=((int)(&int_handler_generic_0))>>0x010;
+
+	idt[20].baseLow=((int)(&int_handler_generic_0)) & 0xFFFF;
+	idt[20].selector=0x8;
+	idt[20].flags=0x08e00;
+	idt[20].baseHi=((int)(&int_handler_generic_0))>>0x010;
+
+	idt[31].baseLow=((int)(&int_handler_generic_0)) & 0xFFFF;
+	idt[31].selector=0x8;
+	idt[31].flags=0x08e00;
+	idt[31].baseHi=((int)(&int_handler_generic_0))>>0x010;
+
 	
 	idt_ptr.idt_size=64*256;
         idt_ptr.idt_address=(int)idt;
