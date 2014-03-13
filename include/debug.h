@@ -5,7 +5,7 @@
 #define TRACE(POINT,PID) system.tracepoint_index++;                    \
 		if (system.tracepoint_index>200000)                    \
 		{                                                      \
-			system.tracepoint_index=0;                                       \
+			panic();                                       \
 		}		                                       \
 		system.tracepoint[system.tracepoint_index].pid=PID;    \
 	       system.tracepoint[system.tracepoint_index].point=POINT;

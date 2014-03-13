@@ -9,6 +9,7 @@ void process_0()
 	if (pid==0)
 	{
 		exec(SHELL_START_ADDR,SHELL_SIZE);
+		//exec(0x600000,0x100000);
 	}
 	else 
 	{
