@@ -17,5 +17,6 @@ void init_ata(t_device_desc* ata_desc);
 unsigned int _read_28_ata(t_io_request* io_request);
 unsigned int _write_28_ata(t_io_request* io_request);
 void free_ata();
+int _flush_ata_pending_request();
 
 #endif

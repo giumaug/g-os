@@ -111,8 +111,10 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	}
 	
 	if (device_desc->status==DEVICE_BUSY && system.process_info.current_process->val!=NULL)
+//	if (system.process_info.current_process->val!=NULL)
 	{
 		io_request->process_context=system.process_info.current_process->val;
+		//device_desc->status=DEVICE_IDLE;
 		_sleep();
 	}
 	else if (device_desc->status==DEVICE_BUSY) 
@@ -156,4 +158,15 @@ unsigned int _write_28_ata(t_io_request* io_request)
 {
 	io_request->command=WRITE_28;
 	return _read_write_28_ata(io_request);	
+}
+
+int _flush_ata_pending_request()
+{
+	int ret=0;
+	if (system.device_desc->serving_request->process_context!=NULL)
+	{
+		_awake(system.device_desc->serving_request->process_context);
+		ret=1;
+	}
+	return ret;
 }

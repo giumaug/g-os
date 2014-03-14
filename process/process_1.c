@@ -8,6 +8,8 @@ process_1()
 	unsigned int i;
 	unsigned int age=0;
 	unsigned int pid;
+	unsigned int params[1];
+	unsigned int pending_request=0;
 	
 	while(1)
 	{
@@ -28,6 +30,10 @@ process_1()
 		}
 		age++;
 		sleep(20000);
+
+//		SYSCALL(102,params);
+//		ret=params[0];
+
 		check_free_mem();
 	}
 	exit(0);
