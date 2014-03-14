@@ -171,6 +171,10 @@ void syscall_handler()
 	{
 		on_exit_action=1; 
 	}
+	else if (syscall_num==102) 
+	{
+		_flush_ata_pending_request();
+	}
 	else
 	{
 		panic();
