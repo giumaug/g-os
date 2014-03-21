@@ -70,6 +70,12 @@ cat ./gdb.txt |  sed ':a;N;$!ba;s/\n//g' > _gdb.txt.txt
 
 cat ./_gdb.txt | sed 's/ //g' > __gdb.txt
 
+mount disk image
+
+losetup -o 1048576 /dev/loop2 ./disk.img
+mount /dev/loop1 /mnt
+
+
 
 
 
