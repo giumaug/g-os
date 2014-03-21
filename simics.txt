@@ -1,0 +1,17 @@
+$disk_image="./disk.img"
+simics> $text_console="yes"
+simics> run-command-file "targets/x86-440bx/tango-common.simics"
+new-symtable file = kernel.bin
+break (sym int_handler_pit)
+break (sym int_handler_kbc)
+break (sym fork)
+
+kernel.source-path /home/peppe/Desktop/g-os/drivers/pit/8253.c
+
+set-bookmark booted
+
+
+break (sym _exec)
+break (sym _read_write_28_ata)
+
+

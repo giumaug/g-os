@@ -110,8 +110,8 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 		}
 	}
 	
-	if (device_desc->status==DEVICE_BUSY && system.process_info.current_process->val!=NULL)
-//	if (system.process_info.current_process->val!=NULL)
+//	if (device_desc->status==DEVICE_BUSY && system.process_info.current_process->val!=NULL)
+	if (system.process_info.current_process->val!=NULL)
 	{
 		io_request->process_context=system.process_info.current_process->val;
 		_sleep();

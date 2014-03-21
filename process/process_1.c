@@ -30,9 +30,9 @@ process_1()
 			}
 		}
 		age++;
-		sleep(20000);
+		sleep(2000);
 		count=625;
-/*		
+		
 		while (count>0)
 		{
 			SYSCALL(102,params);
@@ -41,9 +41,9 @@ process_1()
 			{
 				count--;
 			}
-			sleep(1000);
+			sleep(100);
 		}
-*/
+
 		check_free_mem();
 	}
 	exit(0);
