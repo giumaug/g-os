@@ -92,7 +92,7 @@ install_remote:all
 	scp ./kernel.bin root@192.168.1.215:/boot/
 
 bochs:all
-	mount /dev/loop2 /mnt
+	mount /dev/loop3 /mnt
 	cp /home/peppe/Desktop/g-os/kernel.bin /mnt/boot/kernel.bin
 	umount /mnt
 clean:	

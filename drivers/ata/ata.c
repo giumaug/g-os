@@ -84,6 +84,7 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	t_device_desc* device_desc;
 	t_io_request* pending_request;
 	t_llist_node* node;
+	int k=0;
 	
 	device_desc=io_request->device_desc;
 	sem_down(&device_desc->sem);
@@ -100,6 +101,7 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	out((unsigned char)(io_request->lba >> 8),0x1F4);
 	out((unsigned char)(io_request->lba >> 16),0x1F5);
 	out(io_request->command,0x1F7);
+	for (k=0;k<1000;k++);
 
 	if (io_request->command==WRITE_28)
 	{
@@ -107,11 +109,12 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 		{  
 			//out(*(char*)io_request->io_buffer++,0x1F0); 
 			outw((unsigned short)57,0x1F0);
+			//for (k=0;k<50000;k++);
 		}
 	}
 	
-//	if (device_desc->status==DEVICE_BUSY && system.process_info.current_process->val!=NULL)
-	if (system.process_info.current_process->val!=NULL)
+	if (device_desc->status==DEVICE_BUSY && system.process_info.current_process->val!=NULL)
+//	if (system.process_info.current_process->val!=NULL)
 	{
 		io_request->process_context=system.process_info.current_process->val;
 		_sleep();
@@ -135,6 +138,7 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 			//out(*(char*)io_buffer++,0x1F0); 
 			int zz=inw(0x1F0);
 			((char*)io_request->io_buffer)[i]=zz;
+			//for (k=0;i<10000;k++);
 		}
 	}
         TRACE(19,PROC_PID);

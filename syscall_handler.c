@@ -173,6 +173,7 @@ void syscall_handler()
 	}
 	else if (syscall_num==102) 
 	{
+//		params[0]=_flush_ata_pending_request();
 		_flush_ata_pending_request();
 	}
 	else

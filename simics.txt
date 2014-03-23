@@ -1,17 +1,32 @@
 $disk_image="./disk.img"
-simics> $text_console="yes"
-simics> run-command-file "targets/x86-440bx/tango-common.simics"
+run-command-file "targets/x86-440bx/tango-common.simics"
 new-symtable file = kernel.bin
+set-bookmark booted
+break (sym _read_write_28_ata)
+kernel.source-path /home/peppe/Desktop/g-os/drivers/ata/
+kernel.source-path
+break -x (pos ata.c:104)
+break (sym sem_down)
+break (sym sem_up)
+
+
+
 break (sym int_handler_pit)
 break (sym int_handler_kbc)
-break (sym fork)
+break (sym _read_write_28_ata)
 
-kernel.source-path /home/peppe/Desktop/g-os/drivers/pit/8253.c
+kernel.source-path /home/peppe/Desktop/g-os/drivers/ata/ata.c
 
 set-bookmark booted
 
 
 break (sym _exec)
-break (sym _read_write_28_ata)
+break (sym sem_down)
+
+break -x (pos ata.c:104)
+
+psym io_request
+psym "*io_request->process_context"
+
 
 
