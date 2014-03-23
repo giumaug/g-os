@@ -1,0 +1,6 @@
+$disk_image="./disk.img"
+run-command-file "targets/x86-440bx/tango-common.simics"
+new-symtable file = kernel.bin
+set-bookmark booted
+break (sym _read_write_28_ata)
+kernel.source-path "/home/peppe/Desktop/g-os/;/home/peppe/Desktop/g-os/scheduler/;/home/peppe/Desktop/g-os/memory_manager/;/home/peppe/Desktop/g-os/virtual_memory/;/home/peppe/Desktop/g-os/console/;/home/peppe/Desktop/g-os/klib/;/home/peppe/Desktop/g-os/data_types/;/home/peppe/Desktop/g-os/synchro_types/;/home/peppe/Desktop/g-os/ext2/;/home/peppe/Desktop/g-os/drivers/"

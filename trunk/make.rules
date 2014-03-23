@@ -3,5 +3,5 @@ INCLUDE		=$(BASE_DIR)/include
 MAKE 		= make
 CC		= gcc 
 LD		= ld
-CFLAGS		= -gstabs -c -fno-builtin
+CFLAGS		= -gstabs+ -c -fno-builtin
 CPPFLAGS	=-I $(INCLUDE) 

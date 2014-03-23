@@ -15,8 +15,8 @@ process_1()
 	while(1)
 	{
 		n_request=(rand() % 100 + 1);
-		n_request=25;
-//		n_request=10;
+//		n_request=25;
+		n_request=10;
 		printf("\nage=");
 		d_printf(age);
 		printf("\nrequest number=");
@@ -30,19 +30,19 @@ process_1()
 			}
 		}
 		age++;
-		sleep(2000);
-		count=625;
+		sleep(20000);
 		
-		while (count>0)
-		{
-			SYSCALL(102,params);
-			ret=params[0];
-			if (ret==1) 
-			{
-				count--;
-			}
-			sleep(100);
-		}
+//		while (count>0)
+//		{
+//			SYSCALL(102,params);
+//			ret=params[0];
+//			if (ret==1) 
+//			{
+//				count--;
+//			}
+//			d_printf(count);
+//			printf("\n");
+//			sleep(100);
 
 		check_free_mem();
 	}
