@@ -92,8 +92,9 @@ install_remote:all
 	scp ./kernel.bin root@192.168.1.215:/boot/
 
 bochs:all
-	mount /dev/loop3 /mnt
+	mount /dev/loop2 /mnt
 	cp /home/peppe/Desktop/g-os/kernel.bin /mnt/boot/kernel.bin
+	cp /home/peppe/Desktop/g-os/kernel.bin /opt/virtutech/simics-3.0.31/workspace/kernel.bin
 	umount /mnt
 clean:	
 	rm -f kmain.o idt.o syscall_handler.o asm.o loader.o kernel_init.o debug.o

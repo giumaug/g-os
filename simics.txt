@@ -12,21 +12,29 @@ break (sym sem_up)
 
 
 break (sym int_handler_pit)
-break (sym int_handler_kbc)
+break (sym int_handler_ata)
 break (sym _read_write_28_ata)
 
 kernel.source-path /home/peppe/Desktop/g-os/drivers/ata/ata.c
 
 set-bookmark booted
 
-
 break (sym _exec)
 break (sym sem_down)
 
-break -x (pos ata.c:104)
+break -x (pos syscall_handler.c:188)
+break -x (pos syscall_handler.c:188)
 
 psym io_request
 psym "*io_request->process_context"
+
+altri comandi
+cpu0.print-idt 
+cpu0.read-reg ds
+break-exception -all
+
+
+
 
 
 

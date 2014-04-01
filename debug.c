@@ -13,23 +13,6 @@ int index_2=0;
 
 void panic()
 {
-	int i=0;
-	unsigned int c;
-
-	system.panic=1;
-/*	printk("\n");
-	printk("------trace dump-------\n");
-	for (i=system.tracepoint_index;i>=0;i--)
-	{
-		printk("index: %d pid: %d point:%d \n",&i,&system.tracepoint[i].pid,&system.tracepoint[i].point);
-		
-		if ((i % 20)==0) 
-		{
-			printk("-----------------------\n");
-			printk("press key...\n");
-		}
-	}
-*/
 	return;
 }
 
@@ -62,8 +45,7 @@ void check_free_mem()
 	{
 		panic();
 	}
-	system.tracepoint_index=-1;
-//	reset_proc_trace();
+//	system.tracepoint_index=-1;
 }
 
 void check_stack_change()
