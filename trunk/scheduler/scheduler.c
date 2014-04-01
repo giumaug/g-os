@@ -234,8 +234,6 @@ void _exit(int status)
 	CLI
 	t_llist_node* current_node=system.process_info.current_process;
 	//process 0 never die
-//	track_proc(PROC_PID,0);
-	TRACE(0,PROC_PID) 
 	current_process=system.process_info.current_process->val;
 	if (current_process->pid==0)
 	{
@@ -244,8 +242,6 @@ void _exit(int status)
 			asm("sti;hlt");
 		}
 	}
-//	track_proc(PROC_PID,1);
-	TRACE(1,PROC_PID) 
 	current_process->proc_status=EXITING;
 	sentinel=ll_sentinel(system.process_info.pause_queue);
 	next=ll_first(system.process_info.pause_queue);

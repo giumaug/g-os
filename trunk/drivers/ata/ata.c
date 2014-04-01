@@ -44,8 +44,6 @@ void int_handler_ata()
 	DISABLE_PREEMPTION
 	EOI_TO_SLAVE_PIC
 	EOI_TO_MASTER_PIC
-	TRACE(17,PROC_PID)
-//	track_proc(PROC_PID,7);
 	STI
 
 	process_context=system.device_desc->serving_request->process_context;
@@ -54,28 +52,10 @@ void int_handler_ata()
 	{
 		_awake(system.device_desc->serving_request->process_context);
 	}
-	TRACE(18,process_context->pid);
 	system.device_desc->status=DEVICE_IDLE;
 	enable_irq_line(14);
 	ENABLE_PREEMPTION
 	EXIT_INT_HANDLER(0,processor_reg,0)
-}
-
-static unsigned int _read_write_28_ata_(t_io_request* io_request)
-{
-	int i=0;
-	t_device_desc* device_desc;
-
-	device_desc=io_request->device_desc;
-	sem_down(&device_desc->sem);
-	race++;
-	for (i=0;i<10000000;i++);
-	race--;
-	if (race>0)
-	{
-		panic();
-	}
-	sem_up(&device_desc->sem);
 }
 
 static unsigned int _read_write_28_ata(t_io_request* io_request)
@@ -141,7 +121,6 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 			//for (k=0;i<10000;k++);
 		}
 	}
-        TRACE(19,PROC_PID);
 	race--;
 	if (race>0)
 	{
