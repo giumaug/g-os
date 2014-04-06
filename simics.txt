@@ -3,9 +3,10 @@ run-command-file "targets/x86-440bx/tango-common.simics"
 new-symtable file = kernel.bin
 set-bookmark booted
 break (sym _read_write_28_ata)
+kernel.source-path "/home/peppe/Desktop/g-os/drivers/ata/;/home/peppe/Desktop/g-os/scheduler/"
 kernel.source-path /home/peppe/Desktop/g-os/drivers/ata/
 kernel.source-path
-break -x (pos ata.c:104)
+break -x (pos 8253.c:188)
 break (sym sem_down)
 break (sym sem_up)
 
@@ -32,6 +33,8 @@ altri comandi
 cpu0.print-idt 
 cpu0.read-reg ds
 break-exception -all
+trace-io kbd0
+untrace-io kbd0
 
 
 
