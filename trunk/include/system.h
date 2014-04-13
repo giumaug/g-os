@@ -30,7 +30,8 @@ typedef struct s_device_desc
 	u32 (*write)(t_io_request* io_request);
 	unsigned int status;
 	t_io_request* serving_request;
-	t_sem_desc sem;	
+	t_sem_desc mutex;
+	t_sem_desc sem;
 }
 t_device_desc;
 
@@ -49,7 +50,7 @@ typedef struct s_system
 	unsigned int int_path_count;
 //	unsigned int tracepoint_index;
 //	t_tracepoint tracepoint[200000];
-//	unsigned int panic;
+	unsigned int panic;
 }
 t_system;
 
