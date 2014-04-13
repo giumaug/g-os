@@ -23,13 +23,14 @@ void init_ata(t_device_desc* device_desc)
 	device_desc->read=_read_28_ata;
 	device_desc->write=_write_28_ata;
 	device_desc->status=DEVICE_IDLE;
-	sem_init(&device_desc->sem);
+	sem_init(&device_desc->mutex,1);
+	sem_init(&device_desc->sem,0);
 }
 
 void free_ata(t_device_desc* device_desc)
 {
 	device_desc->status=DEVICE_IDLE;
-	sem_down(&device_desc->sem);
+	sem_down(&device_desc->mutex);
 }
 
 void int_handler_ata()
@@ -38,7 +39,6 @@ void int_handler_ata()
 	t_io_request* io_request;
 	struct t_process_context* process_context;
 
-//	CLI
 	SAVE_PROCESSOR_REG
 	disable_irq_line(14);
 	DISABLE_PREEMPTION
@@ -46,12 +46,14 @@ void int_handler_ata()
 	EOI_TO_MASTER_PIC
 	STI
 
-	process_context=system.device_desc->serving_request->process_context;
+	io_request=system.device_desc->serving_request;
+	process_context=io_request->process_context;
 
-	if (process_context!=NULL && process_context->proc_status==SLEEPING)
-	{
-		_awake(system.device_desc->serving_request->process_context);
-	}
+//	if (process_context!=NULL && process_context->proc_status==SLEEPING)
+//	{
+//		_awake(io_request->process_context);
+//	}
+	sem_up(&io_request->device_desc->sem);
 	system.device_desc->status=DEVICE_IDLE;
 	enable_irq_line(14);
 	ENABLE_PREEMPTION
@@ -67,11 +69,10 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	int k=0;
 	
 	device_desc=io_request->device_desc;
-	sem_down(&device_desc->sem);
+	//Entrypoint mutual exclusion region
+	sem_down(&device_desc->mutex);
 	race++;
 	
-	//some latency to trigger semaphore
-	//for (i=0;i<=100000;i++);
 	device_desc->status=DEVICE_BUSY;
 	system.device_desc->serving_request=io_request;
 	
@@ -89,20 +90,21 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 		{  
 			//out(*(char*)io_request->io_buffer++,0x1F0); 
 			outw((unsigned short)57,0x1F0);
-			//for (k=0;k<50000;k++);
 		}
 	}
 	
-	if (device_desc->status==DEVICE_BUSY && system.process_info.current_process->val!=NULL)
-//	if (system.process_info.current_process->val!=NULL)
-	{
-		io_request->process_context=system.process_info.current_process->val;
-		_sleep();
-	}
-	else if (device_desc->status==DEVICE_BUSY) 
-	{
-		while(device_desc->status==DEVICE_BUSY);
-	}
+//	if (device_desc->status==DEVICE_BUSY && system.process_info.current_process->val!=NULL)
+//	{
+//		io_request->process_context=system.process_info.current_process->val;
+//		_sleep();
+//	}
+//	else if (device_desc->status==DEVICE_BUSY) 
+//	{
+//		while(device_desc->status==DEVICE_BUSY);
+//	}
+
+	//semaphore to avoid race with interrupt handler
+	sem_down(&device_desc->sem);
 
 	if ((in(0x1F7)&1))
 	{
@@ -126,7 +128,8 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	{
 		panic();
 	}
-	sem_up(&device_desc->sem);
+	//Endpoint mutual exclusion region
+	sem_up(&device_desc->mutex);
 	return 0;
 }
 

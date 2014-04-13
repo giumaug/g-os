@@ -280,6 +280,7 @@ void static int_handler_kbc();
 
 void init_kbc()
 {	
+	int i=0;
 	struct t_i_desc i_desc;
 	
 	//printk("kbc init \n");
@@ -289,6 +290,9 @@ void init_kbc()
 	i_desc.flags=0x08e00; //0x0EF00;
 	i_desc.baseHi=((int)&int_handler_kbc)>>0x10;
 	set_idt_entry(0x21,&i_desc);
+	out(0xad,0x64);
+	in(0x60);
+	out(0xae,0x64);
 }
 
 void free_kbc()

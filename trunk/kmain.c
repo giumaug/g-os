@@ -56,6 +56,8 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	
 	system.master_page_dir=init_virtual_memory();
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int)system.master_page_dir)))
+	//asm("int $0x21");
+	//while(1);
 	system.active_console_desc=&console_desc;
 	i_desc.baseLow=((int)&syscall_handler) & 0xFFFF;
 	i_desc.selector=0x8;
