@@ -8,7 +8,7 @@ process_2()
 {
 	unsigned int read_params[3];
 	unsigned int write_params[3];
-	unsigned int y,z;
+	unsigned int y,z,i;
 	unsigned char* write_mem_addr;
 	unsigned char* read_mem_addr;
 	unsigned char* mem_addr;

@@ -13,19 +13,9 @@ int index_2=0;
 
 void panic()
 {
+	system.panic=1;
 	return;
 }
-
-//void check_race()
-//{
-//	unsigned int i;
-//	for (i=0;i<system.tracepoint_index;i++)
-//	{
-//	 	pid=system.tracepoint[i].pid;
-//		point=system.tracepoint[i].point;
-//		if (pid==
-//	}
-//}
 
 void check_free_mem()
 {
@@ -45,7 +35,6 @@ void check_free_mem()
 	{
 		panic();
 	}
-//	system.tracepoint_index=-1;
 }
 
 void check_stack_change()

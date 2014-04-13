@@ -13,7 +13,7 @@ typedef struct s_sem_desc
 }
 t_sem_desc;
 
-void sem_init(t_sem_desc* sem_desc);
+void sem_init(t_sem_desc* sem_desc,int count);
 void sem_down(t_sem_desc* sem_desc);
 void sem_up(t_sem_desc* sem_desc);
 

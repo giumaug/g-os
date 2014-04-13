@@ -6,10 +6,12 @@ extern t_system system;
 static int race1=0;
 static int race2=0;
 
-void sem_init(t_sem_desc* sem_desc)
+//With count zero init mutex (formally process holding mutex should be the only permitted to release mutex )
+//Process holding mutex or semaphore can sleep.Process holding spinlock can't.
+void sem_init(t_sem_desc* sem_desc,int count)
 {
 	sem_desc->wait_queue=new_dllist();
-	sem_desc->count=1;
+	sem_desc->count=count; //1
 	SPINLOCK_INIT(sem_desc->spinlock);		
 }
 
