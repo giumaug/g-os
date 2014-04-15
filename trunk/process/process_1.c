@@ -31,7 +31,7 @@ process_1()
 		}
 		age++;
 		printf("\n+++++++++");
-		sleep(30000);
+		sleep(60000);
 		printf("\n.........");
 		
 //		while (count>0)

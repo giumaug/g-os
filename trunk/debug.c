@@ -31,7 +31,8 @@ void check_free_mem()
 	{
 		panic();
 	}
-	if (pool_mem!=279852)
+	//279852
+	if (pool_mem!=279850)
 	{
 		panic();
 	}

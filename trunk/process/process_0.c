@@ -5,6 +5,7 @@
 void process_0() 
 {
 	unsigned int pid;
+	
 	pid=fork();
 	if (pid==0)
 	{
