@@ -50,7 +50,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	buddy_init(&system.buddy_desc);
 	init_scheduler();
 	init_ata(&device_desc);
-//	init_ext2(&ext2,&device_desc);
+	init_ext2(&ext2,&device_desc);
 //	system.root_fs=&ext2;
 	system.device_desc=&device_desc;
 	
