@@ -548,7 +548,16 @@ u32 static lookup_partition(t_ext2* ext2,u8 partition_number)
 
 	io_buffer=kmalloc(BLOCK_SIZE);
 	pippo=(partition_number*16)+8;
-        READ(BLOCK_SIZE/SECTOR_SIZE,0,io_buffer);
+        //READ(1,0,io_buffer);
+
+	t_io_request io_request; 						
+	io_request.device_desc=ext2->device_desc;			
+	io_request.sector_count=1;					
+	io_request.lba=0;							
+	io_request.io_buffer=io_buffer;					
+	io_request.process_context=system.process_info.current_process->val;	
+	ext2->device_desc->read(&io_request);	
+
         first_partition_start_sector=io_buffer[446+( partition_number*16)+8];
         kfree(io_buffer);
         return first_partition_start_sector;

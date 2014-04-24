@@ -33,7 +33,7 @@ void free_ata(t_device_desc* device_desc)
 	sem_down(&device_desc->mutex);
 }
 
-void int_handler_ata()
+void int_handler_ata()----------------------------qui
 {	
 	struct t_processor_reg processor_reg;
 	t_io_request* io_request;
@@ -103,8 +103,16 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 //		while(device_desc->status==DEVICE_BUSY);
 //	}
 
-	//semaphore to avoid race with interrupt handler
-	sem_down(&device_desc->sem);
+	if (system.process_info.current_process!=NULL)
+	{
+		//semaphore to avoid race with interrupt handler
+		sem_down(&device_desc->sem);
+		
+	}
+	else
+	{
+		while(device_desc->status==DEVICE_BUSY);
+	}
 
 	if ((in(0x1F7)&1))
 	{
@@ -128,8 +136,11 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	{
 		panic();
 	}
-	//Endpoint mutual exclusion region
-	sem_up(&device_desc->mutex);
+	if (system.process_info.current_process->val!=NULL)
+	{
+		//Endpoint mutual exclusion region
+		sem_up(&device_desc->mutex);	
+	}
 	return 0;
 }
 
