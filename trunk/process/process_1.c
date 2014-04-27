@@ -19,7 +19,7 @@ process_1()
 		n_request=10;
 		printf("\nage=");
 		d_printf(age);
-		printf("\nrequest number=");
+		printf("\nrequest number.....=");
 		d_printf(n_request);
 		for (i=0;i<n_request;i++)
 		{	

@@ -4,6 +4,9 @@
 
 void init_ext2(t_ext2 *ext2,t_device_desc* device_desc)
 {
+	//xxd -g1 ./dump.txt exit
+	//dd bs=512 if=/home/peppe/Desktop/disk.img count=1
+	//https://github.com/dbrgn/superblock
 	ext2->device_desc=device_desc;
 	ext2->superblock=kmalloc(sizeof(t_superblock));
         ext2->partition_start_sector=lookup_partition(ext2,1);        

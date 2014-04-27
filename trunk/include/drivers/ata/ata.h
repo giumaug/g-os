@@ -12,10 +12,11 @@
 #define WRITE(sector_count,lba,io_buffer) ext2->device_desc->write(ext2->device_desc,sector_count,lba,io_buffer);
 
 void init_ata(t_device_desc* ata_desc);
-//unsigned int _read_28_ata(t_device_desc* ata_desc,unsigned int sector_count,unsigned int lba,void* io_buffer);
-//unsigned int _write_28_ata(t_device_desc* ata_desc,unsigned int sector_count,unsigned int lba,void* io_buffer);
 unsigned int _read_28_ata(t_io_request* io_request);
 unsigned int _write_28_ata(t_io_request* io_request);
+unsigned int _p_read_28_ata(t_io_request* io_request);
+unsigned int _p_write_28_ata(t_io_request* io_request);
+
 void free_ata();
 int _flush_ata_pending_request();
 
