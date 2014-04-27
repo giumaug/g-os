@@ -22,6 +22,8 @@ void init_ata(t_device_desc* device_desc)
 	set_idt_entry(0x2E,&i_desc);
 	device_desc->read=_read_28_ata;
 	device_desc->write=_write_28_ata;
+	device_desc->p_read=_p_read_28_ata;
+	device_desc->p_write=_p_write_28_ata;
 	device_desc->status=DEVICE_IDLE;
 	sem_init(&device_desc->mutex,1);
 	sem_init(&device_desc->sem,0);
@@ -33,7 +35,7 @@ void free_ata(t_device_desc* device_desc)
 	sem_down(&device_desc->mutex);
 }
 
-void int_handler_ata()----------------------------qui
+void int_handler_ata()
 {	
 	struct t_processor_reg processor_reg;
 	t_io_request* io_request;
@@ -93,26 +95,8 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 		}
 	}
 	
-//	if (device_desc->status==DEVICE_BUSY && system.process_info.current_process->val!=NULL)
-//	{
-//		io_request->process_context=system.process_info.current_process->val;
-//		_sleep();
-//	}
-//	else if (device_desc->status==DEVICE_BUSY) 
-//	{
-//		while(device_desc->status==DEVICE_BUSY);
-//	}
-
-	if (system.process_info.current_process!=NULL)
-	{
-		//semaphore to avoid race with interrupt handler
-		sem_down(&device_desc->sem);
-		
-	}
-	else
-	{
-		while(device_desc->status==DEVICE_BUSY);
-	}
+	//semaphore to avoid race with interrupt handler
+	sem_down(&device_desc->sem);
 
 	if ((in(0x1F7)&1))
 	{
@@ -136,10 +120,62 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	{
 		panic();
 	}
-	if (system.process_info.current_process->val!=NULL)
+	
+	//Endpoint mutual exclusion region
+	sem_up(&device_desc->mutex);	
+	return 0;
+}
+
+static unsigned int _p_read_write_28_ata(t_io_request* io_request)
+{
+	int i;
+	t_device_desc* device_desc;
+	t_io_request* pending_request;
+	t_llist_node* node;
+	int k=0;
+	
+	device_desc=io_request->device_desc;
+	//Entrypoint mutual exclusion region
+	sem_down(&device_desc->mutex);
+	
+	device_desc->status=DEVICE_BUSY;
+	system.device_desc->serving_request=io_request;
+	
+	out(0xE0 | (io_request->lba >> 24),0x1F6);
+	out((unsigned char)io_request->sector_count,0x1F2);
+	out((unsigned char)io_request->lba,0x1F3);
+	out((unsigned char)(io_request->lba >> 8),0x1F4);
+	out((unsigned char)(io_request->lba >> 16),0x1F5);
+	out(io_request->command,0x1F7);
+	for (k=0;k<1000;k++);
+
+	if (io_request->command==WRITE_28)
 	{
-		//Endpoint mutual exclusion region
-		sem_up(&device_desc->mutex);	
+		for (i=0;i<256;i++)
+		{  
+			//out(*(char*)io_request->io_buffer++,0x1F0); 
+			outw((unsigned short)57,0x1F0);
+		}
+	}
+	while (in(0x1F7)&0x80);
+
+	if ((in(0x1F7)&0x21))
+	{
+		device_desc->status=DEVICE_IDLE;
+		panic();
+		return -1;
+	}
+
+	device_desc->status=DEVICE_IDLE;
+	
+	if (io_request->command==READ_28)
+	{
+		for (i=0;i<512;i+=2)
+		{  
+			unsigned short val=inw(0x1F0);
+			((char*)io_request->io_buffer)[i]=(val&0xff);
+			((char*)io_request->io_buffer)[i+1]=(val>>0x8);
+		}
 	}
 	return 0;
 }
@@ -155,6 +191,20 @@ unsigned int _write_28_ata(t_io_request* io_request)
 	io_request->command=WRITE_28;
 	return _read_write_28_ata(io_request);	
 }
+
+unsigned int _p_read_28_ata(t_io_request* io_request)
+{
+	io_request->command=READ_28;
+	return _p_read_write_28_ata(io_request);	
+}
+
+unsigned int _p_write_28_ata(t_io_request* io_request)
+{
+	io_request->command=WRITE_28;
+	return _p_read_write_28_ata(io_request);	
+}
+
+
 
 int _flush_ata_pending_request()
 {
