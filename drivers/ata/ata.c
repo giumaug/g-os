@@ -132,11 +132,14 @@ static unsigned int _p_read_write_28_ata(t_io_request* io_request)
 	t_device_desc* device_desc;
 	t_io_request* pending_request;
 	t_llist_node* node;
+	t_spinlock_desc spinlock;
 	int k=0;
-	
+
+	SPINLOCK_INIT(spinlock);
 	device_desc=io_request->device_desc;
+	
 	//Entrypoint mutual exclusion region
-	sem_down(&device_desc->mutex);
+	SPINLOCK_LOCK(spinlock);
 	
 	device_desc->status=DEVICE_BUSY;
 	system.device_desc->serving_request=io_request;
@@ -177,6 +180,8 @@ static unsigned int _p_read_write_28_ata(t_io_request* io_request)
 			((char*)io_request->io_buffer)[i+1]=(val>>0x8);
 		}
 	}
+	//Exitpoint mutual exclusion region
+	SPINLOCK_UNLOCK(spinlock);
 	return 0;
 }
 

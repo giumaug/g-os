@@ -6,6 +6,10 @@
 #include "data_types/primitive_types.h"
 #include "data_types/hashtable.h"
 
+#define READ_BYTE(src,dst) do {unsigned short* p;p=src;dst=(*p)&0xff;} while(0);
+#define READ_WORD(src,dst) do {unsigned short* p;p=src;dst=*p;} while(0);
+#define READ_DWORD(src,dst) do {unsigned int* p;p=src;dst=*p;} while(0);
+
 #define BLOCK_SIZE 1024
 #define SECTOR_SIZE 512
 #define NAME_MAX 50
