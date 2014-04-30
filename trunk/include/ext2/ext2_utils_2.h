@@ -119,16 +119,18 @@ void static read_superblock(t_ext2* ext2)
 {
         char* io_buffer;
 	t_superblock* superblock;
+	int i=0;
 	
         io_buffer=kmalloc(512);
+        for (i=0;i<512;i++) *io_buffer=0xff;
         //READ(2,(1024+ext2->partition_start_sector),io_buffer);
 
 	t_io_request io_request; 						
 	io_request.device_desc=ext2->device_desc;			
 	io_request.sector_count=2;					
-	io_request.lba=1024+ext2->partition_start_sector;							
+	//io_request.lba=1024+ext2->partition_start_sector;
+	io_request.lba=2048;				
 	io_request.io_buffer=io_buffer;					
-	//io_request.process_context=system.process_info.current_process->val;	
 	ext2->device_desc->p_read(&io_request);	
 	
 	superblock=ext2->superblock;
