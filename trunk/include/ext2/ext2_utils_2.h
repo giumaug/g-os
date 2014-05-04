@@ -122,7 +122,6 @@ void static read_superblock(t_ext2* ext2)
 	int i=0;
 	
         io_buffer=kmalloc(512);
-        for (i=0;i<512;i++) *io_buffer=0xff;
         //READ(2,(1024+ext2->partition_start_sector),io_buffer);
 
 	t_io_request io_request; 						
@@ -554,11 +553,14 @@ void static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext
 u32 static lookup_partition(t_ext2* ext2,u8 partition_number)
 {
 	char* io_buffer;
-        u32 first_partition_start_sector;
-	int pippo;   
+        u32 first_partition_sector;
+	u32 partition_offset;
+	u32 head;
+	u32 sector;
+	u32 cylinder;
 
 	io_buffer=kmalloc(BLOCK_SIZE);
-	pippo=(partition_number*16)+8;
+	partition_offset=446+((partition_number-1)*16)+1;
         //READ(1,0,io_buffer);
 	//USE MACRO
 	t_io_request io_request; 						
@@ -568,10 +570,14 @@ u32 static lookup_partition(t_ext2* ext2,u8 partition_number)
 	io_request.io_buffer=io_buffer;					
 	//io_request.process_context=system.process_info.current_process->val;	
 	ext2->device_desc->p_read(&io_request);	
+	
+	head=io_buffer[partition_offset];
+	sector=(io_buffer[partition_offset+1])& 0x3F;
+	cylinder=((io_buffer[partition_offset+1] & 0xc0)<<2) | io_buffer[partition_offset+2];
+        first_partition_sector=((cylinder*16)+head)*63+sector-1;
 
-        first_partition_start_sector=io_buffer[446+( partition_number*16)+8];
         kfree(io_buffer);
-        return first_partition_start_sector;
+        return first_partition_sector;
 }
 
 u32 static find_free_inode(u32 group_block_index,t_ext2 *ext2,u32 check_threshold)
