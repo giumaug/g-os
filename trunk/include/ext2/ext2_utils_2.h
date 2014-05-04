@@ -127,8 +127,7 @@ void static read_superblock(t_ext2* ext2)
 	t_io_request io_request; 						
 	io_request.device_desc=ext2->device_desc;			
 	io_request.sector_count=2;					
-	//io_request.lba=1024+ext2->partition_start_sector;
-	io_request.lba=2048;				
+	io_request.lba=2+ext2->partition_start_sector;			
 	io_request.io_buffer=io_buffer;					
 	ext2->device_desc->p_read(&io_request);	
 	
