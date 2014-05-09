@@ -122,14 +122,14 @@ void static read_superblock(t_ext2* ext2)
 	int i=0;
 	
         io_buffer=kmalloc(512);
-        //READ(2,(1024+ext2->partition_start_sector),io_buffer);
+        P_READ(2,(2+ext2->partition_start_sector),io_buffer);
 
-	t_io_request io_request; 						
-	io_request.device_desc=ext2->device_desc;			
-	io_request.sector_count=2;					
-	io_request.lba=2+ext2->partition_start_sector;			
-	io_request.io_buffer=io_buffer;					
-	ext2->device_desc->p_read(&io_request);	
+//	t_io_request io_request; 						
+//	io_request.device_desc=ext2->device_desc;			
+//	io_request.sector_count=2;					
+//	io_request.lba=2+ext2->partition_start_sector;			
+//	io_request.io_buffer=io_buffer;					
+//	ext2->device_desc->p_read(&io_request);	
 	
 	superblock=ext2->superblock;
        
@@ -559,17 +559,8 @@ u32 static lookup_partition(t_ext2* ext2,u8 partition_number)
 	u32 cylinder;
 
 	io_buffer=kmalloc(BLOCK_SIZE);
-	partition_offset=446+((partition_number-1)*16)+1;
-        //READ(1,0,io_buffer);
-	//USE MACRO
-	t_io_request io_request; 						
-	io_request.device_desc=ext2->device_desc;			
-	io_request.sector_count=1;					
-	io_request.lba=0;							
-	io_request.io_buffer=io_buffer;					
-	//io_request.process_context=system.process_info.current_process->val;	
-	ext2->device_desc->p_read(&io_request);	
-	
+	partition_offset=446+((partition_number-1)*16)+1;			
+	P_READ(1,0,io_buffer);
 	head=io_buffer[partition_offset];
 	sector=(io_buffer[partition_offset+1])& 0x3F;
 	cylinder=((io_buffer[partition_offset+1] & 0xc0)<<2) | io_buffer[partition_offset+2];

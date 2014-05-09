@@ -120,7 +120,6 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	{
 		panic();
 	}
-	
 	//Endpoint mutual exclusion region
 	sem_up(&device_desc->mutex);	
 	return 0;
@@ -143,14 +142,17 @@ static unsigned int _p_read_write_28_ata(t_io_request* io_request)
 	
 	device_desc->status=DEVICE_BUSY;
 	system.device_desc->serving_request=io_request;
-	
+
+	out(0x2,0X3F6);
+	//for (k=0;k<10000;k++);
 	out(0xE0 | (io_request->lba >> 24),0x1F6);
 	out((unsigned char)io_request->sector_count,0x1F2);
 	out((unsigned char)io_request->lba,0x1F3);
 	out((unsigned char)(io_request->lba >> 8),0x1F4);
 	out((unsigned char)(io_request->lba >> 16),0x1F5);
 	out(io_request->command,0x1F7);
-	for (k=0;k<1000;k++);
+	//for (k=0;k<1000;k++);
+	in(0x1F7);
 
 	if (io_request->command==WRITE_28)
 	{
@@ -181,6 +183,8 @@ static unsigned int _p_read_write_28_ata(t_io_request* io_request)
 		}
 	}
 	//Exitpoint mutual exclusion region
+	out(0x0,0X3F6);
+	in(0x1F7);
 	SPINLOCK_UNLOCK(spinlock);
 	return 0;
 }
