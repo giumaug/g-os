@@ -1,7 +1,9 @@
+#include "lib/stdio.h"
 #include "lib/unistd.h"
-#include "lib/stdio.h" 
-#include "lib/stdlib.h" 
+#include "lib/fcntl.h"
+#include "lib/stdlib.h"
 
+/*
 process_1()
 {
 	unsigned int n_request;
@@ -33,20 +35,28 @@ process_1()
 		printf("\n+++++++++");
 		sleep(60000);
 		printf("\n.........");
-		
-//		while (count>0)
-//		{
-//			SYSCALL(102,params);
-//			ret=params[0];
-//			if (ret==1) 
-//			{
-//				count--;
-//			}
-//			d_printf(count);
-//			printf("\n");
-//			sleep(100);
-
 		check_free_mem();
 	}
 	exit(0);
 }
+*/
+
+process_1()
+{
+	int i,f;
+        char* io_buffer;
+	
+	io_buffer=malloc(20);
+	f=open("/tmp/read_test.txt", O_RDWR);
+	read(f,io_buffer,20);
+	close(f);
+
+	for(i=0;i<20;i++)
+	{
+		printf(io_buffer[i]);
+	}
+	free(io_buffer);
+}
+
+
+

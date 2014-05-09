@@ -6,6 +6,10 @@
 	#define ADD_HEADER
 #endif
 
+#define O_CREAT 0b1
+#define O_APPEND 0b10
+#define O_RDWR 0b100
+
 extern inline int open(const char *fullpath, int flags) __attribute__((always_inline));
 
 extern inline int open(const char *fullpath, int flags)
