@@ -12,6 +12,7 @@
 
 #define DEVICE_IDLE 0
 #define DEVICE_BUSY 1
+#define POOLING_MODE 2
 
 typedef struct s_io_request 
 {

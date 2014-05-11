@@ -75,6 +75,13 @@ mount disk image
 losetup -o 1048576 /dev/loop2 ./disk.img
 mount /dev/loop1 /mnt
 
+disk dump:
+xxd -g1 ./dump.txt exit
+dd bs=512 if=/home/peppe/Desktop/disk.img count=1
+
+
+
+
 
 
 

@@ -47,7 +47,7 @@ process_1()
         char* io_buffer;
 	
 	io_buffer=malloc(20);
-	f=open("/tmp/read_test.txt", O_RDWR);
+	f=open("/tmp/read_test.txt", O_RDWR | O_APPEND);
 	read(f,io_buffer,20);
 	close(f);
 

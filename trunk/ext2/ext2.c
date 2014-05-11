@@ -3,24 +3,7 @@
 #include "ext2/ext2_utils_2.h"
 
 void init_ext2(t_ext2 *ext2,t_device_desc* device_desc)
-{
-//	xxd -g1 ./dump.txt exit
-//	dd bs=512 if=/home/peppe/Desktop/disk.img count=1
-//	https://github.com/dbrgn/superblock
-//
-//	#include<stdio.h>
-//	main()
-//	{
-//		unsigned int* xx;
-//		unsigned char buffer[4];
-//		buffer[0]=0xf1;
-//		buffer[1]=0xf2;
-//		buffer[2]=0xf3;
-//		buffer[3]=0xf4;
-//		xx=buffer;
-//		printf("1--->%u \n",*xx);	
-//	}	
-
+{	
 	ext2->device_desc=device_desc;
 	ext2->superblock=kmalloc(sizeof(t_superblock));
         ext2->partition_start_sector=lookup_partition(ext2,1);        
@@ -55,7 +38,7 @@ int _open(t_ext2* ext2,const char* fullpath, int flags)
 		alloc_inode(fullpath,0,system.root_fs,inode);
 		hashtable_put(current_process_context->file_desc,fd,inode);
 	}
-	else if (flags & O_APPEND & O_RDWR)
+	else if (flags & (O_APPEND | O_RDWR))
 	{
 		lookup_inode(path,ext2,NULL,inode_dir);
 		lookup_inode(filename,ext2,inode_dir,inode);		
