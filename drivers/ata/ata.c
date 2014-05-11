@@ -50,12 +50,10 @@ void int_handler_ata()
 
 	io_request=system.device_desc->serving_request;
 	process_context=io_request->process_context;
-
-//	if (process_context!=NULL && process_context->proc_status==SLEEPING)
-//	{
-//		_awake(io_request->process_context);
-//	}
-	sem_up(&io_request->device_desc->sem);
+	if (!system.device_desc->status==POOLING_MODE)
+	{
+		sem_up(&io_request->device_desc->sem);
+	}
 	system.device_desc->status=DEVICE_IDLE;
 	enable_irq_line(14);
 	ENABLE_PREEMPTION
@@ -86,6 +84,7 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	out(io_request->command,0x1F7);
 	for (k=0;k<1000;k++);
 
+	//to fix
 	if (io_request->command==WRITE_28)
 	{
 		for (i=0;i<256;i++)
@@ -107,12 +106,11 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	
 	if (io_request->command==READ_28)
 	{
-		for (i=0;i<256;i++)
+		for (i=0;i<(512*io_request->sector_count);i+=2)
 		{  
-			//out(*(char*)io_buffer++,0x1F0); 
-			int zz=inw(0x1F0);
-			((char*)io_request->io_buffer)[i]=zz;
-			//for (k=0;i<10000;k++);
+			unsigned short val=inw(0x1F0);
+			((char*)io_request->io_buffer)[i]=(val&0xff);
+			((char*)io_request->io_buffer)[i+1]=(val>>0x8);
 		}
 	}
 	race--;
@@ -140,20 +138,17 @@ static unsigned int _p_read_write_28_ata(t_io_request* io_request)
 	//Entrypoint mutual exclusion region
 	SPINLOCK_LOCK(spinlock);
 	
-	device_desc->status=DEVICE_BUSY;
+	device_desc->status=DEVICE_BUSY || POOLING_MODE;
 	system.device_desc->serving_request=io_request;
 
-	out(0x2,0X3F6);
-	//for (k=0;k<10000;k++);
 	out(0xE0 | (io_request->lba >> 24),0x1F6);
 	out((unsigned char)io_request->sector_count,0x1F2);
 	out((unsigned char)io_request->lba,0x1F3);
 	out((unsigned char)(io_request->lba >> 8),0x1F4);
 	out((unsigned char)(io_request->lba >> 16),0x1F5);
 	out(io_request->command,0x1F7);
-	//for (k=0;k<1000;k++);
-	in(0x1F7);
 
+	//to fix
 	if (io_request->command==WRITE_28)
 	{
 		for (i=0;i<256;i++)
@@ -175,7 +170,7 @@ static unsigned int _p_read_write_28_ata(t_io_request* io_request)
 	
 	if (io_request->command==READ_28)
 	{
-		for (i=0;i<512;i+=2)
+		for (i=0;i<(512*io_request->sector_count);i+=2)
 		{  
 			unsigned short val=inw(0x1F0);
 			((char*)io_request->io_buffer)[i]=(val&0xff);
@@ -183,8 +178,6 @@ static unsigned int _p_read_write_28_ata(t_io_request* io_request)
 		}
 	}
 	//Exitpoint mutual exclusion region
-	out(0x0,0X3F6);
-	in(0x1F7);
 	SPINLOCK_UNLOCK(spinlock);
 	return 0;
 }

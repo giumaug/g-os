@@ -122,15 +122,7 @@ void static read_superblock(t_ext2* ext2)
 	int i=0;
 	
         io_buffer=kmalloc(512);
-        P_READ(2,(2+ext2->partition_start_sector),io_buffer);
-
-//	t_io_request io_request; 						
-//	io_request.device_desc=ext2->device_desc;			
-//	io_request.sector_count=2;					
-//	io_request.lba=2+ext2->partition_start_sector;			
-//	io_request.io_buffer=io_buffer;					
-//	ext2->device_desc->p_read(&io_request);	
-	
+        P_READ(1,(2+ext2->partition_start_sector),io_buffer);	
 	superblock=ext2->superblock;
        
         //u32
