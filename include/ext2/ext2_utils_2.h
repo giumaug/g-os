@@ -186,6 +186,84 @@ void static read_superblock(t_ext2* ext2)
 	kfree(io_buffer);
 }
 
+void static read_root_dir_inode(t_ext2* ext2)
+{
+	u32 inode_table;
+	u32 inode_offset;
+	u32 lba;
+	char* io_buffer;
+	t_inode* inode;
+	
+	inode=ext2->root_dir_inode;
+	lba=(2*BLOCK_SIZE)/SECTOR_SIZE+ext2->partition_start_sector;
+	io_buffer=kmalloc(512);
+	
+	P_READ(1,lba,io_buffer);
+	READ_DWORD(&io_buffer[8],inode_table);
+	kfree(io_buffer);
+
+        lba=ext2->partition_start_sector+(inode_table*2);
+	inode_offset=128;
+	P_READ(1,lba,io_buffer);
+	
+	//u16
+	READ_WORD(&io_buffer[inode_offset],inode->i_mode);
+	//u16 
+	READ_WORD(&io_buffer[inode_offset+2],inode->i_uid);
+	//u32 
+	READ_WORD(&io_buffer[inode_offset+4],inode->i_size);
+	//u32 
+	READ_WORD(&io_buffer[inode_offset+8],inode->i_atime);
+	//u32 
+	READ_WORD(&io_buffer[inode_offset+12],inode->i_ctime);
+	//u32 
+	READ_WORD(&io_buffer[inode_offset+16],inode->i_mtime);
+	//u32 
+	READ_WORD(&io_buffer[inode_offset+20],inode->i_dtime);
+	//u16
+	READ_WORD(&io_buffer[inode_offset+24],inode->i_gid);
+	//u16 
+	READ_WORD(&io_buffer[inode_offset+26],inode->i_links_count);
+	//u32 
+	READ_WORD(&io_buffer[inode_offset+28],inode->i_blocks);
+	//u32 
+	READ_WORD(&io_buffer[inode_offset+32],inode->i_flags);
+	//u32 
+	READ_WORD(&io_buffer[inode_offset+36],inode->osd1);
+	//u32[EXT2_N_BLOCKS]
+	READ_WORD(&io_buffer[inode_offset+40],inode->i_block[0]);
+	READ_WORD(&io_buffer[inode_offset+44],inode->i_block[1]);
+	READ_WORD(&io_buffer[inode_offset+48],inode->i_block[2]);
+	READ_WORD(&io_buffer[inode_offset+52],inode->i_block[3]);
+	READ_WORD(&io_buffer[inode_offset+56],inode->i_block[4]);
+	READ_WORD(&io_buffer[inode_offset+60],inode->i_block[5]);
+	READ_WORD(&io_buffer[inode_offset+64],inode->i_block[6]);
+	READ_WORD(&io_buffer[inode_offset+68],inode->i_block[7]);
+	READ_WORD(&io_buffer[inode_offset+72],inode->i_block[8]);
+	READ_WORD(&io_buffer[inode_offset+76],inode->i_block[9]);
+	READ_WORD(&io_buffer[inode_offset+80],inode->i_block[10]);
+	READ_WORD(&io_buffer[inode_offset+84],inode->i_block[11]);
+	READ_WORD(&io_buffer[inode_offset+88],inode->i_block[12]);
+	READ_WORD(&io_buffer[inode_offset+92],inode->i_block[13]);
+	READ_WORD(&io_buffer[inode_offset+96],inode->i_block[14]);
+	//u32 
+	READ_WORD(&io_buffer[inode_offset+100],inode->i_generation);
+	//u32 
+	READ_WORD(&io_buffer[inode_offset+104],inode->i_file_acl);
+	//u32 
+	READ_WORD(&io_buffer[inode_offset+108],inode->i_dir_acl);
+	//u32 
+	READ_WORD(&io_buffer[inode_offset+112],inode->i_faddr);
+	//u32 
+	READ_WORD(&io_buffer[inode_offset+116],inode->osd2_1);
+	//u32 
+	READ_WORD(&io_buffer[inode_offset+120],inode->osd2_2);
+	//u32 
+	READ_WORD(&io_buffer[inode_offset+124],inode->osd2_3);
+
+	return;
+}
+
 void static write_superblock(t_ext2* ext2)
 {
         char* io_buffer;

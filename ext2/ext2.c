@@ -4,16 +4,20 @@
 
 void init_ext2(t_ext2 *ext2,t_device_desc* device_desc)
 {	
+	t_group_block* group_block;
 	ext2->device_desc=device_desc;
 	ext2->superblock=kmalloc(sizeof(t_superblock));
         ext2->partition_start_sector=lookup_partition(ext2,1);        
         read_superblock(ext2);
+	ext2->root_dir_inode=kmalloc(sizeof(t_inode));
+	read_root_dir_inode(ext2);
 	ext2->device_desc=device_desc;
 }
 
 void free_ext2(t_ext2* ext2)
 {
 	kfree(ext2->superblock);
+	kfree(ext2->root_dir_inode);
 }
 
 int _open(t_ext2* ext2,const char* fullpath, int flags)
