@@ -579,7 +579,7 @@ void static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext
 	// For directory inode supposed max 12 block	
 	for (i=0;i<=11;i++)
 	{
-		if (inode->i_block[i]==-1)
+		if (inode->i_block[i]==0)-------------------qui
 		{	
 			break;
 		} 
@@ -588,17 +588,20 @@ void static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext
 
 	for (j=0;j<=i;j++)
 	{
-		READ(2,parent_dir_inode->i_block[i],(io_buffer+1024*j));
+		READ((BLOCK_SIZE/SECTOR_SIZE),parent_dir_inode->i_block[i],(io_buffer+BLOCK_SIZE*j));
 	}
 
 	next_entry=0;	
 	j=0;
 	while(next_entry<=(i+1)*BLOCK_SIZE)
 	{
-		i_number=io_buffer[next_entry];
-		next_entry=(u16) io_buffer[next_entry+4];
-		name_len=(u8) io_buffer[next_entry+6];
-		while(io_buffer[next_entry+6+j]==file_name[j] && j<name_len)		
+		//i_number=io_buffer[next_entry];
+		READ_DWORD(&io_buffer[next_entry],i_number);
+		//next_entry=(u16) io_buffer[next_entry+4];
+		READ_WORD(&io_buffer[next_entry+4],next_entry);
+		//name_len=(u8) io_buffer[next_entry+6];
+		READ_BYTE(&io_buffer[next_entry+6],name_len);
+		while(io_buffer[next_entry+8+j]==file_name[j] && j<name_len)		
 		{
 			j++;
 		}

@@ -30,7 +30,7 @@ int _open(t_ext2* ext2,const char* fullpath, int flags)
 	char path[NAME_MAX];
 	char filename[NAME_MAX];
 
-	extract_filename(fullpath,path,filename);
+	//extract_filename(fullpath,path,filename);
 	inode=kmalloc(sizeof(t_inode));
 	inode_dir=kmalloc(sizeof(t_inode));
 	node=system.process_info.current_process;	
@@ -44,8 +44,8 @@ int _open(t_ext2* ext2,const char* fullpath, int flags)
 	}
 	else if (flags & (O_APPEND | O_RDWR))
 	{
-		lookup_inode(path,ext2,NULL,inode_dir);
-		lookup_inode(filename,ext2,inode_dir,inode);		
+		//lookup_inode(path,ext2,NULL,inode_dir);
+		lookup_inode(fullpath,ext2,inode_dir,inode);		
 		add_dir_entry(ext2,inode_dir,inode->i_number,filename,1);
 		hashtable_put(current_process_context->file_desc,fd,inode);
 	}
@@ -275,7 +275,7 @@ int _rm(t_ext2* ext2,char* fullpath)
 	inode_dir=kmalloc(sizeof(t_inode));
 	
 	extract_filename(fullpath,path,filename);
-	lookup_inode(path,ext2,NULL,inode_dir);
+	//lookup_inode(path,ext2,NULL,inode_dir);
 	lookup_inode(filename,ext2,inode_dir,inode);
 	del_dir_entry(ext2,inode_dir,inode->i_number);
 	free_inode(inode,ext2);
