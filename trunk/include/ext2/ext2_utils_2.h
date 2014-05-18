@@ -579,7 +579,7 @@ void static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext
 	// For directory inode supposed max 12 block	
 	for (i=0;i<=11;i++)
 	{
-		if (inode->i_block[i]==0)-------------------qui
+		if (parent_dir_inode->i_block[i]==0)
 		{	
 			break;
 		} 

@@ -20,7 +20,7 @@ void free_ext2(t_ext2* ext2)
 	kfree(ext2->root_dir_inode);
 }
 
-int _open(t_ext2* ext2,const char* fullpath, int flags)
+int _open(t_ext2* ext2,const char* fullpath, int flags)----------ext2??? qui
 {
 	u32 fd;
 	struct t_process_context* current_process_context;
