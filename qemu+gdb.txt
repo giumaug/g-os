@@ -79,6 +79,12 @@ disk dump:
 xxd -g1 ./dump.txt exit
 dd bs=512 if=/home/peppe/Desktop/disk.img count=1
 
+debugfs
+dump "/" /tmp/test.txt dump inode "/"
+hexdump /tmp/test.txt
+
+blocks "/" numero blocco corrispondente "/" ("/" puo' essere pure inode)
+
 
 
 
