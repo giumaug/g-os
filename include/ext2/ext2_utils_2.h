@@ -566,6 +566,11 @@ void static write_inode(t_ext2* ext2,t_inode* inode)
 	kfree(group_block);
 }
 
+void after_int()
+{
+	return;
+}
+
 void static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext2,t_inode* inode)
 {
 	int i;
@@ -589,7 +594,9 @@ void static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext
 	for (j=0;j<=i;j++)
 	{
 		READ((BLOCK_SIZE/SECTOR_SIZE),parent_dir_inode->i_block[i],(io_buffer+BLOCK_SIZE*j));
+		READ(1,parent_dir_inode->i_block[i],(io_buffer+BLOCK_SIZE*j));
 	}
+	after_int();
 
 	next_entry=0;	
 	j=0;
