@@ -30,11 +30,15 @@ psym io_request
 psym "*io_request->process_context"
 
 altri comandi
-cpu0.print-idt 
+hai risposto alla tipa?
+ 
 cpu0.read-reg ds
 break-exception -all
 trace-io kbd0
 untrace-io kbd0
+
+ide.status status ide
+list-objects tutti oggetti disponibili
 
 
 
