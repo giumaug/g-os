@@ -84,6 +84,8 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	out(io_request->command,0x1F7);
 	for (k=0;k<1000;k++);
 
+	while(1);
+
 	//to fix
 	if (io_request->command==WRITE_28)
 	{
