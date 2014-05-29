@@ -4,4 +4,5 @@ MAKE 		= make
 CC		= gcc 
 LD		= ld
 CFLAGS		= -gstabs+ -c -fno-builtin
+#CFLAGS		= -ggdb -c -fno-builtin
 CPPFLAGS	=-I $(INCLUDE) 

@@ -75,6 +75,9 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	
 	device_desc->status=DEVICE_BUSY;
 	system.device_desc->serving_request=io_request;
+
+	EOI_TO_SLAVE_PIC
+	EOI_TO_MASTER_PIC
 	
 	out(0xE0 | (io_request->lba >> 24),0x1F6);
 	out((unsigned char)io_request->sector_count,0x1F2);
@@ -83,8 +86,6 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	out((unsigned char)(io_request->lba >> 16),0x1F5);
 	out(io_request->command,0x1F7);
 	for (k=0;k<1000;k++);
-
-	while(1);
 
 	//to fix
 	if (io_request->command==WRITE_28)
