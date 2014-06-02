@@ -200,6 +200,14 @@ void int_handler_generic_21()
 	return;
 }
 
+void int_handler_generic_34() 
+{
+	exception();  
+	STI
+	asm("pop %ebp;iret");
+	return;
+}
+
 void int_handler_generic_39() 
 {
 	exception();  
@@ -441,6 +449,11 @@ void init_idt()
 	idt[31].selector=0x8;
 	idt[31].flags=0x08e00;
 	idt[31].baseHi=((int)(&int_handler_generic_21))>>0x010;
+
+	idt[34].baseLow=((int)(&int_handler_generic_34)) & 0xFFFF;
+	idt[34].selector=0x8;
+	idt[34].flags=0x08e00;
+	idt[34].baseHi=((int)(&int_handler_generic_34))>>0x010;
 
 	idt[39].baseLow=((int)(&int_handler_generic_39)) & 0xFFFF;
 	idt[39].selector=0x8;
