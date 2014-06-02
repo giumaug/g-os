@@ -88,7 +88,9 @@ blocks "/" numero blocco corrispondente "/" ("/" puo' essere pure inode)
 
 
 
+/tmp/read_test.txt = blocco 521
 
+/tmp/ blocco 341
 
 
 
