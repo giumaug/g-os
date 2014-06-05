@@ -424,59 +424,59 @@ void static read_inode(t_ext2* ext2,t_inode* inode)
 	READ(sector_count,lba,io_buffer);
 
 	//u16 
-	inode->i_mode=io_buffer[inode_offset];
+	READ_WORD(&io_buffer[inode_offset],inode->i_mode);
 	//u16 
-	inode->i_uid=io_buffer[inode_offset+2];
+	READ_WORD(&io_buffer[inode_offset+2],inode->i_uid);
 	//u32 
-	inode->i_size=io_buffer[inode_offset+4];
+	READ_DWORD(&io_buffer[inode_offset+4],inode->i_size);
 	//u32 
-	inode->i_atime=io_buffer[inode_offset+8];
+	READ_DWORD(&io_buffer[inode_offset+8],inode->i_atime);
 	//u32 
-	inode->i_ctime=io_buffer[inode_offset+12];
+	READ_DWORD(&io_buffer[inode_offset+12],inode->i_ctime);
 	//u32 
-	inode->i_mtime=io_buffer[inode_offset+16];
+	READ_DWORD(&io_buffer[inode_offset+16],inode->i_mtime);
 	//u32 
-	inode->i_dtime=io_buffer[inode_offset+20];
+	READ_DWORD(&io_buffer[inode_offset+20],inode->i_dtime);
 	//u16
-	inode->i_gid=io_buffer[inode_offset+24];
+	READ_DWORD(&io_buffer[inode_offset+24],inode->i_gid);
 	//u16 
-	inode->i_links_count=io_buffer[inode_offset+26];
+	READ_DWORD(&io_buffer[inode_offset+26],inode->i_links_count);
 	//u32 
-	inode->i_blocks=io_buffer[inode_offset+28];
+	READ_DWORD(&io_buffer[inode_offset+28],inode->i_blocks);
 	//u32 
-	inode->i_flags=io_buffer[inode_offset+32];
+	READ_DWORD(&io_buffer[inode_offset+32],inode->i_flags);
 	//u32 
-	inode->osd1=io_buffer[inode_offset+36];
+	READ_DWORD(&io_buffer[inode_offset+36],inode->osd1);
 	//u32[EXT2_N_BLOCKS]
-	inode->i_block[0]=io_buffer[inode_offset+40];
-	inode->i_block[1]=io_buffer[inode_offset+44];
-	inode->i_block[2]=io_buffer[inode_offset+48];
-	inode->i_block[3]=io_buffer[inode_offset+52];
-	inode->i_block[4]=io_buffer[inode_offset+56];
-	inode->i_block[5]=io_buffer[inode_offset+60];
-	inode->i_block[6]=io_buffer[inode_offset+64];
-	inode->i_block[7]=io_buffer[inode_offset+68];
-	inode->i_block[8]=io_buffer[inode_offset+72];
-	inode->i_block[9]=io_buffer[inode_offset+76];
-	inode->i_block[10]=io_buffer[inode_offset+80];
-	inode->i_block[11]=io_buffer[inode_offset+84];
-	inode->i_block[12]=io_buffer[inode_offset+88];
-	inode->i_block[13]=io_buffer[inode_offset+92];
-	inode->i_block[14]=io_buffer[inode_offset+96];
+	READ_DWORD(&io_buffer[inode_offset+40],inode->i_block[0]);
+	READ_DWORD(&io_buffer[inode_offset+44],inode->i_block[1]);
+	READ_DWORD(&io_buffer[inode_offset+48],inode->i_block[2]);
+	READ_DWORD(&io_buffer[inode_offset+52],inode->i_block[3]);
+	READ_DWORD(&io_buffer[inode_offset+56],inode->i_block[4]);
+	READ_DWORD(&io_buffer[inode_offset+60],inode->i_block[5]);
+	READ_DWORD(&io_buffer[inode_offset+64],inode->i_block[6]);
+	READ_DWORD(&io_buffer[inode_offset+68],inode->i_block[7]);
+	READ_DWORD(&io_buffer[inode_offset+72],inode->i_block[8]);
+	READ_DWORD(&io_buffer[inode_offset+76],inode->i_block[10]);
+	READ_DWORD(&io_buffer[inode_offset+80],inode->i_block[10]);
+	READ_DWORD(&io_buffer[inode_offset+84],inode->i_block[11]);
+	READ_DWORD(&io_buffer[inode_offset+88],inode->i_block[12]);
+	READ_DWORD(&io_buffer[inode_offset+92],inode->i_block[13]);
+	READ_DWORD(&io_buffer[inode_offset+96],inode->i_block[14]);
 	//u32 
-	inode->i_generation=io_buffer[inode_offset+100];
+	READ_DWORD(&io_buffer[inode_offset+100],inode->i_generation);
 	//u32 
-	inode->i_file_acl=io_buffer[inode_offset+104];
+	READ_DWORD(&io_buffer[inode_offset+104],inode->i_file_acl);
 	//u32 
-	inode->i_dir_acl=io_buffer[inode_offset+108];
+	READ_DWORD(&io_buffer[inode_offset+108],inode->i_dir_acl);
 	//u32 
-	inode->i_faddr=io_buffer[inode_offset+112];
+	READ_DWORD(&io_buffer[inode_offset+112],inode->i_faddr);
 	//u32 
-	inode->osd2_1=io_buffer[inode_offset+116];
+	READ_DWORD(&io_buffer[inode_offset+116],inode->osd2_1);
 	//u32 
-	inode->osd2_2=io_buffer[inode_offset+120];
+	READ_DWORD(&io_buffer[inode_offset+120],inode->osd2_2);
 	//u32 
-	inode->osd2_3=io_buffer[inode_offset+124];
+	READ_DWORD(&io_buffer[inode_offset+124],inode->osd2_3);
 	
 	kfree(io_buffer);
 	kfree(group_block);
@@ -566,11 +566,6 @@ void static write_inode(t_ext2* ext2,t_inode* inode)
 	kfree(group_block);
 }
 
-void after_int()
-{
-	return;
-}
-
 void static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext2,t_inode* inode)
 {
 	int i;
@@ -578,7 +573,10 @@ void static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext
 	u32 i_number;
 	u32 next_entry;
 	u32 name_len;
+	u32 rec_len;
 	char* io_buffer;
+	u32 lba;
+	u8 found_inode;
 	char file_name_entry[NAME_MAX];
 
 	// For directory inode supposed max 12 block	
@@ -593,31 +591,30 @@ void static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext
 
 	for (j=0;j<=i;j++)
 	{
-		READ((BLOCK_SIZE/SECTOR_SIZE),parent_dir_inode->i_block[i],(io_buffer+BLOCK_SIZE*j));
-		READ(1,parent_dir_inode->i_block[i],(io_buffer+BLOCK_SIZE*j));
+		lba=ext2->partition_start_sector+((parent_dir_inode->i_block[j])*(BLOCK_SIZE/SECTOR_SIZE));
+		READ((BLOCK_SIZE/SECTOR_SIZE),lba,(io_buffer+BLOCK_SIZE*j));
 	}
-	after_int();
 
+	found_inode=0;
 	next_entry=0;	
 	j=0;
 	while(next_entry<=(i+1)*BLOCK_SIZE)
 	{
-		//i_number=io_buffer[next_entry];
 		READ_DWORD(&io_buffer[next_entry],i_number);
-		//next_entry=(u16) io_buffer[next_entry+4];
-		READ_WORD(&io_buffer[next_entry+4],next_entry);
-		//name_len=(u8) io_buffer[next_entry+6];
 		READ_BYTE(&io_buffer[next_entry+6],name_len);
+		READ_WORD(&io_buffer[next_entry+4],rec_len);
 		while(io_buffer[next_entry+8+j]==file_name[j] && j<name_len)		
 		{
 			j++;
 		}
 		if(name_len==j)
 		{
+			found_inode=1;
 			break;
-		}	
+		}
+		next_entry+=rec_len;
 	}
-	if(next_entry<=(i+1)*BLOCK_SIZE)
+	if(found_inode==1)
 	{
 		inode->i_number=i_number;
 		read_inode(ext2,inode);
