@@ -372,9 +372,11 @@ read_group_block(t_ext2 *ext2,u32 group_block_number,t_group_block* group_block)
 	u32 lba;
 	char* io_buffer;
 
-	//block_number start from 1
-	sector_number=32*(group_block_number-1)/SECTOR_SIZE;
-	sector_offset=(32*(group_block_number-1))%SECTOR_SIZE;
+	group_block_number=tot_block/8+block_size
+
+	//block_number start from 1 errore !!!!!
+	sector_number=32*group_block_number/SECTOR_SIZE;
+	sector_offset=(32*group_block_number)%SECTOR_SIZE;
 	lba=(2*BLOCK_SIZE)/SECTOR_SIZE+ext2->partition_start_sector+sector_number;
 	io_buffer=kmalloc(512);
 	
