@@ -85,6 +85,10 @@ hexdump /tmp/test.txt
 
 blocks "/" numero blocco corrispondente "/" ("/" puo' essere pure inode)
 
+block_dump <x> dump blocco x
+
+show_super_stats dump superblock e group_block
+
 
 
 
