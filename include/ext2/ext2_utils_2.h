@@ -372,7 +372,7 @@ read_group_block(t_ext2 *ext2,u32 group_block_number,t_group_block* group_block)
 	u32 lba;
 	char* io_buffer;
 
-	group_block_number=tot_block/8+block_size
+	//group_block_number=tot_block/8+block_size
 
 	//block_number start from 1 errore !!!!!
 	sector_number=32*group_block_number/SECTOR_SIZE;
@@ -414,14 +414,19 @@ void static read_inode(t_ext2* ext2,t_inode* inode)
 	io_buffer=kmalloc(BLOCK_SIZE);	
 	group_block=kmalloc(sizeof(t_group_block));
 	
-	group_number=inode->i_number/ext2->superblock->s_inodes_per_group; 
-	group_offset=inode->i_number%ext2->superblock->s_inodes_per_group;
+	group_number=(inode->i_number-1)/ext2->superblock->s_inodes_per_group; 
+//	group_offset=(inode->i_number-1)%ext2->superblock->s_inodes_per_group;
 	read_group_block(ext2,group_number,group_block);
-
-	inode_table_offset=group_offset/(BLOCK_SIZE/128);
-	inode_offset=group_offset%(BLOCK_SIZE/128);	
+//
+//	inode_table_offset=group_offset/(BLOCK_SIZE/128);
+//	inode_offset=group_offset%(BLOCK_SIZE/128);	
 	
-	lba=group_block->bg_inode_table+inode_table_offset*(BLOCK_SIZE/SECTOR_SIZE);
+//	lba=group_block->bg_inode_table+inode_table_offset*(BLOCK_SIZE/SECTOR_SIZE);
+//	sector_count=BLOCK_SIZE/SECTOR_SIZE;
+
+	inode_table_offset=(inode->i_number-1)*128/SECTOR_SIZE;---------------qui
+	inode_offset=(inode->i_number-1)*128;
+	lba=ext2->partition_start_sector+group_block->bg_inode_table*(BLOCK_SIZE/SECTOR_SIZE);
 	sector_count=BLOCK_SIZE/SECTOR_SIZE;
 	READ(sector_count,lba,io_buffer);
 
