@@ -92,7 +92,7 @@ show_super_stats dump superblock e group_block
 
 
 
-/tmp/read_test.txt = blocco 521
+/tmp/read_test.txt = blocco 1155 inode 20
 
 /tmp/ blocco 341
 

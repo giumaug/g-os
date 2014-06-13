@@ -121,7 +121,7 @@ void syscall_handler()
 
 	else if (syscall_num==20) 
 	{
-		params[4]=_read(system.root_fs,(void*)params[0],params[1],params[2],params[3]); 
+		params[4]=_read(system.root_fs,params[0],params[1],params[2]); 
 		on_exit_action=1; 
 	}
 
