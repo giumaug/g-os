@@ -30,13 +30,15 @@ int _open(t_ext2* ext2,const char* fullpath, int flags)
 	char path[NAME_MAX];
 	char filename[NAME_MAX];
 
-	//extract_filename(fullpath,path,filename);
 	inode=kmalloc(sizeof(t_inode));
 	inode_dir=kmalloc(sizeof(t_inode));
-	node=system.process_info.current_process;	
-	current_process_context=node->val;
+//	node=system.process_info.current_process;	
+//	current_process_context=node->val;
+	CURRENT_PROCESS_CONTEXT(current_process_context);
 	fd=current_process_context->next_fd++;
-	
+	current_process_context->file_desc=kmalloc(sizeof(t_hashtable));
+	hashtable_init(current_process_context->file_desc,10);
+
 	if (flags & O_CREAT & O_RDWR)
 	{
 		alloc_inode(fullpath,0,system.root_fs,inode);
@@ -44,9 +46,8 @@ int _open(t_ext2* ext2,const char* fullpath, int flags)
 	}
 	else if (flags & (O_APPEND | O_RDWR))
 	{
-		//lookup_inode(path,ext2,NULL,inode_dir);
 		lookup_inode(fullpath,ext2,inode_dir,inode);		
-		add_dir_entry(ext2,inode_dir,inode->i_number,filename,1);
+		//add_dir_entry(ext2,inode_dir,inode->i_number,filename,1); ????
 		hashtable_put(current_process_context->file_desc,fd,inode);
 	}
 	inode->file_offset=0;
@@ -64,6 +65,7 @@ int _close(t_ext2* ext2,int fd)
 
 int _read(t_ext2* ext2,int fd, void *buf,u32 count)
 {
+	struct t_process_context* current_process_context;
 	u32 i;	
 	u32 first_inode_block;
 	u32 first_data_offset;
@@ -83,7 +85,9 @@ int _read(t_ext2* ext2,int fd, void *buf,u32 count)
 	byte_read=0;
 	iob_indirect_block=kmalloc(BLOCK_SIZE);
 	iob_data_block=kmalloc(BLOCK_SIZE);
-	inode=hashtable_get(((struct t_process_context*)system.process_info.current_process)->file_desc,fd);
+
+	CURRENT_PROCESS_CONTEXT(current_process_context);
+	inode=hashtable_get(current_process_context->file_desc,fd);
 	first_inode_block=inode->file_offset/BLOCK_SIZE;
 	first_data_offset=inode->file_offset%BLOCK_SIZE;
 	last_inode_block=(inode->file_offset+count)/BLOCK_SIZE;
@@ -116,7 +120,8 @@ int _read(t_ext2* ext2,int fd, void *buf,u32 count)
 			byte_count=byte_to_read;
 		}
         	sector_count=BLOCK_SIZE/SECTOR_SIZE;
-		_read_28_ata(sector_count,lba,iob_data_block,TRUE);
+		//_read_28_ata(sector_count,lba,iob_data_block,TRUE);
+		READ(sector_count,lba,iob_data_block);
 		if(i==first_inode_block)
 		{
 			buf+=first_inode_block;

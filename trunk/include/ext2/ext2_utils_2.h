@@ -424,9 +424,9 @@ void static read_inode(t_ext2* ext2,t_inode* inode)
 //	lba=group_block->bg_inode_table+inode_table_offset*(BLOCK_SIZE/SECTOR_SIZE);
 //	sector_count=BLOCK_SIZE/SECTOR_SIZE;
 
-	inode_table_offset=(inode->i_number-1)*128/SECTOR_SIZE;---------------qui
-	inode_offset=(inode->i_number-1)*128;
-	lba=ext2->partition_start_sector+group_block->bg_inode_table*(BLOCK_SIZE/SECTOR_SIZE);
+	inode_table_offset=(inode->i_number-1)*128/BLOCK_SIZE;
+	inode_offset=(inode->i_number-1)*128%SECTOR_SIZE;
+	lba=ext2->partition_start_sector+(inode_table_offset+group_block->bg_inode_table)*(BLOCK_SIZE/SECTOR_SIZE);
 	sector_count=BLOCK_SIZE/SECTOR_SIZE;
 	READ(sector_count,lba,io_buffer);
 
@@ -596,7 +596,7 @@ void static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext
 	}
 	io_buffer=kmalloc(BLOCK_SIZE*(i+1));
 
-	for (j=0;j<=i;j++)
+	for (j=0;j<=(i-1);j++)
 	{
 		lba=ext2->partition_start_sector+((parent_dir_inode->i_block[j])*(BLOCK_SIZE/SECTOR_SIZE));
 		READ((BLOCK_SIZE/SECTOR_SIZE),lba,(io_buffer+BLOCK_SIZE*j));
