@@ -56,14 +56,17 @@ int _open(t_ext2* ext2,const char* fullpath, int flags)
 
 int _close(t_ext2* ext2,int fd)
 {
+	struct t_process_context* current_process_context;
 	t_inode* inode;
 
-	inode=hashtable_get(((struct t_process_context*)system.process_info.current_process)->file_desc,fd);
-	write_inode(system.root_fs,inode);
+	CURRENT_PROCESS_CONTEXT(current_process_context)
+	inode=hashtable_get(current_process_context->file_desc,fd);
+	//AT THE MOMENT READ ONLY	
+	//write_inode(system.root_fs,inode);
 	kfree(inode);
 }
 
-int _read(t_ext2* ext2,int fd, void *buf,u32 count)
+int _read(t_ext2* ext2,int fd, void* buf,u32 count)
 {
 	struct t_process_context* current_process_context;
 	u32 i;	
@@ -83,17 +86,18 @@ int _read(t_ext2* ext2,int fd, void *buf,u32 count)
 	char* iob_data_block;
 
 	byte_read=0;
+	byte_to_read=count;
 	iob_indirect_block=kmalloc(BLOCK_SIZE);
 	iob_data_block=kmalloc(BLOCK_SIZE);
 
-	CURRENT_PROCESS_CONTEXT(current_process_context);
+	CURRENT_PROCESS_CONTEXT(current_process_context)
 	inode=hashtable_get(current_process_context->file_desc,fd);
 	first_inode_block=inode->file_offset/BLOCK_SIZE;
 	first_data_offset=inode->file_offset%BLOCK_SIZE;
 	last_inode_block=(inode->file_offset+count)/BLOCK_SIZE;
 
 	allocated_indirect_block=0;
-	for (i=first_inode_block;i<=first_inode_block;i++)
+	for (i=first_inode_block;i<=last_inode_block;i++)
 	{
 		if (i>12)
 		{
@@ -108,27 +112,23 @@ int _read(t_ext2* ext2,int fd, void *buf,u32 count)
 		}
 		else
 		{
-			lba=i;
+			lba=ext2->partition_start_sector+inode->i_block[i]*BLOCK_SIZE/SECTOR_SIZE;
 		}
-		if (byte_to_read>=(BLOCK_SIZE/SECTOR_SIZE))
+		if (byte_to_read>=BLOCK_SIZE)
 		{
-			byte_count=BLOCK_SIZE/SECTOR_SIZE;
-			byte_to_read-=BLOCK_SIZE/SECTOR_SIZE;	
+			byte_count=BLOCK_SIZE;
+			byte_to_read-=BLOCK_SIZE;	
 		}
 		else
 		{
 			byte_count=byte_to_read;
+			byte_to_read=0;
 		}
         	sector_count=BLOCK_SIZE/SECTOR_SIZE;
-		//_read_28_ata(sector_count,lba,iob_data_block,TRUE);
 		READ(sector_count,lba,iob_data_block);
-		if(i==first_inode_block)
-		{
-			buf+=first_inode_block;
-		}
 		kmemcpy(buf,iob_data_block,byte_count);
-		inode->file_offset+=byte_to_read;
-		buf+=byte_to_read;
+		inode->file_offset+=byte_count;
+		buf+=byte_count;
 		byte_read+=byte_count;
 	}
 	kfree(iob_indirect_block);
