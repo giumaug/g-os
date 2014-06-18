@@ -46,16 +46,16 @@ process_1()
 	int i,f;
         char* io_buffer;
 	
-	io_buffer=malloc(20);
-	f=open("/tmp/read_test.txt", O_RDWR | O_APPEND);
-	read(f,io_buffer,20);
+	io_buffer=malloc(12000);
+	f=open("/tmp/readme.txt", O_RDWR | O_APPEND);
+	read(f,io_buffer,12000);
 	close(f);
-
-	for(i=0;i<20;i++)
-	{
-		printf(io_buffer[i]);
-	}
+	io_buffer[12000]='\0';
+	printf("\n");
+	printf(io_buffer);
+	printf("\n");
 	free(io_buffer);
+	exit(0);
 }
 
 
