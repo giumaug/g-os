@@ -12,6 +12,8 @@
 
 extern t_system system;
 
+unsigned int counter=0;
+
 void syscall_handler()
 {
 	static int free_vm_proc;        
@@ -121,6 +123,7 @@ void syscall_handler()
 
 	else if (syscall_num==20) 
 	{
+		char* xx=params[1];
 		params[3]=_read(system.root_fs,params[0],params[1],params[2]); 
 		on_exit_action=1; 
 	}
