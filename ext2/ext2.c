@@ -99,20 +99,21 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count)
 	allocated_indirect_block=0;
 	for (i=first_inode_block;i<=last_inode_block;i++)
 	{
-		if (i>12)
+		if (i>11)
 		{
 			if (!allocated_indirect_block)
 			{
-				indirect_lba=inode->i_block[12];
+				indirect_lba=FROM_BLOCK_TO_LBA(inode->i_block[12]);
         			sector_count=BLOCK_SIZE/SECTOR_SIZE;
 				READ(sector_count,indirect_lba,iob_indirect_block);
 				allocated_indirect_block=1;
 			}
-			lba=iob_indirect_block[inode_block-12];	
+			READ_DWORD(&iob_indirect_block[4*(i-12)],inode_block);
+			lba=FROM_BLOCK_TO_LBA(inode_block);
 		}
 		else
 		{
-			lba=ext2->partition_start_sector+inode->i_block[i]*BLOCK_SIZE/SECTOR_SIZE;
+			lba=FROM_BLOCK_TO_LBA(inode->i_block[i]);
 		}
 		if (byte_to_read>=BLOCK_SIZE)
 		{

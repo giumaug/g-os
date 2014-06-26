@@ -464,7 +464,7 @@ void static read_inode(t_ext2* ext2,t_inode* inode)
 	READ_DWORD(&io_buffer[inode_offset+64],inode->i_block[6]);
 	READ_DWORD(&io_buffer[inode_offset+68],inode->i_block[7]);
 	READ_DWORD(&io_buffer[inode_offset+72],inode->i_block[8]);
-	READ_DWORD(&io_buffer[inode_offset+76],inode->i_block[10]);
+	READ_DWORD(&io_buffer[inode_offset+76],inode->i_block[9]);
 	READ_DWORD(&io_buffer[inode_offset+80],inode->i_block[10]);
 	READ_DWORD(&io_buffer[inode_offset+84],inode->i_block[11]);
 	READ_DWORD(&io_buffer[inode_offset+88],inode->i_block[12]);
@@ -598,7 +598,8 @@ void static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext
 
 	for (j=0;j<=(i-1);j++)
 	{
-		lba=ext2->partition_start_sector+((parent_dir_inode->i_block[j])*(BLOCK_SIZE/SECTOR_SIZE));
+		//lba=ext2->partition_start_sector+((parent_dir_inode->i_block[j])*(BLOCK_SIZE/SECTOR_SIZE));
+		lba=FROM_BLOCK_TO_LBA(parent_dir_inode->i_block[j]);
 		READ((BLOCK_SIZE/SECTOR_SIZE),lba,(io_buffer+BLOCK_SIZE*j));
 	}
 

@@ -305,18 +305,7 @@ void lookup_inode(char* path,t_ext2* ext2,t_inode* inode_parent,t_inode* inode)
 	{
 		parent_dir_inode=inode_parent;
 	}
-/*
-        while(path[i]!='/' && path[i]!='\0')
-        {
-                j=0;
-                while(path[i]!='/')
-                {
-                        name[j++]=path[i++];    
-                }
-		read_dir_inode(name,parent_dir_inode,ext2,inode);
-		parent_dir_inode=inode;
-        }
-*/	
+
 	j=0;
 	while (path[i]!='\0')
 	{
