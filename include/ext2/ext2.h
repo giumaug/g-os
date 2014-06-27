@@ -21,6 +21,10 @@
 #define O_APPEND 0b10
 #define O_RDWR 0b100
 
+#define SEEK_SET 0
+#define SEEK_CUR 1
+#define SEEK_END 2
+
 #define FROM_BLOCK_TO_LBA(block_num) ext2->partition_start_sector+block_num*BLOCK_SIZE/SECTOR_SIZE
 
 #define BLOCK_SECTOR_ADDRESS(group_block_index,block)    ext2->partition_start_sector                                         \

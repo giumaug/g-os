@@ -1,8 +1,15 @@
-typedef uint16_t Elf32_Half;
-typedef uint32_t Elf32_Word;
-typedef	int32_t  Elf32_Sword;
-typedef uint32_t Elf32_Addr;
-typedef uint32_t Elf32_Off;
+#include<stdio.h>
+#include<stdlib.h>
+
+#define EI_NIDENT (16)
+#define PT_LOAD	1
+#define PT_PHDR	6
+
+typedef unsigned short Elf32_Half;
+typedef unsigned int Elf32_Word;
+typedef	int  Elf32_Sword;
+typedef unsigned int Elf32_Addr;
+typedef unsigned int Elf32_Off;
 
 typedef struct
 {
@@ -48,34 +55,43 @@ typedef struct
   Elf32_Word	p_align;		/* Segment alignment */
 } Elf32_Phdr;
 
-main 
-{
-//	leggi elf header
-//	leggi prg header
-//	leggi section
+int _read(t_ext2* ext2,int fd, void* buf,u32 count)
 
-	int p_header_count;
-	int counter;
+load_executable(char* path) 
+{
+	int i;
+	unsigned int section_entry;
+	unsigned char* buffer;
 	FILE* f;
-	struct rec my_record;
 
 	Elf32_Ehdr* elf_header;
 	Elf32_Phdr* elf_prg_header;
+	Elf32_Shdr* elf_sct_header;
+	t_ext2* ext2;
 
+	ext2=system.root_fs;
 	elf_header=malloc(sizeof(Elf32_Ehdr));
-	f=fopen("/home/peppe/Scrivania/bouble","rb");
+	f=_open(ext2,path,O_RDWR | O_APPEND);
 	
-	fread(&elf_header,sizeof(Elf32_Ehdr),1,f);
-	elf_prg_header=malloc(sizeof(Elf32_Phdr)*elf_header.e_phnum);
+	fread(elf_header,sizeof(Elf32_Ehdr),1,f);
+	elf_prg_header=malloc(sizeof(Elf32_Phdr)*elf_header->e_phnum);
 	
-	fseek(f,elf_header.e_phoff,SEEK_SET);
-	for (i=0;i<elf_header.e_phnum;i++)
+	fseek(f,elf_header->e_phoff,SEEK_SET);
+	for (i=0;i<elf_header->e_phnum;i++)
 	{
-		fread(elf_prg_header[i],sizeof(Elf32_Phdr),1,f);
+		fread(&elf_prg_header[i],sizeof(Elf32_Phdr),1,f);
+		if (elf_prg_header[i].p_type==PT_LOAD)
+		{
+			buffer=malloc(elf_prg_header[i].p_memsz);
+			fseek(f,elf_prg_header[i].p_offset,SEEK_SET);
+			fread(buffer,elf_prg_header[i].p_memsz,1,f);
+			break;
+		}
 	}
 	
 	free(elf_header);
 	free(elf_prg_header);
+	free(buffer);
 	fclose(f);
 }
 
