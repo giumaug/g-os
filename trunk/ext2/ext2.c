@@ -270,6 +270,13 @@ int _write(t_ext2* ext2,int fd, const void *buf,u32 count)
 	return byte_written;
 }
 
+int _seek(t_ext2* ext2,int fd,unsigned int offset,int whence)
+{
+	inode=hashtable_get(current_process_context->file_desc,fd);
+	!!!!!!!!!!!!!qui!!!!!!!!!!!!!!!!!11
+
+}
+
 int _rm(t_ext2* ext2,char* fullpath)
 {
 	t_inode* inode;
