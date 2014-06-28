@@ -13,7 +13,6 @@ all:	kmain.o                       \
         virtual_memory.o              \
         console.o klib.o              \
         drivers.o                     \
-        process.o                     \
         data_types.o		      \
 	synchro_types.o               \
 	ext2.o
@@ -29,7 +28,6 @@ all:	kmain.o                       \
 	drivers/pic/*.o               \
 	drivers/kbc/*.o               \
 	drivers/ata/*.o               \
-	process/*.o                   \
 	data_types/*.o		      \
 	synchro_types/*.o             \
 	ext2/*.o                
@@ -76,9 +74,6 @@ kernel.o:
 drivers.o:
 	$(MAKE) -C drivers
 
-process.o:
-	$(MAKE) -C process
-
 data_types.o:
 	$(MAKE) -C data_types
 
@@ -104,7 +99,6 @@ clean:
 	$(MAKE) -C console clean
 	$(MAKE) -C klib clean
 	$(MAKE) -C drivers clean
-	$(MAKE) -C process clean
 	$(MAKE) -C data_types clean
 	$(MAKE) -C synchro_types clean
 	$(MAKE) -C ext2 clean
