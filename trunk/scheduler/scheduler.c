@@ -5,8 +5,7 @@
 #include "memory_manager/buddy.h"
 #include "virtual_memory/vm.h"
 #include "asm.h"
-#include "klib/printk.h"
-#include "process/process_1.h"
+#include "lib/printk.h"
 
 extern t_system system;
 extern struct t_llist* kbc_wait_queue;
@@ -295,11 +294,12 @@ int _fork(struct t_processor_reg processor_reg)
 	return child_process_context->pid;
 }
 
-void _exec(unsigned int start_addr,unsigned int size) 
+//void _exec(unsigned int start_addr,unsigned int size)
+void _exec(char* path) 
 {
 	struct t_process_context *current_process_context;
 	char* process_storage;
-	char* process_space;
+//	char* process_space;
 	unsigned int i=0;
 	static unsigned int old_proc_phy_addr;
 	static void* old_page_dir;
@@ -311,17 +311,19 @@ void _exec(unsigned int start_addr,unsigned int size)
 	current_process_context->sleep_time=0;
 	current_process_context->assigned_sleep_time=0;
 	current_process_context->static_priority=0;
-	current_process_context->phy_space_size=size;
-	process_space=buddy_alloc_page(&system.buddy_desc,size);
-	process_storage=FROM_PHY_TO_VIRT(start_addr);
+//	current_process_context->phy_space_size=size;
+//	process_space=buddy_alloc_page(&system.buddy_desc,size);
+//	process_storage=FROM_PHY_TO_VIRT(start_addr);
 	old_page_dir=current_process_context->page_dir;
 	old_proc_phy_addr=current_process_context->phy_add_space;
 
-	current_process_context->phy_add_space=FROM_VIRT_TO_PHY(process_space);
-	for (i=0;i<size;i++)
-	{
-		*process_space++=*process_storage++;
-	}
+	load_elf_executable(path); 
+
+//	current_process_context->phy_add_space=FROM_VIRT_TO_PHY(process_space);
+//	for (i=0;i<size;i++)
+//	{
+//		*process_space++=*process_storage++;
+//	}
 	current_process_context->page_dir=init_vm_process(system.master_page_dir,current_process_context->phy_add_space,current_process_context);
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir)))
 	free_vm_process(old_page_dir);

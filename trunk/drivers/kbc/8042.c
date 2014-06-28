@@ -6,7 +6,7 @@
 #include "memory_manager/kmalloc.h" 
 #include "idt.h" 
 #include "drivers/kbc/8042.h" 
-#include "klib/printk.h"
+#include "lib/printk.h"
 #include "debug.h"
 
 extern t_system system;
