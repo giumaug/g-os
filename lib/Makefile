@@ -1,14 +1,17 @@
 include ../make.rules
 
-vpath %.h $(INCLUDE)/klib
+vpath %.h $(INCLUDE)/lib
 
-all:	kmemcpy.o printk.o
+all:	kmemcpy.o printk.o math.o
 
-kmemcpy.o: kmemcpy.c kmemcpy.h
+kmemcpy.o: kmemcpy.c lib.h
 	$(CC) $(CPPFLAGS) $(CFLAGS) kmemcpy.c
 
-printk.o:	printk.c printk.h
+printk.o:	printk.c lib.h
 	$(CC)  $(CPPFLAGS) $(CFLAGS) printk.c
 
+math.o:	math.c lib.h
+	$(CC)  $(CPPFLAGS) $(CFLAGS) math.c
+
 clean:	
-	rm -f kmemcpy.o printk.o
+	rm -f kmemcpy.o printk.o math.o

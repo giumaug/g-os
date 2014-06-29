@@ -87,8 +87,8 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 //	{
 //		*process_space++=*process_storage++;
 //	}
-	load_elf_executable("/sbin/init");
-	process_context.page_dir=init_vm_process(system.master_page_dir,proc_phy_addr,&process_context);
+	load_elf_executable("/sbin/init",&process_context);
+	process_context.page_dir=init_vm_process(system.master_page_dir,process_context.phy_add_space,&process_context);
 	*(system.process_info.tss.ss)=0x18;
 	*(system.process_info.tss.esp)=0x1FFFFF;//64K kernel mode stack
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) process_context.page_dir)))                           	

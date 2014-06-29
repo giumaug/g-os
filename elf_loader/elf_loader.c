@@ -1,6 +1,8 @@
 #include "elf_loader/elf_loader.h"
 
-load_elf_executable(char* path) 
+extern t_system system;
+
+void load_elf_executable(char* path,struct t_process_context* process_context) 
 {
 	int i;
 	unsigned char* process_space;
@@ -11,9 +13,7 @@ load_elf_executable(char* path)
 	Elf32_Phdr* elf_prg_header;
 	Elf32_Shdr* elf_sct_header;
 	t_ext2* ext2;
-	struct t_process_context *current_process_context;
 
-	CURRENT_PROCESS_CONTEXT(current_process_context);
 	ext2=system.root_fs;
 	elf_header=_malloc(sizeof(Elf32_Ehdr));
 	fd=_open(ext2,path,O_RDWR | O_APPEND);

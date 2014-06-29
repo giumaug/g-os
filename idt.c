@@ -3,7 +3,7 @@
 #include "scheduler/process.h"
 #include "virtual_memory/vm.h"
 #include "drivers/pic/8259A.h"
-#include "klib/printk.h"
+#include "lib/lib.h"
 #include "idt.h"
 
 extern t_system system;

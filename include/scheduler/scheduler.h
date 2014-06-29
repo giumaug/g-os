@@ -15,7 +15,7 @@ void _sleep();
 void _awake();
 void _pause();
 void _exit(int status);
-void _exec(unsigned int start_addr,unsigned int size);
+void _exec(char* path);
 int _fork(struct t_processor_reg processor_reg);
 void _sleep_time(unsigned int time);
 
