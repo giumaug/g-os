@@ -1,3 +1,9 @@
+#ifndef ELF_LOADER_H                
+#define ELF_LOADER
+
+#include "scheduler/process.h"
+#include "ext2/ext2.h"
+
 #define EI_NIDENT (16)
 #define PT_LOAD	1
 #define PT_PHDR	6
@@ -51,3 +57,7 @@ typedef struct
   Elf32_Word	p_flags;		/* Segment flags */
   Elf32_Word	p_align;		/* Segment alignment */
 } Elf32_Phdr;
+
+void load_elf_executable(char* path,struct t_process_context* process_context);
+
+#endif

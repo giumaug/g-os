@@ -6,8 +6,6 @@
 #include "virtual_memory/vm.h"
 #include "memory_manager/buddy.h"
 
-#include "lib/stdlib.h"
-
 extern t_system system;
 static unsigned int mem;
 

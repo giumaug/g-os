@@ -5,7 +5,7 @@
 #include "memory_manager/buddy.h"
 #include "virtual_memory/vm.h"
 #include "asm.h"
-#include "lib/printk.h"
+#include "lib/lib.h"
 
 extern t_system system;
 extern struct t_llist* kbc_wait_queue;
@@ -317,7 +317,7 @@ void _exec(char* path)
 	old_page_dir=current_process_context->page_dir;
 	old_proc_phy_addr=current_process_context->phy_add_space;
 
-	load_elf_executable(path); 
+	load_elf_executable(path,current_process_context); 
 
 //	current_process_context->phy_add_space=FROM_VIRT_TO_PHY(process_space);
 //	for (i=0;i<size;i++)

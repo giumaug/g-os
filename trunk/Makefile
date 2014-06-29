@@ -11,11 +11,13 @@ all:	kmain.o                       \
         scheduler.o                   \
         memory_manager.o              \
         virtual_memory.o              \
-        console.o klib.o              \
+        console.o                     \
+	lib.o                         \
         drivers.o                     \
         data_types.o		      \
 	synchro_types.o               \
-	ext2.o
+	ext2.o                        \
+	elf_loader.o
 
 	ld -T linker.ld -o kernel.bin \
 	*.o                           \
@@ -23,14 +25,15 @@ all:	kmain.o                       \
 	memory_manager/*.o            \
 	virtual_memory/*.o            \
 	console/*.o                   \
-	klib/*.o                      \
+	lib/*.o                       \
 	drivers/pit/*.o               \
 	drivers/pic/*.o               \
 	drivers/kbc/*.o               \
 	drivers/ata/*.o               \
 	data_types/*.o		      \
 	synchro_types/*.o             \
-	ext2/*.o                
+	ext2/*.o                      \
+	elf_loader/*.o                
 
 kmain.o:kmain.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) kmain.c
@@ -65,8 +68,8 @@ virtual_memory.o:
 console.o:
 	$(MAKE) -C console
 
-klib.o:
-	$(MAKE) -C klib
+lib.o:
+	$(MAKE) -C lib
 
 kernel.o:
 	$(MAKE) -C kernel
@@ -83,6 +86,9 @@ synchro_types.o:
 ext2.o:
 	$(MAKE) -C ext2
 
+elf_loader.o:
+	$(MAKE) -C elf_loader
+
 install_remote:all
 	scp ./kernel.bin root@192.168.1.215:/boot/
 
@@ -97,11 +103,12 @@ clean:
 	$(MAKE) -C memory_manager clean
 	$(MAKE) -C virtual_memory clean
 	$(MAKE) -C console clean
-	$(MAKE) -C klib clean
+	$(MAKE) -C lib clean
 	$(MAKE) -C drivers clean
 	$(MAKE) -C data_types clean
 	$(MAKE) -C synchro_types clean
 	$(MAKE) -C ext2 clean
+	$(MAKE) -C elf_loader clean
 	rm -f kernel.bin
 
 
