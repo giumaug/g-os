@@ -1,3 +1,0 @@
-void  process_4() 
-{
-}
