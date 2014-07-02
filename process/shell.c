@@ -1,10 +1,7 @@
-#include "lib/stdio.h" 
-#include "lib/stdlib.h" 
-#include "lib/string.h" 
-#include "lib/unistd.h" 
-#include "process/shell.h"
+#include "lib/lib.h"  
+#include "shell.h"
 
-void shell() 
+int main() 
 {
 	unsigned int pid;	
 	unsigned int i=0;
