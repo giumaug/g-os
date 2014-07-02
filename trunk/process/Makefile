@@ -1,26 +1,20 @@
-include ../make.rules
+include make.rules
 
-vpath %.h $(INCLUDE)/process
+all:	process.o                      \
+        lib.o    
 
-all: 	process_0.o process_1.o process_2.o process_3.o process_4.o shell.o
+	ld -T linker.ld  -melf_i386 -o $(PROCESS)  \
+	*.o                                        \
+	lib/*.o   
 
-process_0.o:process_0.c process_0.h
-	$(CC)  $(CPPFLAGS) $(CFLAGS) process_0.c
+process.o: $(PROCESS).c $(PROCESS).h
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(PROCESS).c
 
-process_1.o:process_1.c process_1.h
-	$(CC)  $(CPPFLAGS) $(CFLAGS) process_1.c
-
-process_2.o:process_2.c process_2.h
-	$(CC)  $(CPPFLAGS) $(CFLAGS) process_2.c
-
-process_3.o:process_3.c process_3.h
-	$(CC)  $(CPPFLAGS) $(CFLAGS) process_3.c
-
-process_4.o:process_4.c process_4.h
-	$(CC)  $(CPPFLAGS) $(CFLAGS) process_4.c
-
-shell.o:shell.c shell.h
-	$(CC)  $(CPPFLAGS) $(CFLAGS) shell.c
+lib.o:
+	$(MAKE) -C lib
 
 clean:	
-	rm -f process_0.o process_1.o process_2.o process_3.o process_4.o shell.o
+	rm -f $(PROCESS).o
+	$(MAKE) -C lib clean
+	rm -f $(PROCESS)
+

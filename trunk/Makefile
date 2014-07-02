@@ -17,7 +17,8 @@ all:	kmain.o                       \
         data_types.o		      \
 	synchro_types.o               \
 	ext2.o                        \
-	elf_loader.o
+	elf_loader.o                  \
+	process_0.o
 
 	ld -T linker.ld -o kernel.bin \
 	*.o                           \
@@ -33,7 +34,11 @@ all:	kmain.o                       \
 	data_types/*.o		      \
 	synchro_types/*.o             \
 	ext2/*.o                      \
-	elf_loader/*.o                
+	elf_loader/*.o                \
+	process_0.o                
+
+process_0.o:process_0.c
+	$(CC) $(CPPFLAGS) $(CFLAGS) kmain.c
 
 kmain.o:kmain.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) kmain.c
@@ -89,6 +94,10 @@ ext2.o:
 elf_loader.o:
 	$(MAKE) -C elf_loader
 
+user_space:
+	$(MAKE) -C process
+	
+
 install_remote:all
 	scp ./kernel.bin root@192.168.1.215:/boot/
 
@@ -96,9 +105,11 @@ bochs:all
 	mount /dev/loop3 /mnt
 	cp /home/peppe/Desktop/g-os/kernel.bin /mnt/boot/kernel.bin
 	cp /home/peppe/Desktop/g-os/kernel.bin  /opt/virtutech/simics-3.0.31/workspace/kernel.bin
+	cp /home/peppe/Desktop/g-os/process/shell /mnt
+	cp /home/peppe/Desktop/g-os/process/process_0 /mnt/bin
 	umount /mnt
 clean:	
-	rm -f kmain.o idt.o syscall_handler.o asm.o loader.o kernel_init.o debug.o
+	rm -f kmain.o idt.o syscall_handler.o asm.o loader.o kernel_init.o debug.o process_0.o
 	$(MAKE) -C scheduler clean
 	$(MAKE) -C memory_manager clean
 	$(MAKE) -C virtual_memory clean
@@ -109,6 +120,7 @@ clean:
 	$(MAKE) -C synchro_types clean
 	$(MAKE) -C ext2 clean
 	$(MAKE) -C elf_loader clean
+	#$(MAKE) -C process clean
 	rm -f kernel.bin
 
 

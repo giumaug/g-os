@@ -1,6 +1,5 @@
-#include "lib/unistd.h"
-#include "lib/stdlib.h"
-#include "process/process_0.h"
+#include "lib/lib.h"
+#include "process_0.h"
 
 void process_0() 
 {

@@ -1,3 +1,4 @@
+PROCESS		=$(PROCESS_NAME)
 BASE_DIR	=/home/peppe/Desktop/g-os
 INCLUDE		=$(BASE_DIR)/include
 MAKE 		= make

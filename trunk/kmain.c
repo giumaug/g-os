@@ -9,7 +9,6 @@
 #include "drivers/ata/ata.h"
 #include "general.h"
 #include "system.h"
-#include "process/process_1.h"
 
 //to fix when file system working!!
 unsigned int seed=105491;
@@ -86,8 +85,8 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 //	for (i=0;i<0x100000;i++)
 //	{
 //		*process_space++=*process_storage++;
-//	}
-	load_elf_executable("/sbin/init",&process_context);
+//	}                         
+	load_elf_executable("/bin/process_0",&process_context);
 	process_context.page_dir=init_vm_process(system.master_page_dir,process_context.phy_add_space,&process_context);
 	*(system.process_info.tss.ss)=0x18;
 	*(system.process_info.tss.esp)=0x1FFFFF;//64K kernel mode stack
