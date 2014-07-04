@@ -1,18 +1,16 @@
 #include "process_0.h"
 
-void process_0();
-
 void process_0() 
 {
 	unsigned int pid;
 	
-	pid=fork();
+	pid=_fork();
 	if (pid==0)
 	{
-		exec("shell");
+		_exec("/shell");
 	}
 	else 
 	{
-		exit(0);
+		_exit(0);
 	}
 }
