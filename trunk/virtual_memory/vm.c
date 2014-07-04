@@ -21,7 +21,7 @@ void* init_virtual_memory()
 	return new_page_dir;
 }
 
-void* init_vm_process(void* master_page_dir,unsigned int proc_phy_addr,struct t_process_context* process_context)
+void* init_vm_process(void* master_page_dir,unsigned int proc_phy_addr,struct t_process_context* process_context,unsigned int flags)
 {
 	unsigned int *page_dir;	
 	unsigned int start,end;
@@ -38,14 +38,20 @@ void* init_vm_process(void* master_page_dir,unsigned int proc_phy_addr,struct t_
 		page_dir[i]=((unsigned int*)master_page_dir)[i];
 	}
 	map_vm_mem(page_dir,0,0,0x100000);
-	map_vm_mem(page_dir,PROC_VIRT_MEM_START_ADDR,proc_phy_addr,0x100000);
+	if (flags==INIT_VM_USERSPACE)
+	{
+		map_vm_mem(page_dir,PROC_VIRT_MEM_START_ADDR,proc_phy_addr,0x100000);
+	}
 	return page_dir;
 }
 
-void free_vm_process(void* page_dir)
+void free_vm_process(void* page_dir,unsigned int flags)
 {
 	umap_vm_mem(page_dir,0,0x100000,0);
-	umap_vm_mem(page_dir,PROC_VIRT_MEM_START_ADDR,0x100000,1);
+	if (flags==INIT_VM_USERSPACE)
+	{
+		umap_vm_mem(page_dir,PROC_VIRT_MEM_START_ADDR,0x100000,1);
+	}
 	buddy_free_page(&system.buddy_desc,page_dir);
 }
 

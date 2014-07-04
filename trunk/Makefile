@@ -38,7 +38,7 @@ all:	kmain.o                       \
 	process_0.o                
 
 process_0.o:process_0.c
-	$(CC) $(CPPFLAGS) $(CFLAGS) kmain.c
+	$(CC) $(CPPFLAGS) $(CFLAGS) process_0.c
 
 kmain.o:kmain.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) kmain.c

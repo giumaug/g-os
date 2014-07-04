@@ -1,8 +1,10 @@
 ENTRY (loader)
 kernel_load_address = 0x100000;
+process_0_load_address = 0x500000;
 
 MEMORY { kernel_phy_address_space : ORIGIN = 0xC00000, LENGTH = 0x200000 }
 MEMORY { kernel_address_space : ORIGIN = 0xC0000000, LENGTH = 0x200000 }
+MEMORY { process_0_address_space : ORIGIN = 0x100000, LENGTH = 0x100000 }
 
 SECTIONS{
 
