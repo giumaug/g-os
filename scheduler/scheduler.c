@@ -289,7 +289,7 @@ int _fork(struct t_processor_reg processor_reg)
 	child_process_context->phy_add_space=FROM_VIRT_TO_PHY(proc_mem);
 	kmemcpy(proc_mem,FROM_PHY_TO_VIRT(parent_process_context->phy_add_space),mem_size);
 	ll_prepend(system.scheduler_desc.scheduler_queue[parent_process_context->curr_sched_queue_index],child_process_context);
-	child_process_context->page_dir=init_vm_process(system.master_page_dir,child_process_context->phy_add_space,child_process_context);
+	child_process_context->page_dir=init_vm_process(system.master_page_dir,child_process_context->phy_add_space,child_process_context,INIT_VM_USERSPACE);
 	RESTORE_IF_STATUS
 	return child_process_context->pid;
 }
@@ -324,9 +324,9 @@ void _exec(char* path)
 //	{
 //		*process_space++=*process_storage++;
 //	}
-	current_process_context->page_dir=init_vm_process(system.master_page_dir,current_process_context->phy_add_space,current_process_context);
+	current_process_context->page_dir=init_vm_process(system.master_page_dir,current_process_context->phy_add_space,current_process_context,INIT_VM_USERSPACE);
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir)))
-	free_vm_process(old_page_dir);
+	free_vm_process(old_page_dir,INIT_VM_USERSPACE);
 	buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(old_proc_phy_addr));                        	
 	SWITCH_TO_USER_MODE
 }

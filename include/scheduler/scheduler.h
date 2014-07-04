@@ -1,6 +1,8 @@
 #ifndef SCHEDULER_H                
 #define SCHEDULER_H
 
+#include "data_types/dllist.h"
+
 typedef struct s_scheduler_desc 
 {
 	t_llist* scheduler_queue[10];

@@ -42,7 +42,7 @@ void exit_int_handler(unsigned int action,struct t_processor_reg processor_reg,s
 		if (_action2==2)                                                                                   \
 		{                                                                                                  \
 			DO_STACK_FRAME(_processor_reg.esp-8);                                                      \
-			free_vm_process(_old_process_context.page_dir);                                            \
+			free_vm_process(_old_process_context.page_dir,INIT_VM_USERSPACE);                                            \
 			buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_add_space));  \
 		}                                                                                                  \
 		SWITCH_DS_TO_USER_MODE                                                                             \
