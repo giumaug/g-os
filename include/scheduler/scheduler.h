@@ -6,24 +6,28 @@
 #define THREAD_EXEC(path) 	do					\
 			 	{					\
 					unsigned int params[0];		\
-					params[0]=path			\
+					params[0]=path;			\
 					SYSCALL(14,params);		\
-				}
+				}					\
+				while(0)
 
 #define THREAD_FORK(pid)	do					\
 				{					\
-					unsigned int params[1];		\
-					params[0]=0;			\
+					unsigned int params[2];		\
+					params[0]=NO_INIT_VM_USERSPACE;	\
+					params[1]=0;			\
 					SYSCALL(1,params);		\
-					pid=params[0];			\
-				}
+					pid=params[1];			\
+				}					\
+				while(0)
 
 #define	THREAD_EXIT(status)	do					\
 				{					\
 					int params[0];			\
 					params[0]=status;		\
 					SYSCALL(13,params);		\
-				}
+				}					\
+				while(0)
 
 typedef struct s_scheduler_desc 
 {

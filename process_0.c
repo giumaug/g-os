@@ -1,4 +1,6 @@
+#include "asm.h"
 #include "lib/lib.h"
+#include "scheduler/scheduler.h"
 #include "process_0.h"
 
 void process_0() 
