@@ -1,16 +1,17 @@
+#include "lib/lib.h"
 #include "process_0.h"
 
 void process_0() 
 {
 	unsigned int pid;
 	
-	pid=_fork();
+	THREAD_FORK(pid);
 	if (pid==0)
 	{
-		_exec("/shell");
+		THREAD_EXEC("/shell");
 	}
 	else 
 	{
-		_exit(0);
+		THREAD_EXIT(0);
 	}
 }

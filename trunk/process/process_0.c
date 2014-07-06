@@ -5,14 +5,13 @@ void process_0()
 {
 	unsigned int pid;
 	
-	pid=fork();
+	THREAD_FORK(pid);
 	if (pid==0)
 	{
-		exec(SHELL_START_ADDR,SHELL_SIZE);
-		//exec(0x600000,0x100000);
+		THREAD_EXEC("/shell");
 	}
 	else 
 	{
-		exit(0);
+		THREAD_EXIT(0);
 	}
 }

@@ -262,7 +262,7 @@ void _exit(int status)
 	RESTORE_IF_STATUS
 }
 
-int _fork(struct t_processor_reg processor_reg) 
+int _fork(struct t_processor_reg processor_reg,unsigned int flags) 
 {
 	unsigned int parent_add_space;
 	unsigned int child_add_space;
@@ -284,17 +284,20 @@ int _fork(struct t_processor_reg processor_reg)
 	child_process_context->pid=system.process_info.next_pid++;
 	child_process_context->parent=parent_process_context;
 	child_process_context->processor_reg=processor_reg;
-	mem_size=parent_process_context->phy_space_size;
-	proc_mem=buddy_alloc_page(&system.buddy_desc,mem_size);
-	child_process_context->phy_add_space=FROM_VIRT_TO_PHY(proc_mem);
-	kmemcpy(proc_mem,FROM_PHY_TO_VIRT(parent_process_context->phy_add_space),mem_size);
+	child_process_context->phy_add_space=NULL;
+	if (flags==INIT_VM_USERSPACE)
+	{
+		mem_size=parent_process_context->phy_space_size;
+		proc_mem=buddy_alloc_page(&system.buddy_desc,mem_size);    
+		child_process_context->phy_add_space=FROM_VIRT_TO_PHY(proc_mem); 
+		kmemcpy(proc_mem,FROM_PHY_TO_VIRT(parent_process_context->phy_add_space),mem_size);
+	}
 	ll_prepend(system.scheduler_desc.scheduler_queue[parent_process_context->curr_sched_queue_index],child_process_context);
-	child_process_context->page_dir=init_vm_process(system.master_page_dir,child_process_context->phy_add_space,child_process_context,INIT_VM_USERSPACE);
+	child_process_context->page_dir=init_vm_process(system.master_page_dir,child_process_context->phy_add_space,child_process_context,flags);
 	RESTORE_IF_STATUS
 	return child_process_context->pid;
 }
 
-//void _exec(unsigned int start_addr,unsigned int size)
 void _exec(char* path) 
 {
 	struct t_process_context *current_process_context;
