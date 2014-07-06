@@ -34,7 +34,7 @@ void syscall_handler()
 	params=processor_reg.ecx;
 	if (syscall_num==1) 
 	{
-		params[0]=_fork(processor_reg);
+		params[1]=_fork(processor_reg,params[0]);
 	}
 	else if (syscall_num==2)
 	{ 
