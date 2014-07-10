@@ -28,21 +28,21 @@ SECTIONS{
 
     .text :AT(kernel_load_address){
 	text = .;
-	 *(EXCLUDE_FILE (loader.o process_0.o).text)
+	 *(EXCLUDE_FILE (loader.o).text)
     }>kernel_address_space
 
     .rodata :AT(kernel_load_address + (rodata - text)){
 	rodata = .;
-	*(EXCLUDE_FILE (loader.o process_0.o).rodata)
+	*(EXCLUDE_FILE (loader.o).rodata)
     }>kernel_address_space 
 
     .data :AT(kernel_load_address +(data - text)){
 	data = .;
-	*(EXCLUDE_FILE (loader.o process_0.o) .data)
+	*(EXCLUDE_FILE (loader.o) .data)
     }>kernel_address_space 
 
     .bss :AT(kernel_load_address + (bss - text)){
 	bss = .;
-	*(EXCLUDE_FILE (loader.o process_0.o) .bss)
+	*(EXCLUDE_FILE (loader.o) .bss)
     }>kernel_address_space
 }

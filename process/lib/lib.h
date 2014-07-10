@@ -1,3 +1,9 @@
+#ifndef LIB_H                
+#define LIB_H
+
+#include "asm.h"
+#include "virtual_memory/vm.h"
+
 #define NULL 0
 #define SYSCALL(syscall_num,params) asm("mov %0,%%eax;mov %1,%%ecx;int $0x80"::"r"(syscall_num),"r"(params):"%eax","%ecx");
 
@@ -38,7 +44,7 @@ int strncmp(const char* s1, const char* s2,unsigned int n);
 unsigned int strlen(const char* s);
 
 //unistd.h
-int exec(unsigned int start_addr,unsigned int size);
+int exec(char* path);
 int fork();
 int pause();
 int sleep(unsigned int time);
@@ -48,4 +54,6 @@ int write(int fd, void *buf, int count);
 
 //stat.h
 int mkdir(const char *fullpath);
+
+#endif
 

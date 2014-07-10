@@ -1,20 +1,19 @@
-include make.rules
+include ../make.rules
 
-all:	process.o                      \
+all:	user_space_process.o                      \
         lib.o    
 
 	ld -T linker.ld  -melf_i386 -o $(PROCESS)  \
 	*.o                                        \
 	lib/*.o   
 
-process.o: $(PROCESS).c $(PROCESS).h
+user_space_process.o: $(PROCESS).c $(PROCESS).h
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(PROCESS).c
 
 lib.o:
 	$(MAKE) -C lib
 
 clean:	
-	rm -f $(PROCESS).o
+	rm -f $(PROCESS).o $(PROCESS)
 	$(MAKE) -C lib clean
-	rm -f $(PROCESS)
 

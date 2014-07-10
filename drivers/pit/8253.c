@@ -153,10 +153,14 @@ exit_handler:;
 		{                                                                         
 			DO_STACK_FRAME(_processor_reg.esp-8);                                               
 			free_vm_process(_old_process_context.page_dir,INIT_VM_USERSPACE);
-			if (_old_process_context.phy_add_space|=NULL)
+			if (_old_process_context.phy_add_space!=NULL)
 			{
 				buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_add_space)); 
-			}                             
+			}
+			else
+			{
+				buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_k_thread_stack)); 	
+			}                         
 		}                                                                               
 		SWITCH_DS_TO_USER_MODE                                                                      
 		RESTORE_PROCESSOR_REG                                                                       

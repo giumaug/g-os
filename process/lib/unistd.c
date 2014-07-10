@@ -1,10 +1,9 @@
 #include "lib.h"
 
-int exec(unsigned int start_addr,unsigned int size) 
+int exec(char* path) 
 {
 	unsigned int params[0];
-	params[0]=start_addr;
-	params[1]=size;
+	params[0]=path;
 	SYSCALL(14,params);
 	return 1;
 }
