@@ -61,6 +61,7 @@ struct t_process_context
 	u32 next_fd;
 	t_hashtable* file_desc;
 	u32 current_dir_inode;
+	unsigned int phy_k_thread_stack;
 };
 
 struct t_process_info 

@@ -18,7 +18,8 @@ all:	kmain.o                       \
 	synchro_types.o               \
 	ext2.o                        \
 	elf_loader.o                  \
-	process_0.o
+	process_0.o                   \
+	user_space.o
 
 	ld -T linker.ld -o kernel.bin \
 	*.o                           \
@@ -34,8 +35,7 @@ all:	kmain.o                       \
 	data_types/*.o		      \
 	synchro_types/*.o             \
 	ext2/*.o                      \
-	elf_loader/*.o                \
-	process_0.o                
+	elf_loader/*.o               
 
 process_0.o:process_0.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) process_0.c
@@ -94,8 +94,8 @@ ext2.o:
 elf_loader.o:
 	$(MAKE) -C elf_loader
 
-user_space:
-	$(MAKE) -C process
+user_space.o:
+	$(MAKE) -C process all
 	
 
 install_remote:all
@@ -106,7 +106,6 @@ bochs:all
 	cp /home/peppe/Desktop/g-os/kernel.bin /mnt/boot/kernel.bin
 	cp /home/peppe/Desktop/g-os/kernel.bin  /opt/virtutech/simics-3.0.31/workspace/kernel.bin
 	cp /home/peppe/Desktop/g-os/process/shell /mnt
-	cp /home/peppe/Desktop/g-os/process/process_0 /mnt/bin
 	umount /mnt
 clean:	
 	rm -f kmain.o idt.o syscall_handler.o asm.o loader.o kernel_init.o debug.o process_0.o
@@ -120,7 +119,7 @@ clean:
 	$(MAKE) -C synchro_types clean
 	$(MAKE) -C ext2 clean
 	$(MAKE) -C elf_loader clean
-	#$(MAKE) -C process clean
+	$(MAKE) -C process clean
 	rm -f kernel.bin
 
 

@@ -1,4 +1,4 @@
-include ../make.rules
+include ../../make.rules
 
 #vpath %.h $(INCLUDE)/lib
 

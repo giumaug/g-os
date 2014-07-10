@@ -76,6 +76,8 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	system.process_info.tss.ss= *init_data;
 	system.process_info.tss.esp= *(init_data+1);
 	system.process_info.pause_queue=new_dllist();
+	process_context.phy_add_space=NULL;
+	process_context.phy_k_thread_stack=FROM_VIRT_TO_PHY(buddy_alloc_page(&system.buddy_desc,0x10000));
 	
 //	process_space=buddy_alloc_page(&system.buddy_desc,0x100000);
 //	process_storage=FROM_PHY_TO_VIRT(0x500000);
@@ -91,5 +93,6 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	*(system.process_info.tss.esp)=0x1FFFFF;//64K kernel mode stack
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) process_context.page_dir)))                           	
 //	SWITCH_TO_USER_MODE
+	asm("movl $0x1FFFFF,%esp");
 	process_0();				       	
 }

@@ -40,12 +40,12 @@ int main()
 					is_background=1;
 					process_name[len-1]='\0';
 				}
-				if (strcmp(process_name,user_process[i].name)==0)
-				{
+//				if (strcmp(process_name,user_process[i].name)==0)
+//				{
 					pid=fork();
 					if (pid==0)
 					{
-						exec(user_process[i].start_addr,user_process[i].size);
+						exec(process_name);
 					}
 					else 
 					{
@@ -55,7 +55,7 @@ int main()
 						}
 						brk=1;
 					}
-				}
+//				}
 				i++;
 			}
 			if (brk==0)

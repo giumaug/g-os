@@ -292,6 +292,12 @@ int _fork(struct t_processor_reg processor_reg,unsigned int flags)
 		child_process_context->phy_add_space=FROM_VIRT_TO_PHY(proc_mem); 
 		kmemcpy(proc_mem,FROM_PHY_TO_VIRT(parent_process_context->phy_add_space),mem_size);
 	}
+	else
+	{
+		proc_mem=buddy_alloc_page(&system.buddy_desc,0x10000);    
+		child_process_context->phy_k_thread_stack=FROM_VIRT_TO_PHY(proc_mem); 
+		kmemcpy(proc_mem,FROM_PHY_TO_VIRT(parent_process_context->phy_k_thread_stack),0x10000);
+	}
 	ll_prepend(system.scheduler_desc.scheduler_queue[parent_process_context->curr_sched_queue_index],child_process_context);
 	child_process_context->page_dir=init_vm_process(system.master_page_dir,child_process_context->phy_add_space,child_process_context,flags);
 	RESTORE_IF_STATUS

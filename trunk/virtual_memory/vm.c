@@ -42,6 +42,10 @@ void* init_vm_process(void* master_page_dir,unsigned int proc_phy_addr,struct t_
 	{
 		map_vm_mem(page_dir,PROC_VIRT_MEM_START_ADDR,proc_phy_addr,0x100000);
 	}
+	else
+	{
+		map_vm_mem(page_dir,KERNEL_THREAD_STACK,process_context->phy_k_thread_stack,0x10000);	
+	}
 	return page_dir;
 }
 
@@ -51,6 +55,10 @@ void free_vm_process(void* page_dir,unsigned int flags)
 	if (flags==INIT_VM_USERSPACE)
 	{
 		umap_vm_mem(page_dir,PROC_VIRT_MEM_START_ADDR,0x100000,1);
+	}
+	else 
+	{
+		umap_vm_mem(page_dir,KERNEL_THREAD_STACK,0x10000,1);
 	}
 	buddy_free_page(&system.buddy_desc,page_dir);
 }
@@ -171,10 +179,8 @@ void umap_vm_mem(void* page_dir,unsigned int virt_mem_addr,unsigned int mem_size
 
 		if ((start==0 && end==1024) || flush) 
 		{
-			//check_process_context();
 			buddy_free_page(&system.buddy_desc,page_table);
 			((unsigned int*)page_dir)[i]=0;
-			//check_process_context();
 		}
 	}
 }
