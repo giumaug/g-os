@@ -19,7 +19,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 {
 	system.time=0;
 	unsigned int* init_data=init_data_add;
-	static struct t_process_context process_context;
+	static struct t_process_context* process_context;
 	static struct t_i_desc i_desc;
 	static t_console_desc console_desc;
 //	char* process_storage;
@@ -63,21 +63,22 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	system.process_info.process_context_list=new_dllist();
 	system.process_info.next_pid=1;
 	
-	process_context.proc_status=RUNNING;
-	process_context.assigned_sleep_time=0;	
-	process_context.sleep_time=0;
-	process_context.static_priority=0;
-	process_context.curr_sched_queue_index=9;
-	process_context.pid=0;
-        process_context.tick=TICK;
-        process_context.processor_reg.esp=0x1EFFFF;//64K user mode stack 
-	process_context.console_desc=&console_desc;
+	process_context=kmalloc(sizeof(struct t_process_context));
+	process_context->proc_status=RUNNING;
+	process_context->assigned_sleep_time=0;	
+	process_context->sleep_time=0;
+	process_context->static_priority=0;
+	process_context->curr_sched_queue_index=9;
+	process_context->pid=0;
+        process_context->tick=TICK;
+        process_context->processor_reg.esp=0x1EFFFF;//64K user mode stack 
+	process_context->console_desc=&console_desc;
 	system.process_info.current_process=ll_prepend(system.scheduler_desc.scheduler_queue[9],&process_context);
 	system.process_info.tss.ss= *init_data;
 	system.process_info.tss.esp= *(init_data+1);
 	system.process_info.pause_queue=new_dllist();
-	process_context.phy_add_space=NULL;
-	process_context.phy_k_thread_stack=FROM_VIRT_TO_PHY(buddy_alloc_page(&system.buddy_desc,0x10000));
+	process_context->phy_add_space=NULL;
+	process_context->phy_k_thread_stack=FROM_VIRT_TO_PHY(buddy_alloc_page(&system.buddy_desc,0x10000));
 	
 //	process_space=buddy_alloc_page(&system.buddy_desc,0x100000);
 //	process_storage=FROM_PHY_TO_VIRT(0x500000);
@@ -88,11 +89,12 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 //	{
 //		*process_space++=*process_storage++;
 //	}                         
-	process_context.page_dir=init_vm_process(system.master_page_dir,process_context.phy_add_space,&process_context,NO_INIT_VM_USERSPACE);
+	process_context->page_dir=init_vm_process(system.master_page_dir,process_context->phy_add_space,process_context,NO_INIT_VM_USERSPACE);
 	*(system.process_info.tss.ss)=0x18;
 	*(system.process_info.tss.esp)=0x1FFFFF;//64K kernel mode stack
-	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) process_context.page_dir)))                           	
+	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) process_context->page_dir)))                           	
 //	SWITCH_TO_USER_MODE
+	asm("movl $0x1FFFFF,%ebp");
 	asm("movl $0x1FFFFF,%esp");
 	process_0();				       	
 }
