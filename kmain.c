@@ -73,7 +73,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
         process_context->tick=TICK;
         process_context->processor_reg.esp=0x1EFFFF;//64K user mode stack 
 	process_context->console_desc=&console_desc;
-	system.process_info.current_process=ll_prepend(system.scheduler_desc.scheduler_queue[9],&process_context);
+	system.process_info.current_process=ll_prepend(system.scheduler_desc.scheduler_queue[9],process_context);
 	system.process_info.tss.ss= *init_data;
 	system.process_info.tss.esp= *(init_data+1);
 	system.process_info.pause_queue=new_dllist();

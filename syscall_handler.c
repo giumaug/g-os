@@ -111,38 +111,37 @@ void syscall_handler()
 	}
 	else if (syscall_num==18) 
 	{
-		params[3]=_open(system.root_fs,(char*) params[0],params[1],params[2]); 
+		params[2]=_open(system.root_fs,(char*) params[0],params[1]); 
 		on_exit_action=1; 
 	}
 
 	else if (syscall_num==19) 
 	{
-		params[2]=_close(system.root_fs,params[0],params[1]);
+		params[1]=_close(system.root_fs,params[0]);
 		on_exit_action=1; 
 	}
 
 	else if (syscall_num==20) 
 	{
-		char* xx=params[1];
 		params[3]=_read(system.root_fs,params[0],params[1],params[2]); 
 		on_exit_action=1; 
 	}
 
 	else if (syscall_num==21) 
 	{
-		params[4]=_write(system.root_fs,(void*)params[0],params[1],params[2],params[3]);
+		params[3]=_write(system.root_fs,(void*)params[0],params[1],params[2]);
 		on_exit_action=1;  
 	}
 	
 	else if (syscall_num==22)
 	{
-		params[2]=_rm(system.root_fs,(char*)params[0],params[1]);
+		params[1]=_rm(system.root_fs,(char*)params[0]);
 		on_exit_action=1; 
 	}
 
 	else if (syscall_num==23) 
 	{
-		params[2]=_mkdir(system.root_fs,params[0],params[1]);
+		params[1]=_mkdir(system.root_fs,params[0]);
 		on_exit_action=1; 
 	}
 	//syscall 24 and 25 test only
