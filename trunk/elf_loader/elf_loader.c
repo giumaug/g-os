@@ -19,7 +19,7 @@ void load_elf_executable(char* path,struct t_process_context* process_context)
 	fd=_open(ext2,path,O_RDWR | O_APPEND);
 	_read(ext2,fd,elf_header,sizeof(Elf32_Ehdr));
 	elf_prg_header=kmalloc(sizeof(Elf32_Phdr)*elf_header->e_phnum);
-	_seek(fd,elf_header->e_phoff,SEEK_SET);
+	_seek(ext2,fd,elf_header->e_phoff,SEEK_SET);
 
 	for (i=0;i<elf_header->e_phnum;i++)
 	{
@@ -30,7 +30,7 @@ void load_elf_executable(char* path,struct t_process_context* process_context)
 			process_space=buddy_alloc_page(&system.buddy_desc,process_size);
 			process_context->phy_space_size=process_size;
 			process_context->phy_add_space=FROM_VIRT_TO_PHY(process_space);
-			_seek(fd,elf_prg_header[i].p_offset,SEEK_SET);
+			_seek(ext2,fd,elf_prg_header[i].p_offset,SEEK_SET);
 			_read(ext2,fd,process_space,elf_prg_header[i].p_memsz);
 			break;
 		}
@@ -38,5 +38,5 @@ void load_elf_executable(char* path,struct t_process_context* process_context)
 	
 	kfree(elf_header);
 	kfree(elf_prg_header);
-	_close(fd);
+	_close(ext2,fd);
 }

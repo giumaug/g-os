@@ -35,42 +35,50 @@
 
 #define ABSOLUTE_BLOCK_ADDRESS(group_block_index,relative_block_address) ext2->superblock->s_blocks_per_group*(group_block_index-1)+relative_block_address
 
-#define WRITE(_sector_count,_lba,_io_buffer)     do {                                                                   \
-						t_io_request io_request; 						\
-					  	io_request.device_desc=ext2->device_desc;				\
-						io_request.sector_count=_sector_count;					\
-						io_request.lba=_lba;							\
-						io_request.io_buffer=_io_buffer;					\
-						io_request.process_context=system.process_info.current_process->val;	\
-						ext2->device_desc->write(&io_request);                                  \
-                                                } while(0);
+#define WRITE(_sector_count,_lba,_io_buffer)    do {                                                                    \
+						t_io_request* io_request; 						\
+                                                io_request=kmalloc(sizeof(t_io_request));                               \
+					  	io_request->device_desc=ext2->device_desc;				\
+						io_request->sector_count=_sector_count;					\
+						io_request->lba=_lba;							\
+						io_request->io_buffer=_io_buffer;					\
+						io_request->process_context=system.process_info.current_process->val;	\
+						ext2->device_desc->write(io_request);                                   \
+						kfree(io_request);                                                      \
+                                                } while(0);                                       
 
 #define READ(_sector_count,_lba,_io_buffer)     do{                                                                     \
-						t_io_request io_request; 						\
-					  	io_request.device_desc=ext2->device_desc;				\
-						io_request.sector_count=_sector_count;					\
-						io_request.lba=_lba;							\
-						io_request.io_buffer=_io_buffer;					\
-						io_request.process_context=system.process_info.current_process->val;	\
-						ext2->device_desc->read(&io_request);					\
+						t_io_request* io_request; 						\
+                                                io_request=kmalloc(sizeof(t_io_request));                               \
+					  	io_request->device_desc=ext2->device_desc;				\
+						io_request->sector_count=_sector_count;					\
+						io_request->lba=_lba;							\
+						io_request->io_buffer=_io_buffer;					\
+						io_request->process_context=system.process_info.current_process->val;	\
+						ext2->device_desc->read(io_request); 					\
+                                                kfree(io_request);                                                      \
 						} while(0);
 
-#define P_WRITE(_sector_count,_lba,_io_buffer)  do{                                                                    \
-						t_io_request io_request; 						\
-					  	io_request.device_desc=ext2->device_desc;				\
-						io_request.sector_count=_sector_count;					\
-						io_request.lba=_lba;							\
-						io_request.io_buffer=_io_buffer;					\
-						ext2->device_desc->p_write(&io_request);                                \
+#define P_WRITE(_sector_count,_lba,_io_buffer)  do{                                                                     \
+						t_io_request* io_request;                                               \
+                                                io_request=kmalloc(sizeof(t_io_request));                               \
+					  	io_request->device_desc=ext2->device_desc;				\
+						io_request->sector_count=_sector_count;					\
+						io_request->lba=_lba;							\
+						io_request->io_buffer=_io_buffer;					\
+						ext2->device_desc->p_write(io_request);                                 \
+						kfree(io_request);                                                      \
                                                 } while(0);
 
 #define P_READ(_sector_count,_lba,_io_buffer)   do{                                                                     \
-						t_io_request io_request; 						\
-					  	io_request.device_desc=ext2->device_desc;				\
-						io_request.sector_count=_sector_count;					\
-						io_request.lba=_lba;							\
-						io_request.io_buffer=_io_buffer;					\
-						ext2->device_desc->p_read(&io_request);					\
+						t_io_request* io_request;         					\
+						io_request=kmalloc(sizeof(t_io_request));                               \
+					  	io_request->device_desc=ext2->device_desc;				\
+						io_request->sector_count=_sector_count;					\
+						io_request->lba=_lba;							\
+						io_request->io_buffer=_io_buffer;					\
+						ext2->device_desc->p_read(io_request); 					\
+						kfree(io_request);                                                      \
 						} while(0);
 
 
@@ -188,5 +196,15 @@ typedef struct s_ext2
 	struct s_device_desc* device_desc;
 }
 t_ext2;
+
+void init_ext2(t_ext2 *ext2,struct s_device_desc* device_desc);
+void free_ext2(t_ext2* ext2);
+int _open(t_ext2* ext2,const char* fullpath, int flags);
+int _close(t_ext2* ext2,int fd);
+int _read(t_ext2* ext2,int fd, void* buf,u32 count);
+int _write(t_ext2* ext2,int fd, const void *buf,u32 count);
+int _seek(t_ext2* ext2,int fd,unsigned int offset,int whence);
+int _rm(t_ext2* ext2,char* fullpath);
+int _mkdir(t_ext2* ext2,const char* fullpath);
 
 #endif
