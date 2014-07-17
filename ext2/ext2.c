@@ -69,7 +69,8 @@ int _close(t_ext2* ext2,int fd)
 int _read(t_ext2* ext2,int fd, void* buf,u32 count)
 {
 	struct t_process_context* current_process_context;
-	u32 i;	
+	u32 i;
+	u32 block_offset;
 	u32 first_inode_block;
 	u32 first_data_offset;
 	u32 last_inode_block;
@@ -127,7 +128,7 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count)
 		}
         	sector_count=BLOCK_SIZE/SECTOR_SIZE;
 		READ(sector_count,lba,iob_data_block);
-		kmemcpy(buf,iob_data_block,byte_count);
+		kmemcpy(buf,iob_data_block+first_data_offset,byte_count);
 		inode->file_offset+=byte_count;
 		buf+=byte_count;
 		byte_read+=byte_count;
