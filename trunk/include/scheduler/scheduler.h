@@ -3,10 +3,11 @@
 
 #include "data_types/dllist.h"
 
-#define THREAD_EXEC(path) 	do					\
+#define THREAD_EXEC(path,args) 	do					\
 			 	{					\
-					unsigned int params[0];		\
+					unsigned int params[2];		\
 					params[0]=path;			\
+					params[1]=args                  \
 					SYSCALL(14,params);		\
 				}					\
 				while(0)
@@ -23,7 +24,7 @@
 
 #define	THREAD_EXIT(status)	do					\
 				{					\
-					int params[0];			\
+					int params[1];			\
 					params[0]=status;		\
 					SYSCALL(13,params);		\
 				}					\

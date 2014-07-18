@@ -4,11 +4,15 @@
 void process_0() 
 {
 	unsigned int pid;
+	char* args[2];
+
+	args[0]="/shell";
+	args[1]=NULL;	
 	
 	THREAD_FORK(pid);
 	if (pid==0)
 	{
-		THREAD_EXEC("/shell");
+		THREAD_EXEC("/shell",args);
 	}
 	else 
 	{
