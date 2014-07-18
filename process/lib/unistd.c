@@ -1,9 +1,10 @@
 #include "lib.h"
 
-int exec(char* path) 
+int exec(char* path,char* args[]) 
 {
-	unsigned int params[0];
+	unsigned int params[2];
 	params[0]=path;
+	params[1]=args;
 	SYSCALL(14,params);
 	return 1;
 }

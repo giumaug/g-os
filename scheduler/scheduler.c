@@ -308,7 +308,7 @@ int _fork(struct t_processor_reg processor_reg,unsigned int flags)
 	return child_process_context->pid;
 }
 
-void _exec(char* path) 
+void _exec(char* path,char* args[]) 
 {
 	struct t_process_context *current_process_context;
 	char* process_storage;
