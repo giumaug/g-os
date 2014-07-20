@@ -308,7 +308,7 @@ int _fork(struct t_processor_reg processor_reg,unsigned int flags)
 	return child_process_context->pid;
 }
 
-void _exec(char* path,char* args[]) 
+void _exec(char* path,char* argv[]) 
 {
 	struct t_process_context *current_process_context;
 	char* process_storage;
@@ -316,6 +316,10 @@ void _exec(char* path,char* args[])
 	unsigned int i=0;
 	static unsigned int old_proc_phy_addr;
 	static void* old_page_dir;
+	u32* stack_pointer;
+	char* stack_data;
+	u32 argc=0;
+	u32 i,j;
 	
 //	SAVE_IF_STATUS
 	CLI
@@ -340,7 +344,31 @@ void _exec(char* path,char* args[])
 	current_process_context->page_dir=init_vm_process(system.master_page_dir,current_process_context->phy_add_space,current_process_context,INIT_VM_USERSPACE);
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir)))
 	free_vm_process(old_page_dir,INIT_VM_USERSPACE);
-	buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(old_proc_phy_addr));                        	
+	buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(old_proc_phy_addr));
+	
+	stack_pointer=0x1EFFFF;
+	while(argv[i]!=NULL)
+	{
+		 argc++;
+	}
+	*stack_pointer=NULL;
+	(stack_pointer-1)=argc;
+	(stack_pointer-2)=stack_pointer-4;
+	(stack_pointer-3)=NULL;
+	stack_data=stack_pointer-4;
+
+	j=0;
+	for(i=0;i<argc;i++)
+	{
+		while(argv[i][j]!=NULL)
+		{
+			*stack_data--=argv[i][j];
+			j++;
+		}
+		*stack_data--=NULL;
+		j=0;
+		
+	}               	
 	SWITCH_TO_USER_MODE
 }
 
