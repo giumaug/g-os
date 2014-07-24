@@ -6,6 +6,7 @@
 #include "data_types/dllist.h"
 #include "data_types/hashtable.h"
 #include "data_types/primitive_types.h"
+#include "ext2/ext2.h"
 
 #define U_STACK_SIZE 		0x4000;
 //#define QUANTUM_DURATION	11931 //10 ms verificare valore piu' appropriato
@@ -57,10 +58,10 @@ struct t_process_context
 	unsigned int static_priority;
 	unsigned int curr_sched_queue_index;
 	t_proc_status proc_status;
-	char* current_dir;
+	u32 current_dir_inode_number;
 	u32 next_fd;
 	t_hashtable* file_desc;
-	u32 current_dir_inode;
+	//u32 current_dir_inode;
 	unsigned int phy_k_thread_stack;
 };
 

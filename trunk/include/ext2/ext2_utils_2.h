@@ -186,15 +186,15 @@ void static read_superblock(t_ext2* ext2)
 	kfree(io_buffer);
 }
 
-void static read_root_dir_inode(t_ext2* ext2)
+void static read_root_dir_inode(t_ext2* ext2,t_inode* inode)
 {
 	u32 inode_table;
 	u32 inode_offset;
 	u32 lba;
 	char* io_buffer;
-	t_inode* inode;
+	//t_inode* inode;
 	
-	inode=ext2->root_dir_inode;
+	//inode=ext2->root_dir_inode;
 	lba=(2*BLOCK_SIZE)/SECTOR_SIZE+ext2->partition_start_sector;
 	io_buffer=kmalloc(512);
 	

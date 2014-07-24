@@ -1,3 +1,5 @@
+#include "general.h"
+#include "system.h"
 #include "asm.h"
 #include "idt.h"
 #include "scheduler/process.h"
@@ -7,8 +9,6 @@
 #include "syscall_handler.h"
 #include "drivers/kbc/8042.h"
 #include "drivers/ata/ata.h"
-#include "general.h"
-#include "system.h"
 
 //to fix when file system working!!
 unsigned int seed=105491;
@@ -79,6 +79,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	system.process_info.pause_queue=new_dllist();
 	process_context->phy_add_space=NULL;
 	process_context->phy_k_thread_stack=FROM_VIRT_TO_PHY(buddy_alloc_page(&system.buddy_desc,0x10000));
+	//*process_context->current_dir="/";
 	
 //	process_space=buddy_alloc_page(&system.buddy_desc,0x100000);
 //	process_storage=FROM_PHY_TO_VIRT(0x500000);

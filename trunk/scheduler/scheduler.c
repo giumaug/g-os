@@ -313,7 +313,6 @@ void _exec(char* path,char* argv[])
 	struct t_process_context *current_process_context;
 	char* process_storage;
 //	char* process_space;
-	unsigned int i=0;
 	static unsigned int old_proc_phy_addr;
 	static void* old_page_dir;
 	u32* stack_pointer;
@@ -352,9 +351,9 @@ void _exec(char* path,char* argv[])
 		 argc++;
 	}
 	*stack_pointer=NULL;
-	(stack_pointer-1)=argc;
-	(stack_pointer-2)=stack_pointer-4;
-	(stack_pointer-3)=NULL;
+	*(stack_pointer-1)=argc;
+	*(stack_pointer-2)=(stack_pointer-4);
+	*(stack_pointer-3)=NULL;
 	stack_data=stack_pointer-4;
 
 	j=0;

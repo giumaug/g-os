@@ -2,13 +2,13 @@
 #define SYSTEM_H
 
 #include "debug.h"
-#include "console/console.h"
 #include "scheduler/process.h"
+#include "console/console.h"
+//#include "scheduler/process.h"
 #include "scheduler/scheduler.h"
 #include "memory_manager/buddy.h"
 #include "data_types/dllist.h"
 #include "synchro_types/semaphore.h"
-#include "ext2/ext2.h"
 
 #define DEVICE_IDLE 0
 #define DEVICE_BUSY 1

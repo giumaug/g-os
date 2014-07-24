@@ -192,7 +192,7 @@ typedef struct s_ext2
 {
 	t_superblock* superblock;
 	u32 partition_start_sector;
-	t_inode* root_dir_inode;
+	//t_inode* root_dir_inode;
 	struct s_device_desc* device_desc;
 }
 t_ext2;

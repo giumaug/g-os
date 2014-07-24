@@ -1,11 +1,6 @@
 #ifndef ELF_LOADER_H                
 #define ELF_LOADER
 
-#include "scheduler/process.h"
-#include "ext2/ext2.h"
-#include "virtual_memory/vm.h"
-#include "memory_manager/kmalloc.h"
-
 #define EI_NIDENT (16)
 #define PT_LOAD	1
 #define PT_PHDR	6
