@@ -1,7 +1,7 @@
 #include "general.h"
+#include "system.h"
 #include "asm.h"  
 #include "idt.h" 
-#include "system.h"  
 #include "scheduler/scheduler.h"
 #include "virtual_memory/vm.h"
 #include "drivers/pic/8259A.h" 

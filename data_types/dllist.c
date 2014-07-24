@@ -1,5 +1,3 @@
-#include "memory_manager/kmalloc.h"
-#include "scheduler/process.h"
 #include "data_types/dllist.h"
 
 t_llist* new_dllist()

@@ -1,7 +1,7 @@
-#include "debug.h" 
+#include "general.h"
+#include "system.h"
 #include "asm.h" 
 #include "idt.h"
-#include "general.h"
 #include "virtual_memory/vm.h"
 #include "drivers/ata/ata.h"
 
