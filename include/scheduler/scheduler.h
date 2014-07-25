@@ -7,7 +7,7 @@
 			 	{					\
 					unsigned int params[2];		\
 					params[0]=path;			\
-					params[1]=args                  \
+					params[1]=args;                 \
 					SYSCALL(14,params);		\
 				}					\
 				while(0)

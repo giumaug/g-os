@@ -6,6 +6,7 @@ int main()
 	unsigned int pid;	
 	unsigned int is_background;
 	unsigned int len;
+	unsigned int argc=0;
 	char cmd[100];
 
 	printf("g-shell v 0.1 \n");
@@ -14,6 +15,25 @@ int main()
 		printf("=>");
 		scanf("%s",&cmd);
 		printf("\n");
+
+		i=0;
+		while (cmd[i]!=NULL)
+		{
+			if(cmd[i]=='')
+			{
+				argc++;
+			}
+			i++;
+		}
+
+		while (cmd[i++]!=NULL)
+		{
+			j=i;
+			while(cmd[j++]!=' ')
+			{
+				
+			}
+		}
 
 		len=strlen(cmd);
 		if (cmd[len-1]=='-') 
@@ -32,7 +52,6 @@ int main()
 			{
 				pause();
 			}
-			brk=1;
 		}
 	}
 
