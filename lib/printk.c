@@ -1,8 +1,6 @@
+#include "general.h"
 #include "asm.h"
-#include "system.h"
 #include "lib/lib.h"
-//
-extern t_system system;
 
 static void itoa(int val,char *char_val,unsigned int base)
 {
@@ -43,7 +41,7 @@ void printk(char *text,...)
 	int param_index=0;
 	int** param_val;
 	int params[2];
-	struct t_process_context *current_process_context=system.process_info.current_process->val;
+	struct t_process_context *current_process_context=system.process_info->current_process->val;
 	t_console_desc *console_desc=current_process_context->console_desc;
 
 	while (text[++index]!='\0')

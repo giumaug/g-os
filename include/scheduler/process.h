@@ -1,7 +1,7 @@
 #ifndef PROCESS_H                
 #define PROCESS_H
 
-//#include "system.h"
+#include "system.h"
 #include "console/console.h"
 #include "data_types/dllist.h"
 #include "data_types/hashtable.h"
@@ -13,7 +13,7 @@
 #define TICK                    10;  //100ms for each process look cesati pag 260
 
 
-#define CURRENT_PROCESS_CONTEXT(current_process_context) do {t_llist_node* node;node=system.process_info.current_process;current_process_context=node->val; } while (0);	
+#define CURRENT_PROCESS_CONTEXT(current_process_context) do {t_llist_node* node;node=system.process_info->current_process;current_process_context=node->val; } while (0);	
 
 typedef enum s_proc_status
 { 

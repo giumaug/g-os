@@ -1,5 +1,4 @@
 #include "general.h"
-#include "system.h"
 #include "asm.h" 
 #include "idt.h"
 #include "virtual_memory/vm.h"
@@ -7,7 +6,6 @@
 
 static int race=0;
 int test=0;
-extern t_system system;
 
 void static int_handler_ata();
 

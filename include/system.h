@@ -44,9 +44,9 @@ struct s_ext2;
 typedef struct s_system
 {
 	unsigned int time;
-	struct t_process_info process_info;
+	struct t_process_info* process_info;
 	t_console_desc* active_console_desc;
-	t_buddy_desc buddy_desc;
+	t_buddy_desc* buddy_desc;
 	unsigned int *master_page_dir;
 	t_scheduler_desc scheduler_desc;
 	struct s_ext2* root_fs;

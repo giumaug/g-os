@@ -1,5 +1,4 @@
 #include "general.h"
-#include "system.h"
 #include "asm.h"
 #include "idt.h"
 #include "virtual_memory/vm.h"  
@@ -7,9 +6,6 @@
 #include "idt.h" 
 #include "drivers/kbc/8042.h" 
 #include "lib/lib.h"
-#include "debug.h"
-
-extern t_system system;
 
 char lowercase_charset[0x80] = {
 			[0x00]='\0',			

@@ -1,5 +1,3 @@
-extern t_system system;
-
 static void* read_block_bitmap(t_ext2* ext2,u32 bg_block_bitmap,void* io_buffer)
 {
 	u32 lba;

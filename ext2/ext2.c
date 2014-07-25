@@ -1,3 +1,4 @@
+#include "general.h"
 #include "ext2/ext2.h"
 #include "ext2/ext2_utils_1.h"
 #include "ext2/ext2_utils_2.h"
@@ -32,7 +33,7 @@ int _open(t_ext2* ext2,const char* fullpath, int flags)
 
 	inode=kmalloc(sizeof(t_inode));
 	inode_dir=kmalloc(sizeof(t_inode));
-//	node=system.process_info.current_process;	
+//	node=system.process_info->current_process;	
 //	current_process_context=node->val;
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 	fd=current_process_context->next_fd++;
@@ -169,7 +170,7 @@ int _write(t_ext2* ext2,int fd, const void *buf,u32 count)
 
 	update_indirect_block=FALSE;
 	byte_written=0;
-	inode=hashtable_get(((struct t_process_context*)system.process_info.current_process)->file_desc,fd);
+	inode=hashtable_get(((struct t_process_context*)system.process_info->current_process)->file_desc,fd);
 	first_inode_block=inode->file_offset/BLOCK_SIZE;
 	first_data_offset=inode->file_offset%BLOCK_SIZE;
 	last_inode_block=(inode->file_offset+count)/BLOCK_SIZE;

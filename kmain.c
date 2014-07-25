@@ -1,5 +1,4 @@
 #include "general.h"
-#include "system.h"
 #include "asm.h"
 #include "idt.h"
 #include "scheduler/process.h"
@@ -18,6 +17,8 @@ t_system system;
 void kmain( void* mbd, unsigned int magic,int init_data_add)
 {
 	system.time=0;
+	struct t_process_info process_info;
+	t_buddy_desc buddy_desc;
 	unsigned int* init_data=init_data_add;
 	static struct t_process_context* process_context;
 	static struct t_i_desc i_desc;
@@ -34,16 +35,17 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
       		/* Something went not according to specs. Print an error */
    	}
  	CLI
+	system.process_info=&process_info;
 	system.int_path_count=0;
 	system.scheduler_desc.scheduler_queue[0]=0;
-	system.process_info.current_process=NULL;
+	system.process_info->current_process=NULL;
 	init_kmalloc();
    	init_idt();
    	init_pic();
    	init_pit();
 	init_kbc();
 	init_console(&console_desc,4000,0);
-	buddy_init(&system.buddy_desc);
+	buddy_init(system.buddy_desc);
 	init_scheduler();
 	init_ata(&device_desc);
 	init_ext2(&ext2,&device_desc);
@@ -59,9 +61,9 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	i_desc.baseHi=((int)&syscall_handler)>>0x10;
 	set_idt_entry(0x80,&i_desc);
 
-	system.process_info.sleep_wait_queue=new_dllist();	
-	system.process_info.process_context_list=new_dllist();
-	system.process_info.next_pid=1;
+	system.process_info->sleep_wait_queue=new_dllist();	
+	system.process_info->process_context_list=new_dllist();
+	system.process_info->next_pid=1;
 	
 	process_context=kmalloc(sizeof(struct t_process_context));
 	process_context->proc_status=RUNNING;
@@ -73,12 +75,12 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
         process_context->tick=TICK;
         process_context->processor_reg.esp=0x1EFFFF;//64K user mode stack 
 	process_context->console_desc=&console_desc;
-	system.process_info.current_process=ll_prepend(system.scheduler_desc.scheduler_queue[9],process_context);
-	system.process_info.tss.ss= *init_data;
-	system.process_info.tss.esp= *(init_data+1);
-	system.process_info.pause_queue=new_dllist();
+	system.process_info->current_process=ll_prepend(system.scheduler_desc.scheduler_queue[9],process_context);
+	system.process_info->tss.ss= *init_data;
+	system.process_info->tss.esp= *(init_data+1);
+	system.process_info->pause_queue=new_dllist();
 	process_context->phy_add_space=NULL;
-	process_context->phy_k_thread_stack=FROM_VIRT_TO_PHY(buddy_alloc_page(&system.buddy_desc,0x10000));
+	process_context->phy_k_thread_stack=FROM_VIRT_TO_PHY(buddy_alloc_page(system.buddy_desc,0x10000));
 	//*process_context->current_dir="/";
 	
 //	process_space=buddy_alloc_page(&system.buddy_desc,0x100000);
@@ -91,8 +93,8 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 //		*process_space++=*process_storage++;
 //	}                         
 	process_context->page_dir=init_vm_process(system.master_page_dir,process_context->phy_add_space,process_context,NO_INIT_VM_USERSPACE);
-	*(system.process_info.tss.ss)=0x18;
-	*(system.process_info.tss.esp)=0x1FFFFF;//64K kernel mode stack
+	*(system.process_info->tss.ss)=0x18;
+	*(system.process_info->tss.esp)=0x1FFFFF;//64K kernel mode stack
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) process_context->page_dir)))                           	
 //	SWITCH_TO_USER_MODE
 	asm("movl $0x1FFFFF,%ebp");

@@ -1,12 +1,10 @@
 #include "general.h"
-#include "system.h"
 #include "asm.h"
 #include "scheduler/process.h"
 #include "memory_manager/kmalloc.h"
 #include "drivers/kbc/8042.h"
 #include "console/console.h"
 
-extern t_system system;
 static void update_cursor(unsigned int curs_pos);
 
 void init_console(t_console_desc *console_desc,int out_buf_len,int in_buf_len)
@@ -41,7 +39,7 @@ char _read_char(t_console_desc *console_desc)
 
 	while (!(data=read_buf())) 
 	{
-		system.active_console_desc->sleeping_process=system.process_info.current_process->val;
+		system.active_console_desc->sleeping_process=system.process_info->current_process->val;
 		_sleep();
 	}	
 	return data;	
