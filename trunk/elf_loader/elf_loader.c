@@ -1,10 +1,9 @@
+#include "general.h"
 #include "scheduler/process.h"
 #include "ext2/ext2.h"
 #include "virtual_memory/vm.h"
 #include "memory_manager/kmalloc.h"
 #include "elf_loader/elf_loader.h"
-
-extern t_system system;
 
 void load_elf_executable(char* path,struct t_process_context* process_context)
 {

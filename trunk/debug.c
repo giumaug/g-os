@@ -1,10 +1,9 @@
-#include "system.h"
+#include "general.h"
 #include "data_types/dllist.h"
 #include "virtual_memory/vm.h"
 #include "memory_manager/general.h"
 #include "debug.h"
 
-extern t_system system;
 extern unsigned int free_mem_list[POOL_NUM];
 
 unsigned int proc[100];
@@ -22,9 +21,9 @@ void check_free_mem()
 	int i=0;
 	unsigned int buddy_mem;
 	unsigned int pool_mem;
-	buddy_mem=buddy_free_mem(&system.buddy_desc);
+	buddy_mem=buddy_free_mem(system.buddy_desc);
 	pool_mem=kfree_mem();
-	//buddy_check_mem_status(&system.buddy_desc);
+	//buddy_check_mem_status(system.buddy_desc);
 	//a_fixed_size_check_mem_status();
 	check_active_process();
 	if (buddy_mem!=160194560)
@@ -46,7 +45,7 @@ void check_stack_change()
 	t_llist_node* next;
 	t_llist_node* sentinel_node;
 	int index=0;
-	node=system.process_info.current_process;	
+	node=system.process_info->current_process;	
 	current_process_context=node->val;
 	int* stack;
 	unsigned int tmp;
@@ -148,24 +147,3 @@ void sched_debug()
 	}
 	return;
 }
-
-//void track_proc(unsigned int pid,unsigned int index)
-//{
-//	if (pid<=2) return;
-//	system.proc_trace[pid-3][index]++;
-//}
-//
-//void reset_proc_trace()
-//{
-//	int i,j=0;
-//
-//	for (j=0;j<100;j++)
-//	{
-//		for (i=0;i<100;i++)
-//		{
-//			system.proc_trace[i][j]=0;
-//		}
-//	}
-//	system.process_info.next_pid=3;
-//	index_3=0;
-//}

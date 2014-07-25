@@ -1,12 +1,10 @@
 #include "general.h"
-#include "system.h"
 #include "asm.h"
 #include "synchro_types/spin_lock.h"
 #include "memory_manager/general.h"
 #include "virtual_memory/vm.h"
 #include "memory_manager/buddy.h"
 
-extern t_system system;
 static unsigned int mem;
 
 static void buddy_reset_block(void* address,unsigned int page_size);

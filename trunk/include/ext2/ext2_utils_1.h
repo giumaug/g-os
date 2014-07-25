@@ -1,5 +1,3 @@
-extern t_system system;
-
 static void* read_block_bitmap(t_ext2* ext2,u32 bg_block_bitmap,void* io_buffer);
 static void* write_block_bitmap(t_ext2* ext2,u32 bg_block_bitmap,void* io_buffer);
 static u32 read_indirect_block(t_inode* inode,u32 key);
@@ -302,7 +300,7 @@ void lookup_inode(char* path,t_ext2* ext2,t_inode* inode_parent,t_inode* inode)
         }
         else if(path[0]=='.' && path[1]=='/')
         {
-		parent_dir_inode->i_number=((struct t_process_context*) system.process_info.current_process)->current_dir_inode_number;
+		parent_dir_inode->i_number=((struct t_process_context*) system.process_info->current_process)->current_dir_inode_number;
 		read_inode(ext2,parent_dir_inode);
                 i=2;    
         }

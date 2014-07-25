@@ -1,5 +1,4 @@
 #include "general.h"
-#include "system.h"
 #include "asm.h"  
 #include "idt.h" 
 #include "scheduler/scheduler.h"
@@ -12,8 +11,6 @@
 
 extern index_2;
 extern unsigned int proc[100];
-
-extern t_system system;
 
 void init_pit()
 {	
@@ -60,8 +57,8 @@ void int_handler_pit()
 	}
 	sleeping_process=system.active_console_desc->sleeping_process;
 	
-	sentinel=ll_sentinel(system.process_info.sleep_wait_queue);
-	next=ll_first(system.process_info.sleep_wait_queue);
+	sentinel=ll_sentinel(system.process_info->sleep_wait_queue);
+	next=ll_first(system.process_info->sleep_wait_queue);
 	next_process=next->val;
 	//THIS STUFF MUST BE MOVED INSIDE ASSIGNED SLEEP MANAGER LIKE IO
 	while(next!=sentinel)
@@ -103,7 +100,7 @@ void int_handler_pit()
 	}
 	else
 	{	
-		process_context=system.process_info.current_process->val;
+		process_context=system.process_info->current_process->val;
 		process_context->sleep_time-=QUANTUM_DURATION;
 		
 		if (process_context->sleep_time>1000) 	
@@ -140,13 +137,13 @@ exit_handler:;
                                                                                                             
 	CLI                                                                        
 	_action2=is_schedule;                                                                                   
-	_current_process_context=*(struct t_process_context*)system.process_info.current_process->val;                                  
+	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;                                  
 	_old_process_context=_current_process_context;                                                      
 	_processor_reg=processor_reg;                             
 	if (_action2>0)                                                                                      
 	{                                                                                           
 		schedule(&_current_process_context,&_processor_reg);	                          
-		_new_process_context=*(struct t_process_context*)(system.process_info.current_process->val);                              
+		_new_process_context=*(struct t_process_context*)(system.process_info->current_process->val);                              
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))                                                          
 		DO_STACK_FRAME(_processor_reg.esp-8); 
 		if (_action2==2)                                                                              
@@ -155,11 +152,11 @@ exit_handler:;
 			free_vm_process(_old_process_context.page_dir,INIT_VM_USERSPACE);
 			if (_old_process_context.phy_add_space!=NULL)
 			{
-				buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_add_space)); 
+				buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_add_space)); 
 			}
 			else
 			{
-				buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_k_thread_stack)); 	
+				buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_k_thread_stack)); 	
 			}                         
 		}                                                                               
 		SWITCH_DS_TO_USER_MODE                                                                      

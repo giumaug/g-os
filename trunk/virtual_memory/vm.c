@@ -1,9 +1,6 @@
 #include "general.h"
-#include "system.h"
 #include "memory_manager/general.h"
 #include "virtual_memory/vm.h"
-
-extern t_system system;
 
 struct t_process_context* process0;
 
@@ -12,9 +9,9 @@ void* init_virtual_memory()
 	unsigned int i;	
 	unsigned int pad;
 	unsigned int* new_page_dir;
-	system.process_info.current_process=NULL;
+	system.process_info->current_process=NULL;
 	
-	new_page_dir=buddy_alloc_page(&system.buddy_desc,0x1000);
+	new_page_dir=buddy_alloc_page(system.buddy_desc,0x1000);
 	for (i=0;i<1024;i++) new_page_dir[i]=0;
 	map_vm_mem(new_page_dir,0,0,0x100000);
 	map_vm_mem(new_page_dir,VIRT_MEM_START_ADDR,PHY_MEM_START_ADDR,(VIRT_MEM_END_ADDR-VIRT_MEM_START_ADDR));
@@ -28,7 +25,7 @@ void* init_vm_process(void* master_page_dir,unsigned int proc_phy_addr,struct t_
 	unsigned int pad;
 	unsigned int i=0;
 
-	page_dir=buddy_alloc_page(&system.buddy_desc,0x1000);
+	page_dir=buddy_alloc_page(system.buddy_desc,0x1000);
 	for (i=0;i<768;i++) 
 	{
 		page_dir[i]=0;
@@ -60,7 +57,7 @@ void free_vm_process(void* page_dir,unsigned int flags)
 	{
 		umap_vm_mem(page_dir,KERNEL_THREAD_STACK,0x10000,1);
 	}
-	buddy_free_page(&system.buddy_desc,page_dir);
+	buddy_free_page(system.buddy_desc,page_dir);
 }
 
 void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_addr,int mem_size)
@@ -90,7 +87,7 @@ void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_ad
 	{
 		if (((int*)(page_dir))[i]==0)
 		{	
-			page_table=buddy_alloc_page(&system.buddy_desc,0x1000);
+			page_table=buddy_alloc_page(system.buddy_desc,0x1000);
 			for (j=0;j<1024;j++)
 			{
 				page_table[j]=0;
@@ -179,7 +176,7 @@ void umap_vm_mem(void* page_dir,unsigned int virt_mem_addr,unsigned int mem_size
 
 		if ((start==0 && end==1024) || flush) 
 		{
-			buddy_free_page(&system.buddy_desc,page_table);
+			buddy_free_page(system.buddy_desc,page_table);
 			((unsigned int*)page_dir)[i]=0;
 		}
 	}

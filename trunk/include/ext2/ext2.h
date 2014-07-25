@@ -1,8 +1,8 @@
 #ifndef EXT2_H                
 #define EXT2_H
 
-#include "system.h"
 #include "general.h"
+#include "system.h"
 #include "data_types/primitive_types.h"
 #include "data_types/hashtable.h"
 
@@ -42,7 +42,7 @@
 						io_request->sector_count=_sector_count;					\
 						io_request->lba=_lba;							\
 						io_request->io_buffer=_io_buffer;					\
-						io_request->process_context=system.process_info.current_process->val;	\
+						io_request->process_context=system.process_info->current_process->val;	\
 						ext2->device_desc->write(io_request);                                   \
 						kfree(io_request);                                                      \
                                                 } while(0);                                       
@@ -54,7 +54,7 @@
 						io_request->sector_count=_sector_count;					\
 						io_request->lba=_lba;							\
 						io_request->io_buffer=_io_buffer;					\
-						io_request->process_context=system.process_info.current_process->val;	\
+						io_request->process_context=system.process_info->current_process->val;	\
 						ext2->device_desc->read(io_request); 					\
                                                 kfree(io_request);                                                      \
 						} while(0);

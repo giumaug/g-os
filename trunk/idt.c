@@ -1,12 +1,10 @@
-#include "system.h"
+#include "general.h"
 #include "asm.h"
 #include "scheduler/process.h"
 #include "virtual_memory/vm.h"
 #include "drivers/pic/8259A.h"
 #include "lib/lib.h"
 #include "idt.h"
-
-extern t_system system;
 
 struct t_i_desc idt[255];
 struct t_idt_ptr idt_ptr;
@@ -479,12 +477,12 @@ void exit_int_handler(unsigned int action,struct t_processor_reg processor_reg,s
 	static struct t_process_context* old_process_context;
 
 	CLI
-	current_process_context=system.process_info.current_process->val;
+	current_process_context=system.process_info->current_process->val;
 	old_process_context=current_process_context;
 	if (action>0) 
 	{
 		schedule(current_process_context,&processor_reg);
-		new_process_context=system.process_info.current_process->val;
+		new_process_context=system.process_info->current_process->val;
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) new_process_context->page_dir)))
 		DO_STACK_FRAME(processor_reg.esp-8);
 		if (action==2) 

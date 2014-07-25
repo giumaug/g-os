@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include "general.h"
 #include "memory_manager/kmalloc.h"
 #include "data_types/dllist.h"
