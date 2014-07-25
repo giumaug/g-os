@@ -1,5 +1,5 @@
-#ifndef GENERAL_H                
-#define GENERAL_H
+#ifndef MEMORY_GENERAL_H                
+#define MEMORY_GENERAL_H
 
 #define PAGE_SIZE 0x1000
 #define PHY_MEM_SIZE 0xC800000 //0x3200000

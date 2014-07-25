@@ -1,7 +1,6 @@
 #ifndef SYSTEM_H                
 #define SYSTEM_H
 
-#include "debug.h"
 #include "scheduler/process.h"
 #include "console/console.h"
 //#include "scheduler/process.h"
