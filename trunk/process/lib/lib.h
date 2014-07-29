@@ -28,6 +28,7 @@ void d_printf(int val);
 void scanf(char *text,void *val);
 int remove(const char *filename);
 
+
 //stdlib.h
 int atoi (char *data);
 void itoa (int val,char *char_val,unsigned int base);
@@ -37,6 +38,7 @@ void free(void *address);
 void *bigMalloc(unsigned int mem_size);
 void bigFree(void *address);
 unsigned int rand();
+int getc();
 
 //string.h
 int strcmp(const char* s1, const char* s2);
@@ -44,7 +46,7 @@ int strncmp(const char* s1, const char* s2,unsigned int n);
 unsigned int strlen(const char* s);
 
 //unistd.h
-int exec(char* path);
+int exec(char* path,char* argv[]);
 int fork();
 int pause();
 int sleep(unsigned int time);

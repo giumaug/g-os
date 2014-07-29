@@ -5,52 +5,83 @@ int main()
 {
 	unsigned int pid;	
 	unsigned int is_background;
-	unsigned int len;
+	unsigned int len,i,k,j;
 	unsigned int argc=0;
 	char cmd[100];
+	char** argv;
+	char c;
 
 	printf("g-shell v 0.1 \n");
 	while(1)
 	{
 		printf("=>");
-		scanf("%s",&cmd);
-		printf("\n");
 
 		i=0;
-		while (cmd[i]!=NULL)
+		do
 		{
-			if(cmd[i]=='')
-			{
-				argc++;
-			}
-			i++;
+			c=getc();
+			cmd[i++]=c;
 		}
+		while (c!='\n');
+		cmd[i-1]=NULL;
 
-		while (cmd[i++]!=NULL)
-		{
-			j=i;
-			while(cmd[j++]!=' ')
-			{
-				
-			}
-		}
-
+		printf("\n");
 		len=strlen(cmd);
 		if (cmd[len-1]=='-') 
 		{
 			is_background=1;
 			cmd[len-1]='\0';
 		}
+
+		i=0;
+		while (cmd[i]!=NULL)
+		{
+			if(cmd[i]==' ')
+			{
+				argc++;
+			}
+			i++;
+		}
+
+		argv=malloc(sizeof(char*)*argc+1);
+		i=0;
+		for(k=0;k<=argc;k++)
+		{
+			j=0;
+			while (cmd[i]!=' ' && cmd[i]!=NULL)
+			{		
+				j++;
+				i++;
+			}
+			argv[k]=malloc(j+1);
+		}
+
+		i=0;
+		j=0;
+		for(k=0;k<=argc;k++)
+		{
+			j=0;
+			while (cmd[i]!=' ' && cmd[i]!=NULL)
+			{		
+				argv[k][j++]=cmd[i];
+				i++;
+
+			}
+			i++;
+			argv[k][j++]='\0';
+		}
+
 		pid=fork();
 		if (pid==0)
 		{
-			exec(cmd);
+			//exec(argv[0],argv);
+			exec(argv[0],argv);
 		}
 		else 
 		{
 			if (!is_background)
 			{
-				pause();
+				//pause();
 			}
 		}
 	}
