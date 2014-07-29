@@ -104,6 +104,23 @@ void scanf(char *text,void *val)
 	}
 }
 
+int getc()
+{
+	char data;
+	int params[1];
+
+	SYSCALL(7,NULL);
+	
+	params[0]=&data;
+	SYSCALL(5,params);
+	
+	params[0]=data;
+	SYSCALL(6,params);
+	SYSCALL(8,NULL);
+	
+	return data;
+}
+
 int remove(const char *filename)
 {
 	unsigned int params[2];
