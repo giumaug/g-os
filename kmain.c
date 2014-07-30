@@ -36,6 +36,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
    	}
  	CLI
 	system.process_info=&process_info;
+	system.buddy_desc=&buddy_desc;
 	system.int_path_count=0;
 	system.scheduler_desc.scheduler_queue[0]=0;
 	system.process_info->current_process=NULL;
@@ -53,6 +54,8 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	system.device_desc=&device_desc;
 	
 	system.master_page_dir=init_virtual_memory();
+	asm("movl $0x1FFFFF,%ebp");
+	asm("movl $0x1FFFFF,%esp");
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int)system.master_page_dir)))
 	system.active_console_desc=&console_desc;
 	i_desc.baseLow=((int)&syscall_handler) & 0xFFFF;
@@ -97,7 +100,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	*(system.process_info->tss.esp)=0x1FFFFF;//64K kernel mode stack
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) process_context->page_dir)))                           	
 //	SWITCH_TO_USER_MODE
-	asm("movl $0x1FFFFF,%ebp");
-	asm("movl $0x1FFFFF,%esp");
+//	asm("movl $0x1FFFFF,%ebp");
+//	asm("movl $0x1FFFFF,%esp");
 	process_0();				       	
 }
