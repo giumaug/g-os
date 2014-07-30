@@ -13,9 +13,19 @@
 unsigned int seed=105491;
 extern unsigned int PAGE_DIR;
 t_system system;
+char tmp_kernel_stack[4096];
+
+void _kmain( void* mbd, unsigned int magic,int init_data_add)
+{
+	asm ("movl %0,%%esp;"::"r"(tmp_kernel_stack+0x1000));
+	asm ("movl %0,%%ebp;"::"r"(tmp_kernel_stack+0x1000));
+	kmain(mbd,magic,init_data_add);
+}
 
 void kmain( void* mbd, unsigned int magic,int init_data_add)
 {
+//	asm ("movl %0,%%esp;"::"r"(tmp_kernel_stack+0x1000));
+//	asm ("movl %0,%%ebp;"::"r"(tmp_kernel_stack+0x1000));
 	system.time=0;
 	struct t_process_info process_info;
 	t_buddy_desc buddy_desc;
@@ -54,8 +64,6 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	system.device_desc=&device_desc;
 	
 	system.master_page_dir=init_virtual_memory();
-	asm("movl $0x1FFFFF,%ebp");
-	asm("movl $0x1FFFFF,%esp");
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int)system.master_page_dir)))
 	system.active_console_desc=&console_desc;
 	i_desc.baseLow=((int)&syscall_handler) & 0xFFFF;
@@ -100,7 +108,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	*(system.process_info->tss.esp)=0x1FFFFF;//64K kernel mode stack
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) process_context->page_dir)))                           	
 //	SWITCH_TO_USER_MODE
-//	asm("movl $0x1FFFFF,%ebp");
-//	asm("movl $0x1FFFFF,%esp");
+	asm("movl $0x1FFFFF,%ebp");
+	asm("movl $0x1FFFFF,%esp");
 	process_0();				       	
 }
