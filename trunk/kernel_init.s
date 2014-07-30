@@ -128,7 +128,7 @@ pmode:
 	push 	%ecx;   	
 	push  	%ebx                       	
    	push  	%eax                       	
-	call  	kmain            		
+	call  	_kmain            		
 	cli
 
 # Halt machine should kernel return
