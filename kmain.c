@@ -27,9 +27,10 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 //	asm ("movl %0,%%esp;"::"r"(tmp_kernel_stack+0x1000));
 //	asm ("movl %0,%%ebp;"::"r"(tmp_kernel_stack+0x1000));
 	system.time=0;
-	struct t_process_info process_info;
-	t_buddy_desc buddy_desc;
-	unsigned int* init_data=init_data_add;
+	static struct t_process_info process_info;
+	static t_buddy_desc buddy_desc;
+	static unsigned int* init_data;
+        init_data=init_data_add;
 	static struct t_process_context* process_context;
 	static struct t_i_desc i_desc;
 	static t_console_desc console_desc;
