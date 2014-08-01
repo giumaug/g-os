@@ -123,12 +123,10 @@ pmode:
 #load tss       
 	mov 	$0x28,%ax;
         ltr 	%ax;	
-#        movl $0xE00000,%ebp;
-#	movl $0xE00000,%esp;
 	push 	%ecx;   	
 	push  	%ebx                       	
    	push  	%eax                       	
-	call  	_kmain            		
+	call  	kmain            		
 	cli
 
 # Halt machine should kernel return

@@ -305,20 +305,24 @@ int _fork(struct t_processor_reg processor_reg,unsigned int flags)
 	return child_process_context->pid;
 }
 
-void _exec(char* path,char* argv[]) 
+void _exec(char* _path,char* _argv[]) 
 {
+	static char* path;
+	static char** argv;
 	struct t_process_context *current_process_context;
 	char* process_storage;
 //	char* process_space;
 	static unsigned int old_proc_phy_addr;
 	static void* old_page_dir;
-	u32* stack_pointer;
-	char* stack_data;
-	u32 argc=0;
-	u32 i,j;
+	static u32* stack_pointer;
+	static char* stack_data;
+	static u32 argc=0;
+	static u32 i,j;
 	
 //	SAVE_IF_STATUS
 	CLI
+	path=_path;
+	argv=_argv;
 	current_process_context=system.process_info->current_process->val;
 	current_process_context->proc_status=RUNNING;
 	current_process_context->sleep_time=0;
@@ -343,7 +347,7 @@ void _exec(char* path,char* argv[])
 	buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(old_proc_phy_addr));
 	
 	stack_pointer=0x1EFFFF;
-	while(argv[i]!=NULL)
+	while(argv[i++]!=NULL)
 	{
 		 argc++;
 	}

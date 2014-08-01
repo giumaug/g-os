@@ -15,18 +15,8 @@ extern unsigned int PAGE_DIR;
 t_system system;
 char tmp_kernel_stack[4096];
 
-void _kmain( void* mbd, unsigned int magic,int init_data_add)
-{
-	asm ("movl %0,%%esp;"::"r"(tmp_kernel_stack+0x1000));
-	asm ("movl %0,%%ebp;"::"r"(tmp_kernel_stack+0x1000));
-	kmain(mbd,magic,init_data_add);
-}
-
 void kmain( void* mbd, unsigned int magic,int init_data_add)
 {
-//	asm ("movl %0,%%esp;"::"r"(tmp_kernel_stack+0x1000));
-//	asm ("movl %0,%%ebp;"::"r"(tmp_kernel_stack+0x1000));
-	system.time=0;
 	static struct t_process_info process_info;
 	static t_buddy_desc buddy_desc;
 	static unsigned int* init_data;
@@ -34,12 +24,14 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	static struct t_process_context* process_context;
 	static struct t_i_desc i_desc;
 	static t_console_desc console_desc;
-//	char* process_storage;
-//	char* process_space;
-//	unsigned int proc_phy_addr;
-//	unsigned int i;
 	static t_ext2 ext2;
 	static t_device_desc device_desc;
+
+	system.time=0;
+	init_data=init_data_add;
+	asm ("movl %0,%%esp;"::"r"(tmp_kernel_stack+0x1000));
+	asm ("movl %0,%%ebp;"::"r"(tmp_kernel_stack+0x1000));
+
 	
 	if ( magic != 0x2BADB002 )
    	{
