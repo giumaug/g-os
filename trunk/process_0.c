@@ -6,8 +6,10 @@
 
 void process_0() 
 {
-	unsigned int pid=5;
+	unsigned int pid;
+	char* argv[2];
 	
+	argv[1]=
 	THREAD_FORK(pid);
 	if (pid==0)
 	{
