@@ -9,13 +9,13 @@ void process_0()
 	args[0]="/shell";
 	args[1]=NULL;	
 	
-	THREAD_FORK(pid);
+//	--HREAD_FORK(pid);
 	if (pid==0)
 	{
-		THREAD_EXEC("/shell",args);
+		//HREAD_EXEC("/shell",args);
 	}
 	else 
 	{
-		THREAD_EXIT(0);
+		//HREAD_EXIT(0);
 	}
 }

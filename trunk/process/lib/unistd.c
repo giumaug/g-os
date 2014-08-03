@@ -2,6 +2,7 @@
 
 int exec(char* path,char* argv[]) 
 {
+	//make path and argv static!!!!!!
 	unsigned int params[2];
 	params[0]=path;
 	params[1]=argv;
