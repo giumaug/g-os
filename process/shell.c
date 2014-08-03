@@ -1,7 +1,7 @@
 #include "lib/lib.h"  
 #include "shell.h"
 
-int main() 
+int main (int _argc, char *_argv[])
 {
 	unsigned int pid;	
 	unsigned int is_background;
@@ -12,6 +12,13 @@ int main()
 	char c;
 
 	printf("g-shell v 0.1 \n");
+	printf("argc=");
+	print_num(_argc);
+	printf("\n");
+	//printf("argv[0]=");
+	//printf(_argv[0]);
+	printf("\n");
+
 	while(1)
 	{
 		printf("=>");
