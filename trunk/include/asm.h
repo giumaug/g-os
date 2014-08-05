@@ -46,29 +46,9 @@
                                 
 #define RET_FROM_INT_HANDLER 	asm("mov %ebp,%esp;pop %ebp;iret");
 
-//#define SWITCH_TO_USER_MODE     asm("                                              \
-//	     				.comm TMP,4;                               \
-//        				movl   %eax,TMP;                           \
-//					mov    $0x23,%ax;                          \
-//					mov    %ax,%ds;                            \
-//        				mov    %ax,%es;                            \
-//					/*movl   $0x0,%eax;	  fake ebp*/       \
-//					push   %eax;                           	   \
-//					movl   $0x23,%eax;	  /*ss*/           \
-//        				push   %eax;                               \
-//        				movl   $0x1EFFFF,%eax;    /*esp*/          \
-//					push   %eax;                               \
-//					movl   $0x206,%eax;  	  /*elfags*/       \
-//					push   %eax;                               \
-//        				movl   $0x13,%eax;        /*cs*/           \
-//					push   %eax;                               \
-//        				movl   $0x100000,%eax;   /*eip*/           \
-//					push   %eax;                               \
-//					mov    $TMP,%eax;                          \
-//					iret;	                                   \
-//    			   ");
-
-#define SWITCH_TO_USER_MODE     asm("                                              \
+//#define SWITCH_TO_USER_MODE(xx)     asm("                                              \
+	     				.comm TMP,4;                               \
+        				movl   %eax,TMP;                           \
 					mov    $0x23,%ax;                          \
 					mov    %ax,%ds;                            \
         				mov    %ax,%es;                            \
@@ -77,9 +57,6 @@
 					movl   $0x23,%eax;	  /*ss*/           \
         				push   %eax;                               \
         				movl   $0x1EFFFF,%eax;    /*esp*/          \
-
-					movl %0,%%ecx;"::"r"(_processor_reg.ecx)); \					
-
 					push   %eax;                               \
 					movl   $0x206,%eax;  	  /*elfags*/       \
 					push   %eax;                               \
@@ -88,13 +65,45 @@
         				movl   $0x100000,%eax;   /*eip*/           \
 					push   %eax;                               \
 					mov    $TMP,%eax;                          \
-					iret;"::"r"(_processor_reg.ecx));                                   \
+					;	                                   \
     			   ");
 
+//#define SWITCH_TO_USER_MODE(stack_address)     asm("                               \
+					mov    $0x23,%%ax;                         \
+					mov    %%ax,%%ds;                          \
+        				mov    %%ax,%%es;                          \
+					push   %%eax;                              \
+					movl   $0x23,%%eax;	/*ss*/      	   \
+        				push   %%eax;                              \
+					movl %0,%%eax;          /*esp*/ 	   \
+					push   %%eax;                              \
+					movl   $0x206,%%eax;  	/*elfags*/  	   \
+					push   %%eax;                              \
+        				movl   $0x13,%%eax;      /*cs*/      	   \
+					push   %%eax;                              \
+        				movl   $0x100000,%%eax;  /*eip*/           \
+					push   %%eax;                              \
+					"::"r"(stack_address));
 
+#define SWITCH_TO_USER_MODE(stack_address)     asm("                               	\
+					mov    $0x23,%ax;                         	\
+					mov    %ax,%ds;                          	\
+        				mov    %ax,%es;                          	\
+					push   %eax;                              	\
+					movl   $0x23,%eax;	      	   		\
+        				push   %eax;                              	\
+					");						\
+                                        asm("movl %0,%%eax;push %%eax;"::"r"(stack_address)); \
+					asm("movl   $0x206,%eax;    			\
+					push   %eax;                              	\
+        				movl   $0x13,%eax;      /*cs*/      	   	\
+					push   %eax;                              	\
+        				movl   $0x100000,%eax;  /*eip*/           	\
+					push   %eax;                              	\
+					iret;");
 
 #define	SWITCH_DS_TO_KERNEL_MODE asm("                                             \
-				      	.comm TMP_1,2;                             \
+				      	.comm TMP,2;                               \
         			      	mov  %ax,TMP; 				   \
 				      	mov $0x18,%ax;                             \
 				      	mov  %ax,%ds;				   \
