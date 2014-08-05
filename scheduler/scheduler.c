@@ -319,6 +319,7 @@ void _exec(char* _path,char* _argv[])
 	static u32 argc=0;
 	static u32 i,j;
 	static u32 frame_size=0;
+	static u32* xx1,xx2,xx3,xx4,xx5;
 	
 //	SAVE_IF_STATUS
 	CLI
@@ -355,7 +356,7 @@ void _exec(char* _path,char* _argv[])
 	j=0;
 	for(i=0;i<argc;i++)
 	{
-		while(argv[i][j]!=NULL)
+		while(argv[i][j++]!=NULL)
 		{
 			frame_size++;
 		}
@@ -369,6 +370,12 @@ void _exec(char* _path,char* _argv[])
 	*(stack_pointer+4)=NULL;
 	stack_data=stack_pointer+5;
 
+	xx1=(stack_pointer+1);
+	xx2=(stack_pointer+2);
+	xx3=(stack_pointer+3);
+	xx4=(stack_pointer+4);
+	xx5=(stack_pointer+5);
+
 	j=0;
 	for(i=0;i<argc;i++)
 	{
@@ -380,7 +387,8 @@ void _exec(char* _path,char* _argv[])
 		*stack_data++=NULL;
 		j=0;
 	}               	
-	SWITCH_TO_USER_MODE
+	SWITCH_TO_USER_MODE(stack_pointer)
+	return;
 }
 
 void _sleep_time(unsigned int time)
