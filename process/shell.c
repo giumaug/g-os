@@ -15,8 +15,8 @@ int main (int _argc, char *_argv[])
 	printf("argc=");
 	print_num(_argc);
 	printf("\n");
-	//printf("argv[0]=");
-	//printf(_argv[0]);
+	printf("argv[0]=");
+	printf(_argv[0]);
 	printf("\n");
 
 	while(1)
