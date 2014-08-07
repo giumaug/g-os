@@ -10,12 +10,15 @@ int main (int _argc, char *_argv[])
 	char cmd[100];
 	char** argv;
 	char c;
+	unsigned int pippo;
 
 	printf("g-shell v 0.1 \n");
 	printf("argc=");
 	print_num(_argc);
 	printf("\n");
 	printf("argv[0]=");
+	//pippo=_argv[0];
+	//print_num(pippo);
 	printf(_argv[0]);
 	printf("\n");
 

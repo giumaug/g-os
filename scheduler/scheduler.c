@@ -315,11 +315,11 @@ void _exec(char* _path,char* _argv[])
 	static unsigned int old_proc_phy_addr;
 	static void* old_page_dir;
 	static u32* stack_pointer;
-	static char* stack_data;
+//	static char* stack_data;
+	static char** stack_data;
 	static u32 argc=0;
 	static u32 i,j;
 	static u32 frame_size=0;
-	static u32* xx1,xx2,xx3,xx4,xx5;
 	
 //	SAVE_IF_STATUS
 	CLI
@@ -348,47 +348,63 @@ void _exec(char* _path,char* _argv[])
 	free_vm_process(old_page_dir,INIT_VM_USERSPACE);
 	buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(old_proc_phy_addr));
 	
+//	while(argv[i++]!=NULL)
+//	{
+//		 argc++;
+//	}
+//
+//	j=0;
+//	for(i=0;i<argc;i++)
+//	{
+//		while(argv[i][j++]!=NULL)
+//		{
+//			frame_size++;
+//		}
+//	}
+//	frame_size+=16;
+//
+//	stack_pointer=0x1EFFFF-frame_size;
+//	*(stack_pointer+0)=NULL;
+//	*(stack_pointer+1)=argc;
+//	*(stack_pointer+2)=(stack_pointer+4);
+//	*(stack_pointer+3)=NULL;
+//	stack_data=stack_pointer+4;
+//
+//	j=0;
+//	for(i=0;i<argc;i++)
+//	{
+//		while(argv[i][j]!=NULL)
+//		{
+//			*stack_data++=argv[i][j];
+//			j++;
+//		}
+//		*stack_data++=NULL;
+//		j=0;
+//	}
+//
+	i=0;
 	while(argv[i++]!=NULL)
 	{
 		 argc++;
 	}
 
-	j=0;
-	for(i=0;i<argc;i++)
-	{
-		while(argv[i][j++]!=NULL)
-		{
-			frame_size++;
-		}
-	}
+	frame_size=(argc+1)*4;
 	frame_size+=16;
 
 	stack_pointer=0x1EFFFF-frame_size;
-	*(stack_pointer+1)=NULL;
-	*(stack_pointer+2)=argc;
-	*(stack_pointer+3)=(stack_pointer+5);
-	*(stack_pointer+4)=NULL;
-	stack_data=stack_pointer+5;
+	*(stack_pointer+0)=NULL;
+	*(stack_pointer+1)=argc;
+	*(stack_pointer+2)=(stack_pointer+4);
+	*(stack_pointer+3)=NULL;
+	stack_data=stack_pointer+4;
 
-	xx1=(stack_pointer+1);
-	xx2=(stack_pointer+2);
-	xx3=(stack_pointer+3);
-	xx4=(stack_pointer+4);
-	xx5=(stack_pointer+5);
-
-	j=0;
 	for(i=0;i<argc;i++)
 	{
-		while(argv[i][j]!=NULL)
-		{
-			*stack_data++=argv[i][j];
-			j++;
-		}
-		*stack_data++=NULL;
-		j=0;
-	}               	
+		stack_data[i]=argv[i];
+	}
+	stack_data[argc]=NULL;
+          	
 	SWITCH_TO_USER_MODE(stack_pointer)
-	return;
 }
 
 void _sleep_time(unsigned int time)
