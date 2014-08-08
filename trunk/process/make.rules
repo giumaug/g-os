@@ -1,9 +1,0 @@
-PROCESS		=$(PROCESS_NAME)
-BASE_DIR	=/home/peppe/Scrivania/elf_loader_new/new_lib
-INCLUDE		=$(BASE_DIR)/include
-MAKE 		= make
-CC		= gcc 
-LD		= ld
-CFLAGS		= -gstabs+ -m32 -c -fno-builtin
-#CFLAGS		= -ggdb -c -fno-builtin
-CPPFLAGS	=-I $(INCLUDE) 
