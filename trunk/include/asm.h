@@ -68,38 +68,21 @@
 					;	                                   \
     			   ");
 
-//#define SWITCH_TO_USER_MODE(stack_address)     asm("                               \
-					mov    $0x23,%%ax;                         \
-					mov    %%ax,%%ds;                          \
-        				mov    %%ax,%%es;                          \
-					push   %%eax;                              \
-					movl   $0x23,%%eax;	/*ss*/      	   \
-        				push   %%eax;                              \
-					movl %0,%%eax;          /*esp*/ 	   \
-					push   %%eax;                              \
-					movl   $0x206,%%eax;  	/*elfags*/  	   \
-					push   %%eax;                              \
-        				movl   $0x13,%%eax;      /*cs*/      	   \
-					push   %%eax;                              \
-        				movl   $0x100000,%%eax;  /*eip*/           \
-					push   %%eax;                              \
-					"::"r"(stack_address));
-
-#define SWITCH_TO_USER_MODE(stack_address)     asm("                               	\
-					mov    $0x23,%ax;                         	\
-					mov    %ax,%ds;                          	\
-        				mov    %ax,%es;                          	\
-					push   %eax;                              	\
-					movl   $0x23,%eax;	      	   		\
-        				push   %eax;                              	\
-					");						\
-                                        asm("movl %0,%%eax;push %%eax;"::"r"(stack_address)); \
-					asm("movl   $0x206,%eax;    			\
-					push   %eax;                              	\
-        				movl   $0x13,%eax;      /*cs*/      	   	\
-					push   %eax;                              	\
-        				movl   $0x100000,%eax;  /*eip*/           	\
-					push   %eax;                              	\
+#define SWITCH_TO_USER_MODE(stack_address)     asm("                               		\
+					mov    $0x23,%ax;                         		\
+					mov    %ax,%ds;                          		\
+        				mov    %ax,%es;                          		\
+					push   %eax;                              		\
+					movl   $0x23,%eax;	      	   			\
+        				push   %eax;                              		\
+					");							\
+                                        asm("movl %0,%%eax;push %%eax;"::"r"(stack_address)); 	\
+					asm("movl   $0x206,%eax;    				\
+					push   %eax;                              		\
+        				movl   $0x13,%eax;      /*cs*/      	   		\
+					push   %eax;                              		\
+        				movl   $0x100000,%eax;  /*eip*/           		\
+					push   %eax;                              		\
 					iret;");
 
 #define	SWITCH_DS_TO_KERNEL_MODE asm("                                             \

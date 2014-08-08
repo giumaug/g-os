@@ -114,10 +114,21 @@ int getc()
 	params[0]=&data;
 	SYSCALL(5,params);
 	
-	params[0]=data;
-	SYSCALL(6,params);
-	SYSCALL(8,NULL);
+//	params[0]=data;
+//	SYSCALL(6,params);
 	
+	if (data=='\b') 
+	{
+		SYSCALL(10,NULL);
+		SYSCALL(9,NULL);
+	}
+	else 
+	{
+		params[0]=data;
+		SYSCALL(6,params);
+	}
+
+	SYSCALL(8,NULL);
 	return data;
 }
 
