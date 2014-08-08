@@ -32,7 +32,7 @@ int main (int _argc, char *_argv[])
 			c=getc();
 			cmd[i++]=c;
 		}
-		while (c!='\n');
+		while (c!='\r');
 		cmd[i-1]=NULL;
 
 		printf("\n");
