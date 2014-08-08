@@ -272,14 +272,12 @@ int _fork(struct t_processor_reg processor_reg,unsigned int flags)
 
  	struct t_process_context* child_process_context;
 	struct t_process_context* parent_process_context;
-	struct t_process_context* xxx;
 	
-
 	child_process_context=kmalloc(sizeof(struct t_process_context));
 	SAVE_IF_STATUS
 	CLI
-	parent_process_context=system.process_info->current_process->val;
-	CURRENT_PROCESS_CONTEXT(xxx);
+//	parent_process_context=system.process_info->current_process->val;
+	CURRENT_PROCESS_CONTEXT(parent_process_context);
 
 	kmemcpy(child_process_context,parent_process_context,sizeof(struct t_process_context));
 	child_process_context->pid=system.process_info->next_pid++;
@@ -311,11 +309,9 @@ void _exec(char* _path,char* _argv[])
 	static char** argv;
 	struct t_process_context *current_process_context;
 	char* process_storage;
-//	char* process_space;
 	static unsigned int old_proc_phy_addr;
 	static void* old_page_dir;
 	static u32* stack_pointer;
-//	static char* stack_data;
 	static char** stack_data;
 	static u32 argc=0;
 	static u32 i,j;
@@ -330,19 +326,11 @@ void _exec(char* _path,char* _argv[])
 	current_process_context->sleep_time=0;
 	current_process_context->assigned_sleep_time=0;
 	current_process_context->static_priority=0;
-//	current_process_context->phy_space_size=size;
-//	process_space=buddy_alloc_page(&system.buddy_desc,size);
-//	process_storage=FROM_PHY_TO_VIRT(start_addr);
 	old_page_dir=current_process_context->page_dir;
 	old_proc_phy_addr=current_process_context->phy_add_space;
 
 	load_elf_executable(path,current_process_context); 
 
-//	current_process_context->phy_add_space=FROM_VIRT_TO_PHY(process_space);
-//	for (i=0;i<size;i++)
-//	{
-//		*process_space++=*process_storage++;
-//	}
 	current_process_context->page_dir=init_vm_process(system.master_page_dir,current_process_context->phy_add_space,current_process_context,INIT_VM_USERSPACE);
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir)))
 	free_vm_process(old_page_dir,INIT_VM_USERSPACE);

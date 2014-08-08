@@ -18,8 +18,7 @@ all:	kmain.o                       \
 	synchro_types.o               \
 	ext2.o                        \
 	elf_loader.o                  \
-	process_0.o                   \
-	user_space.o
+	process_0.o
 
 	ld -T linker.ld -o kernel.bin \
 	*.o                           \
@@ -94,9 +93,6 @@ ext2.o:
 elf_loader.o:
 	$(MAKE) -C elf_loader
 
-user_space.o:
-	$(MAKE) -C process all
-	
 
 install_remote:all
 	scp ./kernel.bin root@192.168.1.215:/boot/
