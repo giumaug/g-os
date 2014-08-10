@@ -2,6 +2,8 @@ $disk_image="./disk.img"
 run-command-file "targets/x86-440bx/tango-common.simics"
 new-symtable file = kernel.bin
 set-bookmark booted
+ptime
+revto steps
 break (sym _read_write_28_ata)
 kernel.source-path "/home/peppe/Desktop/g-os/drivers/ata/;/home/peppe/Desktop/g-os/scheduler/"
 kernel.source-path /home/peppe/Desktop/g-os/drivers/ata/

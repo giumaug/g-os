@@ -122,7 +122,7 @@ int getc()
 		SYSCALL(10,NULL);
 		SYSCALL(9,NULL);
 	}
-	else 
+	else if (data!='\r')
 	{
 		params[0]=data;
 		SYSCALL(6,params);
