@@ -307,7 +307,8 @@ void _exec(char* _path,char* _argv[])
 {
 	static char* path;
 	static char** argv;
-	struct t_process_context *current_process_context;
+	struct t_process_context* current_process_context;
+	struct t_process_context* new_process_context;
 	char* process_storage;
 	static unsigned int old_proc_phy_addr;
 	static void* old_page_dir;
@@ -318,21 +319,25 @@ void _exec(char* _path,char* _argv[])
 	static u32 frame_size=0;
 	
 //	SAVE_IF_STATUS
-	CLI
+//	CLI
 	path=_path;
 	argv=_argv;
 	current_process_context=system.process_info->current_process->val;
-	current_process_context->proc_status=RUNNING;
-	current_process_context->sleep_time=0;
-	current_process_context->assigned_sleep_time=0;
-	current_process_context->static_priority=0;
+	new_process_context=kmalloc(sizeof(struct t_process_context));
+	new_process_context->proc_status=RUNNING;
+	new_process_context->sleep_time=0;
+	new_process_context->assigned_sleep_time=0;
+	new_process_context->static_priority=0;
 	old_page_dir=current_process_context->page_dir;
 	old_proc_phy_addr=current_process_context->phy_add_space;
 
-	load_elf_executable(path,current_process_context); 
-
-	current_process_context->page_dir=init_vm_process(system.master_page_dir,current_process_context->phy_add_space,current_process_context,INIT_VM_USERSPACE);
-	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir)))
+	load_elf_executable(path,new_process_context); 
+	
+	CLI
+	system.process_info->current_process->val=new_process_context;
+	kfree(current_process_context);
+	new_process_context->page_dir=init_vm_process(system.master_page_dir,new_process_context->phy_add_space,new_process_context,INIT_VM_USERSPACE);
+	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) new_process_context->page_dir)))
 	free_vm_process(old_page_dir,INIT_VM_USERSPACE);
 	buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(old_proc_phy_addr));
 	

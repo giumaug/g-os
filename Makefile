@@ -101,7 +101,6 @@ bochs:all
 	mount /dev/loop3 /mnt
 	cp /home/peppe/Desktop/g-os/kernel.bin /mnt/boot/kernel.bin
 	cp /home/peppe/Desktop/g-os/kernel.bin  /opt/virtutech/simics-3.0.31/workspace/kernel.bin
-	cp /home/peppe/Desktop/g-os/process/shell /mnt
 	umount /mnt
 clean:	
 	rm -f kmain.o idt.o syscall_handler.o asm.o loader.o kernel_init.o debug.o process_0.o
