@@ -17,18 +17,13 @@ void sem_down(t_sem_desc* sem_desc)
 {
 	struct t_process_context* current_process_context;
 	unsigned int need_sleep=0;
-	int ss=10;
 
 	current_process_context=system.process_info->current_process->val;
-	//--SPINLOCK_LOCK(sem_desc->spinlock);
+	SPINLOCK_LOCK(sem_desc->spinlock);
 	
-	//asm ("_spin%=:mov $0x1,%%eax;xchg %%eax,%0;cmp $0,%%eax;jne _spin%=;":"=r"(ss)::"%eax");
-	asm volatile("_spin%=:mov $0x1,%%eax;xchg %%eax,%0;cmp $0,%%eax;jne _spin%=;":"=r"(ss):"r"(ss));	
-
-	if (ss==1) while(1);
+	//asm volatile("_spin%=:mov $0x1,%%eax;xchg %%eax,%0;cmp $0,%%eax;jne _spin%=;":"+r"(sem_desc->spinlock.status)::"%eax");		
 
 	race1++;
-	ss=sem_desc->spinlock.status;
 	if (sem_desc->count==0)
 	{
 		current_process_context=system.process_info->current_process->val;
