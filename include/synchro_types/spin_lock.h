@@ -16,14 +16,14 @@ asm ("                          \
 	cmp $0,%%eax;		\
 	jne _spin%=;		\
      "                          \
-    ::"r"(lock):"%eax");
+    :"+r"(lock.status)::"%eax");
 			
 
 #define _SPINLOCK_UNLOCK(lock) 	\
 asm("				\
 	mov $0,%0		\
     "				\
-    :"=r"(lock.status));
+    :"+r"(lock.status));
 
 #define SPINLOCK_LOCK(lock)	\
 	DISABLE_PREEMPTION	\
