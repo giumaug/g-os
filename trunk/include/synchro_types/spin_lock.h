@@ -16,7 +16,7 @@ asm ("                          \
 	cmp $0,%%eax;		\
 	jne _spin%=;		\
      "                          \
-    ::"r"(lock.status):"%eax");
+    ::"r"(lock):"%eax");
 			
 
 #define _SPINLOCK_UNLOCK(lock) 	\

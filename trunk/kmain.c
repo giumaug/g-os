@@ -103,5 +103,6 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 //	SWITCH_TO_USER_MODE
 	asm("movl $0x1FFFFF,%ebp");
 	asm("movl $0x1FFFFF,%esp");
+	STI
 	process_0();				       	
 }
