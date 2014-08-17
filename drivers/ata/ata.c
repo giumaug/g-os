@@ -78,19 +78,12 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	system.device_desc->serving_request=io_request;
 	
 	out(0xE0 | (io_request->lba >> 24),0x1F6);
-	io_request->sector_count=2;
+	//io_request->sector_count=2;
 	out((unsigned char)io_request->sector_count,0x1F2);
 	out((unsigned char)io_request->lba,0x1F3);
 	out((unsigned char)(io_request->lba >> 8),0x1F4);
 	out((unsigned char)(io_request->lba >> 16),0x1F5);
 	out(io_request->command,0x1F7);
-
-//	out(0xE0 | 0,0x1F6);
-//	out(0,0x1F2);
-//	out(0,0x1F3);
-//	out(0,0x1F4);
-//	out(0,0x1F5);
-//	out(io_request->command,0x1F7);
 
 	for (k=0;k<1000;k++);
 
@@ -104,26 +97,30 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 		}
 	}
 	
-	//semaphore to avoid race with interrupt handler
-	sem_down(&device_desc->sem);
+	//one interrupt for each block
+	for (k=0;k<io_request->sector_count;k++)
+	{
+		//semaphore to avoid race with interrupt handler
+		sem_down(&device_desc->sem);
 
-	if ((in(0x1F7)&1))
-	{
-		device_desc->status=DEVICE_IDLE;
-		panic();
-		return -1;
-	}
+		if ((in(0x1F7)&1))
+		{
+			device_desc->status=DEVICE_IDLE;
+			panic();
+			return -1;
+		}
 	
-	if (io_request->command==READ_28)
-	{
-		for (i=0;i<(256*io_request->sector_count);i+=2)
-		{  
-			unsigned short val=inw(0x1F0);
-			((char*)io_request->io_buffer)[i]=(val&0xff);
-			((char*)io_request->io_buffer)[i+1]=(val>>0x8);
+		if (io_request->command==READ_28)
+		{
+			for (i=0;i<512;i+=2)
+			{  
+				unsigned short val=inw(0x1F0);
+				((char*)io_request->io_buffer)[i]=(val&0xff);
+				((char*)io_request->io_buffer)[i+1]=(val>>0x8);
+			}
+		i=0;
 		}
 	}
-	while(1);
 	race--;
 	if (race>0)
 	{
