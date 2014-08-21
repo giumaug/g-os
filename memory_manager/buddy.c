@@ -126,10 +126,27 @@ void buddy_free_page(t_buddy_desc* buddy,void* to_free_page_addr)
 	t_llist_node* node;
 	t_llist_node* node_buddy;
 	int i;
+	struct t_buddy_desc* xxx;
 
-	SAVE_IF_STATUS
+	//--siSAVE_IF_STATUS
+
+	unsigned int if_status;          
+	asm("push %eax;");                      
+	asm("pushfl;");                          
+	asm("movl (%esp),%eax;");                
+	asm ("andl $0x200,%eax;");
+	                                                 
+        asm("movl %%eax,%0;":"=r"(if_status));
+	asm("popfl;");                           
+	asm("pop %eax;");
+
+
+
 	CLI	
 	//SPINLOCK_LOCK
+
+	xxx=buddy;
+
 	page_addr=to_free_page_addr;
 	page_addr-=(BUDDY_START_ADDR + VIRT_MEM_START_ADDR);
 	
