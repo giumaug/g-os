@@ -223,15 +223,13 @@ void syscall_handler()
 			{
 				buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_k_thread_stack)); 	
 			}                                  
-		}                                                                               
+		}                                                                             
 		if (_ds=0x20)                                                                               
 		{                                                                                           
 			SWITCH_DS_TO_USER_MODE                                                              
-		}                                                                        
-		//EXIT_SYSCALL_HANDLER
-		asm("pop %ebp;");
-		asm("iret;");
-                                                                        
+		}
+		RESTORE_PROCESSOR_REG                                                                     
+		EXIT_SYSCALL_HANDLER                                                        
 	}                                                                                                   
 	else                                                                                                
 	{   
