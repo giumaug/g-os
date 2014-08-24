@@ -136,7 +136,7 @@ void buddy_free_page(t_buddy_desc* buddy,void* to_free_page_addr)
 	asm("movl (%esp),%eax;");                
 	asm ("andl $0x200,%eax;");
 	                                                 
-        asm("movl %%eax,%0;":"=r"(if_status));
+        //asm("movl %%eax,%0;":"=r"(if_status));
 	asm("popfl;");                           
 	asm("pop %eax;");
 
