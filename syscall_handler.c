@@ -21,17 +21,17 @@ void syscall_handler()
 	int* params;
 	char data;
 	unsigned int on_exit_action;
-	short ds;
+//	short ds;
 
  	SAVE_PROCESSOR_REG
 	//call can come from kernel mode (sleep)
-	GET_DS(ds)
-	if (ds==0x20) 
-	{
-		SWITCH_DS_TO_KERNEL_MODE
-	}
-
-//	SWITCH_DS_TO_KERNEL_MODE
+//	GET_DS(ds)
+//	if (ds==0x20) 
+//	{
+//		SWITCH_DS_TO_KERNEL_MODE
+//	}
+//
+	SWITCH_DS_TO_KERNEL_MODE
 	on_exit_action=0;
 	current_process_context=system.process_info->current_process->val;
 	t_console_desc *console_desc=current_process_context->console_desc;
@@ -190,17 +190,17 @@ void syscall_handler()
 	
 	
 	
-//	EXIT_INT_HANDLER(on_exit_action,processor_reg,0)
+//	EXIT_INT_HANDLER(on_exit_action,processor_reg)
 
 	static struct t_process_context _current_process_context;                                          
 	static struct t_process_context _old_process_context;                                              
 	static struct t_process_context _new_process_context;	                                            
 	static struct t_processor_reg _processor_reg;                                                       
 	static unsigned int _action;
-	static short _ds;                                                                        
+//	static short _ds;                                                                        
                                                                                                             
 	CLI
-	_ds=ds;                                                                         
+//	_ds=ds;                                                                         
 	_action=on_exit_action;                                                                                
 	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;                                  
 	_old_process_context=_current_process_context;                                                      
@@ -224,20 +224,20 @@ void syscall_handler()
 				buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_k_thread_stack)); 	
 			}                                  
 		}                                                                             
-		if (_ds=0x20)                                                                               
-		{                                                                                           
-			SWITCH_DS_TO_USER_MODE                                                              
-		}
+//		if (_ds=0x20)                                                                               
+//		{                                                                                           
+//			SWITCH_DS_TO_USER_MODE                                                              
+//		}
 		RESTORE_PROCESSOR_REG                                                                     
 		EXIT_SYSCALL_HANDLER                                                        
 	}                                                                                                   
 	else                                                                                                
 	{   
 		DO_STACK_FRAME(_processor_reg.esp-8);                                                                                            
-		if (_ds=0x20)                                                                               
-		{                                                                                           
-			SWITCH_DS_TO_USER_MODE                                                              
-		}                                                                                           
+//		if (_ds=0x20)                                                                               
+//		{                                                                                           
+//			SWITCH_DS_TO_USER_MODE                                                              
+//		}                                                                        
 		RESTORE_PROCESSOR_REG                                                                       
 		RET_FROM_INT_HANDLER                                                                        
 	}

@@ -39,6 +39,8 @@ struct t_processor_reg
 	unsigned int edi;  
         //esp field contains kernel mode stack,user mode stack inside kernel stack
 	unsigned int esp;
+	unsigned int ds;
+	unsigned int es;
 };
 
 struct t_process_context 

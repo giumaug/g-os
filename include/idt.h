@@ -18,9 +18,8 @@ struct t_idt_ptr {
 void int_handler_generic();
 void init_idt();
 void set_idt_entry(int entry,struct t_i_desc* i_desc);
-void exit_int_handler(unsigned int action,struct t_processor_reg processor_reg,short ds);
 
-#define EXIT_INT_HANDLER(action,processor_reg,ds)                                                                  		\
+#define EXIT_INT_HANDLER(action,processor_reg)                                                                  		\
                                                                                                                    		\
 	static struct t_process_context _current_process_context;                                                  		\
 	static struct t_process_context _old_process_context;                                                      		\
@@ -52,20 +51,14 @@ void exit_int_handler(unsigned int action,struct t_processor_reg processor_reg,s
 				buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_k_thread_stack));   \
 			}  													\
 		}                                                                                                  		\
-		SWITCH_DS_TO_USER_MODE                                                                             		\
 		RESTORE_PROCESSOR_REG                                                                              		\
 		EXIT_SYSCALL_HANDLER                                                                               		\
 	}                                                                                                          		\
 	else                                                                                                       		\
-	{                                                                                                          		\
-		if (ds==0x20)                                                                                      		\
-		{                                                                                                  		\
-			SWITCH_DS_TO_USER_MODE                                                                     		\
-		}                                                                                                  		\
+	{                                                                                                            		\
 		RESTORE_PROCESSOR_REG                                                                              		\
 		RET_FROM_INT_HANDLER                                                                               		\
 	}
-                                                                                                           
-
+         
 #endif
 

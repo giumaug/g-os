@@ -29,7 +29,7 @@ void int_handler_pit()
 {	
 	int x;
 	int is_schedule=0;
-	short ds;
+//	short ds;
 	struct t_process_context* process_context;
 	struct t_process_context* sleeping_process;
 	struct t_processor_reg processor_reg;
@@ -41,14 +41,14 @@ void int_handler_pit()
 	unsigned int priority;
 	
 	SAVE_PROCESSOR_REG
-//	CLI
 	EOI_TO_MASTER_PIC
-	GET_DS(ds)
-	if (ds==0x20) 
-	{
-		SWITCH_DS_TO_KERNEL_MODE
-	}
+//	GET_DS(ds)
+//	if (ds==0x20) 
+//	{
+//		SWITCH_DS_TO_KERNEL_MODE
+//	}
 
+	SWITCH_DS_TO_KERNEL_MODE
 	system.time+=QUANTUM_DURATION;
 
 	if (system.int_path_count>0)
@@ -127,7 +127,7 @@ void int_handler_pit()
 		}
 	}
 exit_handler:;
-//	EXIT_INT_HANDLER(is_schedule,processor_reg,ds);
+//	EXIT_INT_HANDLER(is_schedule,processor_reg);
 
 	static struct t_process_context _current_process_context;                                          
 	static struct t_process_context _old_process_context;                                              
@@ -159,17 +159,17 @@ exit_handler:;
 				buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_k_thread_stack)); 	
 			}                         
 		}                                                                               
-		SWITCH_DS_TO_USER_MODE                                                                      
+//		SWITCH_DS_TO_USER_MODE                                                                      
 		RESTORE_PROCESSOR_REG                                                                       
 		EXIT_SYSCALL_HANDLER                                                                        
 	}                                                                                                   
 	else                                                                                                
 	{   
 		DO_STACK_FRAME(_processor_reg.esp-8);                                                                                             
-		if (ds==0x20)                                                                               
-		{                                                                                           
-			SWITCH_DS_TO_USER_MODE                                                              
-		}                                                                                           
+//		if (ds==0x20)                                                                               
+//		{                                                                                           
+//			SWITCH_DS_TO_USER_MODE                                                              
+//		}                                                                                           
 		RESTORE_PROCESSOR_REG                                                                       
 		RET_FROM_INT_HANDLER                                                                        
 	}
