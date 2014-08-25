@@ -116,8 +116,8 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 			for (i=0;i<512;i+=2)
 			{  
 				unsigned short val=inw(0x1F0);
-				((char*)io_request->io_buffer)[i]=(val&0xff);
-				((char*)io_request->io_buffer)[i+1]=(val>>0x8);
+				((char*)io_request->io_buffer)[i+(512*k)]=(val&0xff);
+				((char*)io_request->io_buffer)[i+1+(512*k)]=(val>>0x8);
 			}
 		i=0;
 		}
