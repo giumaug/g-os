@@ -196,13 +196,13 @@ void static read_root_dir_inode(t_ext2* ext2,t_inode* inode)
 	lba=(2*BLOCK_SIZE)/SECTOR_SIZE+ext2->partition_start_sector;
 	io_buffer=kmalloc(512);
 	
-	P_READ(1,lba,io_buffer);
+	READ(1,lba,io_buffer);
 	READ_DWORD(&io_buffer[8],inode_table);
 	kfree(io_buffer);
 
         lba=ext2->partition_start_sector+(inode_table*2);
 	inode_offset=128;
-	P_READ(1,lba,io_buffer);
+	READ(1,lba,io_buffer);
 	
 	//u16
 	READ_WORD(&io_buffer[inode_offset],inode->i_mode);
