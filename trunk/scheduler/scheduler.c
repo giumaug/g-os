@@ -416,7 +416,7 @@ void _exec(char* _path,char* _argv[])
 		stack_data[i]=argv[i];
 	}
 	stack_data[argc]=NULL;
-
+/*
 	asm("mov    $0x23,%ax;                         		\
 	     mov    %ax,%ds;                          		\
              mov    %ax,%es;                          		\
@@ -434,8 +434,9 @@ void _exec(char* _path,char* _argv[])
         asm("movl   $0x100000,%eax;");           		
 	asm("push   %eax;");                              		
 	asm("iret;");
+*/
 
-//-	SWITCH_TO_USER_MODE(stack_pointer)
+	SWITCH_TO_USER_MODE(stack_pointer)
 }
 
 void _sleep_time(unsigned int time)
