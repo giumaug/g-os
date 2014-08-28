@@ -437,6 +437,7 @@ void _exec(char* _path,char* _argv[])
 */
 
 	SWITCH_TO_USER_MODE(stack_pointer)
+	return;
 }
 
 void _sleep_time(unsigned int time)
