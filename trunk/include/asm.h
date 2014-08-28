@@ -61,10 +61,10 @@
 
 #define SWITCH_TO_USER_MODE(xx)     asm("                                        \
 	     				.comm TMP,4;                               \
-        				movl   %eax,TMP;                           \
-					mov    $0x23,%ax;                          \
-					mov    %ax,%ds;                            \
-        				mov    %ax,%es;                            \
+        				/*movl   %eax,TMP;*/                           \
+					/*mov    $0x23,%ax;*/                          \
+					/*mov    %ax,%ds;*/                            \
+        				/*mov    %ax,%es;*/                            \
 					/*movl   $0x0,%eax;	  fake ebp*/       \
 					push   %eax;                           	   \
 					movl   $0x23,%eax;	  /*ss*/           \
