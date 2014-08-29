@@ -100,7 +100,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	*(system.process_info->tss.ss)=0x18;
 	*(system.process_info->tss.esp)=0x1FFFFF;//64K kernel mode stack
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) process_context->page_dir)))                           	
-//	SWITCH_TO_USER_MODE
+	SWITCH_TO_USER_MODE(data)
 	asm("movl $0x1FFFFF,%ebp");
 	asm("movl $0x1FFFFF,%esp");
 	STI
