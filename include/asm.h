@@ -78,7 +78,7 @@
         				movl   $0x100000,%eax;   /*eip*/           \
 					push   %eax;                               \
 					mov    $TMP,%eax;                          \
-					//iret;	                                   \
+					iret;	                                   \
     			   ");
 
 //#define SWITCH_TO_USER_MODE(stack_address)     asm("                               		\
