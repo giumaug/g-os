@@ -29,8 +29,8 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 
 	system.time=0;
 	init_data=init_data_add;
-	asm ("movl %0,%%esp;"::"r"(tmp_kernel_stack+0x1000));
-	asm ("movl %0,%%ebp;"::"r"(tmp_kernel_stack+0x1000));
+	asm ("movl %0,%%esp;"::"r"(tmp_kernel_stack+0xFF0));
+	asm ("movl %0,%%ebp;"::"r"(tmp_kernel_stack+0xFF0));
 
 	
 	if ( magic != 0x2BADB002 )
@@ -100,7 +100,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	*(system.process_info->tss.ss)=0x18;
 	*(system.process_info->tss.esp)=0x1FFFFF;//64K kernel mode stack
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) process_context->page_dir)))                           	
-	SWITCH_TO_USER_MODE(data)
+//	SWITCH_TO_USER_MODE(data)
 	asm("movl $0x1FFFFF,%ebp");
 	asm("movl $0x1FFFFF,%esp");
 	STI
