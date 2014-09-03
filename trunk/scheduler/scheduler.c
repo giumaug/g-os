@@ -416,25 +416,6 @@ void _exec(char* _path,char* _argv[])
 		stack_data[i]=argv[i];
 	}
 	stack_data[argc]=NULL;
-/*
-	asm("mov    $0x23,%ax;                         		\
-	     mov    %ax,%ds;                          		\
-             mov    %ax,%es;                          		\
-	     push   %eax;                              		\
-	     movl   $0x23,%eax;	      	   			\
-             push   %eax;                              		\
-	");							
-                                        
-	asm("movl %0,%%eax;push %%eax;"::"r"(stack_pointer)); 	
-					
-	asm("movl   $0x206,%eax;");    				
-	asm("push   %eax;");                              		
-        asm("movl   $0x13,%eax;");          	   	
-	asm("push   %eax;");                             		
-        asm("movl   $0x100000,%eax;");           		
-	asm("push   %eax;");                              		
-	asm("iret;");
-*/
 
 	SWITCH_TO_USER_MODE(stack_pointer)
 	return;
