@@ -1,3 +1,4 @@
+#call with make process=<process_to_compile> all | clean
 include ../make.rules
 
 all:	user_space_process.o                      \
