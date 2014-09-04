@@ -30,7 +30,8 @@ void load_elf_executable(char* path,struct t_process_context* process_context)
 		if (elf_prg_header[i].p_type==PT_LOAD)
 		{
 			process_size=elf_prg_header[i].p_memsz;
-			process_space=buddy_alloc_page(system.buddy_desc,process_size);
+			//process_space=buddy_alloc_page(system.buddy_desc,process_size);
+			process_space=buddy_alloc_page(system.buddy_desc,0x100000);
 			process_context->phy_space_size=process_size;
 			process_context->phy_add_space=FROM_VIRT_TO_PHY(process_space);
 			_seek(ext2,fd,elf_prg_header[i].p_offset,SEEK_SET);
