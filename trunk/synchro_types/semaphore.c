@@ -4,7 +4,7 @@
 
 //With count zero init mutex (formally process holding mutex should be the only permitted to release mutex )
 //Process holding mutex or semaphore can sleep.Process holding spinlock can't.
-//Spinlock can't used inside interrupt context (deadlock),spinlock are useless in uniprocessor system.
+//Spinlock can't be used inside interrupt context (deadlock),spinlock are useless in uniprocessor system.
 void sem_init(t_sem_desc* sem_desc,int count)
 {
 	sem_desc->wait_queue=new_dllist();
