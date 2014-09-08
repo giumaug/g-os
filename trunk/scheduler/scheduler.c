@@ -289,7 +289,7 @@ int _fork(struct t_processor_reg processor_reg,unsigned int flags)
 		mem_size=parent_process_context->phy_space_size;
 		proc_mem=buddy_alloc_page(system.buddy_desc,mem_size);    
 		child_process_context->phy_add_space=FROM_VIRT_TO_PHY(proc_mem); 
-		kmemcpy(proc_mem,FROM_PHY_TO_VIRT(parent_process_context->phy_add_space),mem_size);
+		kmemcpy(proc_mem,FROM_PHY_TO_VIRT(parent_process_context->phy_add_space),mem_size); 
 	}
 	else
 	{
@@ -322,12 +322,9 @@ void _exec(char* _path,char* _argv[])
 	static unsigned int init_vm_userspace;
 	static unsigned int page_to_free;
 	
-//	SAVE_IF_STATUS
-//	CLI
 	path=_path;
 	argv=_argv;
 	current_process_context=system.process_info->current_process->val;
-//	new_process_context=kmalloc(sizeof(struct t_process_context));
 	current_process_context->proc_status=RUNNING;
 	current_process_context->sleep_time=0;
 	current_process_context->assigned_sleep_time=0;
@@ -339,7 +336,7 @@ void _exec(char* _path,char* _argv[])
 	
 	CLI
 	system.process_info->current_process->val=current_process_context;
-	kfree(current_process_context);
+//	kfree(current_process_context);
 	current_process_context->page_dir=init_vm_process(system.master_page_dir,current_process_context->phy_add_space,current_process_context,INIT_VM_USERSPACE);
 	buddy_desc=system.buddy_desc;
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir)))
@@ -358,44 +355,6 @@ void _exec(char* _path,char* _argv[])
 	buddy_free_page(buddy_desc,FROM_PHY_TO_VIRT(page_to_free));
 	free_vm_process(old_page_dir,init_vm_userspace); 
 
-//	free_vm_process(old_page_dir,INIT_VM_USERSPACE);
-//	buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(old_proc_phy_addr));
-	
-//	while(argv[i++]!=NULL)
-//	{
-//		 argc++;
-//	}
-//
-//	j=0;
-//	for(i=0;i<argc;i++)
-//	{
-//		while(argv[i][j++]!=NULL)
-//		{
-//			frame_size++;
-//		}
-//	}
-//	frame_size+=16;
-//
-//	stack_pointer=0x1EFFFF-frame_size;
-//	*(stack_pointer+0)=NULL;
-//	*(stack_pointer+1)=argc;
-//	*(stack_pointer+2)=(stack_pointer+4);
-//	*(stack_pointer+3)=NULL;
-//	stack_data=stack_pointer+4;
-//
-//	j=0;
-//	for(i=0;i<argc;i++)
-//	{
-//		while(argv[i][j]!=NULL)
-//		{
-//			*stack_data++=argv[i][j];
-//			j++;
-//		}
-//		*stack_data++=NULL;
-//		j=0;
-//	}
-//
-	i=0;
 	while(argv[i++]!=NULL)
 	{
 		 argc++;

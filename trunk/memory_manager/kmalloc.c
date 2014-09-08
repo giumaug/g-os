@@ -64,7 +64,7 @@ void* kmalloc(unsigned int mem_size)
 	}
 	//SPINLOCK_UNLOCK
 	RESTORE_IF_STATUS
-	if (mem_add==0xc221100e)
+	if (mem_add==0xc1c8808f)
 	{
 		i=0;
 	}
@@ -75,7 +75,7 @@ void kfree(void *address)
 {	
 	unsigned int pool_index;
 
-	if (address==0xc221100e)
+	if (address==0xc1c8808f)
 	{
 		pool_index=0;
 	}
