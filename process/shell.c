@@ -91,7 +91,7 @@ int main (int _argc, char *_argv[])
 		{
 			if (!is_background)
 			{
-				//pause();
+				pause();
 			}
 		}
 	}

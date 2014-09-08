@@ -5,7 +5,7 @@ all:	user_space_process.o                      \
         lib.o    
 
 	ld -T linker.ld  -melf_i386 -o $(process)  \
-	*.o                                        \
+	$(process).o                                        \
 	lib/*.o
 
 install:

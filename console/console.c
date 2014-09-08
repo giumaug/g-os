@@ -53,10 +53,7 @@ static int write_out_buf(t_console_desc *console_desc,char data)
 	unsigned int i;
 	unsigned int index_1;
 	unsigned int index_2;
-
-//	SAVE_IF_STATUS
-//	CLI
-	SPINLOCK_LOCK(console_desc->spinlock);	
+	
 	INC(console_desc->out_buf_index,console_desc->out_buf_len,1,0);
 	console_desc->out_buf[console_desc->out_buf_index]=data;
 	if (console_desc->out_buf_index==0 && console_desc->first_char) 
@@ -95,8 +92,6 @@ static int write_out_buf(t_console_desc *console_desc,char data)
 	console_desc->video_buf[console_desc->video_buf_index]=console_desc->out_buf[console_desc->out_buf_index];
 	console_desc->video_buf_index++;
 	console_desc->video_buf[console_desc->video_buf_index]=SCREEN_FOREGROUND_COLOR;
-	SPINLOCK_UNLOCK(console_desc->spinlock);
-//	RESTORE_IF_STATUS
 }
 
 void _write_char(t_console_desc *console_desc,char data)
