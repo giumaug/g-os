@@ -37,12 +37,10 @@ void* init_vm_process(void* master_page_dir,unsigned int proc_phy_addr,struct t_
 	map_vm_mem(page_dir,0,0,0x100000);
 	if (flags==INIT_VM_USERSPACE)
 	{
-		map_vm_mem(page_dir,PROC_VIRT_MEM_START_ADDR,proc_phy_addr,0x100000);
+		map_vm_mem(page_dir,PROC_VIRT_MEM_START_ADDR,proc_phy_addr,process_context->phy_space_size);
+		map_vm_mem(page_dir,USER_STACK,process_context->phy_user_stack,0x10000);
 	}
-	else
-	{
-		map_vm_mem(page_dir,KERNEL_THREAD_STACK,process_context->phy_k_thread_stack,0x10000);	
-	}
+	map_vm_mem(page_dir,KERNEL_STACK,process_context->phy_kernel_stack,0x4000);	
 	return page_dir;
 }
 
