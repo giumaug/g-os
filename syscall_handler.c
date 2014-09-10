@@ -218,26 +218,16 @@ void syscall_handler()
 			if (_old_process_context.phy_add_space!=NULL)
 			{ 
 				buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_add_space));
+				buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_user_stack));
 			}
-			else
-			{
-				buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_k_thread_stack)); 	
-			}                                  
+			buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_kernel_stack)); 	                                  
 		}                                                                             
-//		if (_ds=0x20)                                                                               
-//		{                                                                                           
-//			SWITCH_DS_TO_USER_MODE                                                              
-//		}
 		RESTORE_PROCESSOR_REG                                                                     
 		EXIT_SYSCALL_HANDLER                                                        
 	}                                                                                                   
 	else                                                                                                
 	{   
-		DO_STACK_FRAME(_processor_reg.esp-8);                                                                                            
-//		if (_ds=0x20)                                                                               
-//		{                                                                                           
-//			SWITCH_DS_TO_USER_MODE                                                              
-//		}                                                                        
+		DO_STACK_FRAME(_processor_reg.esp-8);                                                                      
 		RESTORE_PROCESSOR_REG                                                                       
 		RET_FROM_INT_HANDLER                                                                        
 	}

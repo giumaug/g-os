@@ -84,23 +84,13 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	system.process_info->tss.esp= *(init_data+1);
 	system.process_info->pause_queue=new_dllist();
 	process_context->phy_add_space=NULL;
-	process_context->phy_k_thread_stack=FROM_VIRT_TO_PHY(buddy_alloc_page(system.buddy_desc,0x10000));
-	//*process_context->current_dir="/";
-	
-//	process_space=buddy_alloc_page(&system.buddy_desc,0x100000);
-//	process_storage=FROM_PHY_TO_VIRT(0x500000);
-//	proc_phy_addr=FROM_VIRT_TO_PHY(process_space);
-//	process_context.phy_add_space=proc_phy_addr;
-//	process_context.phy_space_size=0x100000;
-//	for (i=0;i<0x100000;i++)
-//	{
-//		*process_space++=*process_storage++;
-//	}                         
+	process_context->phy_kernel_stack=FROM_VIRT_TO_PHY(buddy_alloc_page(system.buddy_desc,0x4000));
+	                       
 	process_context->page_dir=init_vm_process(system.master_page_dir,process_context->phy_add_space,process_context,NO_INIT_VM_USERSPACE);
 	*(system.process_info->tss.ss)=0x18;
 	*(system.process_info->tss.esp)=0x1FFFFF;//64K kernel mode stack
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) process_context->page_dir)))                           	
-//	SWITCH_TO_USER_MODE(data)
+
 	asm("movl $0x1FFFFF,%ebp");
 	asm("movl $0x1FFFFF,%esp");
 	STI

@@ -276,7 +276,6 @@ int _fork(struct t_processor_reg processor_reg,unsigned int flags)
 	child_process_context=kmalloc(sizeof(struct t_process_context));
 	SAVE_IF_STATUS
 	CLI
-//	parent_process_context=system.process_info->current_process->val;
 	CURRENT_PROCESS_CONTEXT(parent_process_context);
 
 	kmemcpy(child_process_context,parent_process_context,sizeof(struct t_process_context));
@@ -290,13 +289,16 @@ int _fork(struct t_processor_reg processor_reg,unsigned int flags)
 		proc_mem=buddy_alloc_page(system.buddy_desc,mem_size);    
 		child_process_context->phy_add_space=FROM_VIRT_TO_PHY(proc_mem); 
 		kmemcpy(proc_mem,FROM_PHY_TO_VIRT(parent_process_context->phy_add_space),mem_size); 
+
+		proc_mem=buddy_alloc_page(system.buddy_desc,0x4000);    
+		child_process_context->phy_user_stack=FROM_VIRT_TO_PHY(proc_mem); 
+		kmemcpy(proc_mem,FROM_PHY_TO_VIRT(parent_process_context->phy_user_stack),0x4000);
+
 	}
-	else
-	{
-		proc_mem=buddy_alloc_page(system.buddy_desc,0x10000);    
-		child_process_context->phy_k_thread_stack=FROM_VIRT_TO_PHY(proc_mem); 
-		kmemcpy(proc_mem,FROM_PHY_TO_VIRT(parent_process_context->phy_k_thread_stack),0x10000);
-	}
+	proc_mem=buddy_alloc_page(system.buddy_desc,0x4000);    
+	child_process_context->phy_kernel_stack=FROM_VIRT_TO_PHY(proc_mem); 
+	kmemcpy(proc_mem,FROM_PHY_TO_VIRT(parent_process_context->phy_kernel_stack),0x4000);
+	
 	ll_prepend(system.scheduler_desc.scheduler_queue[parent_process_context->curr_sched_queue_index],child_process_context);
 	child_process_context->page_dir=init_vm_process(system.master_page_dir,child_process_context->phy_add_space,child_process_context,flags);
 	RESTORE_IF_STATUS
@@ -311,7 +313,7 @@ void _exec(char* _path,char* _argv[])
 	//struct t_process_context* new_process_context;
 	char* process_storage;
 	static unsigned int old_proc_phy_addr;
-	static unsigned int old_phy_k_thread_stack;
+	static unsigned int old_phy_kernel_stack;
 	static void* old_page_dir;
 	static u32* stack_pointer;
 	static char** stack_data;
@@ -330,7 +332,7 @@ void _exec(char* _path,char* _argv[])
 	current_process_context->assigned_sleep_time=0;
 	current_process_context->static_priority=0;
 	old_page_dir=current_process_context->page_dir;
-	old_phy_k_thread_stack=current_process_context->phy_k_thread_stack;
+	old_phy_kernel_stack=current_process_context->phy_kernel_stack;
 
 	load_elf_executable(path,current_process_context); 
 	
@@ -348,7 +350,7 @@ void _exec(char* _path,char* _argv[])
 	}
 	else
 	{
-		page_to_free=old_phy_k_thread_stack;
+		page_to_free=old_phy_kernel_stack;
 		init_vm_userspace=NO_INIT_VM_USERSPACE;
 	}
 

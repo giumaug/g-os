@@ -45,11 +45,10 @@ void set_idt_entry(int entry,struct t_i_desc* i_desc);
 			if (_old_process_context.phy_add_space!=NULL)                                              		\
 			{                                                                                          		\
 				buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_add_space));	\
+				buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_user_stack));       \
 			}                                                                                                       \
-			else                                                                                                    \
-			{                                                                                                       \
-				buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_k_thread_stack));   \
-			}  													\
+			buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_kernel_stack));             \
+			  													\
 		}                                                                                                  		\
 		RESTORE_PROCESSOR_REG                                                                              		\
 		EXIT_SYSCALL_HANDLER                                                                               		\
