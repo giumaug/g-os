@@ -18,7 +18,8 @@ void* init_virtual_memory()
 	return new_page_dir;
 }
 
-void* init_vm_process(void* master_page_dir,unsigned int proc_phy_addr,struct t_process_context* process_context,unsigned int flags)
+//void* init_vm_process(void* master_page_dir,unsigned int proc_phy_addr,struct t_process_context* process_context,unsigned int flags)
+void* init_vm_process(struct t_process_context* process_context)
 {
 	unsigned int *page_dir;	
 	unsigned int start,end;
@@ -32,30 +33,31 @@ void* init_vm_process(void* master_page_dir,unsigned int proc_phy_addr,struct t_
 	}
 	for (i=768;i<1024;i++) 
 	{
-		page_dir[i]=((unsigned int*)master_page_dir)[i];
+		page_dir[i]=((unsigned int*)system.master_page_dir)[i];
 	}
 	map_vm_mem(page_dir,0,0,0x100000);
-	if (flags==INIT_VM_USERSPACE)
+	if (process_context->proc_phy_addr!=NULL)
+//	if (flags==INIT_VM_USERSPACE)
 	{
-		map_vm_mem(page_dir,PROC_VIRT_MEM_START_ADDR,proc_phy_addr,process_context->phy_space_size);
+		map_vm_mem(page_dir,PROC_VIRT_MEM_START_ADDR,process_context->proc_phy_addr,process_context->phy_space_size);
 		map_vm_mem(page_dir,USER_STACK,process_context->phy_user_stack,0x10000);
 	}
 	map_vm_mem(page_dir,KERNEL_STACK,process_context->phy_kernel_stack,0x4000);	
 	return page_dir;
 }
 
-void free_vm_process(void* page_dir,unsigned int flags)
+//void free_vm_process(void* page_dir,unsigned int flags)
+void free_vm_process(struct t_process_context* process_context)
 {
 	umap_vm_mem(page_dir,0,0x100000,0);
-	if (flags==INIT_VM_USERSPACE)
+//	if (flags==INIT_VM_USERSPACE)
+	if (process_context->proc_phy_addr!=NULL)
 	{
-		umap_vm_mem(page_dir,PROC_VIRT_MEM_START_ADDR,0x100000,1);
+		umap_vm_mem(page_dir,PROC_VIRT_MEM_START_ADDR,process_context->phy_space_size,1);
+		umap_vm_mem(page_dir,USER_STACK,process_context->phy_user_stack,0x10000,1);
 	}
-	else 
-	{
-		umap_vm_mem(page_dir,KERNEL_THREAD_STACK,0x10000,1);
-	}
-	buddy_free_page(system.buddy_desc,page_dir);
+	umap_vm_mem(page_dir,KERNEL_STACK,0x4000,1);
+	buddy_free_page(system.buddy_desc,process_context->page_dir);
 }
 
 void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_addr,int mem_size)

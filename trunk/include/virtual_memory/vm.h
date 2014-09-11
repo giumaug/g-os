@@ -17,8 +17,10 @@
 #define INIT_VM_USERSPACE 0
 #define NO_INIT_VM_USERSPACE 1
 
-void* init_vm_process(void* master_page_dir,unsigned int proc_phy_addr,struct t_process_context* process_context,unsigned int flags);
-void free_vm_process(void* page_dir,unsigned int flags);
+//void* init_vm_process(void* master_page_dir,unsigned int proc_phy_addr,struct t_process_context* process_context,unsigned int flags);
+//void free_vm_process(void* page_dir,unsigned int flags);
+void* init_vm_process(struct t_process_context* process_context);
+void free_vm_process(struct t_process_context* process_context);
 void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_addr,int mem_size);
 void umap_vm_mem(void* page_dir,unsigned int virt_mem_addr,unsigned int mem_size,unsigned int flush);
 
