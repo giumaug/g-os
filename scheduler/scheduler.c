@@ -301,21 +301,22 @@ int _fork(struct t_processor_reg processor_reg,unsigned int flags)
 	
 	ll_prepend(system.scheduler_desc.scheduler_queue[parent_process_context->curr_sched_queue_index],child_process_context);
 //	child_process_context->page_dir=init_vm_process(system.master_page_dir,child_process_context->phy_add_space,child_process_context,flags);
-	child_process_context->page_dir=init_vm_process(schild_process_context);
+	child_process_context->page_dir=init_vm_process(child_process_context);
 	RESTORE_IF_STATUS
 	return child_process_context->pid;
 }
 
 void _exec(char* _path,char* _argv[]) 
 {
-	static char* path;
+//	static char* path;
 	static char** argv;
 	struct t_process_context* current_process_context;
 	//struct t_process_context* new_process_context;
-	char* process_storage;
-	static unsigned int old_proc_phy_addr;
-	static unsigned int old_phy_kernel_stack;
-	static void* old_page_dir;
+//	char* process_storage;
+	unsigned int old_proc_phy_addr;
+	unsigned int old_phy_kernel_stack;
+	unsigned int old_phy_user_stack;
+//	void* old_page_dir;
 	static struct t_process_context old_process_context;
 	static u32* stack_pointer;
 	static char** stack_data;
@@ -323,47 +324,53 @@ void _exec(char* _path,char* _argv[])
 	static u32 i,j;
 	static u32 frame_size=0;
 	static t_buddy_desc* buddy_desc;
-	static unsigned int init_vm_userspace;
-	static unsigned int page_to_free;
+//	static unsigned int init_vm_userspace;
+//	static unsigned int page_to_free;
 	
-
-	path=_path;
-	argv=_argv;
+//	path=_path;
+//	argv=_argv;
 	current_process_context=system.process_info->current_process->val;
 	current_process_context->proc_status=RUNNING;
 	current_process_context->sleep_time=0;
 	current_process_context->assigned_sleep_time=0;
 	current_process_context->static_priority=0;
 //	old_page_dir=current_process_context->page_dir;
-	old_process_context.page_dir=current_process_context->page_dir;
-	old_process_context.proc_phy_addr=current_process_context->proc_phy_addr;
+//	old_process_context.page_dir=current_process_context->page_dir;
+//	old_process_context.proc_phy_addr=current_process_context->proc_phy_addr;
+	old_proc_phy_addr=current_process_context->phy_add_space;
 
 	old_phy_kernel_stack=current_process_context->phy_kernel_stack;
+	old_phy_user_stack=current_process_context->phy_user_stack;
 
-	load_elf_executable(path,current_process_context); 
+	load_elf_executable(_path,current_process_context); 
 	
 	CLI
+	argv=_argv;
+	old_process_context.phy_user_stack=old_phy_user_stack;
+	old_process_context.phy_kernel_stack=old_phy_kernel_stack;
+	old_process_context.phy_add_space=old_proc_phy_addr;
+	old_process_context.page_dir=current_process_context->page_dir;
 	system.process_info->current_process->val=current_process_context;
 //	kfree(current_process_context);
 //	current_process_context->page_dir=init_vm_process(system.master_page_dir,current_process_context->phy_add_space,current_process_context,INIT_VM_USERSPACE);
-	current_process_context->page_dir=init_vm_process(scurrent_process_context);
+	current_process_context->page_dir=init_vm_process(current_process_context);
 	buddy_desc=system.buddy_desc;
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir)))
 
-	if (old_proc_phy_addr!=NULL)
-	{ 
-		page_to_free=old_proc_phy_addr;
-		init_vm_userspace=INIT_VM_USERSPACE;
-	}
-	else
-	{
-		page_to_free=old_phy_kernel_stack;
-		init_vm_userspace=NO_INIT_VM_USERSPACE;
-	}
+//	if (old_proc_phy_addr!=NULL)
+//	{ 
+//		page_to_free=old_proc_phy_addr;
+//		init_vm_userspace=INIT_VM_USERSPACE;
+//	}
+//	else
+//	{
+//		page_to_free=old_phy_kernel_stack;
+//		init_vm_userspace=NO_INIT_VM_USERSPACE;
+//	}
 
-	buddy_free_page(buddy_desc,FROM_PHY_TO_VIRT(page_to_free));
-	free_vm_process(old_page_dir); 
-	free_vm_process(void* page_dir,unsigned int flags);
+	buddy_free_page(buddy_desc,FROM_PHY_TO_VIRT(old_process_context.phy_add_space));
+	free_vm_process(&old_process_context); 
+//	free_vm_process(void* page_dir,unsigned int flags);
 
 	while(argv[i++]!=NULL)
 	{
