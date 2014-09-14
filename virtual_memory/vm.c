@@ -36,10 +36,10 @@ void* init_vm_process(struct t_process_context* process_context)
 		page_dir[i]=((unsigned int*)system.master_page_dir)[i];
 	}
 	map_vm_mem(page_dir,0,0,0x100000);
-	if (process_context->proc_phy_addr!=NULL)
+	if (process_context->phy_add_space!=NULL)
 //	if (flags==INIT_VM_USERSPACE)
 	{
-		map_vm_mem(page_dir,PROC_VIRT_MEM_START_ADDR,process_context->proc_phy_addr,process_context->phy_space_size);
+		map_vm_mem(page_dir,PROC_VIRT_MEM_START_ADDR,process_context->phy_add_space,process_context->phy_space_size);
 		map_vm_mem(page_dir,USER_STACK,process_context->phy_user_stack,0x10000);
 	}
 	map_vm_mem(page_dir,KERNEL_STACK,process_context->phy_kernel_stack,0x4000);	
@@ -49,14 +49,14 @@ void* init_vm_process(struct t_process_context* process_context)
 //void free_vm_process(void* page_dir,unsigned int flags)
 void free_vm_process(struct t_process_context* process_context)
 {
-	umap_vm_mem(page_dir,0,0x100000,0);
+	umap_vm_mem(process_context->page_dir,0,0x100000,0);
 //	if (flags==INIT_VM_USERSPACE)
-	if (process_context->proc_phy_addr!=NULL)
+	if (process_context->phy_add_space!=NULL)
 	{
-		umap_vm_mem(page_dir,PROC_VIRT_MEM_START_ADDR,process_context->phy_space_size,1);
-		umap_vm_mem(page_dir,USER_STACK,process_context->phy_user_stack,0x10000,1);
+		umap_vm_mem(process_context->page_dir,PROC_VIRT_MEM_START_ADDR,process_context->phy_space_size,1);
+		umap_vm_mem(process_context->page_dir,USER_STACK,0x10000,1);
 	}
-	umap_vm_mem(page_dir,KERNEL_STACK,0x4000,1);
+	umap_vm_mem(process_context->page_dir,KERNEL_STACK,0x4000,1);
 	buddy_free_page(system.buddy_desc,process_context->page_dir);
 }
 
