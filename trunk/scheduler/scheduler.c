@@ -268,7 +268,7 @@ int _fork(struct t_processor_reg processor_reg,unsigned int flags)
 	unsigned int mem_size;
 	unsigned int esp;
 	unsigned int eip;
-	char *proc_mem;
+	char* proc_mem;
 
  	struct t_process_context* child_process_context;
 	struct t_process_context* parent_process_context;
@@ -290,10 +290,9 @@ int _fork(struct t_processor_reg processor_reg,unsigned int flags)
 		child_process_context->phy_add_space=FROM_VIRT_TO_PHY(proc_mem); 
 		kmemcpy(proc_mem,FROM_PHY_TO_VIRT(parent_process_context->phy_add_space),mem_size); 
 
-		proc_mem=buddy_alloc_page(system.buddy_desc,0x4000);    
-		child_process_context->phy_user_stack=FROM_VIRT_TO_PHY(proc_mem); 
-		kmemcpy(proc_mem,FROM_PHY_TO_VIRT(parent_process_context->phy_user_stack),0x4000);
-
+		proc_mem=buddy_alloc_page(system.buddy_desc,0x10000);    
+		child_process_context->phy_user_stack=FROM_VIRT_TO_PHY(proc_mem);
+		kmemcpy(proc_mem,FROM_PHY_TO_VIRT(parent_process_context->phy_user_stack),0x10000);
 	}
 	proc_mem=buddy_alloc_page(system.buddy_desc,0x4000);    
 	child_process_context->phy_kernel_stack=FROM_VIRT_TO_PHY(proc_mem); 
@@ -324,6 +323,7 @@ void _exec(char* _path,char* _argv[])
 	static u32 i,j;
 	static u32 frame_size=0;
 	static t_buddy_desc* buddy_desc;
+	char* proc_mem;
 //	static unsigned int init_vm_userspace;
 //	static unsigned int page_to_free;
 	
@@ -353,6 +353,15 @@ void _exec(char* _path,char* _argv[])
 	system.process_info->current_process->val=current_process_context;
 //	kfree(current_process_context);
 //	current_process_context->page_dir=init_vm_process(system.master_page_dir,current_process_context->phy_add_space,current_process_context,INIT_VM_USERSPACE);
+	if (old_process_context.phy_add_space!=NULL)
+	{
+		buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(old_process_context.phy_add_space));	
+	}
+	else 
+	{
+		proc_mem=buddy_alloc_page(system.buddy_desc,0x10000);    
+		current_process_context->phy_user_stack=FROM_VIRT_TO_PHY(proc_mem);
+	}
 	current_process_context->page_dir=init_vm_process(current_process_context);
 	buddy_desc=system.buddy_desc;
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir)))

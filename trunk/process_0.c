@@ -18,7 +18,8 @@ void process_0()
 	THREAD_FORK(pid);
 	if (pid==0)
 	{
-		THREAD_EXEC("/shell",argv);
+//		THREAD_EXEC("/shell",argv);
+		_exec("/shell",argv);
 	}
 	else 
 	{

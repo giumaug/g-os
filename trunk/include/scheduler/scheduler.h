@@ -3,32 +3,44 @@
 
 #include "data_types/dllist.h"
 
-#define THREAD_EXEC(path,args) 	do					\
-			 	{					\
-					unsigned int params[2];		\
-					params[0]=path;			\
-					params[1]=args;                 \
-					SYSCALL(14,params);		\
-				}					\
-				while(0)
 
-#define THREAD_FORK(pid)	do					\
-				{					\
-					unsigned int params[2];		\
-					params[0]=NO_INIT_VM_USERSPACE;	\
-					params[1]=0;			\
-					SYSCALL(1,params);		\
-					pid=params[1];			\
-				}					\
-				while(0)
+//To create a new kernel thread fork with THREAD_FORK from existing one.Then from child thread use THREAD_EXEC.
+//To switch kernel thread to user mode process call _exec from child thread.
 
-#define	THREAD_EXIT(status)	do					\
-				{					\
-					int params[1];			\
-					params[0]=status;		\
-					SYSCALL(13,params);		\
-				}					\
-				while(0)
+//#define THREAD_EXEC(path,args) 	do					\
+			 		{					\
+						unsigned int params[2];		\
+						params[0]=path;			\
+						params[1]=args;                 \
+						SYSCALL(14,params);		\
+					}					\
+					while(0)
+
+//to do
+#define THREAD_EXEC(fun_pointer)	do				        \
+					{					\
+						reset stack to 1FFFFF           \
+						and call thread function        \
+	                                	from pointer 			\
+					}						
+
+#define THREAD_FORK(pid)		do					\
+					{					\
+						unsigned int params[2];		\
+						params[0]=NO_INIT_VM_USERSPACE;	\
+						params[1]=0;			\
+						SYSCALL(1,params);		\
+						pid=params[1];			\
+					}					\
+					while(0)
+
+#define	THREAD_EXIT(status)		do					\
+					{					\
+						int params[1];			\
+						params[0]=status;		\
+						SYSCALL(13,params);		\
+					}					\
+					while(0)
 
 typedef struct s_scheduler_desc 
 {
