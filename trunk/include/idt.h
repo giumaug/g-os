@@ -36,6 +36,7 @@ void set_idt_entry(int entry,struct t_i_desc* i_desc);
 	{                                                                                                          		\
 		schedule(&_current_process_context,&_processor_reg);                                               		\
 		_new_process_context=*(struct t_process_context*)system.process_info->current_process->val;         		\
+		_processor_reg=_new_process_context.processor_reg;                                                              \
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))                  		\
 		DO_STACK_FRAME(_processor_reg.esp-8);                                                              		\
 		if (_action2==2)                                                                                   		\
