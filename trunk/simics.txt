@@ -42,6 +42,9 @@ untrace-io kbd0
 ide.status status ide
 list-objects tutti oggetti disponibili
 
+cpu0.print-gdt gdt
+cpu0-tlb.status
+
 
 
 
