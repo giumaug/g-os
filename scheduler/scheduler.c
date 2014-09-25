@@ -21,6 +21,8 @@ void do_context_switch(struct t_process_context *current_process_context,
 	current_process_context->processor_reg.esi=processor_reg->esi;
 	current_process_context->processor_reg.edi=processor_reg->edi;
 	current_process_context->processor_reg.esp=processor_reg->esp;
+	current_process_context->processor_reg.ds=processor_reg->ds;
+	current_process_context->processor_reg.es=processor_reg->es;
 
 	//restore new process state
 	processor_reg->eax=new_process_context->processor_reg.eax;
@@ -30,6 +32,9 @@ void do_context_switch(struct t_process_context *current_process_context,
 	processor_reg->esi=new_process_context->processor_reg.esi;
 	processor_reg->edi=new_process_context->processor_reg.edi;
 	processor_reg->esp=new_process_context->processor_reg.esp;
+	processor_reg->ds=current_process_context->processor_reg.ds;
+	processor_reg->es=current_process_context->processor_reg.es;
+
 }
 
 void init_scheduler()
