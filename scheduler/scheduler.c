@@ -190,8 +190,9 @@ void _sleep()
 	current_process->sleep_time=system.time;
 	t_llist_node* current_node=system.process_info->current_process;
 	current_process->proc_status=SLEEPING;
-	RESTORE_IF_STATUS
+//	RESTORE_IF_STATUS
 	SUSPEND
+	RESTORE_IF_STATUS
 }
 
 void _awake(struct t_process_context *new_process)

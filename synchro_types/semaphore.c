@@ -35,12 +35,13 @@ void sem_down(t_sem_desc* sem_desc)
 	}
 	
 //	SPINLOCK_UNLOCK(sem_desc->spinlock);
-	RESTORE_IF_STATUS
+//	RESTORE_IF_STATUS
 	
 	if (need_sleep)
 	{
 		_sleep();
 	}
+	RESTORE_IF_STATUS
 }
 
 void sem_up(t_sem_desc* sem_desc)
