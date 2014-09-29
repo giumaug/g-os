@@ -26,16 +26,17 @@ int main (int _argc, char *_argv[])
 	{
 		printf("=>");
 
-		i=0;
-		do
-		{
-			c=getc();
-			cmd[i++]=c;
-		}
-		while (c!='\r');
-		cmd[i-1]=NULL;
-
-		printf("\n");
+//		i=0;
+//		do
+//		{
+//			c=getc();
+//			cmd[i++]=c;
+//		}
+//		while (c!='\r');
+//		cmd[i-1]=NULL;
+//
+//		printf("\n");
+		scanf("%s",&cmd);
 		len=strlen(cmd);
 		if (cmd[len-1]=='-') 
 		{
