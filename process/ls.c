@@ -8,11 +8,13 @@
 int main(int argc, char *argv[])
 {
 	int f;
+	int j;
 	char* io_buffer;
 	char file_name[100];
 	unsigned int next_entry;
 	unsigned int name_len;
 	unsigned int rec_len;
+	unsigned int i_number;
 
 	printf("\n");
 	printf("argc=");
@@ -23,7 +25,8 @@ int main(int argc, char *argv[])
 	printf("\n");
 
 	io_buffer=malloc(DIR_SIZE);
-	
+
+	printf("\n");	
 	if (argc>1)
 	{
 		f=open(argv[1], O_RDWR | O_APPEND);
@@ -40,15 +43,23 @@ int main(int argc, char *argv[])
 	j=0;
 	while(next_entry<=DIR_SIZE)
 	{
+		READ_DWORD(&io_buffer[next_entry],i_number);
 		READ_BYTE(&io_buffer[next_entry+6],name_len);
 		READ_WORD(&io_buffer[next_entry+4],rec_len);
+		if (i_number==0)
+		{
+			break;
+		}
+		j=0;
 		while(j<name_len)		
 		{
 			file_name[j]=io_buffer[next_entry+8+j];
 			j++;
 		}
 		next_entry+=rec_len;
+		file_name[j]='\0';
 		printf(file_name);
+		printf("\n");
 	}
 	free(DIR_SIZE);
 	exit(0);
