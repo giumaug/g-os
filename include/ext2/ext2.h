@@ -16,6 +16,7 @@
 #define PATH_MAX 1000
 #define EXT2_N_BLOCKS 15
 #define BLOCK_NUM(FILE_BLOCK_NUM) 
+#define ROOT_INODE 2
 
 #define O_CREAT 0b1
 #define O_APPEND 0b10
