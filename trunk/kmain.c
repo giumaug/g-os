@@ -70,6 +70,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	system.process_info->next_pid=1;
 	
 	process_context=kmalloc(sizeof(struct t_process_context));
+	process_context->current_dir_inode_number=ROOT_INODE;
 	process_context->proc_status=RUNNING;
 	process_context->assigned_sleep_time=0;	
 	process_context->sleep_time=0;

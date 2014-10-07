@@ -6,8 +6,7 @@ static void free_indirect_block(t_ext2* ext2,t_inode* i_node);
 void static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext2,t_inode* inode);
 u32 static find_free_inode(u32 group_block_index,t_ext2 *ext2,u32 check_threshold);
 u32 static find_free_block(char* io_buffer,u32 prealloc);
-//void static read_root_dir_inode(t_ext2* ext2);
-void static read_root_dir_inode(t_ext2* ext2,t_inode* inode);
+//void static read_root_dir_inode(t_ext2* ext2,t_inode* inode);
 void static read_inode(t_ext2* ext2,t_inode* inode);
 
 static void fill_group_hash(t_ext2* ext2,t_llist* group_list,t_hashtable* group_hash,u32 start_block,u32 end_block,t_inode* i_node)
@@ -291,16 +290,21 @@ void lookup_inode(char* path,t_ext2* ext2,t_inode* inode_parent,t_inode* inode)
         t_inode* parent_dir_inode;
         char name[NAME_MAX];
 
+	struct t_process_context* current_process_context;
+
 	parent_dir_inode=kmalloc(sizeof(t_inode));
                
         if (path[0]=='/')
         {
-		read_root_dir_inode(ext2,parent_dir_inode);                                
+//		read_root_dir_inode(ext2,parent_dir_inode);
+		parent_dir_inode->i_number=ROOT_INODE;
+		read_inode(ext2,parent_dir_inode);                              
                 i=1;
         }
         else if(path[0]=='.' && path[1]=='/')
         {
-		parent_dir_inode->i_number=((struct t_process_context*) system.process_info->current_process)->current_dir_inode_number;
+		CURRENT_PROCESS_CONTEXT(current_process_context);
+		parent_dir_inode->i_number=current_process_context->current_dir_inode_number;
 		read_inode(ext2,parent_dir_inode);
                 i=2;    
         }
