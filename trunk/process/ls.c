@@ -17,8 +17,8 @@ int main(int argc, char *argv[])
 	unsigned int i_number;
 
 //	printf("\n");
-//	printf("argc=");
-//	print_num(argc);
+	printf("argc=");
+	print_num(argc);
 //	printf("\n");
 //	printf("argv[1]=");
 //	printf(argv[1]);

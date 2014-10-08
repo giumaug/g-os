@@ -60,6 +60,7 @@ struct t_process_context
 	unsigned int static_priority;
 	unsigned int curr_sched_queue_index;
 	t_proc_status proc_status;
+	u32 root_dir_inode_number;
 	u32 current_dir_inode_number;
 	u32 next_fd;
 	t_hashtable* file_desc;
