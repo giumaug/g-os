@@ -291,19 +291,31 @@ void lookup_inode(char* path,t_ext2* ext2,t_inode* inode_parent,t_inode* inode)
         char name[NAME_MAX];
 
 	struct t_process_context* current_process_context;
+	CURRENT_PROCESS_CONTEXT(current_process_context);
 
 	parent_dir_inode=kmalloc(sizeof(t_inode));
-               
-        if (path[0]=='/')
+
+	if (path[0]=='/' && path[1]=='\0')
+	{
+		inode->i_number=current_process_context->root_dir_inode_number;
+		read_inode(ext2,inode);
+		return;
+	}
+	else if (path[0]=='.' && path[1]=='/' && path[2]=='\0')
+	{
+		inode->i_number=current_process_context->current_dir_inode_number;
+		read_inode(ext2,inode);
+		return;
+	}  
+        else if (path[0]=='/')
         {
-//		read_root_dir_inode(ext2,parent_dir_inode);
-		parent_dir_inode->i_number=ROOT_INODE;
+		parent_dir_inode->i_number=current_process_context->root_dir_inode_number;
 		read_inode(ext2,parent_dir_inode);                              
                 i=1;
         }
         else if(path[0]=='.' && path[1]=='/')
         {
-		CURRENT_PROCESS_CONTEXT(current_process_context);
+//		CURRENT_PROCESS_CONTEXT(current_process_context);
 		parent_dir_inode->i_number=current_process_context->current_dir_inode_number;
 		read_inode(ext2,parent_dir_inode);
                 i=2;    

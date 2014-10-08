@@ -289,6 +289,7 @@ int _fork(struct t_processor_reg processor_reg,unsigned int flags)
 	child_process_context->parent=parent_process_context;
 	child_process_context->processor_reg=processor_reg;
 	child_process_context->phy_add_space=NULL;
+	child_process_context->root_dir_inode_number=parent_process_context->root_dir_inode_number;
 	child_process_context->current_dir_inode_number=parent_process_context->current_dir_inode_number;
 	if (flags==INIT_VM_USERSPACE)
 	{

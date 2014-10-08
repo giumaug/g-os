@@ -17,8 +17,6 @@ int main (int _argc, char *_argv[])
 	print_num(_argc);
 	printf("\n");
 	printf("argv[0]=");
-	//pippo=_argv[0];
-	//print_num(pippo);
 	printf(_argv[0]);
 	printf("\n");
 
@@ -26,16 +24,6 @@ int main (int _argc, char *_argv[])
 	{
 		printf("=>");
 
-//		i=0;
-//		do
-//		{
-//			c=getc();
-//			cmd[i++]=c;
-//		}
-//		while (c!='\r');
-//		cmd[i-1]=NULL;
-//
-//		printf("\n");
 		scanf("%s",&cmd);
 		len=strlen(cmd);
 		if (cmd[len-1]=='-') 
@@ -96,58 +84,4 @@ int main (int _argc, char *_argv[])
 			}
 		}
 	}
-
-//	while(1)
-//	{
-//		printf("=>");
-//		scanf("%s",&cmd);
-//		printf("\n");
-//		if (strcmp(cmd,LIST_CMD)==0)
-//		{
-//			for (i=0;i<PROCESS_NUM;i++)
-//			{
-//				printf(user_process[i].name);
-//				printf("\n");
-//				
-//			}
-//		}
-//		else if (strncmp(cmd,RUN_CMD,3)==0)
-//		{
-//			i=0;
-//			brk=0;
-//			is_background=0;
-//			process_name=cmd+strlen(RUN_CMD)+1;
-//			while (!brk && i<PROCESS_NUM)
-//			{
-//				len=strlen(process_name);
-//				if (process_name[len-1]=='-') 
-//				{
-//					is_background=1;
-//					process_name[len-1]='\0';
-//				}
-//					pid=fork();
-//					if (pid==0)
-//					{
-//						exec(process_name);
-//					}
-//					else 
-//					{
-//						if (!is_background)
-//						{
-//							pause();
-//						}
-//						brk=1;
-//					}
-//				i++;
-//			}
-//			if (brk==0)
-//				{
-//					printf("process not found \n");
-//				}
-//		}
-//		else 
-//		{
-//			printf("command not found \n");
-//		}
-//	}
 }
