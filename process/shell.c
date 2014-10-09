@@ -22,6 +22,7 @@ int main (int _argc, char *_argv[])
 
 	while(1)
 	{
+		argc=0;
 		printf("=>");
 
 		scanf("%s",&cmd);
@@ -74,6 +75,9 @@ int main (int _argc, char *_argv[])
 		if (pid==0)
 		{
 			//exec(argv[0],argv);
+			printf("argc=");
+			print_num(argc);
+			printf("\n");
 			exec(argv[0],argv);
 		}
 		else 
