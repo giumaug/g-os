@@ -608,9 +608,9 @@ void static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext
 
 	found_inode=0;
 	next_entry=0;	
-	j=0;
 	while(next_entry<(i+1)*BLOCK_SIZE)
 	{
+		j=0;
 		READ_DWORD(&io_buffer[next_entry],i_number);
 		READ_BYTE(&io_buffer[next_entry+6],name_len);
 		READ_WORD(&io_buffer[next_entry+4],rec_len);
