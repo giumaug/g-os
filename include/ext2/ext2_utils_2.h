@@ -571,6 +571,11 @@ void static write_inode(t_ext2* ext2,t_inode* inode)
 	kfree(group_block);
 }
 
+void breakpoint()
+{
+	return;
+}
+
 void static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext2,t_inode* inode)
 {
 	int i;
@@ -604,7 +609,7 @@ void static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext
 	found_inode=0;
 	next_entry=0;	
 	j=0;
-	while(next_entry<=(i+1)*BLOCK_SIZE)
+	while(next_entry<(i+1)*BLOCK_SIZE)
 	{
 		READ_DWORD(&io_buffer[next_entry],i_number);
 		READ_BYTE(&io_buffer[next_entry+6],name_len);
@@ -613,9 +618,10 @@ void static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext
 		{
 			j++;
 		}
-		if(name_len==j)
+		if(name_len==j && name_len!=0)
 		{
 			found_inode=1;
+			breakpoint();
 			break;
 		}
 		next_entry+=rec_len;
@@ -627,6 +633,7 @@ void static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext
 	}
 	else 
 	{
+		printk("INODE NOT FOUND !!!!!!!!!!");
 		inode=NULL;
 	}
 	kfree(io_buffer);

@@ -286,6 +286,7 @@ void free_block()
 
 void lookup_inode(char* path,t_ext2* ext2,t_inode* inode_parent,t_inode* inode)
 {
+	u32 found_inode;
         int i,j;
         t_inode* parent_dir_inode;
         char name[NAME_MAX];
@@ -293,6 +294,7 @@ void lookup_inode(char* path,t_ext2* ext2,t_inode* inode_parent,t_inode* inode)
 	struct t_process_context* current_process_context;
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 
+	found_inode=0;
 	parent_dir_inode=kmalloc(sizeof(t_inode));
 
 	if (path[0]=='/' && path[1]=='\0')
@@ -322,15 +324,22 @@ void lookup_inode(char* path,t_ext2* ext2,t_inode* inode_parent,t_inode* inode)
         }
 	else
 	{
-		parent_dir_inode=inode_parent;
+		printk("INODE NOT FOUND !!!!!!!!!!");
 	}
+	
+//	else
+//	{
+//		parent_dir_inode=inode_parent;
+//	}
 
 	j=0;
 	while (path[i]!='\0')
 	{
+		found_inode=0;
 		if (path[i]!='/') 
 		{
 			name[j++]=path[i++];
+			found_inode=1;
 		}
 		else 
 		{
@@ -340,6 +349,10 @@ void lookup_inode(char* path,t_ext2* ext2,t_inode* inode_parent,t_inode* inode)
 			parent_dir_inode=inode;
 			i++;
 		}
+	}
+	if (!found_inode)
+	{
+		printk("NOT FOUND INODE!!!!!!!!!!");
 	}
 	read_dir_inode(name,parent_dir_inode,ext2,inode);
 	kfree(parent_dir_inode);
