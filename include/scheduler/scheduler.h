@@ -56,7 +56,7 @@ void _sleep();
 void _awake();
 void _pause();
 void _exit(int status);
-void _exec(char* path,char* argv[]);
+u32 _exec(char* path,char* argv[]);
 int _fork(struct t_processor_reg processor_reg,unsigned int flags);
 void _sleep_time(unsigned int time);
 

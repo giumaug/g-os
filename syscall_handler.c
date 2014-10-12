@@ -106,8 +106,7 @@ void syscall_handler()
 	}
 	else if (syscall_num==14) 
 	{
-		_exec(params[0],params[1]);
-		//dead code point 
+		params[2]=_exec(params[0],params[1]); 
 	}
 	else if (syscall_num==15) 
 	{

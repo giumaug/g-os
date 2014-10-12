@@ -24,6 +24,7 @@ void free_ext2(t_ext2* ext2)
 int _open(t_ext2* ext2,const char* fullpath, int flags)
 {
 	u32 fd;
+	u32 ret_code;
 	struct t_process_context* current_process_context;
 	t_inode* inode;
 	t_inode* inode_dir;
@@ -33,8 +34,6 @@ int _open(t_ext2* ext2,const char* fullpath, int flags)
 
 	inode=kmalloc(sizeof(t_inode));
 	inode_dir=kmalloc(sizeof(t_inode));
-//	node=system.process_info->current_process;	
-//	current_process_context=node->val;
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 	fd=current_process_context->next_fd++;
 	current_process_context->file_desc=kmalloc(sizeof(t_hashtable));
@@ -47,9 +46,16 @@ int _open(t_ext2* ext2,const char* fullpath, int flags)
 	}
 	else if (flags & (O_APPEND | O_RDWR))
 	{
-		lookup_inode(fullpath,ext2,inode_dir,inode);		
-		//add_dir_entry(ext2,inode_dir,inode->i_number,filename,1); ????
+		ret_code=lookup_inode(fullpath,ext2,inode_dir,inode);		
+		if (ret_code==-1)
+		{
+			return -1;
+		}
 		hashtable_put(current_process_context->file_desc,fd,inode);
+	}
+	else 
+	{
+		return -1;
 	}
 	inode->file_offset=0;
 	return fd;
@@ -57,14 +63,20 @@ int _open(t_ext2* ext2,const char* fullpath, int flags)
 
 int _close(t_ext2* ext2,int fd)
 {
+	u32 ret=-1;
 	struct t_process_context* current_process_context;
 	t_inode* inode;
 
 	CURRENT_PROCESS_CONTEXT(current_process_context)
 	inode=hashtable_get(current_process_context->file_desc,fd);
+	if (inode!=NULL)
+	{
+		ret=0;
+	}
 	//AT THE MOMENT READ ONLY	
 	//write_inode(system.root_fs,inode);
 	kfree(inode);
+	return ret;
 }
 
 int _read(t_ext2* ext2,int fd, void* buf,u32 count)
@@ -94,6 +106,10 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count)
 
 	CURRENT_PROCESS_CONTEXT(current_process_context)
 	inode=hashtable_get(current_process_context->file_desc,fd);
+	if (inode==NULL)
+	{
+		return -1;
+	}
 	first_inode_block=inode->file_offset/BLOCK_SIZE;
 	first_data_offset=inode->file_offset%BLOCK_SIZE;
 	last_inode_block=(inode->file_offset+count)/BLOCK_SIZE;

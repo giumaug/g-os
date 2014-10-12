@@ -312,7 +312,7 @@ int _fork(struct t_processor_reg processor_reg,unsigned int flags)
 	return child_process_context->pid;
 }
 
-void _exec(char* _path,char* _argv[]) 
+u32 _exec(char* _path,char* _argv[]) 
 {
 	static char** argv;
 	struct t_process_context* current_process_context;
@@ -327,6 +327,7 @@ void _exec(char* _path,char* _argv[])
 	static u32 frame_size=0;
 	static t_buddy_desc* buddy_desc;
 	char* proc_mem;
+	u32 ret;
 	
 	argc=0;
 	current_process_context=system.process_info->current_process->val;
@@ -339,7 +340,11 @@ void _exec(char* _path,char* _argv[])
 	old_phy_kernel_stack=current_process_context->phy_kernel_stack;
 	old_phy_user_stack=current_process_context->phy_user_stack;
 
-	load_elf_executable(_path,current_process_context); 
+	ret=load_elf_executable(_path,current_process_context);
+	if (ret==-1)
+	{
+		return -1;
+	} 
 	
 	CLI
 	argv=_argv;
@@ -386,7 +391,7 @@ void _exec(char* _path,char* _argv[])
 	stack_data[argc]=NULL;
 
 	SWITCH_TO_USER_MODE(stack_pointer)
-	return;
+	return 0;
 }
 
 void _sleep_time(unsigned int time)

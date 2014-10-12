@@ -55,6 +55,6 @@ typedef struct
   Elf32_Word	p_align;		/* Segment alignment */
 } Elf32_Phdr;
 
-void load_elf_executable(char* path,struct t_process_context* process_context);
+u32 load_elf_executable(char* path,struct t_process_context* process_context);
 
 #endif

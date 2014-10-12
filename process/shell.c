@@ -3,6 +3,7 @@
 
 int main (int _argc, char *_argv[])
 {
+	int ret;
 	unsigned int pid;	
 	unsigned int is_background;
 	unsigned int len,i,k,j;
@@ -78,7 +79,14 @@ int main (int _argc, char *_argv[])
 			printf("argc=");
 			print_num(argc);
 			printf("\n");
-			exec(argv[0],argv);
+			ret=exec(argv[0],argv);
+			if (ret==-1)
+			{
+				printf("\n");
+				printf("Command not found.");
+				printf("\n");
+				exit(0);
+			}
 		}
 		else 
 		{

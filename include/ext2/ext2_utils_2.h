@@ -576,7 +576,7 @@ void breakpoint()
 	return;
 }
 
-void static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext2,t_inode* inode)
+u32 static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext2,t_inode* inode)
 {
 	int i;
 	int j;
@@ -588,6 +588,7 @@ void static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext
 	u32 lba;
 	u8 found_inode;
 	char file_name_entry[NAME_MAX];
+	u32 ret_code=-1;
 
 	// For directory inode supposed max 12 block	
 	for (i=0;i<=11;i++)
@@ -608,7 +609,7 @@ void static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext
 
 	found_inode=0;
 	next_entry=0;	
-	while(next_entry<(i+1)*BLOCK_SIZE)
+	while(next_entry<i*BLOCK_SIZE)
 	{
 		j=0;
 		READ_DWORD(&io_buffer[next_entry],i_number);
@@ -630,6 +631,7 @@ void static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext
 	{
 		inode->i_number=i_number;
 		read_inode(ext2,inode);
+		ret_code=0;
 	}
 	else 
 	{
@@ -637,6 +639,7 @@ void static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext
 		inode=NULL;
 	}
 	kfree(io_buffer);
+	return ret_code;
 }
 
 u32 static lookup_partition(t_ext2* ext2,u8 partition_number)
