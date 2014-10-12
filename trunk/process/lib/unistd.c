@@ -3,11 +3,11 @@
 int exec(char* path,char* argv[]) 
 {
 	//make path and argv static!!!!!!
-	unsigned int params[2];
+	unsigned int params[3];
 	params[0]=path;
 	params[1]=argv;
 	SYSCALL(14,params);
-	return 1;
+	return params[2];
 }
 
 int fork() 

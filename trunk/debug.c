@@ -10,12 +10,6 @@ unsigned int proc[100];
 int t_sched_debug[10][10];
 int index_2=0;
 
-void panic()
-{
-	system.panic=1;
-	return;
-}
-
 void check_free_mem()
 {
 	int i=0;

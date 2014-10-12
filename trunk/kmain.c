@@ -99,3 +99,14 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	STI
 	process_0();				       	
 }
+
+void panic()
+{
+	printk("\n");
+	printk("Kernel panic!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+	printk("\n");
+	while(1);
+}
+
+
+

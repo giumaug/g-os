@@ -3,11 +3,11 @@ static void* write_block_bitmap(t_ext2* ext2,u32 bg_block_bitmap,void* io_buffer
 static u32 read_indirect_block(t_inode* inode,u32 key);
 static void write_indirect_block(t_inode* inode,u32 key,u32 value);
 static void free_indirect_block(t_ext2* ext2,t_inode* i_node);
-void static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext2,t_inode* inode);
+u32 static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext2,t_inode* inode);
 u32 static find_free_inode(u32 group_block_index,t_ext2 *ext2,u32 check_threshold);
 u32 static find_free_block(char* io_buffer,u32 prealloc);
-//void static read_root_dir_inode(t_ext2* ext2,t_inode* inode);
 void static read_inode(t_ext2* ext2,t_inode* inode);
+u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode_parent,t_inode* inode);
 
 static void fill_group_hash(t_ext2* ext2,t_llist* group_list,t_hashtable* group_hash,u32 start_block,u32 end_block,t_inode* i_node)
 {
@@ -284,8 +284,9 @@ void free_block()
 	//nothing
 }
 
-void lookup_inode(char* path,t_ext2* ext2,t_inode* inode_parent,t_inode* inode)
+u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode_parent,t_inode* inode)
 {
+	u32 ret;
 	u32 found_inode;
         int i,j;
         t_inode* parent_dir_inode;
@@ -294,6 +295,7 @@ void lookup_inode(char* path,t_ext2* ext2,t_inode* inode_parent,t_inode* inode)
 	struct t_process_context* current_process_context;
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 
+	ret=-1;
 	found_inode=0;
 	parent_dir_inode=kmalloc(sizeof(t_inode));
 
@@ -301,18 +303,19 @@ void lookup_inode(char* path,t_ext2* ext2,t_inode* inode_parent,t_inode* inode)
 	{
 		inode->i_number=current_process_context->root_dir_inode_number;
 		read_inode(ext2,inode);
-		return;
+		return 0;
 	}
 	else if (path[0]=='.' && path[1]=='/' && path[2]=='\0')
 	{
 		inode->i_number=current_process_context->current_dir_inode_number;
 		read_inode(ext2,inode);
-		return;
+		return 0;
 	}  
         else if (path[0]=='/')
         {
 		parent_dir_inode->i_number=current_process_context->root_dir_inode_number;
-		read_inode(ext2,parent_dir_inode);                              
+		read_inode(ext2,parent_dir_inode);
+		found_inode=1;                              
                 i=1;
         }
         else if(path[0]=='.' && path[1]=='/')
@@ -320,42 +323,57 @@ void lookup_inode(char* path,t_ext2* ext2,t_inode* inode_parent,t_inode* inode)
 //		CURRENT_PROCESS_CONTEXT(current_process_context);
 		parent_dir_inode->i_number=current_process_context->current_dir_inode_number;
 		read_inode(ext2,parent_dir_inode);
+		found_inode=1;
                 i=2;    
         }
 	else
 	{
+		printk("\n");
 		printk("INODE NOT FOUND !!!!!!!!!!");
+		printk("\n");
 	}
 	
 //	else
 //	{
 //		parent_dir_inode=inode_parent;
 //	}
-
-	j=0;
-	while (path[i]!='\0')
-	{
-		found_inode=0;
-		if (path[i]!='/') 
+	if (found_inode)
+	{	
+		j=0;
+		while (path[i]!='\0')
 		{
-			name[j++]=path[i++];
-			found_inode=1;
+			found_inode=0;
+			if (path[i]!='/') 
+			{
+				name[j++]=path[i++];
+				found_inode=1;
+			}
+			else 
+			{
+				name[j++]='\0';
+				j=0;
+				ret=read_dir_inode(name,parent_dir_inode,ext2,inode);
+				if (!ret)
+				{
+					break;
+				}
+				parent_dir_inode=inode;
+				i++;
+			}
 		}
-		else 
+		if (!found_inode)
 		{
-			name[j++]='\0';
-			j=0;
-			read_dir_inode(name,parent_dir_inode,ext2,inode);
-			parent_dir_inode=inode;
-			i++;
+			printk("\n");
+			printk("NOT FOUND INODE!!!!!!!!!!");
+			printk("\n");
+		}
+		else
+		{
+			ret=read_dir_inode(name,parent_dir_inode,ext2,inode);
 		}
 	}
-	if (!found_inode)
-	{
-		printk("NOT FOUND INODE!!!!!!!!!!");
-	}
-	read_dir_inode(name,parent_dir_inode,ext2,inode);
 	kfree(parent_dir_inode);
+	return ret;
 }
 
 void alloc_inode(char* fullpath,unsigned int type,t_ext2 *ext2, t_inode* inode)

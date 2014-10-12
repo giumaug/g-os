@@ -17,25 +17,37 @@ int main(int argc, char *argv[])
 	unsigned int i_number;
 
 //	printf("\n");
-	printf("argc=");
-	print_num(argc);
+//	printf("argc=");
+//	print_num(argc);
 //	printf("\n");
 //	printf("argv[1]=");
 //	printf(argv[1]);
 //	printf("\n");
 
-	io_buffer=malloc(DIR_SIZE);
-
 	printf("\n");	
 	if (argc>1)
 	{
 		f=open(argv[1], O_RDWR | O_APPEND);
+		if (f==-1)
+		{
+			printf("\n");
+			printf("wrong arguments");
+			printf("\n");
+			exit(0);
+		}
 	}
 	else 
 	{
-		//nedd to propagate from parent to child look current_dir_inode_number inside lookup_inode
 		f=open("./", O_RDWR | O_APPEND);
+		if (f==-1)
+		{
+			printf("\n");
+			printf("wrong arguments");
+			printf("\n");
+			exit(0);
+		}
 	}
+	io_buffer=malloc(DIR_SIZE);
 	read(f,io_buffer,DIR_SIZE);
 	close(f);
 
