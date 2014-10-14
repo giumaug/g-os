@@ -330,6 +330,7 @@ u32 _exec(char* _path,char* _argv[])
 	u32 ret;
 	
 	argc=0;
+	i=0;
 	current_process_context=system.process_info->current_process->val;
 	current_process_context->proc_status=RUNNING;
 	current_process_context->sleep_time=0;

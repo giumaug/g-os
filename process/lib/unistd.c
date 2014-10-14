@@ -6,6 +6,8 @@ int exec(char* path,char* argv[])
 	unsigned int params[3];
 	params[0]=path;
 	params[1]=argv;
+	printf("ssss");
+	printf(argv[1]);
 	SYSCALL(14,params);
 	return params[2];
 }

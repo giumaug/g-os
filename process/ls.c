@@ -16,13 +16,13 @@ int main(int argc, char *argv[])
 	unsigned int rec_len;
 	unsigned int i_number;
 
-//	printf("\n");
-//	printf("argc=");
-//	print_num(argc);
-//	printf("\n");
-//	printf("argv[1]=");
-//	printf(argv[1]);
-//	printf("\n");
+	printf("\n");
+	printf("argc=");
+	print_num(argc);
+	printf("\n");
+	printf("argv[1]=");
+	printf(argv[1]);
+	printf("\n");
 
 	printf("\n");	
 	if (argc>1)
