@@ -329,7 +329,7 @@ u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode_parent,t_inode* inode)
 	else
 	{
 		printk("\n");
-		printk("INODE NOT FOUND !!!!!!!!!!");
+		printk("DEBUG:INODE NOT FOUND !!!!!!!!!!");
 		printk("\n");
 	}
 	
@@ -364,7 +364,7 @@ u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode_parent,t_inode* inode)
 		if (!found_inode)
 		{
 			printk("\n");
-			printk("NOT FOUND INODE!!!!!!!!!!");
+			printk("DEBUG:NOT FOUND INODE!!!!!!!!!!");
 			printk("\n");
 		}
 		else
