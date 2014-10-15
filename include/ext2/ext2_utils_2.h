@@ -589,6 +589,7 @@ u32 static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext2
 	u8 found_inode;
 	char file_name_entry[NAME_MAX];
 	u32 ret_code=-1;
+	u32 file_name_len;
 
 	// For directory inode supposed max 12 block	
 	for (i=0;i<=11;i++)
@@ -608,7 +609,8 @@ u32 static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext2
 	}
 
 	found_inode=0;
-	next_entry=0;	
+	next_entry=0;
+	file_name_len=strlen(file_name);
 	while(next_entry<i*BLOCK_SIZE)
 	{
 		j=0;
@@ -620,6 +622,7 @@ u32 static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext2
 			j++;
 		}
 		if(name_len==j && name_len!=0)
+		//if(name_len==file_name_len)
 		{
 			found_inode=1;
 			breakpoint();
