@@ -48,14 +48,21 @@ int main (int _argc, char *_argv[])
 		i=0;
 		for(k=0;k<=argc;k++)
 		{
+			printf("\n");
 			j=0;
 			while (cmd[i]!=' ' && cmd[i]!=NULL)
 			{		
 				j++;
 				i++;
 			}
-			i++;
+			//j++;----------------e' i?????
 			argv[k]=malloc(j+1);
+			printf("\n");
+			printf("k=");
+			print_num(k);
+			printf("\n");
+			printf("j=");
+			print_num(j+1);
 		}
 
 		i=0;
@@ -71,6 +78,13 @@ int main (int _argc, char *_argv[])
 			}
 			i++;
 			argv[k][j++]='\0';
+			printf("\n");
+			printf("k=");
+			print_num(k);
+			printf("\n");
+			printf("j=");
+			print_num(j);
+			
 		}
 
 		pid=fork();
