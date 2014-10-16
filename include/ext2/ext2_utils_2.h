@@ -617,12 +617,12 @@ u32 static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext2
 		READ_DWORD(&io_buffer[next_entry],i_number);
 		READ_BYTE(&io_buffer[next_entry+6],name_len);
 		READ_WORD(&io_buffer[next_entry+4],rec_len);
-		while(io_buffer[next_entry+8+j]==file_name[j] && j<name_len)		
-		{
-			j++;
-		}
-		if(name_len==j && name_len!=0)
-		//if(name_len==file_name_len)
+//		while(io_buffer[next_entry+8+j]==file_name[j] && j<name_len)		
+//		{
+//			j++;
+//		}
+//		if(name_len==j && name_len!=0)
+		if (strcmp(&io_buffer[next_entry+8+j],file_name)==0) 
 		{
 			found_inode=1;
 			breakpoint();
