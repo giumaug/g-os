@@ -361,6 +361,7 @@ u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode_parent,t_inode* inode)
 				i++;
 			}
 		}
+		name[j]='\0';
 		if (!found_inode)
 		{
 			printk("\n");

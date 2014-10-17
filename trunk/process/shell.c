@@ -55,7 +55,7 @@ int main (int _argc, char *_argv[])
 				j++;
 				i++;
 			}
-			//j++;----------------e' i?????
+			i++;
 			argv[k]=malloc(j+1);
 			printf("\n");
 			printf("k=");
