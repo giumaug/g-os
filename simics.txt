@@ -46,6 +46,9 @@ cpu0.print-gdt gdt
 cpu0-tlb.status
 
 
+stack-trace
+
+
 
 
 
