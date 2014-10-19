@@ -207,6 +207,7 @@ int _write(t_ext2* ext2,int fd, const void *buf,u32 count);
 int _seek(t_ext2* ext2,int fd,unsigned int offset,int whence);
 int _rm(t_ext2* ext2,char* fullpath);
 int _mkdir(t_ext2* ext2,const char* fullpath);
+int _chdir(t_ext2* ext2,char* path);
 void _break();
 
 #endif

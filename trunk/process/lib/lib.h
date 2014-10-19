@@ -53,6 +53,7 @@ int sleep(unsigned int time);
 int close(int fd);
 int read(int fd, void *buf, int count);
 int write(int fd, void *buf, int count);
+int chdir(char* path);
 
 //stat.h
 int mkdir(const char *fullpath);

@@ -27,13 +27,11 @@ int _open(t_ext2* ext2,const char* fullpath, int flags)
 	u32 ret_code;
 	struct t_process_context* current_process_context;
 	t_inode* inode;
-	t_inode* inode_dir;
 	t_llist_node* node;
 	char path[NAME_MAX];
 	char filename[NAME_MAX];
 
 	inode=kmalloc(sizeof(t_inode));
-	inode_dir=kmalloc(sizeof(t_inode));
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 	fd=current_process_context->next_fd++;
 	current_process_context->file_desc=kmalloc(sizeof(t_hashtable));
@@ -46,7 +44,7 @@ int _open(t_ext2* ext2,const char* fullpath, int flags)
 	}
 	else if (flags & (O_APPEND | O_RDWR))
 	{
-		ret_code=lookup_inode(fullpath,ext2,inode_dir,inode);		
+		ret_code=lookup_inode(fullpath,ext2,inode);		
 		if (ret_code==-1)
 		{
 			return -1;
@@ -300,73 +298,83 @@ int _seek(t_ext2* ext2,int fd,unsigned int offset,int whence)
 	return offset;
 }
 
+//HO TOLTO PARENT_DIR DA LOOKUP_INODE DA RIVEDERE  _RM
 int _rm(t_ext2* ext2,char* fullpath)
 {
-	t_inode* inode;
-	t_inode* inode_dir;
-	char path[NAME_MAX];
-	char filename[NAME_MAX];
-
-	inode=kmalloc(sizeof(t_inode));
-	inode_dir=kmalloc(sizeof(t_inode));
-	
-	extract_filename(fullpath,path,filename);
-	//lookup_inode(path,ext2,NULL,inode_dir);
-	lookup_inode(filename,ext2,inode_dir,inode);
-	del_dir_entry(ext2,inode_dir,inode->i_number);
-	free_inode(inode,ext2);
-
-	kfree(inode);
-	kfree(inode_dir);
 	return 0;
 }
 
+//NON CANCELLARE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//int _rm(t_ext2* ext2,char* fullpath)
+//{
+//	t_inode* inode;
+//	char path[NAME_MAX];
+//	char filename[NAME_MAX];
+//
+//	inode=kmalloc(sizeof(t_inode));
+//	
+//	extract_filename(fullpath,path,filename);
+//	lookup_inode(filename,ext2,inode);
+//	del_dir_entry(ext2,inode_dir,inode->i_number);
+//	free_inode(inode,ext2);
+//
+//	kfree(inode);
+//	return 0;
+//}
+
+
+//HO TOLTO PARENT_DIR DA LOOKUP_INODE DA RIVEDERE  _MKDIR
 int _mkdir(t_ext2* ext2,const char* fullpath)
 {
-	t_inode* inode;
-	t_inode* inode_parent_dir;
-	char* iob_dir;
-	char path[NAME_MAX];
-	char filename[NAME_MAX];
-	u32 sector_count;
-	
-	inode=kmalloc(sizeof(t_inode));
-	inode_parent_dir=kmalloc(sizeof(t_inode));
-	iob_dir=kmalloc(BLOCK_SIZE);
-	kfillmem(iob_dir,0,BLOCK_SIZE);
-		
-	alloc_inode(fullpath,1,ext2,inode);
-	lookup_inode(fullpath,ext2,inode_parent_dir,inode);
-	inode->i_block[0]=alloc_block(ext2,inode,0);
-	
-	iob_dir[0]=inode->i_number;
-	iob_dir[4]=12;
-	iob_dir[6]=1;
-	iob_dir[7]=2;
-	iob_dir[8]='.';
-	iob_dir[9]='\0';
-	iob_dir[10]='\0';
-	iob_dir[11]='\0';
-	
-	iob_dir[12]=inode_parent_dir->i_number;
-	iob_dir[16]=24;
-	iob_dir[18]=1;
-	iob_dir[19]=2;
-	iob_dir[20]='.';
-	iob_dir[21]='.';
-	iob_dir[22]='\0';
-	iob_dir[23]='\0';
 
-	extract_filename(fullpath,path,filename);
-	sector_count=BLOCK_SIZE/SECTOR_SIZE;
-	WRITE(sector_count,inode->i_block[0],iob_dir);
-	add_dir_entry(ext2,inode_parent_dir,inode->i_number,filename,2);
-
-	kfree(inode);
-	kfree(inode_parent_dir);
-	kfree(iob_dir);
-	return 0;
 }
+//NON CANCELLARE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//int _mkdir(t_ext2* ext2,const char* fullpath)
+//{
+//	t_inode* inode;
+//	t_inode* inode_parent_dir;
+//	char* iob_dir;
+//	char path[NAME_MAX];
+//	char filename[NAME_MAX];
+//	u32 sector_count;
+//	
+//	inode=kmalloc(sizeof(t_inode));
+//	inode_parent_dir=kmalloc(sizeof(t_inode));
+//	iob_dir=kmalloc(BLOCK_SIZE);
+//	kfillmem(iob_dir,0,BLOCK_SIZE);
+//		
+//	alloc_inode(fullpath,1,ext2,inode);
+//	lookup_inode(fullpath,ext2,inode_parent_dir,inode);
+//	inode->i_block[0]=alloc_block(ext2,inode,0);
+//	
+//	iob_dir[0]=inode->i_number;
+//	iob_dir[4]=12;
+//	iob_dir[6]=1;
+//	iob_dir[7]=2;
+//	iob_dir[8]='.';
+//	iob_dir[9]='\0';
+//	iob_dir[10]='\0';
+//	iob_dir[11]='\0';
+//	
+//	iob_dir[12]=inode_parent_dir->i_number;
+//	iob_dir[16]=24;
+//	iob_dir[18]=1;
+//	iob_dir[19]=2;
+//	iob_dir[20]='.';
+//	iob_dir[21]='.';
+//	iob_dir[22]='\0';
+//	iob_dir[23]='\0';
+//
+//	extract_filename(fullpath,path,filename);
+//	sector_count=BLOCK_SIZE/SECTOR_SIZE;
+//	WRITE(sector_count,inode->i_block[0],iob_dir);
+//	add_dir_entry(ext2,inode_parent_dir,inode->i_number,filename,2);
+//
+//	kfree(inode);
+//	kfree(inode_parent_dir);
+//	kfree(iob_dir);
+//	return 0;
+//}
 
 //just to setup a breakpoint
 _break()
@@ -374,4 +382,19 @@ _break()
 	return;
 }
 
-//manca cd
+int _chdir(t_ext2* ext2,char* path)
+{
+	u32 current_dir_inode;
+	u32 ret;
+	t_inode* inode;
+	struct t_process_context* current_process_context;
+
+	inode=kmalloc(sizeof(t_inode));
+	CURRENT_PROCESS_CONTEXT(current_process_context)
+	ret=lookup_inode(path,ext2,inode);
+	if (ret==0)
+	{
+		current_process_context->current_dir_inode_number=inode->i_number;
+	}
+	kfree(inode);
+}
