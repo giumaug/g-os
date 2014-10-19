@@ -86,3 +86,12 @@ int write(int fd, void *buf, int count)
 	SYSCALL(21,params);
 	return  params[3];
 }
+
+int chdir(char* path)
+{
+	unsigned int params[1];
+
+	params[0]=path;
+	SYSCALL(26,params);
+	return  params[1];	
+}

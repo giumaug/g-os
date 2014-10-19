@@ -7,7 +7,7 @@ u32 static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext2
 u32 static find_free_inode(u32 group_block_index,t_ext2 *ext2,u32 check_threshold);
 u32 static find_free_block(char* io_buffer,u32 prealloc);
 void static read_inode(t_ext2* ext2,t_inode* inode);
-u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode_parent,t_inode* inode);
+u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode);
 
 static void fill_group_hash(t_ext2* ext2,t_llist* group_list,t_hashtable* group_hash,u32 start_block,u32 end_block,t_inode* i_node)
 {
@@ -284,7 +284,7 @@ void free_block()
 	//nothing
 }
 
-u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode_parent,t_inode* inode)
+u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode)
 {
 	u32 ret;
 	u32 found_inode;
@@ -408,7 +408,7 @@ void alloc_inode(char* fullpath,unsigned int type,t_ext2 *ext2, t_inode* inode)
                 group_block_offset=0;
                 inode_number=-1;
                 tot_group_block=ext2->superblock->s_blocks_count;
-                lookup_inode(fullpath,ext2,NULL,inode_parent_dir);
+                lookup_inode(fullpath,ext2,inode_parent_dir);
                 parent_dir_group_block_index=(inode_parent_dir->i_number-1)/ext2->superblock->s_inodes_per_group;
                 group_block_index=parent_dir_group_block_index;
 

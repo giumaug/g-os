@@ -173,6 +173,11 @@ void syscall_handler()
 		_write_28_ata(io_request);
 		kfree(io_request);
 	}
+	else if (syscall_num==26) 
+	{
+		params[1]=_chdir(system.root_fs,(char*) params[0]); 
+		on_exit_action=1; 	
+	}
 	else if (syscall_num==101) 
 	{
 		on_exit_action=1; 
