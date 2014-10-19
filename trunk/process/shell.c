@@ -1,6 +1,19 @@
 #include "lib/lib.h"  
 #include "shell.h"
 
+static void cd(char* path)
+{
+	int ret;
+
+	ret=chdir(path);
+	if (ret==-1)
+	{
+		printf("\n");
+		printf("wrong arguments");
+		printf("\n");
+	}----qui
+}
+
 int main (int _argc, char *_argv[])
 {
 	int ret;
@@ -11,7 +24,7 @@ int main (int _argc, char *_argv[])
 	char cmd[100];
 	char** argv;
 	char c;
-	unsigned int pippo;
+	unsigned int index;
 
 	printf("g-shell v 0.1 \n");
 	printf("argc=");
@@ -27,84 +40,110 @@ int main (int _argc, char *_argv[])
 		printf("=>");
 
 		scanf("%s",&cmd);
-		len=strlen(cmd);
-		if (cmd[len-1]=='-') 
-		{
-			is_background=1;
-			cmd[len-1]='\0';
-		}
 
-		i=0;
-		while (cmd[i]!=NULL)
+		if (cmd[0]!="/" || (cmd[0]=="." && cmd[1]=="/"))
 		{
-			if(cmd[i]==' ')
+			printf("\n");
+			printf("Command not found.");
+			printf("\n");
+		}
+		else
+		{
+			if (cmd[0]=="/")
 			{
-				argc++;
+				index=1;
 			}
-			i++;
-		}
-
-		argv=malloc(sizeof(char*)*argc+1);
-		i=0;
-		for(k=0;k<=argc;k++)
-		{
-			printf("\n");
-			j=0;
-			while (cmd[i]!=' ' && cmd[i]!=NULL)
-			{		
-				j++;
-				i++;
+			else if (cmd[0]=="." && cmd[1]=="/")
+			{
+				index=2;
 			}
-			i++;
-			argv[k]=malloc(j+1);
-			printf("\n");
-			printf("k=");
-			print_num(k);
-			printf("\n");
-			printf("j=");
-			print_num(j+1);
-		}
-
-		i=0;
-		j=0;
-		for(k=0;k<=argc;k++)
-		{
-			j=0;
-			while (cmd[i]!=' ' && cmd[i]!=NULL)
-			{		
-				argv[k][j++]=cmd[i];
-				i++;
-
+		
+			//BUILT IN COMMAND!!!
+			if (strcmp(&cmd[index],"cd")==2)
+			{
+				cd()
 			}
-			i++;
-			argv[k][j++]='\0';
-			printf("\n");
-			printf("k=");
-			print_num(k);
-			printf("\n");
-			printf("j=");
-			print_num(j);
+			else
+			{
+				if (cmd[len-1]=='-') 
+				{
+					is_background=1;
+					cmd[len-1]='\0';
+				}
+
+				i=0;
+				while (cmd[i]!=NULL)
+				{
+					if(cmd[i]==' ')
+					{
+						argc++;
+					}
+					i++;
+				}
+
+				argv=malloc(sizeof(char*)*argc+1);
+				i=0;
+				for(k=0;k<=argc;k++)
+				{
+					printf("\n");
+					j=0;
+					while (cmd[i]!=' ' && cmd[i]!=NULL)
+					{		
+						j++;
+						i++;
+					}
+					i++;
+					argv[k]=malloc(j+1);
+					printf("\n");
+					printf("k=");
+					print_num(k);
+					printf("\n");
+					printf("j=");
+					print_num(j+1);
+				}
+
+				i=0;
+				j=0;
+				for(k=0;k<=argc;k++)
+				{
+					j=0;
+					while (cmd[i]!=' ' && cmd[i]!=NULL)
+					{		
+						argv[k][j++]=cmd[i];
+						i++;
+
+					}
+					i++;
+					argv[k][j++]='\0';
+					printf("\n");
+					printf("k=");
+					print_num(k);
+					printf("\n");
+					printf("j=");
+					print_num(j);
 			
-		}
+				}
 
-		pid=fork();
-		if (pid==0)
-		{
-			//ret=execv(argv[0],argv);
-			ret=exec(argv[0],argv);
-			if (ret==-1)
-			{
-				printf("\n");
-				printf("Command not found.");
-				printf("\n");
-				exit(0);
-			}
-		}
-		else 
-		{
-			if (!is_background)
-			{
-				pause();
+				pid=fork();
+				if (pid==0)
+				{
+					//ret=execv(argv[0],argv);
+					ret=exec(argv[0],argv);
+					if (ret==-1)
+					{
+						printf("\n");
+						printf("Command not found.");
+						printf("\n");
+						exit(0);
+					}
+				}
+				else 
+				{
+					if (!is_background)
+					{
+						pause();
+					}
+				}
 			}
 		}
 	}
