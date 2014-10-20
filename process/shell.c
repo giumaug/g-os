@@ -1,18 +1,7 @@
 #include "lib/lib.h"  
 #include "shell.h"
 
-static void cd(char* path)
-{
-	int ret;
-
-	ret=chdir(path);
-	if (ret==-1)
-	{
-		printf("\n");
-		printf("wrong arguments");
-		printf("\n");
-	}----qui
-}
+static void cd(char* path);
 
 int main (int _argc, char *_argv[])
 {
@@ -41,7 +30,7 @@ int main (int _argc, char *_argv[])
 
 		scanf("%s",&cmd);
 
-		if (cmd[0]!="/" || (cmd[0]=="." && cmd[1]=="/"))
+		if (cmd[0]!='/' && !(cmd[0]=='.' && cmd[1]=='/'))
 		{
 			printf("\n");
 			printf("Command not found.");
@@ -49,19 +38,21 @@ int main (int _argc, char *_argv[])
 		}
 		else
 		{
-			if (cmd[0]=="/")
+			if (cmd[0]=='/')
 			{
 				index=1;
 			}
-			else if (cmd[0]=="." && cmd[1]=="/")
+			else if (cmd[0]=='.' && cmd[1]=='/')
 			{
 				index=2;
 			}
 		
 			//BUILT IN COMMAND!!!
+			printf("-----\n");
+			printf(&cmd[index+3]);			
 			if (strcmp(&cmd[index],"cd")==2)
 			{
-				cd()
+				cd(&cmd[index+3]);
 			}
 			else
 			{
@@ -148,3 +139,21 @@ int main (int _argc, char *_argv[])
 		}
 	}
 }
+
+static void cd(char* path)
+{
+	int ret;
+
+	printf("++++++++++++++++++++++++");
+
+	ret=chdir(path);
+	if (ret==-1)
+	{
+		printf("\n");
+		printf("wrong arguments");
+		printf("\n");
+	}
+}
+
+
+
