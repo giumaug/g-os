@@ -16,18 +16,17 @@ int main (int _argc, char *_argv[])
 	unsigned int index;
 
 	printf("g-shell v 0.1 \n");
-	printf("argc=");
-	print_num(_argc);
-	printf("\n");
-	printf("argv[0]=");
-	printf(_argv[0]);
+//	printf("argc=");
+//	print_num(_argc);
+//	printf("\n");
+//	printf("argv[0]=");
+//	printf(_argv[0]);
 	printf("\n");
 
 	while(1)
 	{
 		argc=0;
 		printf("=>");
-
 		scanf("%s",&cmd);
 
 		if (cmd[0]!='/' && !(cmd[0]=='.' && cmd[1]=='/'))
@@ -47,12 +46,11 @@ int main (int _argc, char *_argv[])
 				index=2;
 			}
 		
-			//BUILT IN COMMAND!!!
-			printf("-----\n");
-			printf(&cmd[index+3]);			
-			if (strcmp(&cmd[index],"cd")==2)
+			//BUILT IN COMMAND!!!		
+			if (cmd[index]=='c' && cmd[index+1]=='d' && cmd[index+2]==' ')
 			{
 				cd(&cmd[index+3]);
+				printf("\n");
 			}
 			else
 			{
@@ -85,12 +83,12 @@ int main (int _argc, char *_argv[])
 					}
 					i++;
 					argv[k]=malloc(j+1);
-					printf("\n");
-					printf("k=");
-					print_num(k);
-					printf("\n");
-					printf("j=");
-					print_num(j+1);
+//					printf("\n");
+//					printf("k=");
+//					print_num(k);
+//					printf("\n");
+//					printf("j=");
+//					print_num(j+1);
 				}
 
 				i=0;
@@ -106,12 +104,12 @@ int main (int _argc, char *_argv[])
 					}
 					i++;
 					argv[k][j++]='\0';
-					printf("\n");
-					printf("k=");
-					print_num(k);
-					printf("\n");
-					printf("j=");
-					print_num(j);
+//					printf("\n");
+//					printf("k=");
+//					print_num(k);
+//					printf("\n");
+//					printf("j=");
+//					print_num(j);
 			
 				}
 
@@ -143,8 +141,6 @@ int main (int _argc, char *_argv[])
 static void cd(char* path)
 {
 	int ret;
-
-	printf("++++++++++++++++++++++++");
 
 	ret=chdir(path);
 	if (ret==-1)

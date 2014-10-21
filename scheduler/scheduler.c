@@ -328,6 +328,9 @@ u32 _exec(char* _path,char* _argv[])
 	static t_buddy_desc* buddy_desc;
 	char* proc_mem;
 	u32 ret;
+
+	int pippo=12;
+	printk("pippo=%d \n",pippo);
 	
 	argc=0;
 	i=0;
