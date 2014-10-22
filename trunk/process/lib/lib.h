@@ -23,8 +23,6 @@ unsigned int pow2(unsigned int x);
 unsigned int log2(unsigned int x);
 
 //stdio.h
-void print_num(int val);
-void d_printf(int val);
 void scanf(char *text,void *val);
 int remove(const char *filename);
 

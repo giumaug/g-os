@@ -1,6 +1,6 @@
 #include "lib.h"
 
-void print_num(int val)
+void static print_num(int val)
 {
 	unsigned int mod;
 	unsigned int res;
@@ -19,7 +19,7 @@ void print_num(int val)
 	}
 }
 
-void printf(char *text)
+void static print_char(char* text)
 {
 	int index=-1;
 	int params[1];
@@ -30,13 +30,23 @@ void printf(char *text)
 	}
 }
 
-void d_printf(int val)
-{
-	print_num(val);
-}
+//void printf(char *text)
+//{
+//	int index=-1;
+//	int params[1];
+//	while (text[++index]!='\0')
+//	{
+//		params[0]=text[index];
+//		SYSCALL(4,params);
+//	}
+//}
 
-//CAN'T INLINE VARIADIC FUNCTION!!!!!!!!!!!!!
-/*extern inline void printf(char *text,...)
+//void d_printf(int val)
+//{
+//	print_num(val);
+//}
+
+void printf(char* text,...)
 {
 	int index=-1;
 	int param_index=0;
@@ -51,13 +61,21 @@ void d_printf(int val)
 			index+=2;
 			param_index++;
 			GET_FROM_STACK(param_index,param_val);
-			//print_num(**param_val);
+			print_num(**param_val);
+
+		}
+		else if (text[index]=='%' && text[index+1]=='s')
+		{
+			index+=2;
+			param_index++;
+			GET_FROM_STACK(param_index,param_val);
+			print_char(*param_val);
 
 		}
 		params[0]=text[index];
 		SYSCALL(4,params);
 	}
-}*/ 
+} 
 
 void scanf(char *text,void *val)
 {

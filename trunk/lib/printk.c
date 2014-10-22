@@ -24,7 +24,6 @@ static void itoa(int val,char *char_val,unsigned int base)
 	while(res!=0);
         for (i=0;i<=index;i++) char_val[i]=_char_val[index-i];
 	char_val[++index]='\0';
-	//while(_char_val[++index]=='\0') char_val[++index]==_char_val[index];
 	return;
 }
 
@@ -33,6 +32,17 @@ void static printk_num(int val)
 	char char_val[11]; //int32
 	itoa (val,char_val,10);
 	printk(char_val);
+}
+
+void static printk_char(char* text)
+{
+	int index=-1;
+	int params[1];
+	while (text[++index]!='\0')
+	{
+		params[0]=text[index];
+		SYSCALL(4,params);
+	}
 }
 
 void printk(char *text,...)
@@ -53,6 +63,14 @@ void printk(char *text,...)
 			GET_FROM_STACK(param_index,param_val);
 			printk_num(**param_val);
 		}
+		if (text[index]=='%' && text[index+1]=='s')
+		{
+			index+=2;
+			param_index++;
+			GET_FROM_STACK(param_index,param_val);
+			printk_char(*param_val);
+		}
+
 		_write_char(console_desc,text[index]);
 	}
 }

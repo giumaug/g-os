@@ -329,9 +329,6 @@ u32 _exec(char* _path,char* _argv[])
 	char* proc_mem;
 	u32 ret;
 
-	int pippo=12;
-	printk("pippo=%d \n",pippo);
-	
 	argc=0;
 	i=0;
 	current_process_context=system.process_info->current_process->val;

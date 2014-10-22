@@ -47,6 +47,7 @@ cpu0-tlb.status
 
 
 stack-trace
+pregs
 
 
 
