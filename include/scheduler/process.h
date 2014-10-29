@@ -78,6 +78,8 @@ struct t_process_info
 	t_llist* pause_queue;
 	t_llist* sleep_wait_queue;
 	struct t_processor_reg current_processor_reg;
+	u32 heap_start_addr;
+	u32 heap_size;
 };
 
 #endif
