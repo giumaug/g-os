@@ -1,8 +1,9 @@
 #include "general.h"
+#include "idt.h"
 #include "memory_manager/general.h"
 #include "virtual_memory/vm.h"
 
-struct t_process_context* process0;
+void page_fault_handler();
 
 void* init_virtual_memory()
 {
@@ -10,6 +11,13 @@ void* init_virtual_memory()
 	unsigned int pad;
 	unsigned int* new_page_dir;
 	system.process_info->current_process=NULL;
+	static struct t_i_desc i_desc;
+
+	i_desc.baseLow=((int)&page_fault_handler) & 0xFFFF;
+	i_desc.selector=0x8;
+	i_desc.flags=0x08e00;
+	i_desc.baseHi=((int)&page_fault_handler)>>0x10;
+	set_idt_entry(0x0E,&i_desc);
 	
 	new_page_dir=buddy_alloc_page(system.buddy_desc,0x1000);
 	for (i=0;i<1024;i++) new_page_dir[i]=0;
@@ -18,7 +26,6 @@ void* init_virtual_memory()
 	return new_page_dir;
 }
 
-//void* init_vm_process(void* master_page_dir,unsigned int proc_phy_addr,struct t_process_context* process_context,unsigned int flags)
 void* init_vm_process(struct t_process_context* process_context)
 {
 	unsigned int *page_dir;	
@@ -37,7 +44,6 @@ void* init_vm_process(struct t_process_context* process_context)
 	}
 	map_vm_mem(page_dir,0,0,0x100000);
 	if (process_context->phy_add_space!=NULL)
-//	if (flags==INIT_VM_USERSPACE)
 	{
 		map_vm_mem(page_dir,PROC_VIRT_MEM_START_ADDR,process_context->phy_add_space,process_context->phy_space_size);
 		map_vm_mem(page_dir,USER_STACK,process_context->phy_user_stack,0x10000);
@@ -46,11 +52,9 @@ void* init_vm_process(struct t_process_context* process_context)
 	return page_dir;
 }
 
-//void free_vm_process(void* page_dir,unsigned int flags)
 void free_vm_process(struct t_process_context* process_context)
 {
 	umap_vm_mem(process_context->page_dir,0,0x100000,0);
-//	if (flags==INIT_VM_USERSPACE)
 	if (process_context->phy_add_space!=NULL)
 	{
 		umap_vm_mem(process_context->page_dir,PROC_VIRT_MEM_START_ADDR,process_context->phy_space_size,1);
@@ -179,5 +183,20 @@ void umap_vm_mem(void* page_dir,unsigned int virt_mem_addr,unsigned int mem_size
 			buddy_free_page(system.buddy_desc,page_table);
 			((unsigned int*)page_dir)[i]=0;
 		}
+	}
+}
+
+void page_fault_handler()
+{
+	u32 fault_addr;
+	u32 page_num;
+	u32 page_offset;
+
+//	GET_FAULT_ADDRESS(fault_addr);
+
+	if (fault_addr>=system.process_info->heap_start_addr && fault_addr<=(system.process_info->heap_start_addr+system.process_info->heap_size))
+	{
+		page_num=fault_addr / PAGE_SIZE;
+		page_offset=fault_addr % PAGE_SIZE;
 	}
 }
