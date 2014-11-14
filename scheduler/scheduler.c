@@ -298,6 +298,13 @@ int _fork(struct t_processor_reg processor_reg,unsigned int flags)
 		child_process_context->phy_add_space=FROM_VIRT_TO_PHY(proc_mem); 
 		kmemcpy(proc_mem,FROM_PHY_TO_VIRT(parent_process_context->phy_add_space),mem_size); 
 
+		child_process_context->process_mem_reg=create_mem_reg(PROC_VIRT_MEM_START_ADDR,PROC_VIRT_MEM_START_ADDR+mem_size);
+		child_process_context->heap_mem_reg=create_mem_reg(HEAP_VIRT_MEM_START_ADDR,HEAP_VIRT_MEM_START_ADDR+HEAP_INIT_SIZE);
+		child_process_context->ustack_mem_reg=create_mem_reg(USER_STACK-USER_STACK_INIT_SIZE,USER_STACK);	
+
+		
+
+
 		proc_mem=buddy_alloc_page(system.buddy_desc,0x10000);    
 		child_process_context->phy_user_stack=FROM_VIRT_TO_PHY(proc_mem);
 		kmemcpy(proc_mem,FROM_PHY_TO_VIRT(parent_process_context->phy_user_stack),0x10000);
