@@ -28,7 +28,7 @@ void* init_virtual_memory()
 
 void* init_vm_process(struct t_process_context* process_context)
 {
-	unsigned int *page_dir;	
+	unsigned int* page_dir;	
 	unsigned int start,end;
 	unsigned int pad;
 	unsigned int i=0;
@@ -51,6 +51,30 @@ void* init_vm_process(struct t_process_context* process_context)
 	map_vm_mem(page_dir,KERNEL_STACK,process_context->phy_kernel_stack,0x4000);	
 	return page_dir;
 }
+
+void clone_vm_process(unsigned int* parent_page_dir)
+{
+	unsigned int* child_page_dir;
+	unsigned int* page_table;
+
+
+	child_page_dir=buddy_alloc_page(system.buddy_desc,0x1000);
+	for (i=0;i<768;i++) 
+	{
+		if (parent_page_dir[i]!=0)
+		{
+			page_table=buddy_alloc_page(system.buddy_desc,0x1000);
+
+			((unsigned int*)page_dir)[i]=FROM_VIRT_TO_PHY((unsigned int)page_table) | 7;		
+		
+			for (j=0;j<1024;j++)
+			{
+				page_table[j]=0;
+			}
+			
+		}
+
+	}
 
 void free_vm_process(struct t_process_context* process_context)
 {
