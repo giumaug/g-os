@@ -52,29 +52,38 @@ void* init_vm_process(struct t_process_context* process_context)
 	return page_dir;
 }
 
-void clone_vm_process(unsigned int* parent_page_dir)
+void clone_vm_process(void* parent_page_dir)
 {
+	unsigned int i,j;
 	unsigned int* child_page_dir;
-	unsigned int* page_table;
+	unsigned int* child_page_table;
+	unsigned int* parent_page_table;
 
 
 	child_page_dir=buddy_alloc_page(system.buddy_desc,0x1000);
 	for (i=0;i<768;i++) 
 	{
-		if (parent_page_dir[i]!=0)
+		if (((unsigned int*)parent_page_dir)[i]!=0)
 		{
-			page_table=buddy_alloc_page(system.buddy_desc,0x1000);
-
-			((unsigned int*)page_dir)[i]=FROM_VIRT_TO_PHY((unsigned int)page_table) | 7;		
-		
+			child_page_table=buddy_alloc_page(system.buddy_desc,0x1000);
+			parent_page_table=((unsigned int*)parent_page_dir)[i];
+				
 			for (j=0;j<1024;j++)
 			{
-				page_table[j]=0;
+				child_page_table)[j]=parent_page_table[j] | 5;
 			}
-			
+			child_page_dir[i]=child_page_table | 5;
 		}
-
+		else
+		{
+			child_page_dir[i]=0;
+		}
 	}
+	for (i=768;i<1024;i++) 
+	{
+		child_page_dir[i]=((unsigned int*) parent_page_dir)[i];
+	}
+}
 
 void free_vm_process(struct t_process_context* process_context)
 {
