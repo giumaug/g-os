@@ -79,23 +79,24 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	process_context->curr_sched_queue_index=9;
 	process_context->pid=0;
         process_context->tick=TICK;
-        process_context->processor_reg.esp=0x1EFFFF;//64K user mode stack 
+//      process_context->processor_reg.esp=0x1EFFFF;//64K user mode stack 
+	process_context->processor_reg.esp=NULL;
 	process_context->console_desc=&console_desc;
 	system.process_info->current_process=ll_prepend(system.scheduler_desc.scheduler_queue[9],process_context);
 	system.process_info->tss.ss= *init_data;
 	system.process_info->tss.esp= *(init_data+1);
 	system.process_info->pause_queue=new_dllist();
 	process_context->phy_add_space=NULL;
-	process_context->phy_kernel_stack=FROM_VIRT_TO_PHY(buddy_alloc_page(system.buddy_desc,0x4000));
-	                       
-//	process_context->page_dir=init_vm_process(system.master_page_dir,process_context->phy_add_space,process_context,NO_INIT_VM_USERSPACE);
-	process_context->page_dir=init_vm_process(process_context);
+	process_context->phy_kernel_stack=FROM_VIRT_TO_PHY(buddy_alloc_page(system.buddy_desc,KERNEL_STACK_SIZE));
+	 
+	process_context->page_dir=buddy_alloc_page(system.buddy_desc,0x1000);                      
+	init_vm_process(process_context);
 	*(system.process_info->tss.ss)=0x18;
-	*(system.process_info->tss.esp)=0x1FFFFF;//64K kernel mode stack
+	*(system.process_info->tss.esp)=KERNEL_STACK;
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) process_context->page_dir)))                           	
 
-	asm("movl $0x1FFFFF,%ebp");
-	asm("movl $0x1FFFFF,%esp");
+	asm("movl $0xKERNEL_STACK,%ebp");
+	asm("movl $0xKERNEL_STACK,%esp");
 	STI
 	process_0();				       	
 }

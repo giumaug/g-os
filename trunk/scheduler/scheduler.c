@@ -314,15 +314,6 @@ int __fork(struct t_processor_reg processor_reg,unsigned int flags)
 
 int _fork(struct t_processor_reg processor_reg,unsigned int flags) 
 {
-	unsigned int parent_add_space;
-	unsigned int child_add_space;
-	unsigned int stack_bottom;
-	unsigned int i=0;
-	unsigned int mem_size;
-	unsigned int esp;
-	unsigned int eip;
-	char* proc_mem;
-
  	struct t_process_context* child_process_context;
 	struct t_process_context* parent_process_context;
 	
@@ -333,39 +324,20 @@ int _fork(struct t_processor_reg processor_reg,unsigned int flags)
 
 	kmemcpy(child_process_context,parent_process_context,sizeof(struct t_process_context));
 	child_process_context->pid=system.process_info->next_pid++;
-	//child_process_context->parent=parent_process_context;
-	//child_process_context->processor_reg=processor_reg;
-	//child_process_context->phy_add_space=NULL;
-	//child_process_context->root_dir_inode_number=parent_process_context->root_dir_inode_number;
-	//child_process_context->current_dir_inode_number=parent_process_context->current_dir_inode_number;
 	if (flags==INIT_VM_USERSPACE)
 	{
-//		mem_size=parent_process_context->phy_space_size;
-//		proc_mem=buddy_alloc_page(system.buddy_desc,mem_size);    
-		//child_process_context->phy_add_space=parent_process_context->phy_add_space;
-//		kmemcpy(proc_mem,FROM_PHY_TO_VIRT(parent_process_context->phy_add_space),mem_size); 
-
-		//OK????
-		child_process_context->process_mem_reg=create_mem_reg(PROC_VIRT_MEM_START_ADDR,PROC_VIRT_MEM_START_ADDR+mem_size);
+		child_process_context->process_mem_reg=create_mem_reg(PROC_VIRT_MEM_START_ADDR,PROC_VIRT_MEM_START_ADDR+parent_process_context->phy_space_size);
 		child_process_context->heap_mem_reg=create_mem_reg(HEAP_VIRT_MEM_START_ADDR,HEAP_VIRT_MEM_START_ADDR+HEAP_INIT_SIZE);
 		child_process_context->ustack_mem_reg=create_mem_reg(USER_STACK-USER_STACK_INIT_SIZE,USER_STACK);	
-
-//		proc_mem=buddy_alloc_page(system.buddy_desc,0x10000);    
-		//child_process_context->phy_user_stack=parent_process_context->phy_user_stack;
-//		kmemcpy(proc_mem,FROM_PHY_TO_VIRT(parent_process_context->phy_user_stack),0x10000);
 	}
-//	proc_mem=buddy_alloc_page(system.buddy_desc,0x4000);    
-	//child_process_context->phy_kernel_stack=parent_process_context->phy_kernel_stack;
-//	kmemcpy(proc_mem,FROM_PHY_TO_VIRT(parent_process_context->phy_kernel_stack),0x4000);
 	
 	ll_prepend(system.scheduler_desc.scheduler_queue[parent_process_context->curr_sched_queue_index],child_process_context);
-//	child_process_context->page_dir=init_vm_process(child_process_context);
 	child_process_context->page_dir=clone_vm_process(parent_process_context->page_dir);
 	RESTORE_IF_STATUS
 	return child_process_context->pid;
 }
 
-u32 _exec(char* _path,char* _argv[]) 
+u32 __exec(char* _path,char* _argv[]) 
 {
 	static char** argv;
 	struct t_process_context* current_process_context;
@@ -432,6 +404,61 @@ u32 _exec(char* _path,char* _argv[])
 	frame_size+=16;
 
 	stack_pointer=0x1EFFFF-frame_size;
+	*(stack_pointer+0)=NULL;
+	*(stack_pointer+1)=argc;
+	*(stack_pointer+2)=(stack_pointer+4);
+	*(stack_pointer+3)=NULL;
+	stack_data=stack_pointer+4;
+
+	for(i=0;i<argc;i++)
+	{
+		stack_data[i]=argv[i];
+	}
+	stack_data[argc]=NULL;
+
+	SWITCH_TO_USER_MODE(stack_pointer)
+	return 0;
+}
+
+u32 _exec(char* _path,char* argv[]) 
+{
+	struct t_process_context* current_process_context;
+	static u32* stack_pointer;
+	static char** stack_data;
+	static u32 argc=0;
+	static u32 i;
+	static u32 frame_size=0;
+
+	argc=0;
+	i=0;
+	current_process_context=system.process_info->current_process->val;
+	current_process_context->proc_status=RUNNING;
+	current_process_context->sleep_time=0;
+	current_process_context->assigned_sleep_time=0;
+	current_process_context->static_priority=0;
+	old_proc_phy_addr=current_process_context->phy_add_space;?????
+
+	if (current_process_context.phy_add_space==NULL)----------qui 2
+	{
+		current_process_context->process_mem_reg=create_mem_reg(PROC_VIRT_MEM_START_ADDR,PROC_VIRT_MEM_START_ADDR+mem_size);
+		current_process_context->heap_mem_reg=create_mem_reg(HEAP_VIRT_MEM_START_ADDR,HEAP_VIRT_MEM_START_ADDR+HEAP_INIT_SIZE);
+		current_process_context->ustack_mem_reg=create_mem_reg(USER_STACK-USER_STACK_INIT_SIZE,USER_STACK);	
+	}
+	
+	CLI---------qui 1
+	
+	free_vm_process(current_process_context->page_dir);
+	current_process_context->page_dir=init_vm_process(current_process_context);
+
+	while(argv[i++]!=NULL)
+	{
+		 argc++;
+	}
+
+	frame_size=(argc+1)*4;
+	frame_size+=16;
+
+	stack_pointer=KERNEL_STACK-frame_size;
 	*(stack_pointer+0)=NULL;
 	*(stack_pointer+1)=argc;
 	*(stack_pointer+2)=(stack_pointer+4);
