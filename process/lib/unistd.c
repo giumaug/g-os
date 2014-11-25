@@ -14,8 +14,7 @@ int fork()
 {
 	unsigned int params[2];
 	unsigned int ret;
-	params[1]=0;
-	params[0]=INIT_VM_USERSPACE;
+	params[0]=0;
 	SYSCALL(1,params);
 	ret=params[1];//ret val for parent
 	params[1]=0;// ret val for child

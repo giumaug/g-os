@@ -193,7 +193,7 @@ void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_ad
 		}
 		else 
 		{
-			start=0;
+			start=0;USERSPACE_PROCESS
 			end=1024;
 		}
 		
@@ -264,12 +264,42 @@ void page_fault_handler()
 	u32 fault_addr;
 	u32 page_num;
 	u32 page_offset;
+	struct t_process_context* current_process_context;
 
-//	GET_FAULT_ADDRESS(fault_addr);
+	GET_FAULT_ADDRESS(fault_addr);
+	CURRENT_PROCESS_CONTEXT(current_process_context);
 
-	if (fault_addr>=system.process_info->heap_start_addr && fault_addr<=(system.process_info->heap_start_addr+system.process_info->heap_size))
+	if (CHECK_MEM_REG(fault_addr,current_process_context->process_mem_reg))
 	{
-		page_num=fault_addr / PAGE_SIZE;
-		page_offset=fault_addr % PAGE_SIZE;
+
 	}
+	else if (CHECK_MEM_REG(fault_addr,current_process_context->heap_mem_reg))
+	{
+
+	}
+	else if (CHECK_MEM_REG(fault_addr,current_process_context->ustack_mem_reg))
+	{
+
+	}
+
+
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
