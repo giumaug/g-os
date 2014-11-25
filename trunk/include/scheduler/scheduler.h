@@ -26,11 +26,10 @@
 
 #define THREAD_FORK(pid)		do					\
 					{					\
-						unsigned int params[2];		\
-						params[0]=NO_INIT_VM_USERSPACE;	\
-						params[1]=0;			\
+						unsigned int params[1];		\
+						params[0]=0;			\
 						SYSCALL(1,params);		\
-						pid=params[1];			\
+						pid=params[0];			\
 					}					\
 					while(0)
 
@@ -57,7 +56,8 @@ void _awake();
 void _pause();
 void _exit(int status);
 u32 _exec(char* path,char* argv[]);
-int _fork(struct t_processor_reg processor_reg,unsigned int flags);
+//int _fork(struct t_processor_reg processor_reg,unsigned int flags);
+int _fork(struct t_processor_reg processor_reg);
 void _sleep_time(unsigned int time);
 
 #endif

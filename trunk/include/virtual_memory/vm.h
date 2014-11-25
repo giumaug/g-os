@@ -21,12 +21,7 @@
 //#define KERNEL_STACK 0x1FC000
 //#define USER_STACK 0xBFFFF000 //3g-4k security hole 
 
-BFFFD000 ustack
-BFFFE000 hole
-BFFFF000 kstack
-
-#define INIT_VM_USERSPACE 0
-#define NO_INIT_VM_USERSPACE 1
+#define CHECK_MEM_REG(fault_addr,mem_reg) fault_addr>=mem_reg->start_addr && fault_addr<=mem_reg->end_addr 
 
 //void* init_vm_process(void* master_page_dir,unsigned int proc_phy_addr,struct t_process_context* process_context,unsigned int flags);
 //void free_vm_process(void* page_dir,unsigned int flags);

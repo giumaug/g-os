@@ -86,8 +86,9 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	system.process_info->tss.ss= *init_data;
 	system.process_info->tss.esp= *(init_data+1);
 	system.process_info->pause_queue=new_dllist();
-	process_context->phy_add_space=NULL;
+//	process_context->phy_add_space=NULL;
 	process_context->phy_kernel_stack=FROM_VIRT_TO_PHY(buddy_alloc_page(system.buddy_desc,KERNEL_STACK_SIZE));
+	current_process_context->process_type=KERNEL_THREAD;
 	 
 	process_context->page_dir=buddy_alloc_page(system.buddy_desc,0x1000);                      
 	init_vm_process(process_context);
@@ -95,8 +96,8 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	*(system.process_info->tss.esp)=KERNEL_STACK;
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) process_context->page_dir)))                           	
 
-	asm("movl $0xKERNEL_STACK,%ebp");
-	asm("movl $0xKERNEL_STACK,%esp");
+	asm("movl $KERNEL_STACK,%ebp");
+	asm("movl $KERNEL_STACK,%esp");
 	STI
 	process_0();				       	
 }

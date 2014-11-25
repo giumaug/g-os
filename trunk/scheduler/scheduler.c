@@ -312,7 +312,7 @@ int __fork(struct t_processor_reg processor_reg,unsigned int flags)
 	return child_process_context->pid;
 }
 
-int _fork(struct t_processor_reg processor_reg,unsigned int flags) 
+int _fork(struct t_processor_reg processor_reg) 
 {
  	struct t_process_context* child_process_context;
 	struct t_process_context* parent_process_context;
@@ -324,7 +324,7 @@ int _fork(struct t_processor_reg processor_reg,unsigned int flags)
 
 	kmemcpy(child_process_context,parent_process_context,sizeof(struct t_process_context));
 	child_process_context->pid=system.process_info->next_pid++;
-	if (flags==INIT_VM_USERSPACE)
+	if (parent_process_context->process_type==USERSPACE_PROCESS)
 	{
 		child_process_context->process_mem_reg=create_mem_reg(PROC_VIRT_MEM_START_ADDR,PROC_VIRT_MEM_START_ADDR+parent_process_context->phy_space_size);
 		child_process_context->heap_mem_reg=create_mem_reg(HEAP_VIRT_MEM_START_ADDR,HEAP_VIRT_MEM_START_ADDR+HEAP_INIT_SIZE);
@@ -431,22 +431,21 @@ u32 _exec(char* _path,char* argv[])
 
 	argc=0;
 	i=0;
+//	CLI  ----------non serve 
 	current_process_context=system.process_info->current_process->val;
 	current_process_context->proc_status=RUNNING;
 	current_process_context->sleep_time=0;
 	current_process_context->assigned_sleep_time=0;
 	current_process_context->static_priority=0;
-	old_proc_phy_addr=current_process_context->phy_add_space;?????
 
-	if (current_process_context.phy_add_space==NULL)----------qui 2
+	if (current_process_context.process_type==KERNEL_THREAD)
 	{
 		current_process_context->process_mem_reg=create_mem_reg(PROC_VIRT_MEM_START_ADDR,PROC_VIRT_MEM_START_ADDR+mem_size);
 		current_process_context->heap_mem_reg=create_mem_reg(HEAP_VIRT_MEM_START_ADDR,HEAP_VIRT_MEM_START_ADDR+HEAP_INIT_SIZE);
 		current_process_context->ustack_mem_reg=create_mem_reg(USER_STACK-USER_STACK_INIT_SIZE,USER_STACK);	
 	}
 	
-	CLI---------qui 1
-	
+	current_process_context.process_type=USERSPACE_PROCESS;
 	free_vm_process(current_process_context->page_dir);
 	current_process_context->page_dir=init_vm_process(current_process_context);
 
