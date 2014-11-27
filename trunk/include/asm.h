@@ -59,28 +59,6 @@
                                 
 #define RET_FROM_INT_HANDLER 	asm("mov %ebp,%esp;pop %ebp;iret");
 
-//#define SWITCH_TO_USER_MODE(xx)     asm("                                        \
-	     				.comm TMP,4;                               \
-        				movl   %eax,TMP;                           \
-					mov    $0x23,%ax;                          \
-					mov    %ax,%ds;                            \
-        				mov    %ax,%es;                            \
-					/*movl   $0x0,%eax;	  fake ebp*/       \
-					push   %eax;                           	   \
-					movl   $0x23,%eax;	  /*ss*/           \
-        				push   %eax;                               \
-        				movl   $0x1EFFFF,%eax;    /*esp*/          \
-					push   %eax;                               \
-					movl   $0x206,%eax;  	  /*elfags*/       \
-					push   %eax;                               \
-        				movl   $0x13,%eax;        /*cs*/           \
-					push   %eax;                               \
-        				movl   $0x100000,%eax;   /*eip*/           \
-					push   %eax;                               \
-					mov    $TMP,%eax;                          \
-					iret;	                                   \
-    			   ");
-
 #define SWITCH_TO_USER_MODE(stack_address)     asm("                               		\
 					mov    $0x23,%ax;                         		\
 					mov    %ax,%ds;                          		\
@@ -98,31 +76,69 @@
 					push   %eax;                              		\
 					iret;");
 
+//#define	SWITCH_DS_TO_KERNEL_MODE asm("                                             \
+//				      	.comm TMP,2;                               \
+//        			      	mov  %ax,TMP; 				   \
+//				      	mov $0x18,%ax;                             \
+//				      	mov  %ax,%ds;				   \
+//				      	mov %ax,%es;				   \
+//				      	mov TMP,%ax;	                           \
+//				     ");
+//
+//#define	SWITCH_DS_TO_USER_MODE asm("						   \
+//				      	.comm TMP_2,2;                             \
+//        			      	mov  %ax,TMP; 				   \
+//				      	mov $0x20,%ax;                             \
+//				      	mov  %ax,%ds;				   \
+//				      	mov %ax,%es;				   \
+//				      	mov TMP,%ax;			           \
+//				     ");
+//
+//#define	GET_DS(ds)  asm("						           \
+//        			      	mov  %ax,TMP; 				   \
+//				      	mov  %ds,%ax;                              \
+//                    ");                                                            \
+//		asm ("                  mov  %%ax, %0;":"=r"(ds));                 \
+//                asm ("			mov TMP,%ax;                               \
+//		    ");
+
 #define	SWITCH_DS_TO_KERNEL_MODE asm("                                             \
-				      	.comm TMP,2;                               \
-        			      	mov  %ax,TMP; 				   \
+        			      	push %ax; 				   \
 				      	mov $0x18,%ax;                             \
 				      	mov  %ax,%ds;				   \
 				      	mov %ax,%es;				   \
-				      	mov TMP,%ax;	                           \
+				      	pop %ax;	                           \
 				     ");
 
 #define	SWITCH_DS_TO_USER_MODE asm("						   \
-				      	.comm TMP_2,2;                             \
-        			      	mov  %ax,TMP; 				   \
+        			      	push  %ax; 				   \
 				      	mov $0x20,%ax;                             \
 				      	mov  %ax,%ds;				   \
 				      	mov %ax,%es;				   \
-				      	mov TMP,%ax;			           \
+				      	pop %ax;			           \
 				     ");
 
 #define	GET_DS(ds)  asm("						           \
-        			      	mov  %ax,TMP; 				   \
+        			      	push %ax; 				   \
 				      	mov  %ds,%ax;                              \
                     ");                                                            \
 		asm ("                  mov  %%ax, %0;":"=r"(ds));                 \
-                asm ("			mov TMP,%ax;                               \
-		    ");			           
+                asm ("			pop %ax;                                   \
+		    ");	
+
+#define GET_STACK_POINTER(ustack_pointer)	asm("                                            \
+						     push %eax;                                  \
+						     mov %esp,%%eax;                             \
+						     mov  %%eax, %0;":"=r"(ustack_pointer);      \
+						     pop %eax;                                   \
+						    ");
+
+#define GET_FAULT_ADDRESS(fault_addr,fault_code) asm ("
+							push %eax;
+							mov %cr2,%eax;
+							mov  %%eax, %0;":"=r"(fault_addr);
+	 						
+						      ");             
 
 #define EOI_TO_MASTER_PIC asm("mov $0x20,%%al; \
 		 out %%al,$0x20;"              \

@@ -261,12 +261,18 @@ void umap_vm_mem(void* page_dir,unsigned int virt_mem_addr,unsigned int mem_size
 
 void page_fault_handler()
 {
+	u32 on_exit_action;
+	u32 ustack_pointer;
 	u32 fault_addr;
+	u32 fault_code;
 	u32 page_num;
 	u32 page_offset;
 	struct t_process_context* current_process_context;
+	struct t_processor_reg processor_reg;
 
-	GET_FAULT_ADDRESS(fault_addr);
+	SAVE_PROCESSOR_REG
+
+	GET_FAULT_ADDRESS(fault_addr,fault_code);
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 
 	if (CHECK_MEM_REG(fault_addr,current_process_context->process_mem_reg))
@@ -279,27 +285,23 @@ void page_fault_handler()
 	}
 	else if (CHECK_MEM_REG(fault_addr,current_process_context->ustack_mem_reg))
 	{
+		on_exit_action=0;
+		GET_STACK_POINTER(ustack_pointer)
+		page_num=fault_addr / PAGE_SIZE;
+		page_offset=fault_addr % PAGE_SIZE;
+
+		if ((ustack_pointer-16)>fault_addr)
+		{
+			printk("\n Segmentation fault. \n");
+			_exit(0);
+			on_exit_action=2;
+		}
+		page_addr=buddy_alloc_page(system.buddy_desc,0x1000);
+		map_vm_mem(current_process_context->page_dir,(page_num && 0x1000),page_addr,0x1000);
 
 	}
 
 
-
-
-	
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	ENABLE_PREEMPTION
+	EXIT_INT_HANDLER(on_exit_action,processor_reg)
 }
