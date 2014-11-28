@@ -267,11 +267,11 @@ void page_fault_handler()
 	u32 fault_code;
 	u32 page_num;
 	u32 page_offset;
+	u32 stack_reg_start;
 	struct t_process_context* current_process_context;
 	struct t_processor_reg processor_reg;
 
 	SAVE_PROCESSOR_REG
-
 	GET_FAULT_ADDRESS(fault_addr,fault_code);
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 
@@ -281,6 +281,7 @@ void page_fault_handler()
 	}
 	else if (CHECK_MEM_REG(fault_addr,current_process_context->heap_mem_reg))
 	{
+		x
 
 	}
 	else if (CHECK_MEM_REG(fault_addr,current_process_context->ustack_mem_reg))
@@ -296,12 +297,25 @@ void page_fault_handler()
 			_exit(0);
 			on_exit_action=2;
 		}
-		page_addr=buddy_alloc_page(system.buddy_desc,0x1000);
-		map_vm_mem(current_process_context->page_dir,(page_num && 0x1000),page_addr,0x1000);
-
+		else
+		{
+			stack_reg_start=current_process_context->ustack_mem_reg->start_addr;-----qui
+			page_addr=buddy_alloc_page(system.buddy_desc,0x1000);
+			map_vm_mem(current_process_context->page_dir,(fault_addr && 0x1000),page_addr,0x1000);
+			stack_reg_upper_limit=current_process_context->ustack_mem_reg->start_addr;
+			if ((ustack_pointer-stack_reg_upper_limit)<USER_STACK_ENLARGE_THRESHOLD)
+			{
+				page_addr=buddy_alloc_page(system.buddy_desc,USER_STACK_ENLARGE_THRESHOLD);---qui
+				map_vm_mem(current_process_context->page_dir,(fault_addr && 0x1000),page_addr,0x1000);
+			}
+		}
 	}
-
-
+	else
+	{
+		printk("\n Segmentation fault. \n");
+		_exit(0);
+		on_exit_action=2;
+	}
 	ENABLE_PREEMPTION
 	EXIT_INT_HANDLER(on_exit_action,processor_reg)
 }

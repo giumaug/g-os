@@ -133,11 +133,12 @@
 						     pop %eax;                                   \
 						    ");
 
-#define GET_FAULT_ADDRESS(fault_addr,fault_code) asm ("
-							push %eax;
-							mov %cr2,%eax;
-							mov  %%eax, %0;":"=r"(fault_addr);
-	 						
+#define GET_FAULT_ADDRESS(fault_addr,fault_code) asm ("						\
+							push %eax;				\
+							mov %cr2,%eax;				\
+							mov  %%eax, %0;":"=r"(fault_addr);	\
+							mov  (%%eax+4), %0;":"=r"(fault_code);	\
+							pop %eax;				\
 						      ");             
 
 #define EOI_TO_MASTER_PIC asm("mov $0x20,%%al; \
