@@ -275,38 +275,40 @@ void page_fault_handler()
 	GET_FAULT_ADDRESS(fault_addr,fault_code);
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 
-	if (CHECK_MEM_REG(fault_addr,current_process_context->process_mem_reg))
-	{
+	on_exit_action=0;
+	GET_STACK_POINTER(ustack_pointer)
+	page_num=fault_addr / PAGE_SIZE;
+	page_offset=fault_addr % PAGE_SIZE;
 
+	if (CHECK_MEM_REG(fault_addr,current_process_context->process_mem_reg)
+	    || CHECK_MEM_REG(fault_addr,current_process_context->heap_mem_reg)
+	    || CHECK_MEM_REG(fault_addr,current_process_context->ustack_mem_reg))
+	{
+		page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
+		map_vm_mem(current_process_context->page_dir,(fault_addr && 0x1000),page_addr,PAGE_SIZE);
 	}
-	else if (CHECK_MEM_REG(fault_addr,current_process_context->heap_mem_reg))
+	else if ((ustack_pointer-32)<=fault_addr)
 	{
-		x
-
+		current_process_context->ustack_mem_reg->start_addr=-PAGE_SIZE;
+		page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
+		map_vm_mem(current_process_context->page_dir,(fault_addr && 0x1000),page_addr,PAGE_SIZE);
 	}
-	else if (CHECK_MEM_REG(fault_addr,current_process_context->ustack_mem_reg))
+	else
 	{
-		on_exit_action=0;
-		GET_STACK_POINTER(ustack_pointer)
-		page_num=fault_addr / PAGE_SIZE;
-		page_offset=fault_addr % PAGE_SIZE;
+		printk("\n Segmentation fault. \n");
+		_exit(0);
+		on_exit_action=2;
+	}
 
-		if ((ustack_pointer-16)>fault_addr)
-		{
-			printk("\n Segmentation fault. \n");
-			_exit(0);
-			on_exit_action=2;
-		}
-		else
-		{
-			stack_reg_start=current_process_context->ustack_mem_reg->start_addr;-----qui
-			page_addr=buddy_alloc_page(system.buddy_desc,0x1000);
-			map_vm_mem(current_process_context->page_dir,(fault_addr && 0x1000),page_addr,0x1000);
-			stack_reg_upper_limit=current_process_context->ustack_mem_reg->start_addr;
+
+
+		page_addr=buddy_alloc_page(system.buddy_desc,0x1000);
+		map_vm_mem(current_process_context->page_dir,(fault_addr && 0x1000),page_addr,0x1000);
+		stack_reg_upper_limit=current_process_context->ustack_mem_reg->start_addr;
 			if ((ustack_pointer-stack_reg_upper_limit)<USER_STACK_ENLARGE_THRESHOLD)
 			{
-				page_addr=buddy_alloc_page(system.buddy_desc,USER_STACK_ENLARGE_THRESHOLD);---qui
-				map_vm_mem(current_process_context->page_dir,(fault_addr && 0x1000),page_addr,0x1000);
+				page_addr=buddy_alloc_page(system.buddy_desc,USER_STACK_ENLARGE_THRESHOLD);
+				map_vm_mem(current_process_context->page_dir,stack_reg_upper_limit,page_addr,USER_STACK_ENLARGE_THRESHOLD);
 			}
 		}
 	}

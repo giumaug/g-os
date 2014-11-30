@@ -83,7 +83,7 @@ void* buddy_alloc_page(t_buddy_desc* buddy,unsigned int mem_size)
 			next_list_index++;
 		}
 	}
-	buddy_free_mem(buddy);
+//	buddy_free_mem(buddy);
 	if (next_list_index==NUM_LIST)
 	{
 		panic();
