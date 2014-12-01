@@ -10,6 +10,7 @@
 struct s_buddy 
 { 	
 	t_llist* page_list[11];
+	//HASH MAP SHOULD BE USED FOR AVOID MEMORY WASTE!!!!!!!!!!!!!!!!!
 	char order[BUDDY_MEM_SIZE/PAGE_SIZE];
 	void* page_list_ref[BUDDY_MEM_SIZE/PAGE_SIZE];
 	unsigned int free_mem_list[11];
