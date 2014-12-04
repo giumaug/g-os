@@ -280,6 +280,8 @@ void page_fault_handler()
 	page_num=fault_addr / PAGE_SIZE;
 	page_offset=fault_addr % PAGE_SIZE;
 
+	if (fault_code==(PAGE_OUT_MEMORY || USER))
+
 	if (CHECK_MEM_REG(fault_addr,current_process_context->process_mem_reg)
 	    || CHECK_MEM_REG(fault_addr,current_process_context->heap_mem_reg)
 	    || CHECK_MEM_REG(fault_addr,current_process_context->ustack_mem_reg))
@@ -302,22 +304,7 @@ void page_fault_handler()
 
 
 
-		page_addr=buddy_alloc_page(system.buddy_desc,0x1000);
-		map_vm_mem(current_process_context->page_dir,(fault_addr && 0x1000),page_addr,0x1000);
-		stack_reg_upper_limit=current_process_context->ustack_mem_reg->start_addr;
-			if ((ustack_pointer-stack_reg_upper_limit)<USER_STACK_ENLARGE_THRESHOLD)
-			{
-				page_addr=buddy_alloc_page(system.buddy_desc,USER_STACK_ENLARGE_THRESHOLD);
-				map_vm_mem(current_process_context->page_dir,stack_reg_upper_limit,page_addr,USER_STACK_ENLARGE_THRESHOLD);
-			}
-		}
-	}
-	else
-	{
-		printk("\n Segmentation fault. \n");
-		_exit(0);
-		on_exit_action=2;
-	}
+		
 	ENABLE_PREEMPTION
 	EXIT_INT_HANDLER(on_exit_action,processor_reg)
 }
