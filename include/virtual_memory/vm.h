@@ -16,6 +16,14 @@
 #define USER_STACK 0xBFFFC000                //3G-4Khole -8K -4Khole    
 #define USER_STACK_INIT_SIZE 0x100000
 
+#define PAGE_IN_MEMORY 	0b001
+#define PAGE_OUT_MEMORY 0b000
+#define PAGE_READ 	0b000
+#define PAGE_WRITE	0b010
+#define USER		0b100
+#define SUPERUSER	0b000    
+
+
 #define FROM_VIRT_TO_PHY(addr) addr-VIRT_MEM_START_ADDR+PHY_MEM_START_ADDR
 #define FROM_PHY_TO_VIRT(addr) addr+VIRT_MEM_START_ADDR-PHY_MEM_START_ADDR
 //#define KERNEL_STACK 0x1FC000
