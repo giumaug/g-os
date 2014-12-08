@@ -71,7 +71,7 @@ struct t_process_context
 	t_mem_reg* process_mem_reg;
 	t_mem_reg* heap_mem_reg;
 	t_mem_reg* ustack_mem_reg;
-
+	t_elf_desc* elf_desc;
 };
 
 struct t_process_info 
