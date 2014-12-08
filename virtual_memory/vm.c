@@ -54,7 +54,7 @@ void* __init_vm_process(struct t_process_context* process_context)
 
 void init_vm_process(struct t_process_context* process_context)
 {
-	unsigned int* page_dir;	
+	unsigned int* page_dir;
 
 	page_dir=process_context->process_context;
 	for (i=0;i<768;i++) 
@@ -65,7 +65,8 @@ void init_vm_process(struct t_process_context* process_context)
 	{
 		page_dir[i]=((unsigned int*)system.master_page_dir)[i];
 	}
-	map_vm_mem(page_dir,KERNEL_STACK,process_context->phy_kernel_stack,KERNEL_STACK_SIZE);	
+	map_vm_mem(page_dir,KERNEL_STACK,process_context->phy_kernel_stack,KERNEL_STACK_SIZE);
+	system.buddy->count[BLOCK_INDEX(process_context->phy_kernel_stack)]++;
 }
 
 void clone_vm_process(void* parent_page_dir)
@@ -74,7 +75,6 @@ void clone_vm_process(void* parent_page_dir)
 	unsigned int* child_page_dir;
 	unsigned int* child_page_table;
 	unsigned int* parent_page_table;
-
 
 	child_page_dir=buddy_alloc_page(system.buddy_desc,0x1000);
 	for (i=0;i<768;i++) 
@@ -87,6 +87,10 @@ void clone_vm_process(void* parent_page_dir)
 			for (j=0;j<1024;j++)
 			{
 				child_page_table)[j]=parent_page_table[j] | 5;
+				if (child_page_table)[j]!=0)
+				{
+					system.buddy->count[BLOCK_INDEX(j)]++;
+				}
 			}
 			child_page_dir[i]=child_page_table | 5;
 		}
@@ -126,9 +130,14 @@ void free_vm_process(void* page_dir)
 				
 			for (j=0;j<1024;j++)
 			{
-				if (page_table[j]!=0)
+				if (page_table[j]!=0 && system.buddy->count[BLOCK_INDEX(j)]==1)
 				{
 					buddy_free_page(page_table[j]);
+					system.buddy->count[BLOCK_INDEX(j)]=0;
+				}
+				else if (page_table[j]!=0)
+				{
+					system.buddy->count[BLOCK_INDEX(J)]--;
 				}	
 			}
 			buddy_free_page(page_table);
@@ -137,7 +146,7 @@ void free_vm_process(void* page_dir)
 	}
 }
 
-void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_addr,int mem_size)
+static void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_addr,int mem_size)
 {
 	unsigned int *page_table;
 	unsigned int pad;
@@ -205,59 +214,59 @@ void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_ad
 	}
 }
 
-void umap_vm_mem(void* page_dir,unsigned int virt_mem_addr,unsigned int mem_size,unsigned int flush)
-{
-	unsigned int *page_table;
-	unsigned int start,end;
-	unsigned int i;
-	unsigned int page_count;
-	unsigned int pd_count;
-	unsigned int first_pd;
-	unsigned int first_pt;
-	unsigned int last_pt;
-	unsigned int tot_pd;
-	
-	page_count=mem_size/4096;
-	if ((mem_size % 4096)>0) page_count++;
-	pd_count=page_count/1024;
-	if ((page_count % 1024)>0) pd_count++;
-	first_pd=virt_mem_addr>>22;
-	first_pt=(virt_mem_addr & 0x3FFFFF)>>12;
-	last_pt=((virt_mem_addr+mem_size-1) & 0x3FFFFF)>>12;
-	tot_pd=pd_count+first_pd;
-
-	for (i=first_pd;i<tot_pd;i++)
-	{	
-		page_table=FROM_PHY_TO_VIRT(((unsigned int*)page_dir)[i]) & 0xFFFFF000;   
-
-		if (i==first_pd && tot_pd>1) 
-		{
-			start=first_pt;
-			end=1024;
-		}
-		else if (i==first_pd && tot_pd==1) 
-		{
-			start=first_pt;
-			end=last_pt+1;
-		}
-		else if (i==tot_pd-1)
-		{
-			start=0;
-			end=last_pt+1;
-		}
-		else 
-		{
-			start=0;
-			end=1024;
-		}
-
-		if ((start==0 && end==1024) || flush) 
-		{
-			buddy_free_page(system.buddy_desc,page_table);
-			((unsigned int*)page_dir)[i]=0;
-		}
-	}
-}
+//void umap_vm_mem(void* page_dir,unsigned int virt_mem_addr,unsigned int mem_size,unsigned int flush)
+//{
+//	unsigned int *page_table;
+//	unsigned int start,end;
+//	unsigned int i;
+//	unsigned int page_count;
+//	unsigned int pd_count;
+//	unsigned int first_pd;
+//	unsigned int first_pt;
+//	unsigned int last_pt;
+//	unsigned int tot_pd;
+//	
+//	page_count=mem_size/4096;
+//	if ((mem_size % 4096)>0) page_count++;
+//	pd_count=page_count/1024;
+//	if ((page_count % 1024)>0) pd_count++;
+//	first_pd=virt_mem_addr>>22;
+//	first_pt=(virt_mem_addr & 0x3FFFFF)>>12;
+//	last_pt=((virt_mem_addr+mem_size-1) & 0x3FFFFF)>>12;
+//	tot_pd=pd_count+first_pd;
+//
+//	for (i=first_pd;i<tot_pd;i++)
+//	{	
+//		page_table=FROM_PHY_TO_VIRT(((unsigned int*)page_dir)[i]) & 0xFFFFF000;   
+//
+//		if (i==first_pd && tot_pd>1) 
+//		{
+//			start=first_pt;
+//			end=1024;
+//		}
+//		else if (i==first_pd && tot_pd==1) 
+//		{
+//			start=first_pt;
+//			end=last_pt+1;
+//		}
+//		else if (i==tot_pd-1)
+//		{
+//			start=0;
+//			end=last_pt+1;
+//		}
+//		else 
+//		{
+//			start=0;
+//			end=1024;
+//		}
+//
+//		if ((start==0 && end==1024) || flush) 
+//		{
+//			buddy_free_page(system.buddy_desc,page_table);
+//			((unsigned int*)page_dir)[i]=0;
+//		}
+//	}
+//}
 
 void page_fault_handler()
 {
@@ -280,7 +289,9 @@ void page_fault_handler()
 	page_num=fault_addr / PAGE_SIZE;
 	page_offset=fault_addr % PAGE_SIZE;
 
-	if (fault_code==(PAGE_OUT_MEMORY || USER || PAGE_READ) || fault_code==(PAGE_OUT_MEMORY || USER || PAGE_READ))
+	if (fault_code==(PAGE_OUT_MEMORY || USER || PAGE_READ) || 
+	    fault_code==(PAGE_OUT_MEMORY || USER || PAGE_WRITE)|| 
+	    fault_code==(PAGE_IN_MEMORY || USER || PAGE_WRITE)) 
 	{
 		if (CHECK_MEM_REG(fault_addr,current_process_context->process_mem_reg)
 		    || CHECK_MEM_REG(fault_addr,current_process_context->heap_mem_reg)
@@ -288,12 +299,21 @@ void page_fault_handler()
 		{
 			page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
 			map_vm_mem(current_process_context->page_dir,(fault_addr && 0x1000),page_addr,PAGE_SIZE);
+			system.buddy->count[BLOCK_INDEX(page_addr)]++;
+			if ((fault_code & 0x1)==PAGE_OUT_MEMORY && CHECK_MEM_REG(fault_addr,current_process_context->process_mem_reg))
+			{
+				.......
+			}
+			.....da gestire duplicazione pagina -------qui
+			.... mapping phy_kernel_stack
+			.... mapping elf_desc 
 		}
 		else if ((ustack_pointer-32)<=fault_addr)
 		{
 			current_process_context->ustack_mem_reg->start_addr=-PAGE_SIZE;
 			page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
 			map_vm_mem(current_process_context->page_dir,(fault_addr && 0x1000),page_addr,PAGE_SIZE);
+			system.buddy->count[BLOCK_INDEX(page_addr)]++;
 		}
 		else
 		{
@@ -301,16 +321,7 @@ void page_fault_handler()
 			_exit(0);
 			on_exit_action=2;
 		}
-	}
-	if (fault_code==(PAGE_IN_MEMORY || USER || PAGE_WRITE))
-	{
-		xxx
-	}
-
-
-
-
-	
+	}	
 	ENABLE_PREEMPTION
 	EXIT_INT_HANDLER(on_exit_action,processor_reg)
 }

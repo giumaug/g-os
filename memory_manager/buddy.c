@@ -63,10 +63,6 @@ void* buddy_alloc_page(t_buddy_desc* buddy,unsigned int mem_size)
 	CLI	
 	//SPINLOCK_LOCK	
 	
-	if (mem_size==2090607 || mem_size==3046027)
-	{
-		i=0;	
-	}
 	for (list_index=0;list_index<NUM_LIST;list_index++) 
 	{	
 		if (PAGE_SIZE*(1<<list_index)>=mem_size) break;
@@ -103,12 +99,12 @@ void* buddy_alloc_page(t_buddy_desc* buddy,unsigned int mem_size)
 			node_buddy=ll_prepend(buddy->page_list[i],mem_addr_bucket);
 			buddy->order[BLOCK_INDEX((int)page_addr+page_size)]=i;
 			buddy->page_list_ref[BLOCK_INDEX((int)page_addr+page_size)]=node_buddy;
-			buddy->count[BLOCK_INDEX((int)page_addr+page_size)]=0;
+			system.buddy->count[BLOCK_INDEX((int)page_addr+page_size)]=0;
 		}
 	}
 	buddy->order[BLOCK_INDEX((int)page_addr)]=(list_index | 16);
 	buddy->page_list_ref[BLOCK_INDEX((int)page_addr)]=node;
-	buddy->count[BLOCK_INDEX((int)page_addr+page_size)]=1;
+	system.buddy->count[BLOCK_INDEX((int)page_addr)]=0;
 	new_mem_addr=page_addr+BUDDY_START_ADDR + VIRT_MEM_START_ADDR;
 	//SPINLOCK_UNLOCK
 	RESTORE_IF_STATUS
@@ -166,7 +162,6 @@ void buddy_free_page(t_buddy_desc* buddy,void* to_free_page_addr)
 			free_page_order=i+1;
 			page_addr&=buddy_page_addr;
 			buddy->order[BLOCK_INDEX(page_addr)]= buddy->order[BLOCK_INDEX(page_addr)] & 15;
-			buddy->order[BLOCK_INDEX(page_addr)]=0;
 		}
 		else 
 		{
@@ -180,7 +175,6 @@ void buddy_free_page(t_buddy_desc* buddy,void* to_free_page_addr)
 	node_buddy=ll_prepend(buddy->page_list[free_page_order],mem_addr_bucket);
 	buddy->page_list_ref[BLOCK_INDEX(free_page_addr)]=node_buddy;
 	buddy->order[BLOCK_INDEX(free_page_addr)]=free_page_order;
-	buddy->order[BLOCK_INDEX(page_addr)]=0;
 	//SPINLOCK_UNLOCK
 	RESTORE_IF_STATUS
 }
@@ -222,8 +216,6 @@ static void buddy_init_mem(t_buddy_desc* buddy)
 		int bu_size=FROM_PHY_TO_VIRT(BUDDY_MEM_SIZE);
 		int po_end=FROM_PHY_TO_VIRT(POOL_END_ADDR);
 
-
-	
 		page_size=PAGE_SIZE*(1<<i);
 		list=buddy->page_list[i];
 		sentinel=ll_sentinel(list);
