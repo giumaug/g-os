@@ -1,34 +1,18 @@
-typedef struct s_mem_regs 
-{ 
-	u32 start_addr;
-	u32 end_addr;
-	
-} 
-t_mem_reg;
+#include "memory_region/mem_regs.h"
 
-void init_mem_regs()
+t_mem_reg* create_mem_reg(u32 start_addr,u32 end_addr)
 {
-	system.mem_regs=new_dllist();
-}
-
-void free_mem_regs()
-{
-	free_llist(system.mem_regs);
-}
-
-void create_mem_reg(u32 start_addr,u32 end_addr)
-{
-	t_mem_reg* mem_reg=null;
+	t_mem_reg* mem_reg=NULL;
 
 	mem_reg=kmalloc(sizeof(t_mem_reg));
 	mem_reg->start_addr=start_addr;
 	mem_reg->end_addr=end_addr;
-	ll_append(system.mem_regs,mem_reg);
+	return mem_reg;
 }
 
 void delete_mem_reg(t_mem_reg* mem_reg)
 {
-	ll_delete_node(mem_reg);
+	static void umap_vm_mem(void* page_dir,unsigned int virt_mem_addr,unsigned int mem_size,unsigned int flush)
 	kfree(mem_reg);
 }
 

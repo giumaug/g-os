@@ -262,6 +262,18 @@ void _exit(int status)
 		next=ll_next(next);
 		next_process=next->val;
 	}
+
+	kfree(current_process->file_desc);
+	if (current_process->elf_desc!=NULL)
+	{
+		elf_loader_free(current_process->elf_desc);
+	}
+	if (current_process_context->process_type==USERSPACE_PROCESS)
+	{
+		delete_mem_reg(current_process_context->process_mem_reg);
+		delete_mem_reg(current_process_context->heap_mem_reg);
+		delete_mem_reg(current_process_context->ustack_mem_reg);
+	}
 	RESTORE_IF_STATUS
 }
 
@@ -316,19 +328,32 @@ int _fork(struct t_processor_reg processor_reg)
 {
  	struct t_process_context* child_process_context;
 	struct t_process_context* parent_process_context;
+	t_hashtable* child_file_desc;
+	char* page;
 	
 	child_process_context=kmalloc(sizeof(struct t_process_context));
+	child_file_desc=kmalloc(sizeof(t_elf_desc));
 	SAVE_IF_STATUS
 	CLI
 	CURRENT_PROCESS_CONTEXT(parent_process_context);
 
 	kmemcpy(child_process_context,parent_process_context,sizeof(struct t_process_context));
+	kmemcpy(child_file_desc,parent_process_context->file_desc,sizeof(struct t_elf_desc));
+	page=buddy_alloc_page(system.buddy_desc,KERNEL_STACK_SIZE);    
+	child_process_context->phy_kernel_stack=FROM_VIRT_TO_PHY(page);
+	kmemcpy(page,FROM_PHY_TO_VIRT(parent_process_context->phy_kernel_stack),KERNEL_STACK_SIZE);
+
 	child_process_context->pid=system.process_info->next_pid++;
 	if (parent_process_context->process_type==USERSPACE_PROCESS)
 	{
-		child_process_context->process_mem_reg=create_mem_reg(PROC_VIRT_MEM_START_ADDR,PROC_VIRT_MEM_START_ADDR+parent_process_context->phy_space_size);
-		child_process_context->heap_mem_reg=create_mem_reg(HEAP_VIRT_MEM_START_ADDR,HEAP_VIRT_MEM_START_ADDR+HEAP_INIT_SIZE);
-		child_process_context->ustack_mem_reg=create_mem_reg(USER_STACK-USER_STACK_INIT_SIZE,USER_STACK);	
+		child_process_context->process_mem_reg=create_mem_reg(parent_process_context->process_mem_reg->start_addr,
+								      parent_process_context->process_mem_reg->end_addr);
+
+		child_process_context->heap_mem_reg=create_mem_reg(parent_process_context->heap_mem_reg->start_addr,
+								   parent_process_context->heap_mem_reg->end_addr);
+
+		child_process_context->ustack_mem_reg=create_mem_reg(parent_process_context->ustack_mem_reg->start_addr,
+								     parent_process_context->ustack_mem_reg->end_addr);	
 	}
 	
 	ll_prepend(system.scheduler_desc.scheduler_queue[parent_process_context->curr_sched_queue_index],child_process_context);
@@ -420,19 +445,22 @@ u32 __exec(char* _path,char* _argv[])
 	return 0;
 }
 
-u32 _exec(char* _path,char* argv[]) 
+u32 _exec(char* path,char* argv[]) 
 {
 	struct t_process_context* current_process_context;
 	static u32* stack_pointer;
 	static char** stack_data;
 	static u32 argc=0;
-	static u32 i;
+	static u32 i=0;
 	static u32 frame_size=0;
+	t_elf_desc* elf_desc;
 
-	argc=0;
-	i=0;
 //	CLI  ----------non serve 
-	current_process_context=system.process_info->current_process->val;
+	CURRENT_PROCESS_CONTEXT(current_process_context);
+	if (elf_loader_init(current_process_context->file_desc,path)==-1)
+	{
+		return -1;
+	}
 	current_process_context->proc_status=RUNNING;
 	current_process_context->sleep_time=0;
 	current_process_context->assigned_sleep_time=0;

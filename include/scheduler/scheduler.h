@@ -7,22 +7,13 @@
 //To create a new kernel thread fork with THREAD_FORK from existing one.Then from child thread use THREAD_EXEC.
 //To switch kernel thread to user mode process call _exec from child thread.
 
-//#define THREAD_EXEC(path,args) 	do					\
-			 		{					\
-						unsigned int params[2];		\
-						params[0]=path;			\
-						params[1]=args;                 \
-						SYSCALL(14,params);		\
-					}					\
-					while(0)
-
 //to do
-#define THREAD_EXEC(fun_pointer)	do				        \
-					{					\
-						reset stack to 1FFFFF           \
-						and call thread function        \
-	                                	from pointer 			\
-					}						
+//#define THREAD_EXEC(fun_pointer)	do				        \
+//					{					\
+//						reset stack to 1FFFFF           \
+//						and call thread function        \
+//	                                	from pointer 			\
+//					}						
 
 #define THREAD_FORK(pid)		do					\
 					{					\

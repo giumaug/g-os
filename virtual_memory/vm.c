@@ -75,18 +75,20 @@ void clone_vm_process(void* parent_page_dir)
 	unsigned int* child_page_dir;
 	unsigned int* child_page_table;
 	unsigned int* parent_page_table;
+	char* page_addr;
 
-	child_page_dir=buddy_alloc_page(system.buddy_desc,0x1000);
+	child_page_dir=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
 	for (i=0;i<768;i++) 
 	{
 		if (((unsigned int*)parent_page_dir)[i]!=0)
 		{
-			child_page_table=buddy_alloc_page(system.buddy_desc,0x1000);
+			child_page_table=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
 			parent_page_table=((unsigned int*)parent_page_dir)[i];
 				
 			for (j=0;j<1024;j++)
 			{
-				child_page_table)[j]=parent_page_table[j] | 5;
+				parent_page_table[j]= | 5;
+				child_page_table)[j]=parent_page_table[j];
 				if (child_page_table)[j]!=0)
 				{
 					system.buddy->count[BLOCK_INDEX(j)]++;
@@ -214,71 +216,75 @@ static void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy
 	}
 }
 
-//void umap_vm_mem(void* page_dir,unsigned int virt_mem_addr,unsigned int mem_size,unsigned int flush)
-//{
-//	unsigned int *page_table;
-//	unsigned int start,end;
-//	unsigned int i;
-//	unsigned int page_count;
-//	unsigned int pd_count;
-//	unsigned int first_pd;
-//	unsigned int first_pt;
-//	unsigned int last_pt;
-//	unsigned int tot_pd;
-//	
-//	page_count=mem_size/4096;
-//	if ((mem_size % 4096)>0) page_count++;
-//	pd_count=page_count/1024;
-//	if ((page_count % 1024)>0) pd_count++;
-//	first_pd=virt_mem_addr>>22;
-//	first_pt=(virt_mem_addr & 0x3FFFFF)>>12;
-//	last_pt=((virt_mem_addr+mem_size-1) & 0x3FFFFF)>>12;
-//	tot_pd=pd_count+first_pd;
-//
-//	for (i=first_pd;i<tot_pd;i++)
-//	{	
-//		page_table=FROM_PHY_TO_VIRT(((unsigned int*)page_dir)[i]) & 0xFFFFF000;   
-//
-//		if (i==first_pd && tot_pd>1) 
-//		{
-//			start=first_pt;
-//			end=1024;
-//		}
-//		else if (i==first_pd && tot_pd==1) 
-//		{
-//			start=first_pt;
-//			end=last_pt+1;
-//		}
-//		else if (i==tot_pd-1)
-//		{
-//			start=0;
-//			end=last_pt+1;
-//		}
-//		else 
-//		{
-//			start=0;
-//			end=1024;
-//		}
-//
-//		if ((start==0 && end==1024) || flush) 
-//		{
-//			buddy_free_page(system.buddy_desc,page_table);
-//			((unsigned int*)page_dir)[i]=0;
-//		}
-//	}
-//}
+static void umap_vm_mem(void* page_dir,unsigned int virt_mem_addr,unsigned int mem_size,unsigned int flush)
+{
+	unsigned int *page_table;
+	unsigned int start,end;
+	unsigned int i;
+	unsigned int page_count;
+	unsigned int pd_count;
+	unsigned int first_pd;
+	unsigned int first_pt;
+	unsigned int last_pt;
+	unsigned int tot_pd;
+	
+	page_count=mem_size/4096;
+	if ((mem_size % 4096)>0) page_count++;
+	pd_count=page_count/1024;
+	if ((page_count % 1024)>0) pd_count++;
+	first_pd=virt_mem_addr>>22;
+	first_pt=(virt_mem_addr & 0x3FFFFF)>>12;
+	last_pt=((virt_mem_addr+mem_size-1) & 0x3FFFFF)>>12;
+	tot_pd=pd_count+first_pd;
+
+	for (i=first_pd;i<tot_pd;i++)
+	{	
+		page_table=FROM_PHY_TO_VIRT(((unsigned int*)page_dir)[i]) & 0xFFFFF000;   
+
+		if (i==first_pd && tot_pd>1) 
+		{
+			start=first_pt;
+			end=1024;
+		}
+		else if (i==first_pd && tot_pd==1) 
+		{
+			start=first_pt;
+			end=last_pt+1;
+		}
+		else if (i==tot_pd-1)
+		{
+			start=0;
+			end=last_pt+1;
+		}
+		else 
+		{
+			start=0;
+			end=1024;
+		}
+
+		if ((start==0 && end==1024) || flush) 
+		{
+			buddy_free_page(system.buddy_desc,page_table);
+			((unsigned int*)page_dir)[i]=0;
+		}
+	}
+}
 
 void page_fault_handler()
 {
 	u32 on_exit_action;
 	u32 ustack_pointer;
 	u32 fault_addr;
+	u32 aligned_fault_addr;
 	u32 fault_code;
 	u32 page_num;
 	u32 page_offset;
 	u32 stack_reg_start;
 	struct t_process_context* current_process_context;
 	struct t_processor_reg processor_reg;
+	u32 pd_num;
+	u32 pt_num;
+	u32* page_table;
 
 	SAVE_PROCESSOR_REG
 	GET_FAULT_ADDRESS(fault_addr,fault_code);
@@ -288,6 +294,7 @@ void page_fault_handler()
 	GET_STACK_POINTER(ustack_pointer)
 	page_num=fault_addr / PAGE_SIZE;
 	page_offset=fault_addr % PAGE_SIZE;
+	aligned_fault_addr=fault_addr & PAGE_SIZE;
 
 	if (fault_code==(PAGE_OUT_MEMORY || USER || PAGE_READ) || 
 	    fault_code==(PAGE_OUT_MEMORY || USER || PAGE_WRITE)|| 
@@ -297,22 +304,33 @@ void page_fault_handler()
 		    || CHECK_MEM_REG(fault_addr,current_process_context->heap_mem_reg)
 		    || CHECK_MEM_REG(fault_addr,current_process_context->ustack_mem_reg))
 		{
-			page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
-			map_vm_mem(current_process_context->page_dir,(fault_addr && 0x1000),page_addr,PAGE_SIZE);
-			system.buddy->count[BLOCK_INDEX(page_addr)]++;
 			if ((fault_code & 0x1)==PAGE_OUT_MEMORY && CHECK_MEM_REG(fault_addr,current_process_context->process_mem_reg))
 			{
-				.......
+				page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
+				map_vm_mem(current_process_context->page_dir,aligned_fault_addr,page_addr,PAGE_SIZE);
+				system.buddy->count[BLOCK_INDEX(page_addr)]++;
+				elf_loader_read(current_process_context->elf_desc,fault_addr,page_addr);
 			}
-			.....da gestire duplicazione pagina -------qui
-			.... mapping phy_kernel_stack
-			.... mapping elf_desc 
+			else if (fault_code==(PAGE_IN_MEMORY || USER || PAGE_WRITE)
+			{
+				pd_num=aligned_fault_addr>>22;
+				pt_num=(aligned_fault_addr & 0x3FFFFF)>>12;
+				page_table=((unsigned int*) current_process_context->page_dir)[pd_num];
+				parent_page_table[pt_num]= | 7;
+				if (system.buddy->count[BLOCK_INDEX(aligned_fault_addr)]>1)
+				{
+					page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
+					map_vm_mem(current_process_context->page_dir,aligned_fault_addr,page_addr,PAGE_SIZE);
+					system.buddy->count[BLOCK_INDEX(page_addr)]--;
+					kmemcpy(page_addr,aligned_fault_addr ,PAGE_SIZE);
+				}
+			}
 		}
 		else if ((ustack_pointer-32)<=fault_addr)
 		{
 			current_process_context->ustack_mem_reg->start_addr=-PAGE_SIZE;
 			page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
-			map_vm_mem(current_process_context->page_dir,(fault_addr && 0x1000),page_addr,PAGE_SIZE);
+			map_vm_mem(current_process_context->page_dir,aligned_fault_addr,page_addr,PAGE_SIZE);
 			system.buddy->count[BLOCK_INDEX(page_addr)]++;
 		}
 		else

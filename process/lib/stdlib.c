@@ -59,7 +59,7 @@ void exit(int status)
 	return;
 }
 
-void *malloc(unsigned int mem_size) 
+void* malloc(unsigned int mem_size) 
 {
 	int params[2];
 	params[0]=mem_size;
