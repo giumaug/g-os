@@ -67,7 +67,7 @@ struct t_process_context
 	u32 next_fd;
 	t_hashtable* file_desc;
 	unsigned int phy_kernel_stack;
-	unsigned int phy_user_stack;
+//	unsigned int phy_user_stack;
 	t_mem_reg* process_mem_reg;
 	t_mem_reg* heap_mem_reg;
 	t_mem_reg* ustack_mem_reg;
