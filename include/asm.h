@@ -127,19 +127,19 @@
 		    ");	
 
 #define GET_STACK_POINTER(ustack_pointer)	asm("                                            \
-						     push %eax;                                  \
-						     mov %esp,%%eax;                             \
-						     mov  %%eax, %0;":"=r"(ustack_pointer);      \
-						     pop %eax;                                   \
-						    ");
+						     push %%eax;                                 \
+						     mov %%esp,%%eax;                              \
+						     mov  %%eax, %0;                             \
+						     pop %%eax;":"=r"(ustack_pointer));
 
-#define GET_FAULT_ADDRESS(fault_addr,fault_code) asm ("						\
-							push %eax;				\
-							mov %cr2,%eax;				\
-							mov  %%eax, %0;":"=r"(fault_addr);	\
-							mov  (%%eax+4), %0;":"=r"(fault_code);	\
-							pop %eax;				\
-						      ");             
+#define GET_FAULT_ADDRESS(fault_addr,fault_code) asm ("						 \
+							push %%eax;				 \
+							mov %%cr2,%%eax;		         \
+							mov  %%eax, %0;	                         \
+							mov  4(%%eax), %1;                      \
+							pop %%eax;"                              \
+							:"=r"(fault_addr),"=r"(fault_code)       \
+						      );             
 
 #define EOI_TO_MASTER_PIC asm("mov $0x20,%%al; \
 		 out %%al,$0x20;"              \

@@ -26,6 +26,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	static t_console_desc console_desc;
 	static t_ext2 ext2;
 	static t_device_desc device_desc;
+	static u32 kernel_stack;
 
 	system.time=0;
 	init_data=init_data_add;
@@ -88,16 +89,19 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	system.process_info->pause_queue=new_dllist();
 //	process_context->phy_add_space=NULL;
 	process_context->phy_kernel_stack=FROM_VIRT_TO_PHY(buddy_alloc_page(system.buddy_desc,KERNEL_STACK_SIZE));
-	current_process_context->process_type=KERNEL_THREAD;
+	process_context->process_type=KERNEL_THREAD;
 	 
 	process_context->page_dir=buddy_alloc_page(system.buddy_desc,0x1000);                      
 	init_vm_process(process_context);
 	*(system.process_info->tss.ss)=0x18;
 	*(system.process_info->tss.esp)=KERNEL_STACK;
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) process_context->page_dir)))                           	
-
-	asm("movl $KERNEL_STACK,%ebp");
-	asm("movl $KERNEL_STACK,%esp");
+	
+	kernel_stack=KERNEL_STACK;
+	asm("movl %0,%%ebp;"::"r"(kernel_stack));
+	asm("movl %0,%%esp;"::"r"(kernel_stack));
+//	asm("movl $KERNEL_STACK,%ebp");
+//	asm("movl $KERNEL_STACK,%esp");
 	STI
 	process_0();				       	
 }
@@ -109,6 +113,3 @@ void panic()
 	printk("\n");
 	while(1);
 }
-
-
-

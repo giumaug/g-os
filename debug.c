@@ -31,38 +31,6 @@ void check_free_mem()
 	}
 }
 
-void check_stack_change()
-{
-	struct t_process_context* current_process_context;
-	struct t_process_context* next_process_context;
-	t_llist_node* node;
-	t_llist_node* next;
-	t_llist_node* sentinel_node;
-	int index=0;
-	node=system.process_info->current_process;	
-	current_process_context=node->val;
-	int* stack;
-	unsigned int tmp;
-		
-	while(index<10)
-	{
-		sentinel_node=ll_sentinel(system.scheduler_desc.scheduler_queue[index]);
-		next=ll_first(system.scheduler_desc.scheduler_queue[index]);
-		while(next!=sentinel_node)
-		{
-			next_process_context=next->val;
-			tmp=FROM_PHY_TO_VIRT(next_process_context->phy_add_space);//BUDDY_START_ADDR + VIRT_MEM_START_ADDR;
-			stack=FROM_PHY_TO_VIRT(next_process_context->phy_add_space)+0xffffb;
-			if ((*stack)!=0x23)
-			{
-//				stop(stack,next_process_context,current_process_context);
-			}
-			next=ll_next(next);	
-		}
-		index++; 
-	}
-}
-
 check_process_context()
 {
 	t_llist_node* next;
@@ -111,33 +79,4 @@ check_active_process()
 		}
 		index++;
 	}
-}
-
-void sched_debug()
-{
-	struct t_process_context* next_process_context;
-	t_llist_node* next;
-	t_llist_node* sentinel_node;
-	unsigned int i,j;
-
-	for (i=0;i<10;i++)
-	{
-		for (j=0;j<10;j++)
-		{
-			t_sched_debug[i][j]=-1;
-		}
-	}
-	for (i=0;i<10;i++)
-	{
-		sentinel_node=ll_sentinel(system.scheduler_desc.scheduler_queue[i]);
-		next=ll_first(system.scheduler_desc.scheduler_queue[i]);
-		j=0;
-		while(next!=sentinel_node)
-		{
-			next_process_context=next->val;
-			t_sched_debug[i][j++]=next_process_context->pid;
-			next=ll_next(next);	
-		} 
-	}
-	return;
 }

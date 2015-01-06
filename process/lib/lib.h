@@ -1,8 +1,8 @@
 #ifndef LIB_H                
 #define LIB_H
 
-#include "asm.h"
-#include "virtual_memory/vm.h"
+//#include "asm.h"
+//#include "virtual_memory/vm.h"
 
 #define NULL 0
 #define SYSCALL(syscall_num,params) asm("mov %0,%%eax;mov %1,%%ecx;int $0x80"::"r"(syscall_num),"r"(params):"%eax","%ecx");
@@ -33,8 +33,8 @@ void itoa (int val,char *char_val,unsigned int base);
 void exit(int status);
 void *malloc(unsigned int mem_size);
 void free(void *address);
-void *bigMalloc(unsigned int mem_size);
-void bigFree(void *address);
+//void *bigMalloc(unsigned int mem_size);
+//void bigFree(void *address);
 unsigned int rand();
 int getc();
 

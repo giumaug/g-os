@@ -18,7 +18,8 @@ all:	kmain.o                       \
 	synchro_types.o               \
 	ext2.o                        \
 	elf_loader.o                  \
-	process_0.o
+	process_0.o                   \
+	mem_regs.o
 
 	ld -T linker.ld -o kernel.bin \
 	*.o                           \
@@ -34,7 +35,8 @@ all:	kmain.o                       \
 	data_types/*.o		      \
 	synchro_types/*.o             \
 	ext2/*.o                      \
-	elf_loader/*.o               
+	elf_loader/*.o                \
+	memory_region/*.o             
 
 process_0.o:process_0.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) process_0.c
@@ -93,6 +95,9 @@ ext2.o:
 elf_loader.o:
 	$(MAKE) -C elf_loader
 
+mem_regs.o:
+	$(MAKE) -C memory_region
+
 
 install_remote:all
 	scp ./kernel.bin root@192.168.1.215:/boot/
@@ -115,6 +120,7 @@ clean:
 	$(MAKE) -C ext2 clean
 	$(MAKE) -C elf_loader clean
 	$(MAKE) -C process clean
+	$(MAKE) -C memory_region clean
 	rm -f kernel.bin
 
 

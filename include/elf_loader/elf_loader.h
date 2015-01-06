@@ -1,5 +1,5 @@
 #ifndef ELF_LOADER_H                
-#define ELF_LOADER
+#define ELF_LOADER_H
 
 #define EI_NIDENT (16)
 #define PT_LOAD	1
@@ -66,7 +66,7 @@ typedef t_elf_desc;
 //u32 load_elf_executable(char* path,struct t_process_context* process_context);
 u32 elf_loader_init(t_elf_desc* elf_desc,char* path);
 u32 elf_loader_free(t_elf_desc* elf_desc);
-u32 elf_loader_read(t_elf_desc* elf_desc,u32 fault_addr,page_addr);
+u32 elf_loader_read(t_elf_desc* elf_desc,u32 fault_addr,u32 page_addr);
 
 
 #endif

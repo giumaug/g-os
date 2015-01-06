@@ -1,5 +1,6 @@
 #include "general.h"
 #include "idt.h"
+#include "asm.h"
 #include "memory_manager/general.h"
 #include "virtual_memory/vm.h"
 
@@ -26,37 +27,38 @@ void* init_virtual_memory()
 	return new_page_dir;
 }
 
-void* __init_vm_process(struct t_process_context* process_context)
-{
-	unsigned int* page_dir;	
-	unsigned int start,end;
-	unsigned int pad;
-	unsigned int i=0;
-
-	page_dir=buddy_alloc_page(system.buddy_desc,0x1000);
-	for (i=0;i<768;i++) 
-	{
-		page_dir[i]=0;
-	}
-	for (i=768;i<1024;i++) 
-	{
-		page_dir[i]=((unsigned int*)system.master_page_dir)[i];
-	}
-	map_vm_mem(page_dir,0,0,0x100000);
-	if (process_context->phy_add_space!=NULL)
-	{
-		map_vm_mem(page_dir,PROC_VIRT_MEM_START_ADDR,process_context->phy_add_space,process_context->phy_space_size);
-		map_vm_mem(page_dir,USER_STACK,process_context->phy_user_stack,0x10000);
-	}
-	map_vm_mem(page_dir,KERNEL_STACK,process_context->phy_kernel_stack,KERNEL_STACK_SIZE);	
-	return page_dir;
-}
+//void* __init_vm_process(struct t_process_context* process_context)
+//{
+//	unsigned int* page_dir;	
+//	unsigned int start,end;
+//	unsigned int pad;
+//	unsigned int i=0;
+//
+//	page_dir=buddy_alloc_page(system.buddy_desc,0x1000);
+//	for (i=0;i<768;i++) 
+//	{
+//		page_dir[i]=0;
+//	}
+//	for (i=768;i<1024;i++) 
+//	{
+//		page_dir[i]=((unsigned int*)system.master_page_dir)[i];
+//	}
+//	map_vm_mem(page_dir,0,0,0x100000);
+//	if (process_context->phy_add_space!=NULL)
+//	{
+//		map_vm_mem(page_dir,PROC_VIRT_MEM_START_ADDR,process_context->phy_add_space,process_context->phy_space_size);
+//		map_vm_mem(page_dir,USER_STACK,process_context->phy_user_stack,0x10000);
+//	}
+//	map_vm_mem(page_dir,KERNEL_STACK,process_context->phy_kernel_stack,KERNEL_STACK_SIZE);	
+//	return page_dir;
+//}
 
 void init_vm_process(struct t_process_context* process_context)
 {
+	u32 i;
 	unsigned int* page_dir;
 
-	page_dir=process_context->process_context;
+	page_dir=process_context->page_dir;
 	for (i=0;i<768;i++) 
 	{
 		page_dir[i]=0;
@@ -66,10 +68,10 @@ void init_vm_process(struct t_process_context* process_context)
 		page_dir[i]=((unsigned int*)system.master_page_dir)[i];
 	}
 	map_vm_mem(page_dir,KERNEL_STACK,process_context->phy_kernel_stack,KERNEL_STACK_SIZE);
-	system.buddy->count[BLOCK_INDEX(process_context->phy_kernel_stack)]++;
+	system.buddy_desc->count[BLOCK_INDEX(process_context->phy_kernel_stack)]++;
 }
 
-void clone_vm_process(void* parent_page_dir)
+void* clone_vm_process(void* parent_page_dir)
 {
 	unsigned int i,j;
 	unsigned int* child_page_dir;
@@ -87,14 +89,14 @@ void clone_vm_process(void* parent_page_dir)
 				
 			for (j=0;j<1024;j++)
 			{
-				parent_page_table[j]= | 5;
-				child_page_table)[j]=parent_page_table[j];
-				if (child_page_table)[j]!=0)
+				parent_page_table[j] |= 5;
+				child_page_table[j]=parent_page_table[j];
+				if (child_page_table[j]!=0)
 				{
-					system.buddy->count[BLOCK_INDEX(j)]++;
+					system.buddy_desc->count[BLOCK_INDEX(j)]++;
 				}
 			}
-			child_page_dir[i]=child_page_table | 5;
+			child_page_dir[i]=((unsigned int) child_page_table) | 5;
 		}
 		else
 		{
@@ -105,19 +107,20 @@ void clone_vm_process(void* parent_page_dir)
 	{
 		child_page_dir[i]=((unsigned int*) parent_page_dir)[i];
 	}
+	return child_page_dir;
 }
 
-void _free_vm_process(struct t_process_context* process_context)
-{
-	umap_vm_mem(process_context->page_dir,0,0x100000,0);
-	if (process_context->phy_add_space!=NULL)
-	{
-		umap_vm_mem(process_context->page_dir,PROC_VIRT_MEM_START_ADDR,process_context->phy_space_size,1);
-		umap_vm_mem(process_context->page_dir,USER_STACK,0x10000,1);
-	}
-	umap_vm_mem(process_context->page_dir,KERNEL_STACK,0x4000,1);
-	buddy_free_page(system.buddy_desc,process_context->page_dir);
-}
+//void _free_vm_process(struct t_process_context* process_context)
+//{
+//	umap_vm_mem(process_context->page_dir,0,0x100000,0);
+//	if (process_context->phy_add_space!=NULL)
+//	{
+//		umap_vm_mem(process_context->page_dir,PROC_VIRT_MEM_START_ADDR,process_context->phy_space_size,1);
+//		umap_vm_mem(process_context->page_dir,USER_STACK,0x10000,1);
+//	}
+//	umap_vm_mem(process_context->page_dir,KERNEL_STACK,0x4000,1);
+//	buddy_free_page(system.buddy_desc,process_context->page_dir);
+//}
 
 void free_vm_process(void* page_dir)
 {
@@ -132,23 +135,23 @@ void free_vm_process(void* page_dir)
 				
 			for (j=0;j<1024;j++)
 			{
-				if (page_table[j]!=0 && system.buddy->count[BLOCK_INDEX(j)]==1)
+				if (page_table[j]!=0 && system.buddy_desc->count[BLOCK_INDEX(j)]==1)
 				{
-					buddy_free_page(page_table[j]);
-					system.buddy->count[BLOCK_INDEX(j)]=0;
+					buddy_free_page(system.buddy_desc,page_table[j]);
+					system.buddy_desc->count[BLOCK_INDEX(j)]=0;
 				}
 				else if (page_table[j]!=0)
 				{
-					system.buddy->count[BLOCK_INDEX(J)]--;
+					system.buddy_desc->count[BLOCK_INDEX(j)]--;
 				}	
 			}
-			buddy_free_page(page_table);
+			buddy_free_page(system.buddy_desc,page_table);
 			((unsigned int*)page_dir)[i]=0;
 		}
 	}
 }
 
-static void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_addr,int mem_size)
+void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_addr,int mem_size)
 {
 	unsigned int *page_table;
 	unsigned int pad;
@@ -204,7 +207,7 @@ static void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy
 		}
 		else 
 		{
-			start=0;USERSPACE_PROCESS
+			start=0;
 			end=1024;
 		}
 		
@@ -216,7 +219,7 @@ static void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy
 	}
 }
 
-static void umap_vm_mem(void* page_dir,unsigned int virt_mem_addr,unsigned int mem_size,unsigned int flush)
+void umap_vm_mem(void* page_dir,unsigned int virt_mem_addr,unsigned int mem_size,unsigned int flush)
 {
 	unsigned int *page_table;
 	unsigned int start,end;
@@ -277,6 +280,7 @@ void page_fault_handler()
 	u32 fault_addr;
 	u32 aligned_fault_addr;
 	u32 fault_code;
+	u32 page_addr;
 	u32 page_num;
 	u32 page_offset;
 	u32 stack_reg_start;
@@ -285,6 +289,7 @@ void page_fault_handler()
 	u32 pd_num;
 	u32 pt_num;
 	u32* page_table;
+	void* parent_page_table;
 
 	SAVE_PROCESSOR_REG
 	GET_FAULT_ADDRESS(fault_addr,fault_code);
@@ -295,6 +300,7 @@ void page_fault_handler()
 	page_num=fault_addr / PAGE_SIZE;
 	page_offset=fault_addr % PAGE_SIZE;
 	aligned_fault_addr=fault_addr & PAGE_SIZE;
+	parent_page_table=current_process_context->parent->page_dir;
 
 	if (fault_code==(PAGE_OUT_MEMORY || USER || PAGE_READ) || 
 	    fault_code==(PAGE_OUT_MEMORY || USER || PAGE_WRITE)|| 
@@ -308,20 +314,20 @@ void page_fault_handler()
 			{
 				page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
 				map_vm_mem(current_process_context->page_dir,aligned_fault_addr,page_addr,PAGE_SIZE);
-				system.buddy->count[BLOCK_INDEX(page_addr)]++;
+				system.buddy_desc->count[BLOCK_INDEX(page_addr)]++;
 				elf_loader_read(current_process_context->elf_desc,fault_addr,page_addr);
 			}
-			else if (fault_code==(PAGE_IN_MEMORY || USER || PAGE_WRITE)
+			else if (fault_code==(PAGE_IN_MEMORY || USER || PAGE_WRITE))
 			{
 				pd_num=aligned_fault_addr>>22;
 				pt_num=(aligned_fault_addr & 0x3FFFFF)>>12;
 				page_table=((unsigned int*) current_process_context->page_dir)[pd_num];
-				parent_page_table[pt_num]= | 7;
-				if (system.buddy->count[BLOCK_INDEX(aligned_fault_addr)]>1)
+				((unsigned int*) parent_page_table)[pt_num] |= 7;
+				if (system.buddy_desc->count[BLOCK_INDEX(aligned_fault_addr)]>1)
 				{
 					page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
 					map_vm_mem(current_process_context->page_dir,aligned_fault_addr,page_addr,PAGE_SIZE);
-					system.buddy->count[BLOCK_INDEX(page_addr)]--;
+					system.buddy_desc->count[BLOCK_INDEX(page_addr)]--;
 					kmemcpy(page_addr,aligned_fault_addr ,PAGE_SIZE);
 				}
 			}
@@ -331,7 +337,7 @@ void page_fault_handler()
 			current_process_context->ustack_mem_reg->start_addr=-PAGE_SIZE;
 			page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
 			map_vm_mem(current_process_context->page_dir,aligned_fault_addr,page_addr,PAGE_SIZE);
-			system.buddy->count[BLOCK_INDEX(page_addr)]++;
+			system.buddy_desc->count[BLOCK_INDEX(page_addr)]++;
 		}
 		else
 		{
