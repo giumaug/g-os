@@ -1,3 +1,4 @@
+#include "general.h"
 #include "memory_region/mem_regs.h"
 
 t_mem_reg* create_mem_reg(u32 start_addr,u32 end_addr)
@@ -12,7 +13,7 @@ t_mem_reg* create_mem_reg(u32 start_addr,u32 end_addr)
 
 void delete_mem_reg(t_mem_reg* mem_reg)
 {
-	static void umap_vm_mem(void* page_dir,unsigned int virt_mem_addr,unsigned int mem_size,unsigned int flush)
+	//static void umap_vm_mem(void* page_dir,unsigned int virt_mem_addr,unsigned int mem_size,unsigned int flush)
 	kfree(mem_reg);
 }
 

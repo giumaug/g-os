@@ -99,12 +99,12 @@ void* buddy_alloc_page(t_buddy_desc* buddy,unsigned int mem_size)
 			node_buddy=ll_prepend(buddy->page_list[i],mem_addr_bucket);
 			buddy->order[BLOCK_INDEX((int)page_addr+page_size)]=i;
 			buddy->page_list_ref[BLOCK_INDEX((int)page_addr+page_size)]=node_buddy;
-			system.buddy->count[BLOCK_INDEX((int)page_addr+page_size)]=0;
+			system.buddy_desc->count[BLOCK_INDEX((int)page_addr+page_size)]=0;
 		}
 	}
 	buddy->order[BLOCK_INDEX((int)page_addr)]=(list_index | 16);
 	buddy->page_list_ref[BLOCK_INDEX((int)page_addr)]=node;
-	system.buddy->count[BLOCK_INDEX((int)page_addr)]=0;
+	system.buddy_desc->count[BLOCK_INDEX((int)page_addr)]=0;
 	new_mem_addr=page_addr+BUDDY_START_ADDR + VIRT_MEM_START_ADDR;
 	//SPINLOCK_UNLOCK
 	RESTORE_IF_STATUS

@@ -6,6 +6,8 @@
 #include "data_types/dllist.h"
 #include "data_types/hashtable.h"
 #include "data_types/primitive_types.h"
+#include "memory_region/mem_regs.h"
+#include "elf_loader/elf_loader.h"
 #include "ext2/ext2.h"
 
 #define U_STACK_SIZE 		0x4000;

@@ -61,38 +61,31 @@ void exit(int status)
 
 void* malloc(unsigned int mem_size) 
 {
-	int params[2];
-	params[0]=mem_size;
-	params[1]=NULL;
-	SYSCALL(2,params);
-	return params[1];
+	return _malloc(mem_size);
 }
 
 void free(void *address) 
 {	
-	int params[1];
-	params[0]=address;
-	SYSCALL(3,params);
+	_free(address);
 	return;
 }
 
-void *bigMalloc(unsigned int mem_size) 
-{
-	int params[2];
-	params[0]=mem_size;
-	params[1]=NULL;
-	SYSCALL(150,params);
-	return params[1];
-}
-
-void bigFree(void *address) 
-{	
-	int params[1];
-	params[0]=address;
-	SYSCALL(151,params);
-	return;
-}
-
+//void *bigMalloc(unsigned int mem_size) 
+//{
+//	int params[2];
+//	params[0]=mem_size;
+//	params[1]=NULL;
+//	SYSCALL(150,params);
+//	return params[1];
+//}
+//
+//void bigFree(void *address) 
+//{	
+//	int params[1];
+//	params[0]=address;
+//	SYSCALL(151,params);
+//	return;
+//}
 
 unsigned int rand()
 {
