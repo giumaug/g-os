@@ -13,16 +13,16 @@ t_mem_reg* create_mem_reg(u32 start_addr,u32 end_addr)
 
 void delete_mem_reg(t_mem_reg* mem_reg)
 {
-	//static void umap_vm_mem(void* page_dir,unsigned int virt_mem_addr,unsigned int mem_size,unsigned int flush)
 	kfree(mem_reg);
 }
 
 void enlarge_mem_reg()
 {
+	//I NEED SBRK SYSCALL SOMEWHERE IN THE CODE THAT CALL THIS FUNCTION!!!!!!!!!!!!!
 
 }
 
 void shrink_mem_reg()
 {
-
+	//I NEED SBRK SYSCALL SOMEWHERE IN THE CODE THAT CALL THIS FUNCTION!!!!!!!!!!!!!
 }

@@ -97,7 +97,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	*(system.process_info->tss.esp)=KERNEL_STACK;
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) process_context->page_dir)))                           	
 	
-	kernel_stack=KERNEL_STACK;
+	kernel_stack=KERNEL_STACK+KERNEL_STACK_SIZE;
 	asm("movl %0,%%ebp;"::"r"(kernel_stack));
 	asm("movl %0,%%esp;"::"r"(kernel_stack));
 //	asm("movl $KERNEL_STACK,%ebp");
