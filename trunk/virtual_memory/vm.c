@@ -1,7 +1,7 @@
-#include "general.h"
 #include "idt.h"
 #include "asm.h"
 #include "memory_manager/general.h"
+#include "scheduler/process.h"
 #include "virtual_memory/vm.h"
 
 void page_fault_handler();
@@ -71,7 +71,7 @@ void init_vm_process(struct t_process_context* process_context)
 	system.buddy_desc->count[BLOCK_INDEX(process_context->phy_kernel_stack)]++;
 }
 
-void* clone_vm_process(void* parent_page_dir)
+void* clone_vm_process(void* parent_page_dir,u32 process_type)
 {
 	unsigned int i,j;
 	unsigned int* child_page_dir;
@@ -80,27 +80,30 @@ void* clone_vm_process(void* parent_page_dir)
 	char* page_addr;
 
 	child_page_dir=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
-	for (i=0;i<768;i++) 
+	if (process_type==USERSPACE_PROCESS)
 	{
-		if (((unsigned int*)parent_page_dir)[i]!=0)
+		for (i=0;i<768;i++) 
 		{
-			child_page_table=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
-			parent_page_table=((unsigned int*)parent_page_dir)[i];
-				
-			for (j=0;j<1024;j++)
+			if (((unsigned int*)parent_page_dir)[i]!=0)
 			{
-				parent_page_table[j] |= 5;
-				child_page_table[j]=parent_page_table[j];
-				if (child_page_table[j]!=0)
+				child_page_table=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
+				parent_page_table=((unsigned int*)parent_page_dir)[i];
+				
+				for (j=0;j<1024;j++)
 				{
-					system.buddy_desc->count[BLOCK_INDEX(j)]++;
+					parent_page_table[j] |= 5;
+					child_page_table[j]=parent_page_table[j];
+					if (child_page_table[j]!=0)
+					{
+						system.buddy_desc->count[BLOCK_INDEX(j)]++;
+					}
 				}
+				child_page_dir[i]=((unsigned int) child_page_table) | 5;
 			}
-			child_page_dir[i]=((unsigned int) child_page_table) | 5;
-		}
-		else
-		{
-			child_page_dir[i]=0;
+			else
+			{
+				child_page_dir[i]=0;
+			}
 		}
 	}
 	for (i=768;i<1024;i++) 

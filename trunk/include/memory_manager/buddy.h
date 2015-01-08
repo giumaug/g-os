@@ -1,8 +1,8 @@
 #ifndef BUDDY_H                
 #define BUDDY_H
 
+#include "system.h"
 #include "memory_manager/general.h"
-#include "data_types/dllist.h"
 
 #define NUM_LIST 11
 #define BLOCK_INDEX(mem_addr) (mem_addr)/PAGE_SIZE

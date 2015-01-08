@@ -1,6 +1,8 @@
 #ifndef KMALLOC_H                
 #define KMALLOC_H
 
+include "system.h"
+
 void init_kmoalloc();
 void* kmalloc(unsigned int mem_size);
 void kfree(void *address);

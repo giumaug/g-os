@@ -1,6 +1,8 @@
 #ifndef M8254A_H                
 #define M8254A_H
 
+include "system.h"
+
 #define ICW_1 	   	0x11			 //00010001 binary. Enables initialization mode and we are sending ICW 4
 #define PIC_1_CTRL    	0x20			 //Primary PIC control register
 #define PIC_2_CTRL 	0xA0			 //Secondary PIC control register

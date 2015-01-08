@@ -1,13 +1,21 @@
 #ifndef SYSTEM_H                
 #define SYSTEM_H
 
+//#include "general.h"
 #include "scheduler/process.h"
 #include "console/console.h"
 //#include "scheduler/process.h"
 #include "scheduler/scheduler.h"
 #include "memory_manager/buddy.h"
-#include "data_types/dllist.h"
 #include "synchro_types/semaphore.h"
+#include "synchro_types/spin_lock.h"
+#include "data_types/dllist.h"
+#include "data_types/primitive_types.h"
+#include "data_types/hashtable.h"
+
+#define NULL 0
+#define TRUE 1
+#define FALSE 0
 
 #define DEVICE_IDLE 0
 #define DEVICE_BUSY 1
@@ -56,5 +64,7 @@ typedef struct s_system
 	unsigned int panic;
 }
 t_system;
+
+extern t_system system;
 
 #endif

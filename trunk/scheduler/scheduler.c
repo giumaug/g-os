@@ -1,4 +1,3 @@
-#include "general.h"
 #include "scheduler/scheduler.h"
 #include "memory_manager/buddy.h"
 #include "virtual_memory/vm.h"
@@ -332,13 +331,11 @@ int _fork(struct t_processor_reg processor_reg)
 	char* page;
 	
 	child_process_context=kmalloc(sizeof(struct t_process_context));
-	child_file_desc=kmalloc(sizeof(t_elf_desc));
 	SAVE_IF_STATUS
 	CLI
 	CURRENT_PROCESS_CONTEXT(parent_process_context);
 
 	kmemcpy(child_process_context,parent_process_context,sizeof(struct t_process_context));
-	kmemcpy(child_file_desc,parent_process_context->file_desc,sizeof(t_elf_desc));
 	page=buddy_alloc_page(system.buddy_desc,KERNEL_STACK_SIZE);    
 	child_process_context->phy_kernel_stack=FROM_VIRT_TO_PHY(page);
 	kmemcpy(page,FROM_PHY_TO_VIRT(parent_process_context->phy_kernel_stack),KERNEL_STACK_SIZE);
@@ -346,6 +343,9 @@ int _fork(struct t_processor_reg processor_reg)
 	child_process_context->pid=system.process_info->next_pid++;
 	if (parent_process_context->process_type==USERSPACE_PROCESS)
 	{
+		child_file_desc=kmalloc(sizeof(t_elf_desc));
+		kmemcpy(child_file_desc,parent_process_context->file_desc,sizeof(t_elf_desc));
+
 		child_process_context->process_mem_reg=create_mem_reg(parent_process_context->process_mem_reg->start_addr,
 								      parent_process_context->process_mem_reg->end_addr);
 
@@ -357,7 +357,7 @@ int _fork(struct t_processor_reg processor_reg)
 	}
 	
 	ll_prepend(system.scheduler_desc.scheduler_queue[parent_process_context->curr_sched_queue_index],child_process_context);
-	child_process_context->page_dir=clone_vm_process(parent_process_context->page_dir);
+	child_process_context->page_dir=clone_vm_process(parent_process_context->page_dir,parent_process_context->process_type);
 	RESTORE_IF_STATUS
 	return child_process_context->pid;
 }
