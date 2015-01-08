@@ -1,6 +1,8 @@
 #ifndef MEM_PROC_H                
 #define MEM_PROC_H
 
+#include "system.h"
+
 typedef struct s_mem_proc_desc
 {
 	void *mem_addr;

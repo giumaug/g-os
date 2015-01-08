@@ -1,8 +1,7 @@
 #ifndef SCHEDULER_H                
 #define SCHEDULER_H
 
-#include "data_types/dllist.h"
-
+#include "system.h"
 
 //To create a new kernel thread fork with THREAD_FORK from existing one.Then from child thread use THREAD_EXEC.
 //To switch kernel thread to user mode process call _exec from child thread.

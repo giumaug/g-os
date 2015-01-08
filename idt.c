@@ -1,10 +1,9 @@
-#include "general.h"
 #include "asm.h"
+#include "idt.h"
 #include "scheduler/process.h"
 #include "virtual_memory/vm.h"
 #include "drivers/pic/8259A.h"
 #include "lib/lib.h"
-#include "idt.h"
 
 struct t_i_desc idt[255];
 struct t_idt_ptr idt_ptr;

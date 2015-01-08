@@ -1,6 +1,7 @@
 #ifndef FIXED_SIZE_H                
 #define FIXED_SIZE_H
 
+#include "system.h"
 #include "memory_manager/general.h"
 
 typedef struct s_page_desc

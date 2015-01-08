@@ -1,10 +1,7 @@
 #ifndef EXT2_H                
 #define EXT2_H
 
-#include "general.h"
 #include "system.h"
-#include "data_types/primitive_types.h"
-#include "data_types/hashtable.h"
 
 #define READ_BYTE(src,dst) do {unsigned short* p;p=src;dst=(*p)&0xff;} while(0);
 #define READ_WORD(src,dst) do {unsigned short* p;p=src;dst=*p;} while(0);

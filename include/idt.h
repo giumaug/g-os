@@ -1,6 +1,7 @@
 #ifndef IDT_H                
 #define IDT_H
 
+#include "system.h"
 #include "scheduler/process.h"
 
 struct t_i_desc {

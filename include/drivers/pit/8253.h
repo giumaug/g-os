@@ -1,6 +1,8 @@
 #ifndef M8253_H                
 #define M8253_H
 
+#include "system.h"
+
 #define COUNTER_0 		0x40
 #define COUNTER_1 		0x41
 #define COUNTER_2 		0x42

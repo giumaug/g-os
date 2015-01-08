@@ -1,6 +1,8 @@
 #ifndef VM_H                
 #define VM_H
 
+#include "system.h"
+
 #define VIRT_MEM_START_ADDR 0xC0000000
 #define VIRT_MEM_END_ADDR 0xC0000000+PHY_MEM_SIZE
 #define PHY_MEM_START_ADDR  0x100000
@@ -35,7 +37,7 @@ void init_vm_process(struct t_process_context* process_context);
 void free_vm_process(void* page_dir);
 void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_addr,int mem_size);
 void umap_vm_mem(void* page_dir,unsigned int virt_mem_addr,unsigned int mem_size,unsigned int flush);
-void* clone_vm_process(void* parent_page_dir);
+void* clone_vm_process(void* parent_page_dir,u32 process_type);
 
 #endif
 

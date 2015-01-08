@@ -1,5 +1,6 @@
 #ifndef HASHTABLE_H                
 #define HASHTABLE_H
+
 #include "dllist.h"
 
 #define LOAD_FACTOR .75

@@ -1,9 +1,8 @@
 #ifndef CONSOLE_H                
 #define CONSOLE_H
 
-#include "data_types/dllist.h"
+#include "system.h"
 #include "scheduler/process.h"
-#include "synchro_types/spin_lock.h"
 
 #define VIDEO_MEM_ADD 0xb8000;
 #define SCREEN_FOREGROUND_COLOR 0x07;

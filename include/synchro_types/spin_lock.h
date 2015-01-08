@@ -1,6 +1,8 @@
 #ifndef SPIN_LOCK_H                
 #define SPIN_LOCK_H
 
+#include "system.h"
+
 //HINT:%= expands in unique integer
 
 

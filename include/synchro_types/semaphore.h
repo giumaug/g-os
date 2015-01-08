@@ -1,9 +1,7 @@
 #ifndef SEMAPHORE_H                
 #define SEMAPHORE_H
 
-#include "data_types/dllist.h"
-#include "scheduler/process.h"
-#include "synchro_types/spin_lock.h"
+#include "system.h"
 
 typedef struct s_sem_desc 
 {
