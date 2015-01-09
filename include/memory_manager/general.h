@@ -1,7 +1,7 @@
 #ifndef MEMORY_GENERAL_H                
 #define MEMORY_GENERAL_H
 
-include "system.h"
+#include "system.h"
 
 #define PAGE_SIZE 0x1000
 #define PHY_MEM_SIZE 0xC800000 //0x3200000

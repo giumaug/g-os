@@ -18,6 +18,7 @@ char tmp_kernel_stack[4096];
 void kmain( void* mbd, unsigned int magic,int init_data_add)
 {
 	static struct t_process_info process_info;
+	static struct t_scheduler_desc scheduler_desc;
 	static t_buddy_desc buddy_desc;
 	static unsigned int* init_data;
         init_data=init_data_add;
@@ -41,8 +42,9 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
  	CLI
 	system.process_info=&process_info;
 	system.buddy_desc=&buddy_desc;
+	system.scheduler_desc=&scheduler_desc;
 	system.int_path_count=0;
-	system.scheduler_desc.scheduler_queue[0]=0;
+	system->scheduler_desc.scheduler_queue[0]=0;
 	system.process_info->current_process=NULL;
 	init_kmalloc();
    	init_idt();
@@ -83,7 +85,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 //      process_context->processor_reg.esp=0x1EFFFF;//64K user mode stack 
 	process_context->processor_reg.esp=NULL;
 	process_context->console_desc=&console_desc;
-	system.process_info->current_process=ll_prepend(system.scheduler_desc.scheduler_queue[9],process_context);
+	system.process_info->current_process=ll_prepend(system->scheduler_desc.scheduler_queue[9],process_context);
 	system.process_info->tss.ss= *init_data;
 	system.process_info->tss.esp= *(init_data+1);
 	system.process_info->pause_queue=new_dllist();

@@ -41,7 +41,7 @@ void init_scheduler()
 	int i;
 	for (i=0;i<10;i++)
 	{
-		system.scheduler_desc.scheduler_queue[i]=new_dllist();
+		system->scheduler_desc.scheduler_queue[i]=new_dllist();
 	}
 }
 
@@ -65,8 +65,8 @@ void schedule(struct t_process_context *current_process_context,struct t_process
 	
 	while(!stop && index<10)
 	{
-		sentinel_node=ll_sentinel(system.scheduler_desc.scheduler_queue[index]);
-		next=ll_first(system.scheduler_desc.scheduler_queue[index]);
+		sentinel_node=ll_sentinel(system->scheduler_desc.scheduler_queue[index]);
+		next=ll_first(system->scheduler_desc.scheduler_queue[index]);
 		while(next!=sentinel_node && !stop)
 		{
 			next_process_context=next->val;
@@ -79,7 +79,7 @@ void schedule(struct t_process_context *current_process_context,struct t_process
 					adjust_sched_queue(current_process_context);
 					ll_delete_node(node);
 					queue_index=current_process_context->curr_sched_queue_index;
-					ll_append(system.scheduler_desc.scheduler_queue[queue_index],current_process_context);
+					ll_append(system->scheduler_desc.scheduler_queue[queue_index],current_process_context);
 				}
 				else if (current_process_context->proc_status==SLEEPING)
 				{
@@ -203,7 +203,7 @@ void _awake(struct t_process_context *new_process)
 	new_process->sleep_time=(system.time-new_process->sleep_time>=1000) ? 1000 : (system.time-new_process->sleep_time);
 	new_process->proc_status=RUNNING;
 	adjust_sched_queue(new_process);
-	ll_prepend(system.scheduler_desc.scheduler_queue[new_process->curr_sched_queue_index],new_process);
+	ll_prepend(system->scheduler_desc.scheduler_queue[new_process->curr_sched_queue_index],new_process);
 	RESTORE_IF_STATUS
 }
 
@@ -356,7 +356,7 @@ int _fork(struct t_processor_reg processor_reg)
 								     parent_process_context->ustack_mem_reg->end_addr);	
 	}
 	
-	ll_prepend(system.scheduler_desc.scheduler_queue[parent_process_context->curr_sched_queue_index],child_process_context);
+	ll_prepend(system->scheduler_desc.scheduler_queue[parent_process_context->curr_sched_queue_index],child_process_context);
 	child_process_context->page_dir=clone_vm_process(parent_process_context->page_dir,parent_process_context->process_type);
 	RESTORE_IF_STATUS
 	return child_process_context->pid;

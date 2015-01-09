@@ -1,17 +1,15 @@
 #ifndef SYSTEM_H                
 #define SYSTEM_H
 
-//#include "general.h"
-#include "scheduler/process.h"
-#include "console/console.h"
-//#include "scheduler/process.h"
-#include "scheduler/scheduler.h"
-#include "memory_manager/buddy.h"
-#include "synchro_types/semaphore.h"
-#include "synchro_types/spin_lock.h"
 #include "data_types/dllist.h"
 #include "data_types/primitive_types.h"
 #include "data_types/hashtable.h"
+#include "synchro_types/spin_lock.h"
+#include "synchro_types/semaphore.h"
+#include "scheduler/process.h"
+#include "console/console.h"
+#include "scheduler/scheduler.h"
+#include "memory_manager/buddy.h"
 
 #define NULL 0
 #define TRUE 1
@@ -47,6 +45,7 @@ typedef struct s_device_desc
 t_device_desc;
 
 struct s_ext2;
+struct s_scheduler_desc;
 
 typedef struct s_system
 {
@@ -55,7 +54,7 @@ typedef struct s_system
 	t_console_desc* active_console_desc;
 	t_buddy_desc* buddy_desc;
 	unsigned int *master_page_dir;
-	t_scheduler_desc scheduler_desc;
+	struct s_scheduler_desc* scheduler_desc;
 	struct s_ext2* root_fs;
 	t_device_desc* device_desc;
 	unsigned int int_path_count;
