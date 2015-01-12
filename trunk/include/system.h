@@ -19,6 +19,10 @@
 #define DEVICE_BUSY 1
 #define POOLING_MODE 2
 
+struct s_ext2;
+struct s_scheduler_desc;
+struct s_buddy_desc;
+
 typedef struct s_io_request 
 {
 	unsigned int sector_count;
@@ -43,10 +47,6 @@ typedef struct s_device_desc
 	t_sem_desc sem;
 }
 t_device_desc;
-
-struct s_ext2;
-struct s_scheduler_desc;
-struct s_buddy_desc;
 
 typedef struct s_system
 {

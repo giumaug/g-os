@@ -14,6 +14,8 @@
 #define KERNEL_THREAD 0
 #define USERSPACE_PROCESS 1
 
+struct s_mem_reg;
+
 typedef enum s_proc_status
 { 
 	RUNNING,
@@ -67,9 +69,9 @@ struct t_process_context
 	t_hashtable* file_desc;
 	unsigned int phy_kernel_stack;
 //	unsigned int phy_user_stack;
-	t_mem_reg* process_mem_reg;
-	t_mem_reg* heap_mem_reg;
-	t_mem_reg* ustack_mem_reg;
+	struct s_mem_reg* process_mem_reg;
+	struct s_mem_reg* heap_mem_reg;
+	struct s_mem_reg* ustack_mem_reg;
 	t_elf_desc* elf_desc;
 };
 
