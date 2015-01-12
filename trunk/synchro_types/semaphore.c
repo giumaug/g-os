@@ -1,5 +1,6 @@
+#include "system.h"
+//#include "synchro_types/semaphore.h"
 #include "asm.h"
-#include "synchro_types/semaphore.h"
 
 //With count zero init mutex (formally process holding mutex should be the only permitted to release mutex )
 //Process holding mutex or semaphore can sleep.Process holding spinlock can't.

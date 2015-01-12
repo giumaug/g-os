@@ -7,7 +7,7 @@
 #define NUM_LIST 11
 #define BLOCK_INDEX(mem_addr) (mem_addr)/PAGE_SIZE
 
-struct s_buddy 
+struct s_buddy_desc 
 { 	
 	t_llist* page_list[11];
 //	BUDDY_MEM_SIZE/PAGE_SIZE ACCOUNT FOR 0.0244 OF AVAILABLE MEMORY

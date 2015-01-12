@@ -38,8 +38,8 @@ check_process_context()
 
 	while(index<10)
 	{
-		sentinel_node=ll_sentinel(system.scheduler_desc.scheduler_queue[index]);
-		next=ll_first(system.scheduler_desc.scheduler_queue[index]);
+		sentinel_node=ll_sentinel(system.scheduler_desc->scheduler_queue[index]);
+		next=ll_first(system.scheduler_desc->scheduler_queue[index]);
 		while(next!=sentinel_node)
 		{
 			process_context=next->val;
@@ -66,8 +66,8 @@ check_active_process()
 
 	while(index<10)
 	{
-		sentinel_node=ll_sentinel(system.scheduler_desc.scheduler_queue[index]);
-		next=ll_first(system.scheduler_desc.scheduler_queue[index]);
+		sentinel_node=ll_sentinel(system.scheduler_desc->scheduler_queue[index]);
+		next=ll_first(system.scheduler_desc->scheduler_queue[index]);
 		while(next!=sentinel_node)
 		{
 			process_context=next->val;
