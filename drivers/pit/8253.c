@@ -1,10 +1,8 @@
+#include "drivers/pit/8253.h" 
 #include "asm.h"  
 #include "idt.h" 
-#include "scheduler/scheduler.h"
 #include "virtual_memory/vm.h"
 #include "drivers/pic/8259A.h" 
-#include "drivers/pit/8253.h" 
-#include "debug.h"
 
 #define K_STACK 0x1FFFFB
 
@@ -80,7 +78,7 @@ void int_handler_pit()
 			next_process->assigned_sleep_time=0;
 			next_process->proc_status=RUNNING;
 			queue_index=next_process->curr_sched_queue_index;
-			ll_append(system.scheduler_desc.scheduler_queue[queue_index],next_process);
+			ll_append(system.scheduler_desc->scheduler_queue[queue_index],next_process);
 			old_node=next;
 			next=ll_next(next);
 			ll_delete_node(old_node);

@@ -1,8 +1,6 @@
-#include "asm.h"
-#include "synchro_types/spin_lock.h"
-#include "memory_manager/general.h"
-#include "virtual_memory/vm.h"
 #include "memory_manager/buddy.h"
+#include "asm.h"
+#include "virtual_memory/vm.h"
 
 static unsigned int mem;
 

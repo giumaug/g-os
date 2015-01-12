@@ -1,9 +1,8 @@
+#include "memory_manager/kmalloc.h"
 #include "asm.h"
-#include "synchro_types/spin_lock.h"
 #include "memory_manager/fixed_size.h"
 #include "memory_manager/general.h"
 #include "virtual_memory/vm.h"
-#include "memory_manager/kmalloc.h"
 
 t_a_fixed_size_desc a_fixed_size_desc[POOL_NUM];
 unsigned int free_mem_list[POOL_NUM];
