@@ -325,6 +325,7 @@ void _exit(int status)
 
 int _fork(struct t_processor_reg processor_reg) 
 {
+	int i=0;
  	struct t_process_context* child_process_context;
 	struct t_process_context* parent_process_context;
 	t_hashtable* child_file_desc;
@@ -358,7 +359,15 @@ int _fork(struct t_processor_reg processor_reg)
 	
 	ll_prepend(system.scheduler_desc->scheduler_queue[parent_process_context->curr_sched_queue_index],child_process_context);
 	child_process_context->page_dir=clone_vm_process(parent_process_context->page_dir,parent_process_context->process_type);
+	for (i=0;i<1000;i++);
 	RESTORE_IF_STATUS
+//
+//	asm("push %eax;");                       
+//	asm("pushfl;");	                         
+//      asm(" movl %0,%%eax;"::"r"(if_status));
+//      asm("orl %eax,(%esp);");	         
+//	asm("popfl;");			         
+//	asm("pop %eax;");	
 	return child_process_context->pid;
 }
 
