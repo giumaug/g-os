@@ -97,9 +97,11 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	init_vm_process(process_context);
 	*(system.process_info->tss.ss)=0x18;
 	*(system.process_info->tss.esp)=KERNEL_STACK;
+
+	map_vm_mem(process_context->page_dir,(KERNEL_STACK-KERNEL_STACK_SIZE),process_context->phy_kernel_stack,KERNEL_STACK_SIZE);
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) process_context->page_dir)))                           	
 	
-	kernel_stack=KERNEL_STACK+KERNEL_STACK_SIZE;
+	kernel_stack=KERNEL_STACK;
 	asm("movl %0,%%ebp;"::"r"(kernel_stack));
 	asm("movl %0,%%esp;"::"r"(kernel_stack));
 //	asm("movl $KERNEL_STACK,%ebp");
