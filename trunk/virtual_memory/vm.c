@@ -67,7 +67,7 @@ void init_vm_process(struct t_process_context* process_context)
 	{
 		page_dir[i]=((unsigned int*)system.master_page_dir)[i];
 	}
-	map_vm_mem(page_dir,KERNEL_STACK,process_context->phy_kernel_stack,KERNEL_STACK_SIZE);
+	map_vm_mem(page_dir,(KERNEL_STACK-KERNEL_STACK_SIZE),process_context->phy_kernel_stack,KERNEL_STACK_SIZE);
 	system.buddy_desc->count[BLOCK_INDEX(process_context->phy_kernel_stack)]++;
 }
 
