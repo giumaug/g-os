@@ -337,6 +337,7 @@ int _fork(struct t_processor_reg processor_reg)
 	CURRENT_PROCESS_CONTEXT(parent_process_context);
 
 	kmemcpy(child_process_context,parent_process_context,sizeof(struct t_process_context));
+	child_process_context->processor_reg=processor_reg;
 	page=buddy_alloc_page(system.buddy_desc,KERNEL_STACK_SIZE);    
 	child_process_context->phy_kernel_stack=FROM_VIRT_TO_PHY(page);
 	kmemcpy(page,FROM_PHY_TO_VIRT(parent_process_context->phy_kernel_stack),KERNEL_STACK_SIZE);
