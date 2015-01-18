@@ -80,9 +80,21 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type)
 	char* page_addr;
 
 	child_page_dir=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
+	map_vm_mem(page_dir,0,0,0x100000);
 	if (process_type==USERSPACE_PROCESS)
 	{
-		for (i=0;i<768;i++) 
+		parent_page_table=((unsigned int*)parent_page_dir)[0];
+		child_page_table=child_page_dir[0];--------------------------------------qui------
+		for (j=256;j<1024;j++)
+		{
+			parent_page_table[j] |= 5;
+			child_page_table[j]=parent_page_table[j];
+			if (child_page_table[j]!=0)
+			{
+				system.buddy_desc->count[BLOCK_INDEX(j)]++;
+			}
+		}
+		for (i=1;i<768;i++) 
 		{
 			if (((unsigned int*)parent_page_dir)[i]!=0)
 			{
