@@ -329,7 +329,7 @@ int _fork(struct t_processor_reg processor_reg)
  	struct t_process_context* child_process_context;
 	struct t_process_context* parent_process_context;
 	t_hashtable* child_file_desc;
-	char* page;
+	char* kernel_stack_addr;
 	
 	child_process_context=kmalloc(sizeof(struct t_process_context));
 	SAVE_IF_STATUS
@@ -338,9 +338,9 @@ int _fork(struct t_processor_reg processor_reg)
 
 	kmemcpy(child_process_context,parent_process_context,sizeof(struct t_process_context));
 	child_process_context->processor_reg=processor_reg;
-	page=buddy_alloc_page(system.buddy_desc,KERNEL_STACK_SIZE);    
-	child_process_context->phy_kernel_stack=FROM_VIRT_TO_PHY(page);
-	kmemcpy(page,FROM_PHY_TO_VIRT(parent_process_context->phy_kernel_stack),KERNEL_STACK_SIZE);
+	kernel_stack_addr=buddy_alloc_page(system.buddy_desc,KERNEL_STACK_SIZE);    
+	child_process_context->phy_kernel_stack=FROM_VIRT_TO_PHY(kernel_stack_addr);
+	kmemcpy(kernel_stack_addr,FROM_PHY_TO_VIRT(parent_process_context->phy_kernel_stack),KERNEL_STACK_SIZE);
 
 	child_process_context->pid=system.process_info->next_pid++;
 	if (parent_process_context->process_type==USERSPACE_PROCESS)
@@ -359,7 +359,7 @@ int _fork(struct t_processor_reg processor_reg)
 	}
 	
 	ll_prepend(system.scheduler_desc->scheduler_queue[parent_process_context->curr_sched_queue_index],child_process_context);
-	child_process_context->page_dir=clone_vm_process(parent_process_context->page_dir,parent_process_context->process_type);
+	child_process_context->page_dir=clone_vm_process(parent_process_context->page_dir,parent_process_context->process_type,kernel_stack_addr);
 	RESTORE_IF_STATUS
 	return child_process_context->pid;
 }
