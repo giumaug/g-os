@@ -127,9 +127,11 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 		}
 	}
 
-	child_page_table=((unsigned int*)parent_page_dir)[767];
-	child_page_table[1022]=kernel_stack_addr | 7;
-	child_page_table[1023]=(kernel_stack_addr + PAGE_SIZE) | 7;
+	need map kernel stack!!!---qui
+//	parent_page_table=((unsigned int*)parent_page_dir)[767];
+        child_page_table=((unsigned int*)child_page_dir)[767];
+	child_page_table[1021]=kernel_stack_addr | 7;
+	child_page_table[1022]=(kernel_stack_addr + PAGE_SIZE) | 7;
 
 	for (i=768;i<1024;i++) 
 	{
