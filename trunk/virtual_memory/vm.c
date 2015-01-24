@@ -68,7 +68,7 @@ void init_vm_process(struct t_process_context* process_context)
 		page_dir[i]=((unsigned int*)system.master_page_dir)[i];
 	}
 	map_vm_mem(page_dir,(KERNEL_STACK-KERNEL_STACK_SIZE),process_context->phy_kernel_stack,KERNEL_STACK_SIZE);
-	system.buddy_desc->count[BLOCK_INDEX(process_context->phy_kernel_stack)]++;
+//	system.buddy_desc->count[BLOCK_INDEX(process_context->phy_kernel_stack)]++; only needed for user space
 }
 
 void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_addr)
@@ -82,6 +82,7 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 
 	child_page_dir=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
 	map_vm_mem(child_page_dir,0,0,0x100000);
+	map_vm_mem(child_page_dir,(KERNEL_STACK-KERNEL_STACK_SIZE),kernel_stack_addr,KERNEL_STACK_SIZE);
 	end_page=1024;
 
 	if (process_type==USERSPACE_PROCESS)
@@ -118,7 +119,7 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 						system.buddy_desc->count[BLOCK_INDEX(j)]++;
 					}
 				}
-				child_page_dir[i]=((unsigned int) child_page_table) | 5;
+				child_page_dir[i]=FROM_VIRT_TO_PHY(((unsigned int) child_page_table)) | 5;
 			}
 			else
 			{
@@ -126,12 +127,8 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 			}
 		}
 	}
-
-	need map kernel stack!!!---qui
-//	parent_page_table=((unsigned int*)parent_page_dir)[767];
-        child_page_table=((unsigned int*)child_page_dir)[767];
-	child_page_table[1021]=kernel_stack_addr | 7;
-	child_page_table[1022]=(kernel_stack_addr + PAGE_SIZE) | 7;
+//	u32 xxx= FROM_PHY_TO_VIRT(((unsigned int*) child_page_dir)[767]);
+//	xxx = xxx & 0xFFFFF000;
 
 	for (i=768;i<1024;i++) 
 	{

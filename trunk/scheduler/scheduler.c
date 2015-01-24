@@ -359,7 +359,9 @@ int _fork(struct t_processor_reg processor_reg)
 	}
 	
 	ll_prepend(system.scheduler_desc->scheduler_queue[parent_process_context->curr_sched_queue_index],child_process_context);
-	child_process_context->page_dir=clone_vm_process(parent_process_context->page_dir,parent_process_context->process_type,kernel_stack_addr);
+	child_process_context->page_dir=clone_vm_process(parent_process_context->page_dir,
+							 parent_process_context->process_type,
+							 FROM_VIRT_TO_PHY(kernel_stack_addr));
 	RESTORE_IF_STATUS
 	return child_process_context->pid;
 }
