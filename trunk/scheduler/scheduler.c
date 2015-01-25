@@ -503,6 +503,9 @@ u32 _exec(char* path,char* argv[])
 	}
 	stack_data[argc]=NULL;
 
+	unsigned int* xxx;
+	xxx=0x100000;
+	*xxx=1;
 	SWITCH_TO_USER_MODE(stack_pointer)
 	return 0;
 }

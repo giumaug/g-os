@@ -57,9 +57,18 @@ void init_vm_process(struct t_process_context* process_context)
 {
 	u32 i;
 	unsigned int* page_dir;
+	unsigned int* page_table;
 
 	page_dir=process_context->page_dir;
-	for (i=0;i<768;i++) 
+	map_vm_mem(page_dir,0,0,0x100000);
+	page_table=FROM_PHY_TO_VIRT(((unsigned int*)page_dir)[0]);
+	
+	for (i=256;i<1024;i++)
+	{
+		page_table[i]=0;
+	}
+
+	for (i=1;i<768;i++) 
 	{
 		page_dir[i]=0;
 	}
@@ -68,7 +77,6 @@ void init_vm_process(struct t_process_context* process_context)
 		page_dir[i]=((unsigned int*)system.master_page_dir)[i];
 	}
 	map_vm_mem(page_dir,(KERNEL_STACK-KERNEL_STACK_SIZE),process_context->phy_kernel_stack,KERNEL_STACK_SIZE);
-//	system.buddy_desc->count[BLOCK_INDEX(process_context->phy_kernel_stack)]++; only needed for user space
 }
 
 void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_addr)
@@ -127,8 +135,6 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 			}
 		}
 	}
-//	u32 xxx= FROM_PHY_TO_VIRT(((unsigned int*) child_page_dir)[767]);
-//	xxx = xxx & 0xFFFFF000;
 
 	for (i=768;i<1024;i++) 
 	{
@@ -154,11 +160,18 @@ void free_vm_process(void* page_dir)
 	unsigned int i,j;
 	unsigned int* page_table;
 
-	for (i=0;i<768;i++) 
+	page_table=FROM_PHY_TO_VIRT(((unsigned int*)page_dir)[0]);
+	
+	for (i=256;i<1024;i++)
+	{
+		page_table[i]=0;
+	}
+
+	for (i=1;i<768;i++) 
 	{
 		if (((unsigned int*)page_dir)[i]!=0)
 		{
-			page_table=((unsigned int*)page_dir)[i];
+			page_table=FROM_PHY_TO_VIRT(((unsigned int*)page_dir)[i]) & 0xFFFFF000;
 				
 			for (j=0;j<1024;j++)
 			{
