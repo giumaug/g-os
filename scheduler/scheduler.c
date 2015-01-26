@@ -459,6 +459,7 @@ u32 _exec(char* path,char* argv[])
 	static u32 frame_size=0;
 	u32 process_size;
 	t_elf_desc* elf_desc;
+	unsigned int* user_stack_trigger;
 
 //	CLI  ----------non serve 
 	CURRENT_PROCESS_CONTEXT(current_process_context);
@@ -503,9 +504,10 @@ u32 _exec(char* path,char* argv[])
 	}
 	stack_data[argc]=NULL;
 
-	unsigned int* xxx;
-	xxx=0x100000;
-	*xxx=1;
+//	force user stack  page fault
+//	user_stack_trigger=USER_STACK;
+//	*user_stack_trigger=0x0;
+
 	SWITCH_TO_USER_MODE(stack_pointer)
 	return 0;
 }
