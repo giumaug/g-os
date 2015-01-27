@@ -39,6 +39,9 @@ break-exception -all
 trace-io kbd0
 untrace-io kbd0
 
+log-level vedo tutti gli oggetti loggabili
+object.log vedo log oggetto
+
 ide.status status ide
 list-objects tutti oggetti disponibili
 
