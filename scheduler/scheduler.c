@@ -508,7 +508,12 @@ u32 _exec(char* path,char* argv[])
 //	user_stack_trigger=USER_STACK;
 //	*user_stack_trigger=0x0;
 
-	SWITCH_TO_USER_MODE(stack_pointer)
+	asm("mov $0x23,%ax;mov %ax,%ds;mov %ax,%es;push %eax;movl $0x23,%eax;push %eax;");							
+        asm("movl %0,%%eax;push %%eax;"::"r"(stack_pointer)); 	
+	asm("movl $0x206,%eax;push %eax;movl $0x13,%eax;push %eax;movl $0x100000,%eax;push %eax;");                              		
+	asm("iret;");
+
+//	SWITCH_TO_USER_MODE(stack_pointer)
 	return 0;
 }
 
