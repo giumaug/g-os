@@ -504,9 +504,13 @@ u32 _exec(char* path,char* argv[])
 	}
 	stack_data[argc]=NULL;
 
-//	force user stack  page fault
-//	user_stack_trigger=USER_STACK;
-//	*user_stack_trigger=0x0;
+	user_stack_trigger=0x100000;
+	*user_stack_trigger=0x0;
+
+	char* proc_mem;
+	proc_mem=buddy_alloc_page(system.buddy_desc,0x20000);
+	map_vm_mem(current_process_context->page_dir,PROC_VIRT_MEM_START_ADDR,FROM_VIRT_TO_PHY(proc_mem),0x20000);
+  
 
 	asm("mov $0x23,%ax;mov %ax,%ds;mov %ax,%es;push %eax;movl $0x23,%eax;push %eax;");							
         asm("movl %0,%%eax;push %%eax;"::"r"(stack_pointer)); 	
