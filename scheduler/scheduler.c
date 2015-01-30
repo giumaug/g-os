@@ -504,18 +504,19 @@ u32 _exec(char* path,char* argv[])
 	}
 	stack_data[argc]=NULL;
 
-	user_stack_trigger=0x100000;
-	*user_stack_trigger=0x0;
+//	user_stack_trigger=0x100000;
+//	u32 yyy= *user_stack_trigger;
 
 	char* proc_mem;
 	proc_mem=buddy_alloc_page(system.buddy_desc,0x20000);
-	map_vm_mem(current_process_context->page_dir,PROC_VIRT_MEM_START_ADDR,FROM_VIRT_TO_PHY(proc_mem),0x20000);
+//	map_vm_mem(current_process_context->page_dir,PROC_VIRT_MEM_START_ADDR,FROM_VIRT_TO_PHY(proc_mem),0x20000);
   
 
 	asm("mov $0x23,%ax;mov %ax,%ds;mov %ax,%es;push %eax;movl $0x23,%eax;push %eax;");							
         asm("movl %0,%%eax;push %%eax;"::"r"(stack_pointer)); 	
-	asm("movl $0x206,%eax;push %eax;movl $0x13,%eax;push %eax;movl $0x100000,%eax;push %eax;");                              		
-	asm("iret;");
+	asm("movl $0x206,%eax;push %eax;movl $0x13,%eax;push %eax;movl $0x100000,%eax;push %eax;");
+	asm ("jmp 0x100000");                              		
+//	asm("iret;");
 
 //	SWITCH_TO_USER_MODE(stack_pointer)
 	return 0;
