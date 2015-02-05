@@ -11,7 +11,7 @@ void do_context_switch(struct t_process_context *current_process_context,
 		       struct t_processor_reg *processor_reg,
 		       struct t_process_context *new_process_context)
 {
-	*(system.process_info->tss.esp)=0x1FFFFF;
+	*(system.process_info->tss.esp)=KERNEL_STACK;
 	//save current process state 
 	current_process_context->processor_reg.eax=processor_reg->eax;
 	current_process_context->processor_reg.ebx=processor_reg->ebx;
@@ -459,7 +459,6 @@ u32 _exec(char* path,char* argv[])
 	static u32 frame_size=0;
 	u32 process_size;
 	t_elf_desc* elf_desc;
-	unsigned int* user_stack_trigger;
 
 //	CLI  ----------non serve 
 	CURRENT_PROCESS_CONTEXT(current_process_context);
@@ -503,26 +502,8 @@ u32 _exec(char* path,char* argv[])
 		stack_data[i]=argv[i];
 	}
 	stack_data[argc]=NULL;
-
-//	user_stack_trigger=0x100000;
-//	u32 yyy= *user_stack_trigger;
-
-	char* proc_mem;
-	proc_mem=buddy_alloc_page(system.buddy_desc,0x20000);
-	map_vm_mem(current_process_context->page_dir,PROC_VIRT_MEM_START_ADDR,FROM_VIRT_TO_PHY(proc_mem),0x20000);
   
-
-//	asm("mov $0x23,%ax;mov %ax,%ds;mov %ax,%es;push %eax;movl $0x23,%eax;push %eax;");							
-//       asm("movl %0,%%eax;push %%eax;"::"r"(stack_pointer)); 	
-//	asm("movl $0x206,%eax;push %eax;movl $0x13,%eax;push %eax;movl $0x100000,%eax;push %eax;");
-//	//asm ("jmp 0x100000");                              		
-//	asm("iret;");
-
-	asm("movl $0x206,%eax;push %eax;movl $0x08,%eax;push %eax;movl $0x100000,%eax;push %eax;");                    		
-	asm("iret;");
-
-
-//	SWITCH_TO_USER_MODE(stack_pointer)
+	SWITCH_TO_USER_MODE(stack_pointer)
 	return 0;
 }
 
