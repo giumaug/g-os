@@ -319,7 +319,7 @@ void page_fault_handler()
 	u32 ustack_pointer;
 	u32 fault_addr;
 	u32 aligned_fault_addr;
-	u32 fault_code;
+	char fault_code;
 	u32 page_addr;
 	u32 page_num;
 	u32 page_offset;
@@ -332,6 +332,10 @@ void page_fault_handler()
 	void* parent_page_table;
 
 	SAVE_PROCESSOR_REG
+
+	//waht cr2 if new interr?
+	asm ("push %%eax;mov %%cr2,%%eax;mov %%eax,%0;mov 4(%%ebp),%1;pop %%eax;":"=r"(fault_addr),"=r"(fault_code));             
+
 	GET_FAULT_ADDRESS(fault_addr,fault_code);
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 

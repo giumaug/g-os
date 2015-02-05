@@ -128,7 +128,7 @@
 
 #define GET_STACK_POINTER(ustack_pointer)	asm("                                            \
 						     push %%eax;                                 \
-						     mov %%esp,%%eax;                              \
+						     mov %%esp,%%eax;                            \
 						     mov  %%eax, %0;                             \
 						     pop %%eax;":"=r"(ustack_pointer));
 
@@ -136,7 +136,7 @@
 							push %%eax;				 \
 							mov %%cr2,%%eax;		         \
 							mov  %%eax, %0;	                         \
-							mov  4(%%eax), %1;                      \
+							mov  4(%%eax), %1;                       \
 							pop %%eax;"                              \
 							:"=r"(fault_addr),"=r"(fault_code)       \
 						      );             
