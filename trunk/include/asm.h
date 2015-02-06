@@ -136,7 +136,7 @@
 							push %%eax;				 \
 							mov %%cr2,%%eax;		         \
 							mov  %%eax, %0;	                         \
-							mov  4(%%eax), %1;                       \
+							mov  4(%%ebp), %1;                       \
 							pop %%eax;"                              \
 							:"=r"(fault_addr),"=r"(fault_code)       \
 						      );             
