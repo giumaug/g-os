@@ -333,8 +333,7 @@ void page_fault_handler()
 
 	SAVE_PROCESSOR_REG
 
-	//waht cr2 if new interr?
-	asm ("push %%eax;mov %%cr2,%%eax;mov %%eax,%0;mov 4(%%ebp),%1;pop %%eax;":"=r"(fault_addr),"=r"(fault_code));             
+//	asm ("push %%eax;mov %%cr2,%%eax;mov %%eax,%0;mov 4(%%ebp),%1;pop %%eax;":"=r"(fault_addr),"=r"(fault_code));             
 
 	GET_FAULT_ADDRESS(fault_addr,fault_code);
 	CURRENT_PROCESS_CONTEXT(current_process_context);
@@ -343,12 +342,17 @@ void page_fault_handler()
 	GET_STACK_POINTER(ustack_pointer)
 	page_num=fault_addr / PAGE_SIZE;
 	page_offset=fault_addr % PAGE_SIZE;
-	aligned_fault_addr=fault_addr & PAGE_SIZE;
+	aligned_fault_addr=fault_addr & (~PAGE_SIZE);
 	parent_page_table=current_process_context->parent->page_dir;
 
-	if (fault_code==(PAGE_OUT_MEMORY || USER || PAGE_READ) || 
-	    fault_code==(PAGE_OUT_MEMORY || USER || PAGE_WRITE)|| 
-	    fault_code==(PAGE_IN_MEMORY || USER || PAGE_WRITE)) 
+	int a=(PAGE_OUT_MEMORY | USER  | PAGE_READ);
+	int b=(PAGE_OUT_MEMORY | USER  | PAGE_WRITE);
+	int c=(PAGE_IN_MEMORY  | USER  | PAGE_WRITE);
+	int d=USER;
+
+	if ((fault_code==(PAGE_OUT_MEMORY | USER | PAGE_READ)) || 
+	    (fault_code==(PAGE_OUT_MEMORY | USER | PAGE_WRITE))|| 
+	    (fault_code==(PAGE_IN_MEMORY  | USER | PAGE_WRITE))) 
 	{
 		if (CHECK_MEM_REG(fault_addr,current_process_context->process_mem_reg)
 		    || CHECK_MEM_REG(fault_addr,current_process_context->heap_mem_reg)
@@ -361,7 +365,7 @@ void page_fault_handler()
 				system.buddy_desc->count[BLOCK_INDEX(page_addr)]++;
 				elf_loader_read(current_process_context->elf_desc,fault_addr,page_addr);
 			}
-			else if (fault_code==(PAGE_IN_MEMORY || USER || PAGE_WRITE))
+			else if (fault_code==(PAGE_IN_MEMORY | USER | PAGE_WRITE))
 			{
 				pd_num=aligned_fault_addr>>22;
 				pt_num=(aligned_fault_addr & 0x3FFFFF)>>12;
