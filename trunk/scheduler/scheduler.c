@@ -458,11 +458,10 @@ u32 _exec(char* path,char* argv[])
 	static u32 i=0;
 	static u32 frame_size=0;
 	u32 process_size;
-	t_elf_desc* elf_desc;
 
-//	CLI  ----------non serve 
+//	CLI  ----------non serve
 	CURRENT_PROCESS_CONTEXT(current_process_context);
-	if (elf_loader_init(current_process_context->file_desc,path)==-1)
+	if (elf_loader_init(current_process_context->elf_desc,path)==-1)
 	{
 		return -1;
 	}
