@@ -59,6 +59,8 @@ u32 elf_loader_init(t_elf_desc* elf_desc,char* path)
 	Elf32_Shdr* elf_sct_header;
 	t_ext2* ext2;
 
+	void* xxx=elf_desc;
+
 	ext2=system.root_fs;
 	fd=_open(ext2,path,O_RDWR | O_APPEND);
 	if (fd==-1)

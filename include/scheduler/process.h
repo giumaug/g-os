@@ -50,7 +50,7 @@ struct t_process_context
         unsigned int pid; 
 	struct t_process_context* parent;
 	unsigned int tick;
-	struct s_console_desc *console_desc;
+	struct s_console_desc* console_desc;
 //	unsigned int phy_add_space;
 	//0 thread 1 process
 	u32 process_type;
