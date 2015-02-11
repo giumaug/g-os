@@ -330,6 +330,7 @@ int _fork(struct t_processor_reg processor_reg)
 	struct t_process_context* parent_process_context;
 	t_hashtable* child_file_desc;
 	char* kernel_stack_addr;
+	t_elf_desc* child_elf_desc;
 	
 	child_process_context=kmalloc(sizeof(struct t_process_context));
 	SAVE_IF_STATUS
@@ -344,10 +345,15 @@ int _fork(struct t_processor_reg processor_reg)
 
 	child_process_context->pid=system.process_info->next_pid++;
 	if (parent_process_context->process_type==USERSPACE_PROCESS)
-	{
-		child_file_desc=kmalloc(sizeof(t_elf_desc));
-		kmemcpy(child_file_desc,parent_process_context->file_desc,sizeof(t_elf_desc));
+	{	
+//		HASHTABLE FOR FILE DESCRIPTOR IS BAD STRUCTURE BETTER TO USE A DINAMYC ARRAY
+//		child_file_desc=kmalloc(sizeof(t_file_desc));	
+//		kmemcpy(child_file_desc,parent_process_context->file_desc,sizeof(t_elf_desc));
 
+		child_elf_desc=kmalloc(sizeof(t_elf_desc));
+		kmemcpy(child_elf_desc,parent_process_context->elf_desc,sizeof(t_elf_desc));
+
+		child_process_context->elf_desc=child_elf_desc;
 		child_process_context->process_mem_reg=create_mem_reg(parent_process_context->process_mem_reg->start_addr,
 								      parent_process_context->process_mem_reg->end_addr);
 
@@ -461,6 +467,16 @@ u32 _exec(char* path,char* argv[])
 
 //	CLI  ----------non serve
 	CURRENT_PROCESS_CONTEXT(current_process_context);
+<<<<<<< .mine
+	if (current_process_context->elf_desc==NULL)
+=======
+	if (elf_loader_init(current_process_context->elf_desc,path)==-1)
+>>>>>>> .r359
+	{
+		elf_desc=kmalloc(sizeof(t_elf_desc));
+		current_process_context->elf_desc=elf_desc;
+	}
+
 	if (elf_loader_init(current_process_context->elf_desc,path)==-1)
 	{
 		return -1;
