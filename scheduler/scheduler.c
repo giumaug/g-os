@@ -464,14 +464,11 @@ u32 _exec(char* path,char* argv[])
 	static u32 i=0;
 	static u32 frame_size=0;
 	u32 process_size;
+	t_elf_desc* elf_desc;
 
 //	CLI  ----------non serve
 	CURRENT_PROCESS_CONTEXT(current_process_context);
-<<<<<<< .mine
 	if (current_process_context->elf_desc==NULL)
-=======
-	if (elf_loader_init(current_process_context->elf_desc,path)==-1)
->>>>>>> .r359
 	{
 		elf_desc=kmalloc(sizeof(t_elf_desc));
 		current_process_context->elf_desc=elf_desc;

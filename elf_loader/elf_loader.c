@@ -110,7 +110,8 @@ u32 elf_loader_read(t_elf_desc* elf_desc,u32 fault_addr,u32 page_addr)
 	t_ext2* ext2;
 	
 	ext2=system.root_fs;
-	offset=(fault_addr & PAGE_SIZE) - PROC_VIRT_MEM_START_ADDR + elf_desc->file_offset;
+
+	offset=(fault_addr & ~(PAGE_SIZE-1)) - PROC_VIRT_MEM_START_ADDR + elf_desc->file_offset;
 	_seek(ext2,elf_desc->file_desc,offset,SEEK_SET);
 	_read(ext2,elf_desc->file_desc,page_addr,PAGE_SIZE);
 }
