@@ -364,6 +364,11 @@ void page_fault_handler()
 				map_vm_mem(current_process_context->page_dir,aligned_fault_addr,page_addr,PAGE_SIZE);
 				system.buddy_desc->count[BLOCK_INDEX(page_addr)]++;
 				elf_loader_read(current_process_context->elf_desc,fault_addr,page_addr);
+				
+				pd_num=aligned_fault_addr>>22;
+				pt_num=(aligned_fault_addr & 0x3FFFFF)>>12;
+				page_table=((unsigned int*) current_process_context->page_dir)[pd_num];
+				((unsigned int*) parent_page_table)[pt_num] |= 7;....
 			}
 			else if (fault_code==(PAGE_IN_MEMORY | USER | PAGE_WRITE))
 			{
@@ -395,45 +400,39 @@ void page_fault_handler()
 		}
 	}	
 	ENABLE_PREEMPTION
-	EXIT_INT_HANDLER(on_exit_action,processor_reg)
-
-
-	#define EXIT_INT_HANDLER(action,processor_reg)                                                                  		\
-                                                                                                                   		\
-	static struct t_process_context _current_process_context;                                                  		\
-	static struct t_process_context _old_process_context;                                                      		\
-	static struct t_process_context _new_process_context;	                                                   		\
-	static struct t_processor_reg _processor_reg;                                                              		\
-	static unsigned int _action2;                                                                              		\
-                                                                                                                   		\
-	CLI                                                                                                        		\
-	_action2=action;                                                                                           		\
-	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;             		\
-	_old_process_context=_current_process_context;                                                             		\
-	_processor_reg=processor_reg;                                                                              		\
-	if (_action2>0)                                                                                            		\
-	{                                                                                                          		\
-		schedule(&_current_process_context,&_processor_reg);                                               		\
-		_new_process_context=*(struct t_process_context*)system.process_info->current_process->val;         		\
-		_processor_reg=_new_process_context.processor_reg;                                                              \
-		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))                  		\
-		DO_STACK_FRAME(_processor_reg.esp-8);                                                              		\
-		if (_action2==2)                                                                                   		\
-		{                                                                                                  		\
-			DO_STACK_FRAME(_processor_reg.esp-8);                                                      		\
-			free_vm_process(&_old_process_context.page_dir);                                                 	\
-			buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_kernel_stack));             \
-			  													\
-		}                                                                                                  		\
-		RESTORE_PROCESSOR_REG                                                                              		\
-		EXIT_SYSCALL_HANDLER                                                                               		\
-	}                                                                                                          		\
-	else                                                                                                       		\
-	{                                                                                                            		\
-		RESTORE_PROCESSOR_REG                                                                              		\
-		RET_FROM_INT_HANDLER                                                                               		\
+//-	EXIT_INT_HANDLER(on_exit_action,processor_reg)
+                                                           		                                                                                                                 		\
+	static struct t_process_context _current_process_context;                                                  		
+	static struct t_process_context _old_process_context;                                                      		
+	static struct t_process_context _new_process_context;	                                                   		
+	static struct t_processor_reg _processor_reg;                                                              		
+	static unsigned int _action2;                                                                              		
+                                                                                                                   		
+	CLI                                                                                                        		
+	_action2=on_exit_action;                                                                                           		
+	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;             		
+	_old_process_context=_current_process_context;                                                             		
+	_processor_reg=processor_reg;                                                                              		
+	if (_action2>0)                                                                                            		
+	{                                                                                                          		
+		schedule(&_current_process_context,&_processor_reg);                                               		
+		_new_process_context=*(struct t_process_context*)system.process_info->current_process->val;         		
+		_processor_reg=_new_process_context.processor_reg;                                                              
+		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))                  		
+		DO_STACK_FRAME(_processor_reg.esp-8);                                                              		
+		if (_action2==2)                                                                                   		
+		{                                                                                                  		
+			DO_STACK_FRAME(_processor_reg.esp-8);                                                      	
+			free_vm_process(&_old_process_context.page_dir);                                                 	
+			buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_kernel_stack));             
+			  													
+		}                                                                                                  		
+		RESTORE_PROCESSOR_REG                                                                              		
+		EXIT_SYSCALL_HANDLER                                                                               		
+	}                                                                                                          		
+	else                                                                                                       		
+	{                                                                                                            		
+		RESTORE_PROCESSOR_REG                                                                              		
+		RET_FROM_INT_HANDLER                                                                               		
 	}
-
-
-
 }
