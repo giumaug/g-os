@@ -73,7 +73,7 @@
         				movl   $0x13,%eax;      /*cs*/      	   		\
 					push   %eax;                              		\
         				movl   $0x100000,%eax;  /*eip*/           		\
-					push   %eax;                              		\
+					push   %eax;                                            \
 					iret;");
 
 //#define	SWITCH_DS_TO_KERNEL_MODE asm("                                             \

@@ -160,12 +160,12 @@ void free_vm_process(void* page_dir)
 	unsigned int i,j;
 	unsigned int* page_table;
 
-	page_table=FROM_PHY_TO_VIRT(((unsigned int*)page_dir)[0]);
-	
-	for (i=256;i<1024;i++)
-	{
-		page_table[i]=0;
-	}
+//	page_table=FROM_PHY_TO_VIRT(((unsigned int*)page_dir)[0]);
+//	
+//	for (i=256;i<1024;i++)
+//	{
+//		page_table[i]=0;
+//	}
 
 	for (i=1;i<768;i++) 
 	{
@@ -367,14 +367,14 @@ void page_fault_handler()
 				
 				pd_num=aligned_fault_addr>>22;
 				pt_num=(aligned_fault_addr & 0x3FFFFF)>>12;
-				page_table=((unsigned int*) current_process_context->page_dir)[pd_num];
-				((unsigned int*) parent_page_table)[pt_num] |= 7;....
+				page_table=FROM_VIRT_TO_PHY(((unsigned int*) current_process_context->page_dir)[pd_num]);
+				((unsigned int*) page_table)[pt_num] | 3;
 			}
 			else if (fault_code==(PAGE_IN_MEMORY | USER | PAGE_WRITE))
 			{
 				pd_num=aligned_fault_addr>>22;
 				pt_num=(aligned_fault_addr & 0x3FFFFF)>>12;
-				page_table=((unsigned int*) current_process_context->page_dir)[pd_num];
+				page_table=FROM_VIRT_TO_PHY(((unsigned int*) current_process_context->page_dir)[pd_num]);
 				((unsigned int*) parent_page_table)[pt_num] |= 7;
 				if (system.buddy_desc->count[BLOCK_INDEX(aligned_fault_addr)]>1)
 				{
