@@ -459,6 +459,7 @@ u32 _exec(char* path,char* argv[])
 {
 	struct t_process_context* current_process_context;
 	static u32* stack_pointer;
+	char* page_addr;
 	static char** stack_data;
 	static u32 argc=0;
 	static u32 i=0;
@@ -484,15 +485,18 @@ u32 _exec(char* path,char* argv[])
 	current_process_context->assigned_sleep_time=0;
 	current_process_context->static_priority=0;
 
+	free_vm_process(current_process_context->page_dir);
+	init_vm_process(current_process_context);
+
 	if (current_process_context->process_type==KERNEL_THREAD)
 	{
 		current_process_context->process_mem_reg=create_mem_reg(PROC_VIRT_MEM_START_ADDR,PROC_VIRT_MEM_START_ADDR+process_size);
 		current_process_context->heap_mem_reg=create_mem_reg(HEAP_VIRT_MEM_START_ADDR,HEAP_VIRT_MEM_START_ADDR+HEAP_INIT_SIZE);
-		current_process_context->ustack_mem_reg=create_mem_reg(USER_STACK-USER_STACK_INIT_SIZE,USER_STACK);	
+		current_process_context->ustack_mem_reg=create_mem_reg(USER_STACK-USER_STACK_INIT_SIZE,USER_STACK);
+		page_addr=buddy_alloc_page(system.buddy_desc,USER_STACK_INIT_SIZE);
+		map_vm_mem(current_process_context->page_dir,(USER_STACK-USER_STACK_INIT_SIZE),FROM_VIRT_TO_PHY(page_addr),USER_STACK_INIT_SIZE);
 	}
 	current_process_context->process_type=USERSPACE_PROCESS;
-	free_vm_process(current_process_context->page_dir);
-	init_vm_process(current_process_context);
 
 	while(argv[i++]!=NULL)
 	{
@@ -502,7 +506,7 @@ u32 _exec(char* path,char* argv[])
 	frame_size=(argc+1)*4;
 	frame_size+=16;
 
-	stack_pointer=KERNEL_STACK-frame_size;
+	stack_pointer=USER_STACK-frame_size;
 	*(stack_pointer+0)=NULL;
 	*(stack_pointer+1)=argc;
 	*(stack_pointer+2)=(stack_pointer+4);
