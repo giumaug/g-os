@@ -52,6 +52,9 @@ cpu0-tlb.status
 stack-trace
 pregs
 
+phys_mem0.break 0xC1EFE00 20 -w
+logical-to-physical 0xbfffee00
+
 
 
 

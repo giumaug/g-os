@@ -48,6 +48,9 @@ void sem_up(t_sem_desc* sem_desc)
 {
 	t_llist_node* node;
 	struct t_process_context* new_process_context;
+	struct t_process_context* current_process;
+
+	CURRENT_PROCESS_CONTEXT(current_process);
 
 //	SPINLOCK_LOCK(sem_desc->spinlock);
 	SAVE_IF_STATUS	
