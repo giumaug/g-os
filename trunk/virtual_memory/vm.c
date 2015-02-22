@@ -345,10 +345,20 @@ void page_fault_handler()
 	aligned_fault_addr=fault_addr & (~PAGE_SIZE);
 	parent_page_table=current_process_context->parent->page_dir;
 
-	int a=(PAGE_OUT_MEMORY | USER  | PAGE_READ);
-	int b=(PAGE_OUT_MEMORY | USER  | PAGE_WRITE);
-	int c=(PAGE_IN_MEMORY  | USER  | PAGE_WRITE);
-	int d=USER;
+	unsigned int* a=((unsigned int*)current_process_context->page_dir)[767];
+	unsigned int d=FROM_PHY_TO_VIRT((unsigned int)a);
+	d=(d & (~(PAGE_SIZE-1)));
+	
+	int* b=*((unsigned int*)d+1021);
+	int* c=*((unsigned int*)d+1022);
+
+	---qui
+	//page_dir[767] 203362311
+        //page_table[1021]  203350023 
+        //page_table[1022]  203354119
+
+	d=FROM_PHY_TO_VIRT((unsigned int)b);
+	d=(d & (~(PAGE_SIZE-1)));
 
 	if ((fault_code==(PAGE_OUT_MEMORY | USER | PAGE_READ)) || 
 	    (fault_code==(PAGE_OUT_MEMORY | USER | PAGE_WRITE))|| 
