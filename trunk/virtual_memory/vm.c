@@ -82,7 +82,6 @@ void init_vm_process(struct t_process_context* process_context)
 void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_addr)
 {
 	unsigned int i,j;
-	u32 end_page;
 	unsigned int* child_page_dir;
 	unsigned int* child_page_table;
 	unsigned int* parent_page_table;
@@ -91,9 +90,8 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 	child_page_dir=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
 	map_vm_mem(child_page_dir,0,0,0x100000);
 	map_vm_mem(child_page_dir,(KERNEL_STACK-KERNEL_STACK_SIZE),kernel_stack_addr,KERNEL_STACK_SIZE);
-	end_page=1024;
 
-	if (process_type==USERSPACE_PROCESS)
+	if (process_type==USERSPACE_PROCESS) //TO FIX KENEL STACK DUPLICATION!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	{
 		parent_page_table=((unsigned int*)parent_page_dir)[0];
 		child_page_table=child_page_dir[0];
@@ -113,11 +111,6 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 				child_page_table=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
 				parent_page_table=((unsigned int*)parent_page_dir)[i];
 				
-				if (i==767)
-				{
-					end_page=1022;
-				}
-
 				for (j=0;j<1024;j++)
 				{
 					parent_page_table[j] |= 5;
@@ -193,7 +186,7 @@ void free_vm_process(void* page_dir)
 
 void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_addr,int mem_size)
 {
-	unsigned int *page_table;
+	unsigned int* page_table;
 	unsigned int pad;
 	unsigned int i,j;
 	unsigned int start,end;
@@ -349,10 +342,12 @@ void page_fault_handler()
 	unsigned int d=FROM_PHY_TO_VIRT((unsigned int)a);
 	d=(d & (~(PAGE_SIZE-1)));
 	
-	int* b=*((unsigned int*)d+1021);
-	int* c=*((unsigned int*)d+1022);
+	unsigned int xxx=(((unsigned int*)d)+1021);
+	int* b=*(((unsigned int*)d)+1021);
+	int* c=*(((unsigned int*)d)+1022);
 
-	---qui
+	//a=c1f1027
+	//b=0xc1ee007
 	//page_dir[767] 203362311
         //page_table[1021]  203350023 
         //page_table[1022]  203354119
