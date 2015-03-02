@@ -134,7 +134,7 @@ exit_handler:;
 	//----------
 	static unsigned int* a;
 	static unsigned int d;
-	static unsigned int xxx;
+	static unsigned int* xxx;
 	static int* b;
 	static int* c;	
 	//----------                                                                       
@@ -166,7 +166,7 @@ exit_handler:;
 		a=((unsigned int*) _new_process_context.page_dir)[767];
 		d=FROM_PHY_TO_VIRT((unsigned int)a);
 		d=(d & (~(PAGE_SIZE-1)));
-	
+              	
 		xxx=(((unsigned int*)d)+1021);
 		b=*(((unsigned int*)d)+1021);
 		c=*(((unsigned int*)d)+1022);	        
