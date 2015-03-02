@@ -352,6 +352,9 @@ void page_fault_handler()
         //page_table[1021]  203350023 
         //page_table[1022]  203354119
 
+	//0xc3b5007 b ko
+        //0xC1EE007 b ok
+
 	d=FROM_PHY_TO_VIRT((unsigned int)b);
 	d=(d & (~(PAGE_SIZE-1)));
 
