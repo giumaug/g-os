@@ -355,6 +355,10 @@ void page_fault_handler()
 	//0xc3b5007 b ko
         //0xC1EE007 b ok
 
+        //page_table su clone
+	//0xcc0f1000(page_table)
+        //3423539200+(1021*4)=CC0F1FF4
+
 	d=FROM_PHY_TO_VIRT((unsigned int)b);
 	d=(d & (~(PAGE_SIZE-1)));
 
