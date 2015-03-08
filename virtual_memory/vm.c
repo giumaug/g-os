@@ -91,7 +91,7 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 	map_vm_mem(child_page_dir,0,0,0x100000);
 	map_vm_mem(child_page_dir,(KERNEL_STACK-KERNEL_STACK_SIZE),kernel_stack_addr,KERNEL_STACK_SIZE);
 
-	if (process_type==USERSPACE_PROCESS) //TO FIX KENEL STACK DUPLICATION!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	if (process_type==USERSPACE_PROCESS)
 	{
 		parent_page_table=((unsigned int*)parent_page_dir)[0];
 		child_page_table=child_page_dir[0];
@@ -113,18 +113,24 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 				
 				for (j=0;j<1024;j++)
 				{
-					parent_page_table[j] |= 5;
-					child_page_table[j]=parent_page_table[j];
-					if (child_page_table[j]!=0)
+					if (i!=767 && j!=1021 && j!=1022) 
 					{
-						system.buddy_desc->count[BLOCK_INDEX(j)]++;
+						parent_page_table[j] |= 5;
+						child_page_table[j]=parent_page_table[j];
+						if (child_page_table[j]!=0)
+						{
+							system.buddy_desc->count[BLOCK_INDEX(j)]++;
+						}
 					}
 				}
 				child_page_dir[i]=FROM_VIRT_TO_PHY(((unsigned int) child_page_table)) | 5;
 			}
 			else
 			{
-				child_page_dir[i]=0;
+				if (i!=767)
+				{
+					child_page_dir[i]=0;
+				}
 			}
 		}
 	}
@@ -148,17 +154,28 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 //	buddy_free_page(system.buddy_desc,process_context->page_dir);
 //}
 
-void free_vm_process(void* page_dir)
+void free_vm_process(struct t_process_context* process_context)
+{
+	umap_vm_mem(process_context->page_dir,0,0x100000,0);
+	if (process_context->process_type==USERSPACE_PROCESS)
+	{
+		free_vm_process_user_space(process_context->page_dir);
+	}
+	umap_vm_mem(process_context->page_dir,KERNEL_STACK,KERNEL_STACK_SIZE,1);
+	buddy_free_page(system.buddy_desc,process_context->page_dir);
+}
+
+void free_vm_process_user_space(void* page_dir)
 {
 	unsigned int i,j;
 	unsigned int* page_table;
 
-//	page_table=FROM_PHY_TO_VIRT(((unsigned int*)page_dir)[0]);
-//	
-//	for (i=256;i<1024;i++)
-//	{
-//		page_table[i]=0;
-//	}
+	page_table=FROM_PHY_TO_VIRT(((unsigned int*)page_dir)[0]);
+	
+	for (i=256;i<1024;i++)
+	{
+		page_table[i]=0;
+	}
 
 	for (i=1;i<768;i++) 
 	{
@@ -168,18 +185,24 @@ void free_vm_process(void* page_dir)
 				
 			for (j=0;j<1024;j++)
 			{
-				if (page_table[j]!=0 && system.buddy_desc->count[BLOCK_INDEX(j)]==1)
+				if (i!=767 && j!=1021 && j!=1022) 
 				{
-					buddy_free_page(system.buddy_desc,page_table[j]);
-					system.buddy_desc->count[BLOCK_INDEX(j)]=0;
-				}
-				else if (page_table[j]!=0)
-				{
-					system.buddy_desc->count[BLOCK_INDEX(j)]--;
+					if (page_table[j]!=0 && system.buddy_desc->count[BLOCK_INDEX(j)]==1)
+					{
+						buddy_free_page(system.buddy_desc,page_table[j]);
+						system.buddy_desc->count[BLOCK_INDEX(j)]=0;
+					}
+					else if (page_table[j]!=0)
+					{
+						system.buddy_desc->count[BLOCK_INDEX(j)]--;
+					}
 				}	
 			}
-			buddy_free_page(system.buddy_desc,page_table);
-			((unsigned int*)page_dir)[i]=0;
+			if (i!=767)
+			{
+				buddy_free_page(system.buddy_desc,page_table);
+				((unsigned int*)page_dir)[i]=0;
+			}
 		}
 	}
 }

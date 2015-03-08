@@ -485,8 +485,9 @@ u32 _exec(char* path,char* argv[])
 	current_process_context->assigned_sleep_time=0;
 	current_process_context->static_priority=0;
 
-	free_vm_process(current_process_context->page_dir);
-	init_vm_process(current_process_context);
+	free_vm_process_user_space(current_process_context->page_dir);
+	//init_vm_process(current_process_context);
+	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 
 
 	if (current_process_context->process_type==KERNEL_THREAD)
 	{
