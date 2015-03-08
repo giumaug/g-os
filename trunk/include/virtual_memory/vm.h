@@ -34,10 +34,11 @@
 #define CHECK_MEM_REG(fault_addr,mem_reg) fault_addr>=mem_reg->start_addr && fault_addr<=mem_reg->end_addr 
 
 void init_vm_process(struct t_process_context* process_context);
-void free_vm_process(void* page_dir);
+void free_vm_process(struct t_process_context* process_context);
 void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_addr,int mem_size);
 void umap_vm_mem(void* page_dir,unsigned int virt_mem_addr,unsigned int mem_size,unsigned int flush);
 void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_addr);
+void free_vm_process_user_space(void* page_dir);
 
 #endif
 
