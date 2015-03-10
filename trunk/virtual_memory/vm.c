@@ -354,6 +354,8 @@ void page_fault_handler()
 	GET_FAULT_ADDRESS(fault_addr,fault_code);
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 
+	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir)))  
+
 	on_exit_action=0;
 	GET_STACK_POINTER(ustack_pointer)
 	page_num=fault_addr / PAGE_SIZE;
