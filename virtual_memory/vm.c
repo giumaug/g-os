@@ -218,7 +218,8 @@ void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_ad
 	unsigned int first_pd;
 	unsigned int first_pt;
 	unsigned int last_pt;
-	unsigned int tot_pd;
+//	unsigned int tot_pd;
+	unsigned int last_pd;
 	
 	phy_mem_addr-=4096;
 	page_count=mem_size/4096;
@@ -228,9 +229,9 @@ void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_ad
 	first_pd=vir_mem_addr>>22;
 	first_pt=(vir_mem_addr & 0x3FFFFF)>>12;
 	last_pt=((vir_mem_addr+mem_size-1) & 0x3FFFFF)>>12;
-	tot_pd=pd_count+first_pd;
+	last_pd=pd_count+first_pd;
 
-	for (i=first_pd;i<tot_pd;i++)
+	for (i=first_pd;i<last_pd;i++)
 	{
 		if (((int*)(page_dir))[i]==0)
 		{	
@@ -246,17 +247,17 @@ void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_ad
 			page_table=FROM_PHY_TO_VIRT(((unsigned int*)page_dir)[i]) & 0xFFFFF000;
 			
 		}
-		if (i==first_pd && tot_pd>1) 
+		if (i==first_pd && pd_count>1) 
 		{
 			start=first_pt;
 			end=1024;
 		}
-		else if (i==first_pd && tot_pd==1) 
+		else if (i==first_pd && pd_count==1) 
 		{
 			start=first_pt;
 			end=last_pt+1;
 		}
-		else if (i==tot_pd-1)
+		else if (i==last_pd-1)
 		{
 			start=0;
 			end=last_pt+1;
@@ -363,30 +364,6 @@ void page_fault_handler()
 	aligned_fault_addr=fault_addr & (~PAGE_SIZE);
 	parent_page_table=current_process_context->parent->page_dir;
 
-	unsigned int* a=((unsigned int*)current_process_context->page_dir)[767];
-	unsigned int d=FROM_PHY_TO_VIRT((unsigned int)a);
-	d=(d & (~(PAGE_SIZE-1)));
-	
-	unsigned int xxx=(((unsigned int*)d)+1021);
-	int* b=*(((unsigned int*)d)+1021);
-	int* c=*(((unsigned int*)d)+1022);
-
-	//a=c1f1027
-	//b=0xc1ee007
-	//page_dir[767] 203362311
-        //page_table[1021]  203350023 
-        //page_table[1022]  203354119
-
-	//0xc3b5007 b ko
-        //0xC1EE007 b ok
-
-        //page_table su clone
-	//0xcc0f1000(page_table)
-        //3423539200+(1021*4)=CC0F1FF4
-
-	d=FROM_PHY_TO_VIRT((unsigned int)b);
-	d=(d & (~(PAGE_SIZE-1)));
-
 	if ((fault_code==(PAGE_OUT_MEMORY | USER | PAGE_READ)) || 
 	    (fault_code==(PAGE_OUT_MEMORY | USER | PAGE_WRITE))|| 
 	    (fault_code==(PAGE_IN_MEMORY  | USER | PAGE_WRITE))) 
@@ -398,7 +375,7 @@ void page_fault_handler()
 			if ((fault_code & 0x1)==PAGE_OUT_MEMORY && CHECK_MEM_REG(fault_addr,current_process_context->process_mem_reg))
 			{
 				page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
-				map_vm_mem(current_process_context->page_dir,aligned_fault_addr,page_addr,PAGE_SIZE);
+				map_vm_mem(current_process_context->page_dir,aligned_fault_addr,FROM_VIRT_TO_PHY(page_addr),PAGE_SIZE);
 				system.buddy_desc->count[BLOCK_INDEX(page_addr)]++;
 				elf_loader_read(current_process_context->elf_desc,fault_addr,page_addr);
 				

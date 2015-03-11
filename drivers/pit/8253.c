@@ -130,14 +130,7 @@ exit_handler:;
 	static struct t_process_context _old_process_context;                                              
 	static struct t_process_context _new_process_context;	                                            
 	static struct t_processor_reg _processor_reg;                                                       
-	static unsigned int _action2; 
-	//----------
-	static unsigned int* a;
-	static unsigned int d;
-	static unsigned int* xxx;
-	static int* b;
-	static int* c;	
-	//----------                                                                       
+	static unsigned int _action2;                                                               
                                                                                                             
 	CLI                                                                        
 	_action2=is_schedule;                                                                                   
@@ -162,15 +155,7 @@ exit_handler:;
 //				buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_user_stack));
 //			}
 			buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_kernel_stack)); 	                         
-		}
-		a=((unsigned int*) _new_process_context.page_dir)[767];
-		d=FROM_PHY_TO_VIRT((unsigned int)a);
-		d=(d & (~(PAGE_SIZE-1)));
-              	
-		xxx=(((unsigned int*)d)+1021);
-		b=*(((unsigned int*)d)+1021);
-		c=*(((unsigned int*)d)+1022);	        
-
+		}      
 		RESTORE_PROCESSOR_REG                                                                       
 		EXIT_SYSCALL_HANDLER                                                                        
 	}                                                                                                   
