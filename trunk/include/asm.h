@@ -172,10 +172,16 @@
 		          asm("	orl %eax,(%esp);	         \
 				popfl;			         \
 				pop %eax;                        \
-			  ");	
+			  ");
+
+#define	FLUSH_ERROR_CODE asm("			\
+				.comm TMP,4;    \
+				mov  %eax,TMP; 	\
+				pop %eax;       \
+				mov TMP,%eax;	\
+			     ");	
  
 #define HALT asm("sti;hlt");
-
 #define SWITCH_PAGE_DIR(page_dir) asm("mov %0,%%eax;mov %%eax,%%cr3;"::"r"(page_dir):"%eax");
 #define SYSCALL(syscall_num,params) asm("mov %0,%%eax;mov %1,%%ecx;int $0x80"::"r"(syscall_num),"r"(params):"%eax","%ecx");
 #define SUSPEND asm("mov $0x65,%%eax;int $0x80":::"%eax","%ecx");
