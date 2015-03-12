@@ -441,12 +441,14 @@ void page_fault_handler()
 			buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_kernel_stack));             
 			  													
 		}                                                                                                  		
-		RESTORE_PROCESSOR_REG                                                                              		
+		RESTORE_PROCESSOR_REG
+		FLUSH_ERROR_CODE                                                                              		
 		EXIT_SYSCALL_HANDLER                                                                               		
 	}                                                                                                          		
 	else                                                                                                       		
 	{                                                                                                            		
-		RESTORE_PROCESSOR_REG                                                                              		
+		RESTORE_PROCESSOR_REG
+		FLUSH_ERROR_CODE                                                                              		
 		RET_FROM_INT_HANDLER                                                                               		
 	}
 }
