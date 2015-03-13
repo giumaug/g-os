@@ -349,12 +349,8 @@ void page_fault_handler()
 	void* parent_page_table;
 
 	SAVE_PROCESSOR_REG
-
-//	asm ("push %%eax;mov %%cr2,%%eax;mov %%eax,%0;mov 4(%%ebp),%1;pop %%eax;":"=r"(fault_addr),"=r"(fault_code));             
-
 	GET_FAULT_ADDRESS(fault_addr,fault_code);
 	CURRENT_PROCESS_CONTEXT(current_process_context);
-
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir)))  
 
 	on_exit_action=0;
@@ -413,7 +409,6 @@ void page_fault_handler()
 			on_exit_action=2;
 		}
 	}	
-	ENABLE_PREEMPTION
 //-	EXIT_INT_HANDLER(on_exit_action,processor_reg)
                                                            		                                                                                                                 		\
 	static struct t_process_context _current_process_context;                                                  		
@@ -441,14 +436,12 @@ void page_fault_handler()
 			buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_kernel_stack));             
 			  													
 		}                                                                                                  		
-		RESTORE_PROCESSOR_REG
-		FLUSH_ERROR_CODE                                                                              		
-		EXIT_SYSCALL_HANDLER                                                                               		
+		RESTORE_PROCESSOR_REG                                                                           		
+		EXIT_SYSCALL_HANDLER_FLUSH                                                                               		
 	}                                                                                                          		
 	else                                                                                                       		
 	{                                                                                                            		
 		RESTORE_PROCESSOR_REG
-		FLUSH_ERROR_CODE                                                                              		
-		RET_FROM_INT_HANDLER                                                                               		
+		RET_FROM_INT_HANDLER_FLUSH                                                                       		
 	}
 }
