@@ -174,12 +174,25 @@
 				pop %eax;                        \
 			  ");
 
-#define	FLUSH_ERROR_CODE asm("			\
-				.comm TMP,4;    \
-				mov  %eax,TMP; 	\
-				pop %eax;       \
-				mov TMP,%eax;	\
-			     ");	
+#define RET_FROM_INT_HANDLER_FLUSH asm("		\
+					mov %ebp,%esp;	\
+					pop %ebp;	\
+					.comm TMP,4;	\
+					mov %eax,TMP;	\
+					pop %eax;	\
+					mov TMP,%eax;	\
+					iret;		\
+					");
+
+#define EXIT_SYSCALL_HANDLER_FLUSH	asm("		\
+					pop %ebp;	\
+					pop %ebp;	\
+					.comm TMP,4;	\
+					mov %eax,TMP;	\
+					pop %eax;	\
+					mov TMP,%eax;	\
+					iret;		\
+					");
  
 #define HALT asm("sti;hlt");
 #define SWITCH_PAGE_DIR(page_dir) asm("mov %0,%%eax;mov %%eax,%%cr3;"::"r"(page_dir):"%eax");

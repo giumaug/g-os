@@ -190,9 +190,6 @@ void syscall_handler()
 	{
 		panic();
 	}
-	
-	
-	
 //	EXIT_INT_HANDLER(on_exit_action,processor_reg)
 
 	static struct t_process_context _current_process_context;                                          
