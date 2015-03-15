@@ -93,10 +93,10 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 
 	if (process_type==USERSPACE_PROCESS)
 	{
-		parent_page_table=((unsigned int*)parent_page_dir)[0];
-		child_page_table=child_page_dir[0];
+		parent_page_table=FROM_PHY_TO_VIRT(((unsigned int*)parent_page_dir)[0]);
+		child_page_table=FROM_PHY_TO_VIRT(child_page_dir[0]);
 		for (j=256;j<1024;j++)
-		{
+		{	
 			parent_page_table[j] |= 5;
 			child_page_table[j]=parent_page_table[j];
 			if (child_page_table[j]!=0)
@@ -109,7 +109,7 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 			if (((unsigned int*)parent_page_dir)[i]!=0)
 			{
 				child_page_table=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
-				parent_page_table=((unsigned int*)parent_page_dir)[i];
+				parent_page_table=FROM_PHY_TO_VIRT(((unsigned int*)parent_page_dir)[i]);
 				
 				for (j=0;j<1024;j++)
 				{
@@ -123,7 +123,7 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 						}
 					}
 				}
-				child_page_dir[i]=FROM_VIRT_TO_PHY(((unsigned int) child_page_table)) | 5;
+				child_page_dir[i]=FROM_VIRT_TO_PHY(((unsigned int) child_page_table)) | 7;
 			}
 			else
 			{
