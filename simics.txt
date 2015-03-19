@@ -56,6 +56,8 @@ phys_mem0.break C1F1FF4 4 -w
 logical-to-physical 0xCC0F1FF4
 phys_mem0.x 0xC1F1FF4
 
+psym "*((struct t_process_context*)system.process_info->current_process->val)"
+
 
 
 
