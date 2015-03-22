@@ -1,7 +1,8 @@
 #ifndef MALLOC_H                
 #define MALLOC_H
 
-#define MEM_POOL 16
+#define NULL 0
+#define POOL_NUM 16
 #define HEAP_VIRT_MEM_START_ADDR 0x40000000
 #define HEAP_INIT_SIZE 0x100000
 #define MEM_TO_POOL HEAP_INIT_SIZE / POOL_NUM

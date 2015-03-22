@@ -58,6 +58,16 @@ phys_mem0.x 0xC1F1FF4
 
 psym "*((struct t_process_context*)system.process_info->current_process->val)"
 
+sh_sym.load-symbols /home/peppe/Desktop/g-os/process/shell
+
+cpu0.set-context my-little-context
+my-little-context.symtable new_symtable
+contesto di default primary context quindi per passare da kernel a user space:primary_context.symtable shell
+
+
+
+
+
 
 
 
