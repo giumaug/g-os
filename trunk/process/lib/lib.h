@@ -6,6 +6,7 @@
 
 #define NULL 0
 #define SYSCALL(syscall_num,params) asm("mov %0,%%eax;mov %1,%%ecx;int $0x80"::"r"(syscall_num),"r"(params):"%eax","%ecx");
+#define GET_FROM_STACK(n,var) asm("mov %%ebp,%0;":"=r"(var));var+=n+2;
 
 #define O_CREAT 0b1
 #define O_APPEND 0b10

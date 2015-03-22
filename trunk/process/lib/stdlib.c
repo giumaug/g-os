@@ -61,13 +61,11 @@ void exit(int status)
 
 void* malloc(unsigned int mem_size) 
 {
-	//params[1]=_malloc(params[0]);
 	return _malloc(mem_size);
 }
 
 void free(void *address) 
 {	
-	_free(params[0]);
 	_free(address);
 	return;
 }

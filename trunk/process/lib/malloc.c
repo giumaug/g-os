@@ -1,7 +1,7 @@
 #include "malloc.h"
 
 static t_a_usr_space_desc a_fixed_size_desc[POOL_NUM];
-static malloc_initialized=FALSE;
+static malloc_initialized=0;
 
 static void a_usr_space_init(t_a_usr_space_desc *a_fixed_size_desc,unsigned int block_size,void* mem_addr,int size) 
 {
@@ -12,7 +12,7 @@ static void a_usr_space_init(t_a_usr_space_desc *a_fixed_size_desc,unsigned int 
 	t_us_block_desc *previous_block_desc;
 	t_us_block_desc *next_block_desc;
 
-	num_block=size/(sizeof(t_block_desc)+block_size); 
+	num_block=size/(sizeof(t_us_block_desc)+block_size); 
 	a_fixed_size_desc->first_block=mem_addr;
 	first_block_desc=a_fixed_size_desc->first_block;
 	a_fixed_size_desc->has_initialized =1;
@@ -23,7 +23,7 @@ static void a_usr_space_init(t_a_usr_space_desc *a_fixed_size_desc,unsigned int 
 	current_block_desc=a_fixed_size_desc->first_block;
 	for (index=1;index<num_block;index++)
         {	
-                next_block_desc=((char *)current_block_desc)+sizeof(t_block_desc)+a_fixed_size_desc->block_size;
+                next_block_desc=((char *)current_block_desc)+sizeof(t_us_block_desc)+a_fixed_size_desc->block_size;
 		current_block_desc->next_block=next_block_desc;
 		current_block_desc->previous_block=previous_block_desc;
                 previous_block_desc=current_block_desc;
@@ -59,9 +59,9 @@ static void a_usr_space_free(t_a_usr_space_desc *a_fixed_size_desc,void *address
         t_us_block_desc *next_block_desc;
 	t_us_block_desc *previous_block_desc;
 
-	block_desc=(char *)address-sizeof(t_block_desc);
+	block_desc=(char *)address-sizeof(t_us_block_desc);
 	a_fixed_size_desc->current_free_block++;
-	current_block_desc=address-sizeof(t_block_desc);
+	current_block_desc=address-sizeof(t_us_block_desc);
 	first_block_desc=a_fixed_size_desc->first_block;
 	a_fixed_size_desc->first_block=current_block_desc;
 	current_block_desc->next_block=first_block_desc;
@@ -79,7 +79,7 @@ static void init_malloc()
 	for (i=0;i<POOL_NUM;i++)
 	{
 		mem_addr+=MEM_TO_POOL;
-		a_fixed_size_init(&a_fixed_size_desc[i],pow2(2+i),mem_addr,MEM_TO_POOL);  
+		a_usr_space_init(&a_fixed_size_desc[i],pow2(2+i),mem_addr,MEM_TO_POOL);  
 	}
 }
 
@@ -88,21 +88,22 @@ void* _malloc(unsigned int mem_size)
 	int i;	
 	void *mem_add;
 
-	if ()
-
 	for (i=0;i<POOL_NUM;i++)
 	{
 		if (mem_size<=pow2(2+i)) break;
 	}
 	if (i!=POOL_NUM) 
 	{
+		printf("--d-\n");
 		if (!malloc_initialized)
 		{
+			printf("---\n");
 			init_malloc();
+			printf("+++ \n");
 		}
 		else
 		{
-			mem_add=a_fixed_size_alloc(&a_fixed_size_desc[i]);
+			mem_add=a_usr_space_alloc(&a_fixed_size_desc[i]);
 		}
 	}
 	else 
@@ -117,9 +118,9 @@ void _free(void *address)
 	unsigned int pool_index;
 
 	pool_index=0;
-	while ((pool_index+1)*MEM_TO_POOL<(address-VIRT_MEM_START_ADDR-POOL_START_ADDR))
+	while ((pool_index+1)*MEM_TO_POOL<(address-HEAP_VIRT_MEM_START_ADDR))
 	{
 		pool_index++;
 	}
-	a_fixed_size_free(&a_fixed_size_desc[pool_index],address);
+	a_usr_space_free(&a_fixed_size_desc[pool_index],address);
 }

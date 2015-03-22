@@ -69,8 +69,10 @@ int main (int _argc, char *_argv[])
 					}
 					i++;
 				}
-
+		
+				printf("---before \n");
 				argv=malloc(sizeof(char*)*argc+1);
+				printf("---after \n");
 				i=0;
 				for(k=0;k<=argc;k++)
 				{
