@@ -1,7 +1,7 @@
 #include "malloc.h"
 
 static t_a_usr_space_desc a_fixed_size_desc[POOL_NUM];
-static malloc_initialized=0;
+static malloc_initialized=128;
 
 static void a_usr_space_init(t_a_usr_space_desc *a_fixed_size_desc,unsigned int block_size,void* mem_addr,int size) 
 {
