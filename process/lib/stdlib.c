@@ -64,7 +64,7 @@ void* malloc(unsigned int mem_size)
 	return _malloc(mem_size);
 }
 
-void free(void *address) 
+void free(void *address)
 {	
 	_free(address);
 	return;
