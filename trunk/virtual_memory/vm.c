@@ -357,7 +357,7 @@ void page_fault_handler()
 	GET_STACK_POINTER(ustack_pointer)
 	page_num=fault_addr / PAGE_SIZE;
 	page_offset=fault_addr % PAGE_SIZE;
-	aligned_fault_addr=fault_addr & (~PAGE_SIZE);
+	aligned_fault_addr=fault_addr & (~(PAGE_SIZE-1));
 	parent_page_table=current_process_context->parent->page_dir;
 
 	if ((fault_code==(PAGE_OUT_MEMORY | USER | PAGE_READ)) || 
