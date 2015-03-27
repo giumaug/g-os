@@ -1,7 +1,10 @@
 #include "malloc.h"
 
 static t_a_usr_space_desc a_fixed_size_desc[POOL_NUM];
-static unsigned int malloc_initialized=0xdd;
+
+//Global static not initialized variable goes on .bss.It up to loader initialize it to zero.
+//Global static initialized variable goes on .data.
+static int malloc_initialized=-1;
 
 static void a_usr_space_init(t_a_usr_space_desc *a_fixed_size_desc,unsigned int block_size,void* mem_addr,int size) 
 {
@@ -95,7 +98,7 @@ void* _malloc(unsigned int mem_size)
 	if (i!=POOL_NUM) 
 	{
 		printf("--d-\n");
-		if (!malloc_initialized)
+		if (malloc_initialized==-1)
 		{
 			printf("---\n");
 			init_malloc();
