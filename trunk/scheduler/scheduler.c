@@ -487,7 +487,7 @@ u32 _exec(char* path,char* argv[])
 
 	free_vm_process_user_space(current_process_context->page_dir);
 	//init_vm_process(current_process_context);
-	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 
+	//SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 
 
 	if (current_process_context->process_type==KERNEL_THREAD)
 	{
@@ -495,7 +495,7 @@ u32 _exec(char* path,char* argv[])
 		current_process_context->heap_mem_reg=create_mem_reg(HEAP_VIRT_MEM_START_ADDR,HEAP_VIRT_MEM_START_ADDR+HEAP_INIT_SIZE);
 		current_process_context->ustack_mem_reg=create_mem_reg(USER_STACK-USER_STACK_INIT_SIZE,USER_STACK);
 		page_addr=buddy_alloc_page(system.buddy_desc,USER_STACK_INIT_SIZE);
-		map_vm_mem(current_process_context->page_dir,(USER_STACK-USER_STACK_INIT_SIZE),FROM_VIRT_TO_PHY(page_addr),USER_STACK_INIT_SIZE);
+		map_vm_mem(current_process_context->page_dir,(USER_STACK-USER_STACK_INIT_SIZE),FROM_VIRT_TO_PHY(page_addr),USER_STACK_INIT_SIZE,7);
 	}
 	current_process_context->process_type=USERSPACE_PROCESS;
 
