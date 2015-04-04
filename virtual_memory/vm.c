@@ -13,6 +13,7 @@ void* init_virtual_memory()
 	unsigned int* new_page_dir;
 	system.process_info->current_process=NULL;
 	static struct t_i_desc i_desc;
+	struct t_process_context* current_process_context;
 
 	i_desc.baseLow=((int)&page_fault_handler) & 0xFFFF;
 	i_desc.selector=0x8;
@@ -22,8 +23,10 @@ void* init_virtual_memory()
 	
 	new_page_dir=buddy_alloc_page(system.buddy_desc,0x1000);
 	for (i=0;i<1024;i++) new_page_dir[i]=0;
-	map_vm_mem(new_page_dir,0,0,0x100000);
-	map_vm_mem(new_page_dir,VIRT_MEM_START_ADDR,PHY_MEM_START_ADDR,(VIRT_MEM_END_ADDR-VIRT_MEM_START_ADDR));
+	map_vm_mem(new_page_dir,0,0,0x100000,3);
+	map_vm_mem(new_page_dir,VIRT_MEM_START_ADDR,PHY_MEM_START_ADDR,(VIRT_MEM_END_ADDR-VIRT_MEM_START_ADDR),3);
+	//CURRENT_PROCESS_CONTEXT(current_process_context);
+	//SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 
 	return new_page_dir;
 }
 
@@ -58,9 +61,10 @@ void init_vm_process(struct t_process_context* process_context)
 	u32 i;
 	unsigned int* page_dir;
 	unsigned int* page_table;
+	struct t_process_context* current_process_context;
 
 	page_dir=process_context->page_dir;
-	map_vm_mem(page_dir,0,0,0x100000);
+	map_vm_mem(page_dir,0,0,0x100000,3);
 	page_table=FROM_PHY_TO_VIRT(((unsigned int*)page_dir)[0]);
 	
 	for (i=256;i<1024;i++)
@@ -76,7 +80,9 @@ void init_vm_process(struct t_process_context* process_context)
 	{
 		page_dir[i]=((unsigned int*)system.master_page_dir)[i];
 	}
-	map_vm_mem(page_dir,(KERNEL_STACK-KERNEL_STACK_SIZE),process_context->phy_kernel_stack,KERNEL_STACK_SIZE);
+	map_vm_mem(page_dir,(KERNEL_STACK-KERNEL_STACK_SIZE),process_context->phy_kernel_stack,KERNEL_STACK_SIZE,3);
+	CURRENT_PROCESS_CONTEXT(current_process_context);
+	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 
 }
 
 void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_addr)
@@ -86,10 +92,11 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 	unsigned int* child_page_table;
 	unsigned int* parent_page_table;
 	char* page_addr;
+	struct t_process_context* current_process_context;
 
 	child_page_dir=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
-	map_vm_mem(child_page_dir,0,0,0x100000);
-	map_vm_mem(child_page_dir,(KERNEL_STACK-KERNEL_STACK_SIZE),kernel_stack_addr,KERNEL_STACK_SIZE);
+	map_vm_mem(child_page_dir,0,0,0x100000,3); 
+	map_vm_mem(child_page_dir,(KERNEL_STACK-KERNEL_STACK_SIZE),kernel_stack_addr,KERNEL_STACK_SIZE,3);
 
 	if (process_type==USERSPACE_PROCESS)
 	{
@@ -139,6 +146,8 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 	{
 		child_page_dir[i]=((unsigned int*) parent_page_dir)[i];
 	}
+	CURRENT_PROCESS_CONTEXT(current_process_context);
+	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 
 	return child_page_dir;
 }
 
@@ -156,6 +165,8 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 
 void free_vm_process(struct t_process_context* process_context)
 {
+	struct t_process_context* current_process_context;
+
 	umap_vm_mem(process_context->page_dir,0,0x100000,0);
 	if (process_context->process_type==USERSPACE_PROCESS)
 	{
@@ -163,12 +174,15 @@ void free_vm_process(struct t_process_context* process_context)
 	}
 	umap_vm_mem(process_context->page_dir,KERNEL_STACK,KERNEL_STACK_SIZE,1);
 	buddy_free_page(system.buddy_desc,process_context->page_dir);
+	CURRENT_PROCESS_CONTEXT(current_process_context);
+	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 
 }
 
 void free_vm_process_user_space(void* page_dir)
 {
 	unsigned int i,j;
 	unsigned int* page_table;
+	struct t_process_context* current_process_context;
 
 	page_table=FROM_PHY_TO_VIRT(((unsigned int*)page_dir)[0]);
 	
@@ -205,9 +219,11 @@ void free_vm_process_user_space(void* page_dir)
 			}
 		}
 	}
+	CURRENT_PROCESS_CONTEXT(current_process_context);
+	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 
 }
 
-void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_addr,int mem_size)
+void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_addr,int mem_size,u32 flags)
 {
 	unsigned int* page_table;
 	unsigned int pad;
@@ -240,6 +256,7 @@ void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_ad
 			{
 				page_table[j]=0;
 			}
+			//ENABLE TO ALL PAGE DIR TO MANAGE PAGE DIR WITH PAGE TABLE WITH DIFFERENT PRIVILEGES
 			((unsigned int*)page_dir)[i]=FROM_VIRT_TO_PHY((unsigned int)page_table) | 7;
 		}
 		else 
@@ -270,7 +287,8 @@ void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_ad
 		
 		for (j=start;j<end;j++)
 		{
-			phy_mem_addr=(phy_mem_addr+4096) | 7;
+			//phy_mem_addr=(phy_mem_addr+4096) | 7; 
+			phy_mem_addr=(phy_mem_addr+4096) | flags;
 			page_table[j]=phy_mem_addr;
 		}
 	}
@@ -351,7 +369,6 @@ void page_fault_handler()
 	SAVE_PROCESSOR_REG
 	GET_FAULT_ADDRESS(fault_addr,fault_code);
 	CURRENT_PROCESS_CONTEXT(current_process_context);
-	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir)))  
 
 	on_exit_action=0;
 	GET_STACK_POINTER(ustack_pointer)
@@ -359,6 +376,12 @@ void page_fault_handler()
 	page_offset=fault_addr % PAGE_SIZE;
 	aligned_fault_addr=fault_addr & (~(PAGE_SIZE-1));
 	parent_page_table=current_process_context->parent->page_dir;
+
+	u32 yyy,zzz;
+	unsigned int* page_table_xxx;
+	page_table_xxx=FROM_PHY_TO_VIRT(((unsigned int*)current_process_context->page_dir)[0]) & 0xFFFFF000;
+	zzz=FROM_PHY_TO_VIRT(((unsigned int*)current_process_context->page_dir)[0]);
+	yyy=page_table_xxx[256];
 
 	if ((fault_code==(PAGE_OUT_MEMORY | USER | PAGE_READ)) || 
 	    (fault_code==(PAGE_OUT_MEMORY | USER | PAGE_WRITE))|| 
@@ -371,14 +394,14 @@ void page_fault_handler()
 			if ((fault_code & 0x1)==PAGE_OUT_MEMORY && CHECK_MEM_REG(fault_addr,current_process_context->process_mem_reg))
 			{
 				page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
-				map_vm_mem(current_process_context->page_dir,aligned_fault_addr,FROM_VIRT_TO_PHY(page_addr),PAGE_SIZE);
+				map_vm_mem(current_process_context->page_dir,aligned_fault_addr,FROM_VIRT_TO_PHY(page_addr),PAGE_SIZE,7);
 				system.buddy_desc->count[BLOCK_INDEX(page_addr)]++;
+				yyy=page_table_xxx[256];	
 				elf_loader_read(current_process_context->elf_desc,fault_addr,page_addr);
-				
-				pd_num=aligned_fault_addr>>22;
-				pt_num=(aligned_fault_addr & 0x3FFFFF)>>12;
-				page_table=FROM_VIRT_TO_PHY(((unsigned int*) current_process_context->page_dir)[pd_num]);
-				((unsigned int*) page_table)[pt_num] | 3;
+			}
+			else if ((fault_code & 0x1)==PAGE_OUT_MEMORY && CHECK_MEM_REG(fault_addr,current_process_context->heap_mem_reg))
+			{
+				//xxx
 			}
 			else if (fault_code==(PAGE_IN_MEMORY | USER | PAGE_WRITE))
 			{
@@ -389,7 +412,7 @@ void page_fault_handler()
 				if (system.buddy_desc->count[BLOCK_INDEX(aligned_fault_addr)]>1)
 				{
 					page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
-					map_vm_mem(current_process_context->page_dir,aligned_fault_addr,page_addr,PAGE_SIZE);
+					map_vm_mem(current_process_context->page_dir,aligned_fault_addr,page_addr,PAGE_SIZE,7);
 					system.buddy_desc->count[BLOCK_INDEX(page_addr)]--;
 					kmemcpy(page_addr,aligned_fault_addr ,PAGE_SIZE);
 				}
@@ -399,7 +422,7 @@ void page_fault_handler()
 		{
 			current_process_context->ustack_mem_reg->start_addr=-PAGE_SIZE;
 			page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
-			map_vm_mem(current_process_context->page_dir,aligned_fault_addr,page_addr,PAGE_SIZE);
+			map_vm_mem(current_process_context->page_dir,aligned_fault_addr,page_addr,PAGE_SIZE,7);
 			system.buddy_desc->count[BLOCK_INDEX(page_addr)]++;
 		}
 		else
@@ -408,7 +431,8 @@ void page_fault_handler()
 			_exit(0);
 			on_exit_action=2;
 		}
-	}	
+	}
+	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 	
 //-	EXIT_INT_HANDLER(on_exit_action,processor_reg)
                                                            		                                                                                                                 		\
 	static struct t_process_context _current_process_context;                                                  		
