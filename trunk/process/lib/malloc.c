@@ -77,7 +77,7 @@ static void init_malloc()
 	unsigned int i;
 	void* mem_addr;
 
-	mem_addr=HEAP_VIRT_MEM_START_ADDR;
+	mem_addr=HEAP_VIRT_MEM_START_ADDR-MEM_TO_POOL;
 	//ALLOCATED POOL OF 4 8 16 32 64 128 256 512 1024 2048 4096 8192 16384 32768 65536 131072 BYTE
 	for (i=0;i<POOL_NUM;i++)
 	{

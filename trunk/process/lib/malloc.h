@@ -4,8 +4,8 @@
 #define NULL 0
 #define POOL_NUM 16
 #define HEAP_VIRT_MEM_START_ADDR 0x40000000
-#define HEAP_INIT_SIZE 0x100000
-#define MEM_TO_POOL HEAP_INIT_SIZE / POOL_NUM
+#define HEAP_INIT_SIZE 0x10000 * POOL_NUM
+#define MEM_TO_POOL 0x10000
 
 typedef struct s_us_page_desc
 {
