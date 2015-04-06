@@ -377,12 +377,6 @@ void page_fault_handler()
 	aligned_fault_addr=fault_addr & (~(PAGE_SIZE-1));
 	parent_page_table=current_process_context->parent->page_dir;
 
-	u32 yyy,zzz;
-	unsigned int* page_table_xxx;
-	page_table_xxx=FROM_PHY_TO_VIRT(((unsigned int*)current_process_context->page_dir)[0]) & 0xFFFFF000;
-	zzz=FROM_PHY_TO_VIRT(((unsigned int*)current_process_context->page_dir)[0]);
-	yyy=page_table_xxx[256];
-
 	if ((fault_code==(PAGE_OUT_MEMORY | USER | PAGE_READ)) || 
 	    (fault_code==(PAGE_OUT_MEMORY | USER | PAGE_WRITE))|| 
 	    (fault_code==(PAGE_IN_MEMORY  | USER | PAGE_WRITE))) 
@@ -396,12 +390,13 @@ void page_fault_handler()
 				page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
 				map_vm_mem(current_process_context->page_dir,aligned_fault_addr,FROM_VIRT_TO_PHY(page_addr),PAGE_SIZE,7);
 				system.buddy_desc->count[BLOCK_INDEX(page_addr)]++;
-				yyy=page_table_xxx[256];	
 				elf_loader_read(current_process_context->elf_desc,fault_addr,page_addr);
 			}
 			else if ((fault_code & 0x1)==PAGE_OUT_MEMORY && CHECK_MEM_REG(fault_addr,current_process_context->heap_mem_reg))
 			{
-				//xxx
+				page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
+				map_vm_mem(current_process_context->page_dir,aligned_fault_addr,FROM_VIRT_TO_PHY(page_addr),PAGE_SIZE,7);
+				system.buddy_desc->count[BLOCK_INDEX(page_addr)]++;
 			}
 			else if (fault_code==(PAGE_IN_MEMORY | USER | PAGE_WRITE))
 			{
