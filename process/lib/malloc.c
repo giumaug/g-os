@@ -97,17 +97,11 @@ void* _malloc(unsigned int mem_size)
 	}
 	if (i!=POOL_NUM) 
 	{
-		printf("--d-\n");
 		if (malloc_initialized==-1)
 		{
-			printf("---\n");
 			init_malloc();
-			printf("+++ \n");
 		}
-		else
-		{
-			mem_add=a_usr_space_alloc(&a_fixed_size_desc[i]);
-		}
+		mem_add=a_usr_space_alloc(&a_fixed_size_desc[i]);
 	}
 	else 
 	{
