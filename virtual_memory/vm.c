@@ -130,7 +130,10 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 						}
 					}
 				}
-				child_page_dir[i]=FROM_VIRT_TO_PHY(((unsigned int) child_page_table)) | 7;
+				if (i!=767)
+				{
+					child_page_dir[i]=FROM_VIRT_TO_PHY(((unsigned int) child_page_table)) | 7;
+				}
 			}
 			else
 			{
