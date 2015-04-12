@@ -350,6 +350,12 @@ int _fork(struct t_processor_reg processor_reg)
 //		child_file_desc=kmalloc(sizeof(t_file_desc));	
 //		kmemcpy(child_file_desc,parent_process_context->file_desc,sizeof(t_elf_desc));
 
+		unsigned int* xxx;
+		unsigned int* yyy;
+		unsigned int* zzz;
+		xxx=FROM_PHY_TO_VIRT(((unsigned int*) parent_process_context->page_dir)[0]) & 0xFFFFF000;
+		zzz=FROM_PHY_TO_VIRT(xxx[256]);
+
 		child_elf_desc=kmalloc(sizeof(t_elf_desc));
 		kmemcpy(child_elf_desc,parent_process_context->elf_desc,sizeof(t_elf_desc));
 

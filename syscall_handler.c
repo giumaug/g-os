@@ -212,6 +212,13 @@ void syscall_handler()
 		_processor_reg=_new_process_context.processor_reg;                          
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))                                                          
 		DO_STACK_FRAME(_processor_reg.esp-8); 
+
+		unsigned int* xxx;
+		unsigned int* yyy;
+		unsigned int* zzz;
+		xxx=FROM_PHY_TO_VIRT(((unsigned int*)_current_process_context.page_dir)[0]) & 0xFFFFF000;
+		zzz=FROM_PHY_TO_VIRT(xxx[256]);
+	
 		if (_action==2)                                                                              
 		{                                                                           
 			DO_STACK_FRAME(_processor_reg.esp-8);                                               
@@ -224,34 +231,7 @@ void syscall_handler()
 //			}
 			buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_kernel_stack)); 	                                  
 		}                                                                             
-		//RESTORE_PROCESSOR_REG
-		asm ("movl %0,%%esp;"::"r"(_processor_reg.esp)); 
-		asm ("movl %0,%%eax;"::"r"(_processor_reg.eax)); 
-		asm ("push %eax;");                              
-		asm ("movl %0,%%ebx;"::"r"(_processor_reg.ebx)); 
-		asm ("push %ebx;");                              
-		asm ("movl %0,%%ecx;"::"r"(_processor_reg.ecx)); 
-		asm ("push %ecx;");                              
-		asm ("movl %0,%%edx;"::"r"(_processor_reg.edx)); 
-		asm ("push %edx;");                              
-		asm ("movl %0,%%esi;"::"r"(_processor_reg.esi)); 
-		asm ("push %esi;");                              
-		asm ("movl %0,%%edi;"::"r"(_processor_reg.edi)); 
-		asm ("push %edi;");                              
-		asm ("movl %0,%%ds;"::"r"(_processor_reg.ds));   
-		asm ("push %ds;");                               
-		asm ("movl %0,%%es;"::"r"(_processor_reg.es));   
-		asm ("push %es;");                               
-		asm ("pop %es");                                 
-		asm ("pop %ds");                                 
-		asm ("pop %edi;");                               
-		asm ("pop %esi;");                               
-		asm ("pop %edx;");                               
-		asm ("pop %ecx;");                               
-		asm ("pop %ebx;");                               
-		asm ("pop %eax;");
-
-                                                                     
+		RESTORE_PROCESSOR_REG                                
 		EXIT_SYSCALL_HANDLER                                                        
 	}                                                                                                   
 	else                                                                                                
