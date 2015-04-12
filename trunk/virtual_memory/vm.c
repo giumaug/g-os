@@ -432,7 +432,7 @@ void page_fault_handler()
 	}
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 	
 //-	EXIT_INT_HANDLER(on_exit_action,processor_reg)
-                                                           		                                                                                                                 		\
+                                                
 	static struct t_process_context _current_process_context;                                                  		
 	static struct t_process_context _old_process_context;                                                      		
 	static struct t_process_context _new_process_context;	                                                   		
@@ -443,7 +443,14 @@ void page_fault_handler()
 	_action2=on_exit_action;                                                                                           		
 	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;             		
 	_old_process_context=_current_process_context;                                                             		
-	_processor_reg=processor_reg;                                                                              		
+	_processor_reg=processor_reg;
+
+	unsigned int* xxx;
+	unsigned int* yyy;
+	unsigned int* zzz;
+	xxx=FROM_PHY_TO_VIRT(((unsigned int*)_current_process_context.page_dir)[0]) & 0xFFFFF000;
+	zzz=FROM_PHY_TO_VIRT(xxx[256]);
+                                                       		
 	if (_action2>0)                                                                                            		
 	{                                                                                                          		
 		schedule(&_current_process_context,&_processor_reg);                                               		
