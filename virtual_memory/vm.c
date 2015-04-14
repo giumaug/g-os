@@ -373,6 +373,12 @@ void page_fault_handler()
 	GET_FAULT_ADDRESS(fault_addr,fault_code);
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 
+	unsigned int* xxx;
+	unsigned int* yyy;
+	unsigned int* zzz;
+	xxx=FROM_PHY_TO_VIRT(((unsigned int*) current_process_context->page_dir)[0]) & 0xFFFFF000;
+	//zzz=FROM_PHY_TO_VIRT(xxx[256]);
+
 	on_exit_action=0;
 	GET_STACK_POINTER(ustack_pointer)
 	page_num=fault_addr / PAGE_SIZE;
@@ -445,11 +451,8 @@ void page_fault_handler()
 	_old_process_context=_current_process_context;                                                             		
 	_processor_reg=processor_reg;
 
-	unsigned int* xxx;
-	unsigned int* yyy;
-	unsigned int* zzz;
-	xxx=FROM_PHY_TO_VIRT(((unsigned int*)_current_process_context.page_dir)[0]) & 0xFFFFF000;
-	zzz=FROM_PHY_TO_VIRT(xxx[256]);
+	//xxx=FROM_PHY_TO_VIRT(((unsigned int*)_current_process_context.page_dir)[0]) & 0xFFFFF000;
+	//zzz=FROM_PHY_TO_VIRT(xxx[256]);
                                                        		
 	if (_action2>0)                                                                                            		
 	{                                                                                                          		
