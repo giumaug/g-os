@@ -216,7 +216,7 @@ void syscall_handler()
 		unsigned int* xxx;
 		unsigned int* yyy;
 		unsigned int* zzz;
-		xxx=FROM_PHY_TO_VIRT(((unsigned int*)_current_process_context.page_dir)[0]) & 0xFFFFF000;
+		xxx=FROM_PHY_TO_VIRT(((unsigned int*)_new_process_context.page_dir)[0]) & 0xFFFFF000;
 		zzz=FROM_PHY_TO_VIRT(xxx[256]);
 	
 		if (_action==2)                                                                              
