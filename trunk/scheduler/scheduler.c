@@ -350,12 +350,6 @@ int _fork(struct t_processor_reg processor_reg)
 //		child_file_desc=kmalloc(sizeof(t_file_desc));	
 //		kmemcpy(child_file_desc,parent_process_context->file_desc,sizeof(t_elf_desc));
 
-		unsigned int* xxx;
-		unsigned int* yyy;
-		unsigned int* zzz;
-		xxx=FROM_PHY_TO_VIRT(((unsigned int*) parent_process_context->page_dir)[0]) & 0xFFFFF000;
-		zzz=FROM_PHY_TO_VIRT(xxx[256]);
-
 		child_elf_desc=kmalloc(sizeof(t_elf_desc));
 		kmemcpy(child_elf_desc,parent_process_context->elf_desc,sizeof(t_elf_desc));
 
@@ -374,6 +368,12 @@ int _fork(struct t_processor_reg processor_reg)
 	child_process_context->page_dir=clone_vm_process(parent_process_context->page_dir,
 							 parent_process_context->process_type,
 							 FROM_VIRT_TO_PHY(kernel_stack_addr));
+		unsigned int* xxx;
+		unsigned int* yyy;
+		unsigned int* zzz;
+		xxx=FROM_PHY_TO_VIRT(((unsigned int*) parent_process_context->page_dir)[0]) & 0xFFFFF000;
+		zzz=FROM_PHY_TO_VIRT(xxx[256]);
+
 	RESTORE_IF_STATUS
 	return child_process_context->pid;
 }

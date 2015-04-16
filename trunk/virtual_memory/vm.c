@@ -451,8 +451,11 @@ void page_fault_handler()
 	_old_process_context=_current_process_context;                                                             		
 	_processor_reg=processor_reg;
 
-	//xxx=FROM_PHY_TO_VIRT(((unsigned int*)_current_process_context.page_dir)[0]) & 0xFFFFF000;
-	//zzz=FROM_PHY_TO_VIRT(xxx[256]);
+	if (current_process_context->pid==2)
+	{
+		xxx=FROM_PHY_TO_VIRT(((unsigned int*)_current_process_context.page_dir)[0]) & 0xFFFFF000;
+		zzz=FROM_PHY_TO_VIRT(xxx[256]);
+	}
                                                        		
 	if (_action2>0)                                                                                            		
 	{                                                                                                          		
