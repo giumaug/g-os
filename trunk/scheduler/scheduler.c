@@ -371,7 +371,7 @@ int _fork(struct t_processor_reg processor_reg)
 		unsigned int* xxx;
 		unsigned int* yyy;
 		unsigned int* zzz;
-		xxx=FROM_PHY_TO_VIRT(((unsigned int*) parent_process_context->page_dir)[0]) & 0xFFFFF000;
+		xxx=FROM_PHY_TO_VIRT(((unsigned int*) child_process_context->page_dir)[0]) & 0xFFFFF000;
 		zzz=FROM_PHY_TO_VIRT(xxx[256]);
 
 	RESTORE_IF_STATUS
