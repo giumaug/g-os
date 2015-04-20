@@ -108,7 +108,7 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 	if (process_type==USERSPACE_PROCESS)
 	{
 		parent_page_table=FROM_PHY_TO_VIRT(((unsigned int*)parent_page_dir)[0]) & 0xFFFFF000;
-		child_page_table=FROM_PHY_TO_VIRT(child_page_dir[0]);
+		child_page_table=FROM_PHY_TO_VIRT(child_page_dir[0]) & 0xFFFFF000;
 		for (j=256;j<1024;j++)
 		{	
 			parent_page_table[j] |= 5;
