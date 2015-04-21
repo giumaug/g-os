@@ -98,7 +98,7 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 	char* page_addr;
 	struct t_process_context* current_process_context;
 
-	xxx=FROM_PHY_TO_VIRT(((unsigned int*) parent_page_dir)[0]) & 0xFFFFF000;
+	xxx=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) parent_page_dir)[0]));
 	zzz=FROM_PHY_TO_VIRT(xxx[256]);
 
 	child_page_dir=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
@@ -107,8 +107,8 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 
 	if (process_type==USERSPACE_PROCESS)
 	{
-		parent_page_table=FROM_PHY_TO_VIRT(((unsigned int*)parent_page_dir)[0]) & 0xFFFFF000;
-		child_page_table=FROM_PHY_TO_VIRT(child_page_dir[0]) & 0xFFFFF000;
+		parent_page_table=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*)parent_page_dir)[0]));
+		child_page_table=ALIGN_4K(FROM_PHY_TO_VIRT(child_page_dir[0]));
 		for (j=256;j<1024;j++)
 		{	
 			parent_page_table[j] |= 5;
@@ -118,10 +118,10 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 				system.buddy_desc->count[BLOCK_INDEX(j)]++;
 			}
 		}
-		xxx=FROM_PHY_TO_VIRT(((unsigned int*) child_page_dir)[0]) & 0xFFFFF000;
+		xxx=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) child_page_dir)[0]));
 		zzz=FROM_PHY_TO_VIRT(xxx[256]);
 
-		for (i=1;i<768;i++) 
+		for (i=1;i<768;i++) ---check align
 		{
 			if (((unsigned int*)parent_page_dir)[i]!=0)
 			{
@@ -153,7 +153,7 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 				}
 			}
 		}
-		xxx=FROM_PHY_TO_VIRT(((unsigned int*) child_page_dir)[0]) & 0xFFFFF000;
+		xxx=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) child_page_dir)[0]));
 		zzz=FROM_PHY_TO_VIRT(xxx[256]);
 	}
 
@@ -210,7 +210,7 @@ void free_vm_process_user_space(void* page_dir)
 	{
 		if (((unsigned int*)page_dir)[i]!=0)
 		{
-			page_table=FROM_PHY_TO_VIRT(((unsigned int*)page_dir)[i]) & 0xFFFFF000;
+			page_table=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*)page_dir)[i]));
 				
 			for (j=0;j<1024;j++)
 			{
@@ -276,7 +276,7 @@ void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_ad
 		}
 		else 
 		{
-			page_table=FROM_PHY_TO_VIRT(((unsigned int*)page_dir)[i]) & 0xFFFFF000;
+			page_table=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*)page_dir)[i]));
 			
 		}
 		if (i==first_pd && pd_count>1) 
@@ -332,7 +332,7 @@ void umap_vm_mem(void* page_dir,unsigned int virt_mem_addr,unsigned int mem_size
 
 	for (i=first_pd;i<tot_pd;i++)
 	{	
-		page_table=FROM_PHY_TO_VIRT(((unsigned int*)page_dir)[i]) & 0xFFFFF000;   
+		page_table=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*)page_dir)[i]));   
 
 		if (i==first_pd && tot_pd>1) 
 		{
@@ -388,7 +388,7 @@ void page_fault_handler()
 	unsigned int* xxx;
 	unsigned int* yyy;
 	unsigned int* zzz;
-	xxx=FROM_PHY_TO_VIRT(((unsigned int*) current_process_context->page_dir)[0]) & 0xFFFFF000;
+	xxx=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) current_process_context->page_dir)[0]));
 	//zzz=FROM_PHY_TO_VIRT(xxx[256]);
 
 	on_exit_action=0;
@@ -465,7 +465,7 @@ void page_fault_handler()
 
 	if (current_process_context->pid==2)
 	{
-		xxx=FROM_PHY_TO_VIRT(((unsigned int*)_current_process_context.page_dir)[0]) & 0xFFFFF000;
+		xxx=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*)_current_process_context.page_dir)[0]));
 		zzz=FROM_PHY_TO_VIRT(xxx[256]);
 	}
                                                        		
