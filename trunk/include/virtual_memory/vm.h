@@ -32,6 +32,7 @@
 //#define USER_STACK 0xBFFFF000 //3g-4k security hole 
 
 #define CHECK_MEM_REG(fault_addr,mem_reg) fault_addr>=mem_reg->start_addr && fault_addr<=mem_reg->end_addr 
+#define ALIGN_4K(address) (address & 0xFFFFF000)
 
 void init_vm_process(struct t_process_context* process_context);
 void free_vm_process(struct t_process_context* process_context);
