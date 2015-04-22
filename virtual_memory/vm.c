@@ -121,12 +121,12 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 		xxx=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) child_page_dir)[0]));
 		zzz=FROM_PHY_TO_VIRT(xxx[256]);
 
-		for (i=1;i<768;i++) ---check align
+		for (i=1;i<768;i++)
 		{
 			if (((unsigned int*)parent_page_dir)[i]!=0)
 			{
 				child_page_table=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
-				parent_page_table=FROM_PHY_TO_VIRT(((unsigned int*)parent_page_dir)[i]);
+				parent_page_table=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*)parent_page_dir)[i]));
 				
 				for (j=0;j<1024;j++)
 				{
