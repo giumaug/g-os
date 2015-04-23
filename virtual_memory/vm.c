@@ -90,6 +90,7 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 	unsigned int* xxx;
 	unsigned int* yyy;
 	unsigned int* zzz;
+	unsigned int _break=0;
 
 	unsigned int i,j;
 	unsigned int* child_page_dir;
@@ -123,14 +124,30 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 
 		for (i=1;i<768;i++)
 		{
-			if (((unsigned int*)parent_page_dir)[i]!=0)
+			if (i==767)
 			{
-				child_page_table=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
+				_break=1;
+			}
+			if (ALIGN_4K(((unsigned int*)parent_page_dir)[i])!=0)
+			{
+				if (i!=767)
+				{				
+					child_page_table=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
+				}
+				else
+				{
+					child_page_table=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) child_page_dir)[767]));
+				}
 				parent_page_table=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*)parent_page_dir)[i]));
 				
 				for (j=0;j<1024;j++)
 				{
-					if (i!=767 && j!=1021 && j!=1022) 
+					if (i==767 && j==1019)
+					{
+						_break=1;
+					}
+					if (i!=767 || (i==767 && j!=1021 && j!=1022))
+					//if (i!=767 && j!=1021 && j!=1022) !!!!!!!qui
 					{
 						parent_page_table[j] |= 5;
 						child_page_table[j]=parent_page_table[j];
@@ -153,8 +170,8 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 				}
 			}
 		}
-		xxx=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) child_page_dir)[0]));
-		zzz=FROM_PHY_TO_VIRT(xxx[256]);
+		xxx=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) child_page_dir)[767]));
+		zzz=FROM_PHY_TO_VIRT(xxx[1019]);
 	}
 
 	for (i=768;i<1024;i++) 
