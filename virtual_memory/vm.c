@@ -147,7 +147,6 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 						_break=1;
 					}
 					if (i!=767 || (i==767 && j!=1021 && j!=1022))
-					//if (i!=767 && j!=1021 && j!=1022) !!!!!!!qui
 					{
 						parent_page_table[j] |= 5;
 						child_page_table[j]=parent_page_table[j];

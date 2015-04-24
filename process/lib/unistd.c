@@ -14,10 +14,10 @@ int fork()
 {
 	unsigned int params[2];
 	unsigned int ret;
-	params[0]=0;
+	params[0]=0;//ret val for child
 	SYSCALL(1,params);
-	ret=params[1];//ret val for parent
-	params[1]=0;// ret val for child
+	ret=params[0];//ret val for parent
+	//params[1]=0;// ret val for child
 	return ret;
 }
 
