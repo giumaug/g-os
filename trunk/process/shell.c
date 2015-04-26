@@ -28,7 +28,7 @@ int main (int _argc, char *_argv[])
 		argc=0;
 		printf("=>");
 		scanf("%s",&cmd);
-		printf(cmd);
+		//printf(cmd);
 
 		if (cmd[0]!='/' && !(cmd[0]=='.' && cmd[1]=='/'))
 		{
