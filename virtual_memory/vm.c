@@ -112,6 +112,7 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 		child_page_table=ALIGN_4K(FROM_PHY_TO_VIRT(child_page_dir[0]));
 		for (j=256;j<1024;j++)
 		{	
+			//--------------------qui!!!!!!!!!!!!!!!1
 			parent_page_table[j] &= 0xFFFFFFFD;
 			child_page_table[j]=parent_page_table[j];
 			if (child_page_table[j]!=0)
@@ -414,7 +415,7 @@ void page_fault_handler()
 	aligned_fault_addr=fault_addr & (~(PAGE_SIZE-1));
 	parent_page_table=current_process_context->parent->page_dir;
 
-	if (aligned_fault_addr<0x40000000)
+	if (aligned_fault_addr>0x50000000)
 	{
 		xxx=0;
 	}
@@ -444,8 +445,8 @@ void page_fault_handler()
 			{
 				pd_num=aligned_fault_addr>>22;
 				pt_num=(aligned_fault_addr & 0x3FFFFF)>>12;
-				page_table=FROM_VIRT_TO_PHY(((unsigned int*) current_process_context->page_dir)[pd_num]);---qui ??????
-				((unsigned int*) parent_page_table)[pt_num] |= 7;
+				page_table=FROM_PHY_TO_VIRT(((unsigned int*) current_process_context->page_dir)[pd_num]);
+				((unsigned int*) page_table)[pt_num] |= 7;
 				if (system.buddy_desc->count[BLOCK_INDEX(aligned_fault_addr)]>1)
 				{
 					page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
