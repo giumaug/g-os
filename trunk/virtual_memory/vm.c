@@ -117,7 +117,7 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 			child_page_table[j]=parent_page_table[j];
 			if (child_page_table[j]!=0)
 			{
-				system.buddy_desc->count[BLOCK_INDEX(j)]++;
+				system.buddy_desc->count[BLOCK_INDEX(ALIGN_4K(parent_page_table[j]))]++;
 			}
 		}
 		xxx=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) child_page_dir)[0]));
@@ -153,7 +153,7 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 						child_page_table[j]=parent_page_table[j];
 						if (child_page_table[j]!=0)
 						{
-							system.buddy_desc->count[BLOCK_INDEX(j)]++;
+							system.buddy_desc->count[BLOCK_INDEX(ALIGN_4K(parent_page_table[j]))]++;
 						}
 					}
 				}
@@ -236,11 +236,11 @@ void free_vm_process_user_space(void* page_dir)
 					if (page_table[j]!=0 && system.buddy_desc->count[BLOCK_INDEX(j)]==1)
 					{
 						buddy_free_page(system.buddy_desc,page_table[j]);
-						system.buddy_desc->count[BLOCK_INDEX(j)]=0;
+						system.buddy_desc->count[BLOCK_INDEX(ALIGN_4K(page_table[j]))]=0;
 					}
 					else if (page_table[j]!=0)
 					{
-						system.buddy_desc->count[BLOCK_INDEX(j)]--;
+						system.buddy_desc->count[BLOCK_INDEX(ALIGN_4K(page_table[j]))]--;
 					}
 				}	
 			}
@@ -415,7 +415,7 @@ void page_fault_handler()
 	aligned_fault_addr=fault_addr & (~(PAGE_SIZE-1));
 	parent_page_table=current_process_context->parent->page_dir;
 
-	if (aligned_fault_addr>0x50000000)
+	if (aligned_fault_addr==0xBFFFB000)
 	{
 		xxx=0;
 	}
@@ -447,7 +447,10 @@ void page_fault_handler()
 				pt_num=(aligned_fault_addr & 0x3FFFFF)>>12;
 				page_table=FROM_PHY_TO_VIRT(((unsigned int*) current_process_context->page_dir)[pd_num]);
 				((unsigned int*) page_table)[pt_num] |= 7;
-				if (system.buddy_desc->count[BLOCK_INDEX(aligned_fault_addr)]>1)
+                                
+				int fff=system.buddy_desc->count[BLOCK_INDEX(FROM_VIRT_TO_PHY(aligned_fault_addr))];
+
+				if (system.buddy_desc->count[BLOCK_INDEX(FROM_VIRT_TO_PHY(aligned_fault_addr))]>1)
 				{
 					page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
 					map_vm_mem(current_process_context->page_dir,aligned_fault_addr,page_addr,PAGE_SIZE,7);
