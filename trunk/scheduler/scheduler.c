@@ -368,12 +368,6 @@ int _fork(struct t_processor_reg processor_reg)
 	child_process_context->page_dir=clone_vm_process(parent_process_context->page_dir,
 							 parent_process_context->process_type,
 							 FROM_VIRT_TO_PHY(kernel_stack_addr));
-		unsigned int* xxx;
-		unsigned int* yyy;
-		unsigned int* zzz;
-		xxx=FROM_PHY_TO_VIRT(((unsigned int*) child_process_context->page_dir)[0]) & 0xFFFFF000;
-		zzz=FROM_PHY_TO_VIRT(xxx[256]);
-
 	RESTORE_IF_STATUS
 	return child_process_context->pid;
 }
@@ -501,7 +495,8 @@ u32 _exec(char* path,char* argv[])
 		current_process_context->heap_mem_reg=create_mem_reg(HEAP_VIRT_MEM_START_ADDR,HEAP_VIRT_MEM_START_ADDR+HEAP_INIT_SIZE);
 		current_process_context->ustack_mem_reg=create_mem_reg(USER_STACK-USER_STACK_INIT_SIZE,USER_STACK);
 		page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
-		map_vm_mem(current_process_context->page_dir,PAGE_SIZE,FROM_VIRT_TO_PHY(page_addr),USER_STACK_INIT_SIZE,7);---qui|!!!!!!errore
+		map_vm_mem(current_process_context->page_dir,(USER_STACK-PAGE_SIZE),FROM_VIRT_TO_PHY(page_addr),PAGE_SIZE,7);
+		system.buddy_desc->count[BLOCK_INDEX(FROM_VIRT_TO_PHY((unsigned int)page_addr))]++;
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 
 	}
 	current_process_context->process_type=USERSPACE_PROCESS;
