@@ -87,20 +87,12 @@ void init_vm_process(struct t_process_context* process_context)
 
 void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_addr)
 {
-	unsigned int* xxx;
-	unsigned int* yyy;
-	unsigned int* zzz;
-	unsigned int _break=0;
-
 	unsigned int i,j;
 	unsigned int* child_page_dir;
 	unsigned int* child_page_table;
 	unsigned int* parent_page_table;
 	char* page_addr;
 	struct t_process_context* current_process_context;
-
-	xxx=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) parent_page_dir)[0]));
-	zzz=FROM_PHY_TO_VIRT(xxx[256]);
 
 	child_page_dir=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
 	map_vm_mem(child_page_dir,0,0,0x100000,3); 
@@ -112,7 +104,6 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 		child_page_table=ALIGN_4K(FROM_PHY_TO_VIRT(child_page_dir[0]));
 		for (j=256;j<1024;j++)
 		{	
-			//--------------------qui!!!!!!!!!!!!!!!1
 			parent_page_table[j] &= 0xFFFFFFFD;
 			child_page_table[j]=parent_page_table[j];
 			if (child_page_table[j]!=0)
@@ -120,15 +111,9 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 				system.buddy_desc->count[BLOCK_INDEX(ALIGN_4K(parent_page_table[j]))]++;
 			}
 		}
-		xxx=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) child_page_dir)[0]));
-		zzz=FROM_PHY_TO_VIRT(xxx[256]);
 
 		for (i=1;i<768;i++)
 		{
-			if (i==767)
-			{
-				_break=1;
-			}
 			if (ALIGN_4K(((unsigned int*)parent_page_dir)[i])!=0)
 			{
 				if (i!=767)
@@ -141,6 +126,7 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 				}
 				parent_page_table=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*)parent_page_dir)[i]));
 				
+				u32 _break=0;
 				for (j=0;j<1024;j++)
 				{
 					if (i==767 && j==1019)
@@ -170,8 +156,6 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 				}
 			}
 		}
-		xxx=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) child_page_dir)[767]));
-		zzz=FROM_PHY_TO_VIRT(xxx[1019]);
 	}
 
 	for (i=768;i<1024;i++) 
@@ -233,7 +217,7 @@ void free_vm_process_user_space(void* page_dir)
 			{
 				if (i!=767 && j!=1021 && j!=1022) 
 				{
-					if (page_table[j]!=0 && system.buddy_desc->count[BLOCK_INDEX(j)]==1)
+					if (page_table[j]!=0 && system.buddy_desc->count[BLOCK_INDEX(ALIGN_4K(page_table[j]))]==1)
 					{
 						buddy_free_page(system.buddy_desc,page_table[j]);
 						system.buddy_desc->count[BLOCK_INDEX(ALIGN_4K(page_table[j]))]=0;
@@ -396,17 +380,12 @@ void page_fault_handler()
 	u32 pd_num;
 	u32 pt_num;
 	u32* page_table;
+	u32 phy_fault_addr;
 	void* parent_page_table;
 
 	SAVE_PROCESSOR_REG
 	GET_FAULT_ADDRESS(fault_addr,fault_code);
 	CURRENT_PROCESS_CONTEXT(current_process_context);
-
-	unsigned int* xxx;
-	unsigned int* yyy;
-	unsigned int* zzz;
-	xxx=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) current_process_context->page_dir)[0]));
-	//zzz=FROM_PHY_TO_VIRT(xxx[256]);
 
 	on_exit_action=0;
 	GET_STACK_POINTER(ustack_pointer)
@@ -414,11 +393,6 @@ void page_fault_handler()
 	page_offset=fault_addr % PAGE_SIZE;
 	aligned_fault_addr=fault_addr & (~(PAGE_SIZE-1));
 	parent_page_table=current_process_context->parent->page_dir;
-
-	if (aligned_fault_addr==0xBFFFB000)
-	{
-		xxx=0;
-	}
 
 	if ((fault_code==(PAGE_OUT_MEMORY | USER | PAGE_READ)) || 
 	    (fault_code==(PAGE_OUT_MEMORY | USER | PAGE_WRITE))|| 
@@ -432,30 +406,37 @@ void page_fault_handler()
 			{
 				page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
 				map_vm_mem(current_process_context->page_dir,aligned_fault_addr,FROM_VIRT_TO_PHY(page_addr),PAGE_SIZE,7);
-				system.buddy_desc->count[BLOCK_INDEX(page_addr)]++;
+				system.buddy_desc->count[BLOCK_INDEX(FROM_VIRT_TO_PHY(page_addr))]++;
 				elf_loader_read(current_process_context->elf_desc,fault_addr,page_addr);
 			}
 			else if ((fault_code & 0x1)==PAGE_OUT_MEMORY && CHECK_MEM_REG(fault_addr,current_process_context->heap_mem_reg))
 			{
 				page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
 				map_vm_mem(current_process_context->page_dir,aligned_fault_addr,FROM_VIRT_TO_PHY(page_addr),PAGE_SIZE,7);
-				system.buddy_desc->count[BLOCK_INDEX(page_addr)]++;
+				system.buddy_desc->count[BLOCK_INDEX(FROM_VIRT_TO_PHY(page_addr))]++;
 			}
 			else if (fault_code==(PAGE_IN_MEMORY | USER | PAGE_WRITE))
 			{
 				pd_num=aligned_fault_addr>>22;
 				pt_num=(aligned_fault_addr & 0x3FFFFF)>>12;
-				page_table=FROM_PHY_TO_VIRT(((unsigned int*) current_process_context->page_dir)[pd_num]);
+				page_table=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) current_process_context->page_dir)[pd_num]));
+				phy_fault_addr=ALIGN_4K(((unsigned int*) page_table)[pt_num]);
 				((unsigned int*) page_table)[pt_num] |= 7;
                                 
-				int fff=system.buddy_desc->count[BLOCK_INDEX(FROM_VIRT_TO_PHY(aligned_fault_addr))];
-
-				if (system.buddy_desc->count[BLOCK_INDEX(FROM_VIRT_TO_PHY(aligned_fault_addr))]>1)
+				if (system.buddy_desc->count[BLOCK_INDEX(phy_fault_addr)]>1)
 				{
 					page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
-					map_vm_mem(current_process_context->page_dir,aligned_fault_addr,page_addr,PAGE_SIZE,7);
-					system.buddy_desc->count[BLOCK_INDEX(page_addr)]--;
 					kmemcpy(page_addr,aligned_fault_addr ,PAGE_SIZE);
+					map_vm_mem(current_process_context->page_dir,aligned_fault_addr,FROM_VIRT_TO_PHY(page_addr),PAGE_SIZE,7);
+					system.buddy_desc->count[BLOCK_INDEX(phy_fault_addr)]--;
+					system.buddy_desc->count[BLOCK_INDEX(page_addr)]++;
+					//kmemcpy(page_addr,aligned_fault_addr ,PAGE_SIZE);
+					u32* xxx;
+					xxx=aligned_fault_addr;
+					if (xxx==100)
+					{
+						uso ancora vecchio stack????
+					}
 				}
 			}
 		}
@@ -464,7 +445,7 @@ void page_fault_handler()
 			current_process_context->ustack_mem_reg->start_addr=-PAGE_SIZE;
 			page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
 			map_vm_mem(current_process_context->page_dir,aligned_fault_addr,page_addr,PAGE_SIZE,7);
-			system.buddy_desc->count[BLOCK_INDEX(page_addr)]++;
+			system.buddy_desc->count[BLOCK_INDEX(FROM_VIRT_TO_PHY(page_addr))]++;
 		}
 		else
 		{
@@ -487,12 +468,6 @@ void page_fault_handler()
 	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;             		
 	_old_process_context=_current_process_context;                                                             		
 	_processor_reg=processor_reg;
-
-	if (current_process_context->pid==2)
-	{
-		xxx=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*)_current_process_context.page_dir)[0]));
-		zzz=FROM_PHY_TO_VIRT(xxx[256]);
-	}
                                                        		
 	if (_action2>0)                                                                                            		
 	{                                                                                                          		
