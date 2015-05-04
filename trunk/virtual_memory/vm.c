@@ -435,7 +435,7 @@ void page_fault_handler()
 					xxx=aligned_fault_addr;
 					if (xxx==100)
 					{
-						uso ancora vecchio stack????
+						//uso ancora vecchio stack????
 					}
 				}
 			}
