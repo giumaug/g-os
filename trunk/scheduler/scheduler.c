@@ -221,7 +221,7 @@ void _pause()
 	CURRENT_PROCESS_CONTEXT(current_process);
 	xxx=FROM_PHY_TO_VIRT(((unsigned int*) current_process->page_dir)[767]);
 	yyy=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) current_process->page_dir)[767]));
-        zzz=FROM_PHY_TO_VIRT(xxx[1019]);
+        zzz=FROM_PHY_TO_VIRT(yyy[1019]);
 
 	pause_queue=system.process_info->pause_queue;
 	current_process=system.process_info->current_process->val;
