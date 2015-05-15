@@ -189,6 +189,8 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 		{
 			return;
 		}
+		kkk=0xcc0f1000;
+		*kkk=4;
 
 	}
 	return child_page_dir;

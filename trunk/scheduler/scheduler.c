@@ -218,10 +218,14 @@ void _pause()
 	unsigned int* xxx;
 	unsigned int* zzz;	
 	unsigned int* yyy;
+	unsigned int* kkk;
 	CURRENT_PROCESS_CONTEXT(current_process);
 	xxx=FROM_PHY_TO_VIRT(((unsigned int*) current_process->page_dir)[767]);
 	yyy=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) current_process->page_dir)[767]));
         zzz=FROM_PHY_TO_VIRT(yyy[1019]);
+
+	kkk=0xBFFFB000;
+	*kkk=1;
 
 	pause_queue=system.process_info->pause_queue;
 	current_process=system.process_info->current_process->val;
@@ -377,6 +381,20 @@ int _fork(struct t_processor_reg processor_reg)
 	child_process_context->page_dir=clone_vm_process(parent_process_context->page_dir,
 							 parent_process_context->process_type,
 							 FROM_VIRT_TO_PHY(kernel_stack_addr));
+/*
+	unsigned int* xxx;
+	unsigned int* zzz;	
+	unsigned int* yyy;
+	unsigned int* kkk;
+	
+	xxx=FROM_PHY_TO_VIRT(((unsigned int*) parent_process_context->page_dir)[767]);
+	yyy=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) parent_process_context->page_dir)[767]));
+        zzz=FROM_PHY_TO_VIRT(yyy[1019]);
+
+	kkk=0xBFFFB000;
+	*kkk=1;
+*/
+
 	RESTORE_IF_STATUS
 	return child_process_context->pid;
 }
