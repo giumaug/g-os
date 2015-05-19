@@ -149,7 +149,7 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 				}
 				if (i==767)
 				{
-					unsigned int kkk=(((unsigned int*)parent_page_dir)[i]) & 0xFFFFFFFD;
+					unsigned int kkk=(((unsigned int*)parent_page_dir)[i]) & 0xFFFFFFFD;.................qui????
 					((unsigned int*) parent_page_dir)[i]=kkk;
 				}
 			}
@@ -171,15 +171,17 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 
 	if (process_type==USERSPACE_PROCESS)
 	{
-		unsigned int* xxx;
-		unsigned int* zzz;	
-		unsigned int* yyy;
+		unsigned static int* xxx;
+		unsigned static int* zzz;	
+		unsigned static int* yyy;
 		xxx=FROM_PHY_TO_VIRT(((unsigned int*) current_process_context->page_dir)[767]);
 		yyy=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) current_process_context->page_dir)[767]));
         	zzz=FROM_PHY_TO_VIRT(yyy[1019]);	
 		
-		unsigned int* kkk;
+		unsigned static int* kkk;
         	kkk=0xbfffb000;
+		*kkk=1;
+		zzz=FROM_PHY_TO_VIRT(yyy[1019]);
 		if (*kkk==1)
 		{
 			return;
