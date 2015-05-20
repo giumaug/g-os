@@ -114,6 +114,7 @@ int main (int _argc, char *_argv[])
 			
 				}
 
+				pid=5;
 				pid=fork();
 				if (pid==0)
 				{
