@@ -113,9 +113,14 @@ int main (int _argc, char *_argv[])
 //					print_num(j);
 			
 				}
-
+				
 				pid=5;
 				pid=fork();
+
+				static unsigned int* kkk;
+				kkk=0xbfffb000;
+				*kkk=1;
+
 				if (pid==0)
 				{
 					//ret=execv(argv[0],argv);
