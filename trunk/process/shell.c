@@ -114,12 +114,13 @@ int main (int _argc, char *_argv[])
 			
 				}
 				
-				pid=5;
+//				pid=5;
 				pid=fork();
 
-				static unsigned int* kkk;
-				kkk=0xbfffb000;
-				*kkk=1;
+				pause();
+//				static unsigned int* kkk;
+//				kkk=0xbfffbf2c;
+//				*kkk=1;
 
 				if (pid==0)
 				{
