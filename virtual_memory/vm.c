@@ -189,6 +189,7 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 			return;
 		}
 		*kkk=1;
+		zzz=FROM_PHY_TO_VIRT(yyy[1019]);
 		if (*kkk==11)
 		{
 			return;
