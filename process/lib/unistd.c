@@ -12,6 +12,7 @@ int exec(char* path,char* argv[])
 
 int fork() 
 {
+	unsigned int f;
 	static unsigned int* zzz;
 	zzz=0xbfffbf20;
 	unsigned int params[2];
@@ -24,6 +25,7 @@ int fork()
 	}
 //	static unsigned int* zzz;
 //	zzz=0xbfffbf20;
+	f=zzz;
 	*zzz=5;
 	ret=params[0];//ret val for parent
 	//params[1]=0;// ret val for child
