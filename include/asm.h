@@ -138,8 +138,25 @@
 							mov  %%eax, %0;	                         \
 							mov  4(%%ebp), %1;                       \
 							pop %%eax;"                              \
-							:"=r"(fault_addr),"=r"(fault_code)       \
-						      );             
+							:"=r"(fault_addr),"=r"(fault_code)	 \
+							::"%eax"                                 \
+						      );
+
+#define vGET_FAULT_ADDRESS(fault_addr,fault_code) asm ("						 \
+							push %%eax;				 \
+							mov %%cr2,%%eax;		         \
+							mov  %%eax, %0;	                         \
+							mov  4(%%ebp), %1;                       \
+							pop %%eax;"                              \
+							:"=r"(fault_addr),"=r"(fault_code)	 \
+						      );
+
+
+
+
+
+
+             
 
 #define EOI_TO_MASTER_PIC asm("mov $0x20,%%al; \
 		 out %%al,$0x20;"              \

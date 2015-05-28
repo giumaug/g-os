@@ -385,13 +385,14 @@ int _fork(struct t_processor_reg processor_reg)
 							 FROM_VIRT_TO_PHY(kernel_stack_addr));
 
 	static unsigned int* xxx;
-	static unsigned int* zzz;	
+	static unsigned int zzz;	
 	static unsigned int* yyy;
 	static unsigned int* kkk;
 	
 	xxx=FROM_PHY_TO_VIRT(((unsigned int*) parent_process_context->page_dir)[767]);
 	yyy=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) parent_process_context->page_dir)[767]));
-        zzz=FROM_PHY_TO_VIRT(yyy[1019]);
+        //zzz=FROM_PHY_TO_VIRT(yyy[1019]);
+	zzz=yyy[1019];
 
 	//kkk=0xBFFFB000;
 	//*kkk=1;
