@@ -1,7 +1,7 @@
 #include "asm.h"
 #include "lib/lib.h"
 
-static void itoa(int val,char *char_val,unsigned int base)
+static void itoa(unsigned int val,char *char_val,unsigned int base)
 {
 	unsigned int mod;
 	unsigned int res;

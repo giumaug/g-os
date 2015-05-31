@@ -130,7 +130,7 @@
 						     push %%eax;                                 \
 						     mov %%esp,%%eax;                            \
 						     mov  %%eax, %0;                             \
-						     pop %%eax;":"=r"(ustack_pointer));
+						     pop %%eax;":"=r"(ustack_pointer)::"%eax");
 
 #define GET_FAULT_ADDRESS(fault_addr,fault_code) asm ("						 \
 							push %%eax;				 \
