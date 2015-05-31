@@ -1,6 +1,6 @@
 #include "lib.h"
 
-void static print_num(int val)
+void static print_num(unsigned int val)
 {
 	unsigned int mod;
 	unsigned int res;
@@ -29,22 +29,6 @@ void static print_char(char* text)
 		SYSCALL(4,params);
 	}
 }
-
-//void printf(char *text)
-//{
-//	int index=-1;
-//	int params[1];
-//	while (text[++index]!='\0')
-//	{
-//		params[0]=text[index];
-//		SYSCALL(4,params);
-//	}
-//}
-
-//void d_printf(int val)
-//{
-//	print_num(val);
-//}
 
 void printf(char* text,...)
 {
