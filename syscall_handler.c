@@ -204,7 +204,8 @@ void syscall_handler()
 	_action=on_exit_action;                                                                                
 	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;                                  
 	_old_process_context=_current_process_context;                                                      
-	_processor_reg=processor_reg;                                                               
+	_processor_reg=processor_reg;
+	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _current_process_context.page_dir)))                                                               
 	if (_action>0)                                                                                      
 	{                                                                                   
 		schedule(&_current_process_context,&_processor_reg);                            
