@@ -101,7 +101,7 @@ init:
 # Go into pmode		
 					
 	mov	%cr0,%eax		
-	or	$0x00001,%eax
+	or	$0x10001,%eax
 	mov	%eax,%cr0
 	jmp	$0x08,$pmode		
  
