@@ -440,10 +440,10 @@ void page_fault_handler()
 	}
 	
 
-	if ((fault_code==(PAGE_OUT_MEMORY | USER | PAGE_READ)) || 
-	    (fault_code==(PAGE_OUT_MEMORY | USER | PAGE_WRITE))|| 
-	    (fault_code==(PAGE_IN_MEMORY  | USER | PAGE_WRITE))) 
-	{
+//	if ((fault_code==(PAGE_OUT_MEMORY | USER | PAGE_READ)) || 
+//	    (fault_code==(PAGE_OUT_MEMORY | USER | PAGE_WRITE))|| 
+//	    (fault_code==(PAGE_IN_MEMORY  | USER | PAGE_WRITE))) 
+//	{
 		if (CHECK_MEM_REG(fault_addr,current_process_context->process_mem_reg)
 		    || CHECK_MEM_REG(fault_addr,current_process_context->heap_mem_reg)
 		    || CHECK_MEM_REG(fault_addr,current_process_context->ustack_mem_reg))
@@ -461,7 +461,7 @@ void page_fault_handler()
 				map_vm_mem(current_process_context->page_dir,aligned_fault_addr,FROM_VIRT_TO_PHY(page_addr),PAGE_SIZE,7);
 				system.buddy_desc->count[BLOCK_INDEX(FROM_VIRT_TO_PHY(page_addr))]++;
 			}
-			else if (fault_code==(PAGE_IN_MEMORY | USER | PAGE_WRITE))
+			else if ((fault_code & 0x3)==(PAGE_IN_MEMORY | PAGE_WRITE))
 			{
 				pd_num=aligned_fault_addr>>22;
 				pt_num=(aligned_fault_addr & 0x3FFFFF)>>12;
@@ -469,6 +469,8 @@ void page_fault_handler()
 				phy_fault_addr=ALIGN_4K(((unsigned int*) page_table)[pt_num]);
 				((unsigned int*) page_table)[pt_num] |= 7;
                                 
+				u32 tmp=BLOCK_INDEX(phy_fault_addr);
+
 				if (system.buddy_desc->count[BLOCK_INDEX(phy_fault_addr)]>1)
 				{
 					page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
@@ -499,7 +501,7 @@ void page_fault_handler()
 			_exit(0);
 			on_exit_action=2;
 		}
-	}
+//	}
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 	
 //-	EXIT_INT_HANDLER(on_exit_action,processor_reg)
                                                 
