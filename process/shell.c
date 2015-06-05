@@ -14,7 +14,7 @@ int main (int _argc, char *_argv[])
 	char** argv;
 	char c;
 	unsigned int index;
-
+	
 	printf("g-shell v 0.1 \n");
 //	printf("argc=");
 //	print_num(_argc);
@@ -72,6 +72,7 @@ int main (int _argc, char *_argv[])
 				}
 		
 				argv=malloc(sizeof(char*)*argc+1);
+				
 				i=0;
 				for(k=0;k<=argc;k++)
 				{

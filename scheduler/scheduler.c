@@ -504,6 +504,8 @@ u32 _exec(char* path,char* argv[])
 	u32 process_size;
 	t_elf_desc* elf_desc;
 
+	printk("path= %s \n",path);
+
 //	CLI  ----------non serve
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 	if (current_process_context->elf_desc==NULL)
