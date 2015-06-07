@@ -495,6 +495,9 @@ int _fork(struct t_processor_reg processor_reg)
 u32 _exec(char* path,char* argv[]) 
 {
 	struct t_process_context* current_process_context;
+	u32* bk_area;
+	u32 data_size;
+	u32 i=0;
 	static u32* stack_pointer;
 	char* page_addr;
 	static char** stack_data;
@@ -524,6 +527,36 @@ u32 _exec(char* path,char* argv[])
 	current_process_context->assigned_sleep_time=0;
 	current_process_context->static_priority=0;
 
+	i=0;----------------------------------->qui
+	data_size=0;
+	while(argv[i++]!=NULL)
+	{
+		 argc++;
+	}
+
+	bk_area=kmalloc(sizeof(char*)*argc);
+				
+	for(k=0;k<argc;k++)
+	{
+		i=0;
+		while (argv[k][i]!=NULL)
+		{
+			i++;		
+		}
+		bk_area[k]=kmalloc(i+1);
+		data_size+=(i+1);
+	}
+	for(k=0;k<=argc;k++)
+	{
+		i=0;
+		while (argv[i]!=NULL)
+		{		
+			bk_area[k][i]=argv[k][i];
+			i++;
+		}
+		bk_area[k][i++]='\0';
+	}
+			
 	free_vm_process_user_space(current_process_context->page_dir);
 	//init_vm_process(current_process_context);
 	//SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 
@@ -540,12 +573,7 @@ u32 _exec(char* path,char* argv[])
 	}
 	current_process_context->process_type=USERSPACE_PROCESS;
 
-	while(argv[i++]!=NULL)
-	{
-		 argc++;
-	}
-
-	frame_size=(argc+1)*4;
+	frame_size=(argc+1)*4+data_size;
 	frame_size+=16;
 
 	stack_pointer=USER_STACK-frame_size;
