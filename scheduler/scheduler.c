@@ -495,15 +495,16 @@ int _fork(struct t_processor_reg processor_reg)
 u32 _exec(char* path,char* argv[]) 
 {
 	struct t_process_context* current_process_context;
-	u32* bk_area;
+	char** bk_area;
 	u32 data_size;
-	u32 i=0;
-	static u32* stack_pointer;
+	u32* stack_pointer;
 	char* page_addr;
-	static char** stack_data;
-	static u32 argc=0;
-	static u32 i=0;
-	static u32 frame_size=0;
+	char** stack_data;
+	u32 argc=0;
+	u32 i=0;
+	u32 j=0;
+	u32 k=0;
+	u32 frame_size=0;
 	u32 process_size;
 	t_elf_desc* elf_desc;
 
@@ -527,7 +528,7 @@ u32 _exec(char* path,char* argv[])
 	current_process_context->assigned_sleep_time=0;
 	current_process_context->static_priority=0;
 
-	i=0;----------------------------------->qui
+	i=0;
 	data_size=0;
 	while(argv[i++]!=NULL)
 	{
@@ -543,7 +544,7 @@ u32 _exec(char* path,char* argv[])
 		{
 			i++;		
 		}
-		bk_area[k]=kmalloc(i+1);
+		bk_area[k][0]=kmalloc(i+1);
 		data_size+=(i+1);
 	}
 	for(k=0;k<=argc;k++)
@@ -583,12 +584,21 @@ u32 _exec(char* path,char* argv[])
 	*(stack_pointer+3)=NULL;
 	stack_data=stack_pointer+4;
 
+	//I consider empty dynamic linker's tables (see Cesati pag 774)
+	stack_data[argc]=NULL;//envp
+	j=argc+1;//envp+1
+	k=0;
+	stack_data[0]=stack_data+argc+1; //envp+1
 	for(i=0;i<argc;i++)
 	{
+		while (argv[i][k++]!=NULL)
+		{
+			stack_data[j++]=bk_area[i][k];	
+		}
+		stack_data[j++]=bk_area[i][k];
+		stack_data[i]=stack_data[j];
 		stack_data[i]=argv[i];
 	}
-	stack_data[argc]=NULL;
-  
 	SWITCH_TO_USER_MODE(stack_pointer)
 	return 0;
 }
