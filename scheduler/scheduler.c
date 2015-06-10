@@ -574,32 +574,24 @@ u32 _exec(char* path,char* argv[])
 	}
 	current_process_context->process_type=USERSPACE_PROCESS;
 
-	frame_size=(argc+1)*4+data_size;
-	frame_size+=16;
-
+	frame_size=4*(argc+3+data_size);
+	frame_size+=16; //pad
 	stack_pointer=USER_STACK-frame_size;
 	*(stack_pointer+0)=NULL;
 	*(stack_pointer+1)=argc;
-	*(stack_pointer+2)=(stack_pointer+4);
-	*(stack_pointer+3)=NULL;
-	
-	stack_data=stack_pointer+4;
 
-	//I consider empty dynamic linker's tables (see Cesati pag 774)
-	stack_data[0]=NULL;//envp
-	j=argc+1;//envp+1
-	k=0;
-	stack_data[0]=stack_data+argc+1; //envp+1
+	stack_data=stack_pointer+argc+4;
 	for(i=0;i<argc;i++)
 	{
 		while (argv[i][k++]!=NULL)
 		{
-			stack_data[j++]=bk_area[i][k];	
+			stack_data[j++][k]=bk_area[i][k];	
 		}
-		stack_data[j++]=bk_area[i][k];
-		stack_data[i]=stack_data[j];
-		stack_data[i]=argv[i];
+		*(stack_pointer+2+i)=argv[i][0];
 	}
+	*(stack_pointer+2+argc)=NULL;
+	stack_data=stack_pointer+4;
+
 	SWITCH_TO_USER_MODE(stack_pointer)
 	return 0;
 }
