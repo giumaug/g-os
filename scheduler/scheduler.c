@@ -499,7 +499,7 @@ u32 _exec(char* path,char* argv[])
 	u32 data_size;
 	u32* stack_pointer;
 	char* page_addr;
-	char** stack_data;
+	char* stack_data;
 	u32 argc=0;
 	u32 i=0;
 	u32 j=0;
@@ -544,7 +544,7 @@ u32 _exec(char* path,char* argv[])
 		{
 			i++;		
 		}
-		bk_area[k][0]=kmalloc(i+1);
+		bk_area[k][0]=kmalloc(i+1);??
 		data_size+=(i+1);
 	}
 	for(k=0;k<argc;k++)
@@ -574,20 +574,23 @@ u32 _exec(char* path,char* argv[])
 	}
 	current_process_context->process_type=USERSPACE_PROCESS;
 
-	frame_size=4*(argc+3+data_size);
+	frame_size=4*(argc+3)+data_size;
 	frame_size+=16; //pad
 	stack_pointer=USER_STACK-frame_size;
 	*(stack_pointer+0)=NULL;
 	*(stack_pointer+1)=argc;
 
-	stack_data=stack_pointer+argc+4;
+	stack_data=stack_pointer+argc+3;
+	k=0;
+	j=0;
 	for(i=0;i<argc;i++)
 	{
-		while (argv[i][k++]!=NULL)
+		while (argv[i][k]!=NULL)
 		{
-			stack_data[j++][k]=bk_area[i][k];	
+			stack_data[j++]=bk_area[i][k];
+			k++;
 		}
-		*(stack_pointer+2+i)=argv[i][0];
+		*(stack_pointer+2+i)=bk_area[i];
 	}
 	*(stack_pointer+2+argc)=NULL;
 	stack_data=stack_pointer+4;
