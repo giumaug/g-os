@@ -3,7 +3,7 @@
 
 static void cd(char* path);
 
-int main (int _argc, char *_argv[])
+int main (int _argc, char* _argv[])
 {
 	int ret;
 	unsigned int pid;	
@@ -16,12 +16,10 @@ int main (int _argc, char *_argv[])
 	unsigned int index;
 	
 	printf("g-shell v 0.1 \n");
-//	printf("argc=");
-//	print_num(_argc);
-//	printf("\n");
-//	printf("argv[0]=");
-//	printf(_argv[0]);
-	printf("\n");
+	printf("argc=%d \n",&_argc);
+	index=_argv[0];
+	printf("val=%d \n",&index);
+	printf("argv[0]=%s \n",_argv[0]);
 
 	while(1)
 	{

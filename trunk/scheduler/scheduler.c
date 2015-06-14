@@ -501,14 +501,12 @@ u32 _exec(char* path,char* argv[])
 	char* page_addr;
 	char* stack_data;
 	u32 argc=0;
-	u32 i=0;
-	u32 j=0;
-	u32 k=0;
+	u32 i,j,k,z;
 	u32 frame_size=0;
 	u32 process_size;
 	t_elf_desc* elf_desc;
 
-	printk("path= %s \n",path);
+//	printk("path= %s \n",path);
 
 //	CLI  ----------non serve
 	CURRENT_PROCESS_CONTEXT(current_process_context);
@@ -544,7 +542,7 @@ u32 _exec(char* path,char* argv[])
 		{
 			i++;		
 		}
-		bk_area[k][0]=kmalloc(i+1);??
+		bk_area[k]=kmalloc(i+1);
 		data_size+=(i+1);
 	}
 	for(k=0;k<argc;k++)
@@ -581,8 +579,7 @@ u32 _exec(char* path,char* argv[])
 	*(stack_pointer+1)=argc;
 
 	stack_data=stack_pointer+argc+3;
-	k=0;
-	j=0;
+	k=j=z=0;
 	for(i=0;i<argc;i++)
 	{
 		while (argv[i][k]!=NULL)
@@ -590,12 +587,12 @@ u32 _exec(char* path,char* argv[])
 			stack_data[j++]=bk_area[i][k];
 			k++;
 		}
-		*(stack_pointer+2+i)=bk_area[i];
+		*(stack_pointer+2+i)=stack_data+z;
+		z=j;
 	}
 	*(stack_pointer+2+argc)=NULL;
-	stack_data=stack_pointer+4;
 
-	SWITCH_TO_USER_MODE(stack_pointer)
+	SWITCH_TO_USER_MODE(stack_pointer) //problema lock su system.buddy_desc->count
 	return 0;
 }
 
