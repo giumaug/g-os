@@ -17,8 +17,6 @@ int main (int _argc, char* _argv[])
 	
 	printf("g-shell v 0.1 \n");
 	printf("argc=%d \n",&_argc);
-	index=_argv[0];
-	printf("val=%d \n",&index);
 	printf("argv[0]=%s \n",_argv[0]);
 
 	while(1)
@@ -69,7 +67,7 @@ int main (int _argc, char* _argv[])
 					i++;
 				}
 		
-				argv=malloc(sizeof(char*)*argc+1);
+				argv=malloc(sizeof(char*)*(argc+2));
 				
 				i=0;
 				for(k=0;k<=argc;k++)
@@ -110,15 +108,13 @@ int main (int _argc, char* _argv[])
 //					printf("\n");
 //					printf("j=");
 //					print_num(j);
+					unsigned int www=argv[k];
+					printf("www=%d \n",&www);
+					printf("argv=%s \n",argv[k]);
 			
 				}
-				
-//				pid=5;
+				argv[argc+1]=1;
 				pid=fork();
-
-//				static unsigned int* kkk;
-//				kkk=0xbfffbf2c;
-//				*kkk=1;
 
 				if (pid==0)
 				{

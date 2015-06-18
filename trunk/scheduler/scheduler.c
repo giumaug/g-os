@@ -505,6 +505,7 @@ u32 _exec(char* path,char* argv[])
 	u32 i=0;
 	u32 j=0;
 	u32 k=0;
+	u32 z=0;
 	u32 frame_size=0;
 	u32 process_size;
 	t_elf_desc* elf_desc;
@@ -595,10 +596,16 @@ u32 _exec(char* path,char* argv[])
 			stack_data[j++]=bk_area[i][k];
 			k++;
 		}
-		*(stack_data_pointers+i)=stack_data[z];
+		*(stack_data_pointers+i)=((u32*) stack_data)+z;
 		z=j;
 	}
-	
+
+	for(k=0;k<argc;k++)
+	{
+		kfree(bk_area[k][0]);
+	}
+	kfree(bk_area);
+
 	SWITCH_TO_USER_MODE(stack_pointer)
 	return 0;
 }
