@@ -94,11 +94,18 @@ int main (int _argc, char* _argv[])
 				for(k=0;k<=argc;k++)
 				{
 					j=0;
+					unsigned int www=0;
+					unsigned int ccc=0;
 					while (cmd[i]!=' ' && cmd[i]!=NULL)
-					{		
-						argv[k][j++]=cmd[i];
+					{	
+						www=argv[k];
+						ccc=1;
+						printf("www=%d \n",&www);	
+						printf("char=%s \n",(cmd+i));
+						printf("argv=%d \n",&ccc);
+						argv[k][j]=cmd[i];
+						j++;
 						i++;
-
 					}
 					i++;
 					argv[k][j++]='\0';
@@ -108,8 +115,6 @@ int main (int _argc, char* _argv[])
 //					printf("\n");
 //					printf("j=");
 //					print_num(j);
-					unsigned int www=argv[k];
-					printf("www=%d \n",&www);
 					printf("argv=%s \n",argv[k]);
 			
 				}
