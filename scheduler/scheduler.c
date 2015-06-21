@@ -15,7 +15,7 @@ void do_context_switch(struct t_process_context *current_process_context,
 	int b=new_process_context->pid;
 	if (a!=0 && b!=0)
 	{
-		printk("context switch from %d to %d \n",&a,&b);
+		PRINTK("context switch from %d to %d \n",&a,&b);
 	}
 
 	*(system.process_info->tss.esp)=KERNEL_STACK;
@@ -591,7 +591,8 @@ u32 _exec(char* path,char* argv[])
 	z=k=j=0;
 	for(i=0;i<argc;i++)
 	{
-		while (argv[i][k]!=NULL)
+		//while (argv[i][k]!=NULL)
+		while(bk_area[i][k]|=NULL)
 		{
 			stack_data[j++]=bk_area[i][k];
 			k++;

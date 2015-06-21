@@ -16,7 +16,7 @@ int main (int _argc, char* _argv[])
 	unsigned int index;
 	
 	printf("g-shell v 0.1 \n");
-	printf("argc=%d \n",&_argc);
+	printf("argc=%d \n",_argc);
 	printf("argv[0]=%s \n",_argv[0]);
 
 	while(1)
@@ -24,7 +24,6 @@ int main (int _argc, char* _argv[])
 		argc=0;
 		printf("=>");
 		scanf("%s",&cmd);
-		//printf(cmd);
 
 		if (cmd[0]!='/' && !(cmd[0]=='.' && cmd[1]=='/'))
 		{
@@ -81,12 +80,6 @@ int main (int _argc, char* _argv[])
 					}
 					i++;
 					argv[k]=malloc(j+1);
-//					printf("\n");
-//					printf("k=");
-//					print_num(k);
-//					printf("\n");
-//					printf("j=");
-//					print_num(j+1);
 				}
 
 				i=0;
@@ -94,31 +87,18 @@ int main (int _argc, char* _argv[])
 				for(k=0;k<=argc;k++)
 				{
 					j=0;
-					unsigned int www=0;
-					unsigned int ccc=0;
 					while (cmd[i]!=' ' && cmd[i]!=NULL)
 					{	
-						www=argv[k];
-						ccc=1;
-						printf("www=%d \n",&www);	
-						printf("char=%s \n",(cmd+i));
-						printf("argv=%d \n",&ccc);
 						argv[k][j]=cmd[i];
 						j++;
 						i++;
 					}
 					i++;
 					argv[k][j++]='\0';
-//					printf("\n");
-//					printf("k=");
-//					print_num(k);
-//					printf("\n");
-//					printf("j=");
-//					print_num(j);
 					printf("argv=%s \n",argv[k]);
 			
 				}
-				argv[argc+1]=1;
+				argv[argc+1]=NULL;
 				pid=fork();
 
 				if (pid==0)

@@ -45,7 +45,7 @@ void printf(char* text,...)
 			index+=2;
 			param_index++;
 			GET_FROM_STACK(param_index,param_val);
-			print_num(**param_val);
+			print_num(*param_val);
 
 		}
 		else if (text[index]=='%' && text[index+1]=='s')

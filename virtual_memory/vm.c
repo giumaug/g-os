@@ -100,7 +100,6 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 
 	if (process_type==USERSPACE_PROCESS)
 	{
-		printk("protecting user space pid=  \n");
 		parent_page_table=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*)parent_page_dir)[0]));
 		child_page_table=ALIGN_4K(FROM_PHY_TO_VIRT(child_page_dir[0]));
 		for (j=256;j<1024;j++)
@@ -168,7 +167,6 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 	{
 		child_page_dir[i]=((unsigned int*) parent_page_dir)[i];
 	}
-	printk("protected user space pid= \n");
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 
 
@@ -431,14 +429,8 @@ void page_fault_handler()
 	aligned_fault_addr=fault_addr & (~(PAGE_SIZE-1));
 	parent_page_table=current_process_context->parent->page_dir;
 
-	printk("page fault address=%d",&fault_addr);
-	printk("\n");
-
-	if (fault_addr==0x101000)
-	{
-		pd_num=0;
-	}
-	
+	PRINTK("page fault address=%d",&fault_addr);
+	PRINTK("\n");
 
 //	if ((fault_code==(PAGE_OUT_MEMORY | USER | PAGE_READ)) || 
 //	    (fault_code==(PAGE_OUT_MEMORY | USER | PAGE_WRITE))|| 

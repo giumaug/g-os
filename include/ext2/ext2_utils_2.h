@@ -638,7 +638,7 @@ u32 static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext2
 	}
 	else 
 	{
-		printk("INODE NOT FOUND !!!!!!!!!!");
+		PRINTK("INODE NOT FOUND !!!!!!!!!!");
 		inode=NULL;
 	}
 	kfree(io_buffer);
