@@ -11,6 +11,13 @@
 #include "scheduler/scheduler.h"
 #include "memory_manager/buddy.h"
 
+#define DEBUG
+#ifdef DEBUG 
+	#define PRINTK(...) printk(__VA_ARGS__); 
+#else 
+	#define PRINTK(__VA_ARGS__) 
+#endif
+
 #define NULL 0
 #define TRUE 1
 #define FALSE 0

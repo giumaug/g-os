@@ -100,6 +100,7 @@ void* _malloc(unsigned int mem_size)
 		if (malloc_initialized==-1)
 		{
 			init_malloc();
+			malloc_initialized=1;
 		}
 		mem_add=a_usr_space_alloc(&a_fixed_size_desc[i]);
 	}
