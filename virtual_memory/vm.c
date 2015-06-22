@@ -239,6 +239,9 @@ void free_vm_process_user_space(void* page_dir)
 	
 	for (i=256;i<1024;i++)
 	{
+		unsigned int aa;
+		aa=page_table[i];
+		printk("phy mem=%d \n",aa);
 		page_table[i]=0;
 	}
 
@@ -429,7 +432,7 @@ void page_fault_handler()
 	aligned_fault_addr=fault_addr & (~(PAGE_SIZE-1));
 	parent_page_table=current_process_context->parent->page_dir;
 
-	PRINTK("page fault address=%d",&fault_addr);
+	PRINTK("page fault address=%d",fault_addr);
 	PRINTK("\n");
 
 //	if ((fault_code==(PAGE_OUT_MEMORY | USER | PAGE_READ)) || 
