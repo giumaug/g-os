@@ -60,7 +60,7 @@ void printk(char *text,...)
 			index+=2;
 			param_index++;
 			GET_FROM_STACK(param_index,param_val);
-			printk_num(**param_val);
+			printk_num(*param_val);
 		}
 		if (text[index]=='%' && text[index+1]=='s')
 		{

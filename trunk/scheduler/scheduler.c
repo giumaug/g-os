@@ -15,7 +15,7 @@ void do_context_switch(struct t_process_context *current_process_context,
 	int b=new_process_context->pid;
 	if (a!=0 && b!=0)
 	{
-		PRINTK("context switch from %d to %d \n",&a,&b);
+		PRINTK("context switch from %d to %d \n",a,b);
 	}
 
 	*(system.process_info->tss.esp)=KERNEL_STACK;
