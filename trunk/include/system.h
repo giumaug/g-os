@@ -11,11 +11,11 @@
 #include "scheduler/scheduler.h"
 #include "memory_manager/buddy.h"
 
-#define DEBUG
+//#define DEBUG
 #ifdef DEBUG 
 	#define PRINTK(...) printk(__VA_ARGS__); 
-#else 
-	#define PRINTK(__VA_ARGS__) 
+#else
+	#define PRINTK(...)
 #endif
 
 #define NULL 0

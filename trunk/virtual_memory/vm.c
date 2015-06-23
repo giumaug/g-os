@@ -235,13 +235,13 @@ void free_vm_process_user_space(void* page_dir)
 	unsigned int* page_table;
 	struct t_process_context* current_process_context;
 
-	page_table=FROM_PHY_TO_VIRT(((unsigned int*)page_dir)[0]);
+	page_table=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*)page_dir)[0]));
 	
 	for (i=256;i<1024;i++)
 	{
-		unsigned int aa;
-		aa=page_table[i];
-		printk("phy mem=%d \n",aa);
+		//unsigned int aa;
+		//aa=page_table[i];
+		//printk("phy mem=%d \n",aa);
 		page_table[i]=0;
 	}
 
