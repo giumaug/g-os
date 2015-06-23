@@ -16,16 +16,9 @@ int main(int argc, char *argv[])
 	unsigned int rec_len;
 	unsigned int i_number;
 
-	printf("dddddddddddddddddddddddddd\n");
-	while(1);
-	printf("argc=%d \n",&argc);
-	//print_num(argc);
-	printf("\n");
-	printf("argv[1]=");
-	printf(argv[1]);
-	printf("\n");
+	printf("..argc=%d \n",argc);
+	printf("..argv[0]=%s \n",argv[0]);
 
-	printf("\n");	
 	if (argc>1)
 	{
 		f=open(argv[1], O_RDWR | O_APPEND);
@@ -71,7 +64,9 @@ int main(int argc, char *argv[])
 		printf(file_name);
 		printf("\n");
 	}
-	free(DIR_SIZE);
+	printf("---exit1");
+	free(io_buffer);
+	printf("---exit");
 	printf("\n");
 	exit(0);
 }
