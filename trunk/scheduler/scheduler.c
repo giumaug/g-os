@@ -366,6 +366,8 @@ int _fork(struct t_processor_reg processor_reg)
 	kmemcpy(kernel_stack_addr,FROM_PHY_TO_VIRT(parent_process_context->phy_kernel_stack),KERNEL_STACK_SIZE);
 
 	child_process_context->pid=system.process_info->next_pid++;
+	child_process_context->parent=parent_process_context;
+
 	if (parent_process_context->process_type==USERSPACE_PROCESS)
 	{	
 //		HASHTABLE FOR FILE DESCRIPTOR IS BAD STRUCTURE BETTER TO USE A DINAMYC ARRAY
@@ -391,19 +393,15 @@ int _fork(struct t_processor_reg processor_reg)
 							 parent_process_context->process_type,
 							 FROM_VIRT_TO_PHY(kernel_stack_addr));
 
-	static unsigned int* xxx;
-	static unsigned int zzz;	
-	static unsigned int* yyy;
-	static unsigned int* kkk;
-	
-	xxx=FROM_PHY_TO_VIRT(((unsigned int*) parent_process_context->page_dir)[767]);
-	yyy=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) parent_process_context->page_dir)[767]));
-        //zzz=FROM_PHY_TO_VIRT(yyy[1019]);
-	zzz=yyy[1019];
-
-	//kkk=0xBFFFB000;
-	//*kkk=1;
-
+//	static unsigned int* xxx;
+//	static unsigned int zzz;	
+//	static unsigned int* yyy;
+//	static unsigned int* kkk;
+//	
+//	xxx=FROM_PHY_TO_VIRT(((unsigned int*) parent_process_context->page_dir)[767]);
+//	yyy=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) parent_process_context->page_dir)[767]));
+//      zzz=FROM_PHY_TO_VIRT(yyy[1019]);
+//	zzz=yyy[1019];
 
 	RESTORE_IF_STATUS
 	return child_process_context->pid;
@@ -591,12 +589,12 @@ u32 _exec(char* path,char* argv[])
 	z=k=j=0;
 	for(i=0;i<argc;i++)
 	{
-		//while (argv[i][k]!=NULL)
-		while(bk_area[i][k]|=NULL)
+		while(bk_area[i][k]!=NULL)
 		{
-			stack_data[j++]=bk_area[i][k];
+			stack_data[j++]=bk_area[i][k];??
 			k++;
 		}
+		stack_data[j++]='\0';
 		*(stack_data_pointers+i)=((u32*) stack_data)+z;
 		z=j;
 	}
