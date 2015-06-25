@@ -547,6 +547,7 @@ u32 _exec(char* path,char* argv[])
 		bk_area[k][0]=kmalloc(i+1);
 		data_size+=(i+1);
 	}
+
 	for(k=0;k<argc;k++)
 	{
 		i=0;
@@ -589,9 +590,10 @@ u32 _exec(char* path,char* argv[])
 	z=k=j=0;
 	for(i=0;i<argc;i++)
 	{
+		k=0;
 		while(bk_area[i][k]!=NULL)
 		{
-			stack_data[j++]=bk_area[i][k];??
+			stack_data[j++]=bk_area[i][k];
 			k++;
 		}
 		stack_data[j++]='\0';
