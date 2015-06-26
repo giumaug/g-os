@@ -435,6 +435,11 @@ void page_fault_handler()
 	PRINTK("page fault address=%d",fault_addr);
 	PRINTK("\n");
 
+	if (fault_addr==0x100000)
+	{
+		printk("ok \n");
+	}
+
 //	if ((fault_code==(PAGE_OUT_MEMORY | USER | PAGE_READ)) || 
 //	    (fault_code==(PAGE_OUT_MEMORY | USER | PAGE_WRITE))|| 
 //	    (fault_code==(PAGE_IN_MEMORY  | USER | PAGE_WRITE))) 

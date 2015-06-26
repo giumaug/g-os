@@ -597,7 +597,7 @@ u32 _exec(char* path,char* argv[])
 			k++;
 		}
 		stack_data[j++]='\0';
-		*(stack_data_pointers+i)=((u32*) stack_data)+z;
+		*(stack_data_pointers+i)=((u32) stack_data)+z;
 		z=j;
 	}
 
