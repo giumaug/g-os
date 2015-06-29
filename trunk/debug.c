@@ -43,12 +43,12 @@ check_process_context()
 		while(next!=sentinel_node)
 		{
 			process_context=next->val;
-				if (process_context->curr_sched_queue_index>9 || process_context->curr_sched_queue_index<0)
-				{
-					panic();
-					return;
-				}
-				next=next=ll_next(next);
+			//if (process_context->curr_sched_queue_index>9 || process_context->curr_sched_queue_index<0)
+			if (process_context==NULL)
+			{
+				PRINTK("panic!!!! \n");
+			}
+			next=next=ll_next(next);
 		}
 		index++;
 	}
