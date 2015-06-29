@@ -544,7 +544,7 @@ u32 _exec(char* path,char* argv[])
 		{
 			i++;		
 		}
-		bk_area[k][0]=kmalloc(i+1);
+		bk_area[k]=kmalloc(i+1);
 		data_size+=(i+1);
 	}
 
@@ -603,7 +603,7 @@ u32 _exec(char* path,char* argv[])
 
 	for(k=0;k<argc;k++)
 	{
-		kfree(bk_area[k][0]);
+		kfree(bk_area[k]);
 	}
 	kfree(bk_area);
 

@@ -102,7 +102,6 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	{
 		//semaphore to avoid race with interrupt handler
 		sem_down(&device_desc->sem);
-
 		if ((in(0x1F7)&1))
 		{
 			device_desc->status=DEVICE_IDLE;
