@@ -136,3 +136,19 @@ void hashtable_put_str(t_hashtable* hashtable,char* key,char* value)
 	}
 	hashtable_put(hashtable,long_key,value);
 }
+
+t_hashtable* hashtable clone_map(t_hashtable* map)
+{
+	t_hashtable* cloned_map=NULL;
+	void* value=NULL;
+
+	hashtable_init(cloned_map,int map->size);
+	for (i=0;i<hashtable->size;i++)
+	{
+		value=hashtable_getmap,i);
+		if (val!=NULL)
+		{
+			hashtable_put(cloned_map,i,value);
+		}
+	}
+}
