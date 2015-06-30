@@ -373,7 +373,8 @@ int _fork(struct t_processor_reg processor_reg)
 //		HASHTABLE FOR FILE DESCRIPTOR IS BAD STRUCTURE BETTER TO USE A DINAMYC ARRAY
 //		child_file_desc=kmalloc(sizeof(t_file_desc));	
 //		kmemcpy(child_file_desc,parent_process_context->file_desc,sizeof(t_elf_desc));
-
+		
+		child_process_context->file_desc=clone_map(parent_process_context->file_desc);
 		child_elf_desc=kmalloc(sizeof(t_elf_desc));
 		kmemcpy(child_elf_desc,parent_process_context->elf_desc,sizeof(t_elf_desc));
 
