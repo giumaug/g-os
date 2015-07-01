@@ -137,18 +137,20 @@ void hashtable_put_str(t_hashtable* hashtable,char* key,char* value)
 	hashtable_put(hashtable,long_key,value);
 }
 
-t_hashtable* hashtable clone_map(t_hashtable* map)
+t_hashtable* hashtable_clone_map(t_hashtable* map)
 {
 	t_hashtable* cloned_map=NULL;
 	void* value=NULL;
+	int i=0;
 
-	hashtable_init(cloned_map,int map->size);
-	for (i=0;i<hashtable->size;i++)
+	hashtable_init(cloned_map,map->size);
+	for (i=0;i<map->size;i++)
 	{
-		value=hashtable_getmap,i);
-		if (val!=NULL)
+		value=hashtable_get(map,i);
+		if (value!=NULL)
 		{
 			hashtable_put(cloned_map,i,value);
 		}
 	}
+	return cloned_map;
 }
