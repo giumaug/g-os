@@ -26,7 +26,7 @@ void* hashtable_get(t_hashtable* hashtable,int key);
 void* hashtable_remove(t_hashtable* hashtable,int key);
 void hashtable_put(t_hashtable* hashtable,int key,void* value);
 void hashtable_put_str(t_hashtable* hashtable,char* key,char* value);
-t_hashtable* hashtable clone_map(t_hashtable* map);
+t_hashtable* hashtable_clone_map(t_hashtable* map);
 
 #endif
 

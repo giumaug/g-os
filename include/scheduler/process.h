@@ -13,6 +13,7 @@
 #define CURRENT_PROCESS_CONTEXT(current_process_context) do {t_llist_node* node;node=system.process_info->current_process;current_process_context=node->val; } while (0);
 #define KERNEL_THREAD 0
 #define USERSPACE_PROCESS 1
+#define PROCESS_INIT_FILE 10
 
 struct s_mem_reg;
 
