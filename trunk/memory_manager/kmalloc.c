@@ -17,6 +17,7 @@ void init_kmalloc()
 	for (i=0;i<POOL_NUM;i++)
 	{
 		mem_addr+=MEM_TO_POOL;
+		u32 www=pow2(2+i);
 		a_fixed_size_init(&a_fixed_size_desc[i],pow2(2+i),mem_addr,MEM_TO_POOL);  
 	}
 }

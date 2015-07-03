@@ -92,7 +92,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 //	process_context->phy_add_space=NULL;
 	process_context->phy_kernel_stack=FROM_VIRT_TO_PHY(buddy_alloc_page(system.buddy_desc,KERNEL_STACK_SIZE));
 	process_context->process_type=KERNEL_THREAD;
-	process_context->file_desc=kmalloc(sizeof(t_hashtable*));
+	process_context->file_desc=kmalloc(sizeof(t_hashtable));
 	hashtable_init(process_context->file_desc,PROCESS_INIT_FILE);
 	 
 	process_context->page_dir=buddy_alloc_page(system.buddy_desc,0x1000);                      
