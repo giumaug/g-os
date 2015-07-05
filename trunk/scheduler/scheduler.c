@@ -367,14 +367,10 @@ int _fork(struct t_processor_reg processor_reg)
 
 	child_process_context->pid=system.process_info->next_pid++;
 	child_process_context->parent=parent_process_context;
+	child_process_context->file_desc=hashtable_clone_map(parent_process_context->file_desc);
 
 	if (parent_process_context->process_type==USERSPACE_PROCESS)
 	{	
-//		HASHTABLE FOR FILE DESCRIPTOR IS BAD STRUCTURE BETTER TO USE A DINAMYC ARRAY
-//		child_file_desc=kmalloc(sizeof(t_file_desc));	
-//		kmemcpy(child_file_desc,parent_process_context->file_desc,sizeof(t_elf_desc));
-		
-		child_process_context->file_desc=hashtable_clone_map(parent_process_context->file_desc);
 		child_elf_desc=kmalloc(sizeof(t_elf_desc));
 		kmemcpy(child_elf_desc,parent_process_context->elf_desc,sizeof(t_elf_desc));
 
@@ -519,6 +515,9 @@ u32 _exec(char* path,char* argv[])
 		current_process_context->elf_desc=elf_desc;
 	}
 
+	hashtable_free(current_process_context->file_desc);
+	current_process_context->file_desc=hashtable_init(PROCESS_INIT_FILE);
+
 	if (elf_loader_init(current_process_context->elf_desc,path)==-1)
 	{
 		return -1;
@@ -574,9 +573,6 @@ u32 _exec(char* path,char* argv[])
 		system.buddy_desc->count[BLOCK_INDEX(FROM_VIRT_TO_PHY((unsigned int)page_addr))]++;
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 
 	}
-	hashtable_free(current_process_context->file_desc);
-	hashtable_init(current_process_context,PROCESS_INIT_FILE);
-
 	current_process_context->process_type=USERSPACE_PROCESS;
 
 	frame_size=4*(argc+4)+data_size;
