@@ -20,7 +20,7 @@ struct s_bucket_data
 }
 typedef t_bucket_data;
 
-void hashtable_init(t_hashtable* hashtable,int init_size);
+t_hashtable* hashtable_init(int init_size);
 void hashtable_free(t_hashtable* hashtable);
 void* hashtable_get(t_hashtable* hashtable,int key);
 void* hashtable_remove(t_hashtable* hashtable,int key);

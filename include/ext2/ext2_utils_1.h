@@ -94,7 +94,7 @@ void free_inode(t_inode* i_node,t_ext2 *ext2)
 	sector_count=BLOCK_SIZE/SECTOR_SIZE;
        	READ(sector_count,lba,io_buffer);
 
-	hashtable_init(group_hash,50);
+	group_hash=hashtable_init(50);
 	group_list=new_dllist();
 	fill_group_hash(ext2,group_list,group_hash,0,11,i_node);
 	if (i_node->i_block[12]!=NULL)

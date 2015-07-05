@@ -13,7 +13,7 @@
 unsigned int seed=105491;
 extern unsigned int PAGE_DIR;
 t_system system;
-char tmp_kernel_stack[4096];
+//char tmp_kernel_stack[4096];
 
 void kmain( void* mbd, unsigned int magic,int init_data_add)
 {
@@ -31,8 +31,8 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 
 	system.time=0;
 	init_data=init_data_add;
-	asm ("movl %0,%%esp;"::"r"(tmp_kernel_stack+0xFF0));
-	asm ("movl %0,%%ebp;"::"r"(tmp_kernel_stack+0xFF0));
+//	asm ("movl %0,%%esp;"::"r"(tmp_kernel_stack+0xFF0));
+//	asm ("movl %0,%%ebp;"::"r"(tmp_kernel_stack+0xFF0));
 
 	
 	if ( magic != 0x2BADB002 )
@@ -92,8 +92,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 //	process_context->phy_add_space=NULL;
 	process_context->phy_kernel_stack=FROM_VIRT_TO_PHY(buddy_alloc_page(system.buddy_desc,KERNEL_STACK_SIZE));
 	process_context->process_type=KERNEL_THREAD;
-	process_context->file_desc=kmalloc(sizeof(t_hashtable));
-	hashtable_init(process_context->file_desc,PROCESS_INIT_FILE);
+	process_context->file_desc=hashtable_init(PROCESS_INIT_FILE);
 	 
 	process_context->page_dir=buddy_alloc_page(system.buddy_desc,0x1000);                      
 	init_vm_process(process_context);

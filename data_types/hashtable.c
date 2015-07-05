@@ -52,7 +52,7 @@ static void rehash(t_hashtable* hashtable)
 	t_hashtable* new_hashtable;
 	t_llist* chained_list;
 	
-	hashtable_init(new_hashtable,(hashtable->size)*2);
+	new_hashtable=hashtable_init((hashtable->size)*2);
     	for (i=0;i<hashtable->size;i++)
 	{
 		if (hashtable->bucket[i]!=NULL)
@@ -74,21 +74,23 @@ static void rehash(t_hashtable* hashtable)
 	hashtable->elements=new_hashtable->elements;	
 }
 
-void hashtable_init(t_hashtable* hashtable,int init_size)
+t_hashtable* hashtable_init(int init_size)
 {
 	int i;
-	int size;
+	//int size;
+	t_hashtable* hashtable; 
 
-	size=init_size/LOAD_FACTOR;	
-	//hashtable=kmalloc(sizeof(t_hashtable));
-	hashtable->bucket=kmalloc(sizeof(t_llist*)*size);
+	//size=init_size/LOAD_FACTOR;
+	hashtable=kmalloc(sizeof(t_hashtable));
+	hashtable->bucket=kmalloc(sizeof(t_llist*)*init_size);
 	hashtable->elements=0;
-	hashtable->size=size;
+	hashtable->size=init_size;
 	
-	for(i=0;i<size;i++) 
+	for(i=0;i<init_size;i++) 
 	{
 		hashtable->bucket[i]=new_dllist();
 	}
+	return hashtable;
 }
 
 void hashtable_free(t_hashtable* hashtable)
@@ -143,7 +145,7 @@ t_hashtable* hashtable_clone_map(t_hashtable* map)
 	void* value=NULL;
 	int i=0;
 
-	hashtable_init(cloned_map,map->size);
+	cloned_map=hashtable_init(map->size);
 	for (i=0;i<map->size;i++)
 	{
 		value=hashtable_get(map,i);
