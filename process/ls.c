@@ -65,9 +65,6 @@ int main(int argc, char *argv[])
 		printf(file_name);
 		printf("\n");
 	}
-	printf("---exit1");
 	free(io_buffer);
-	printf("---exit");
-	printf("\n");
 	exit(0);
 }
