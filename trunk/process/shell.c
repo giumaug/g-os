@@ -105,6 +105,13 @@ int main (int _argc, char* _argv[])
 				{
 					//ret=execv(argv[0],argv);
 					ret=exec(argv[0],argv);
+
+					for(k=0;k<=argc;k++)
+					{
+						free(argv[k]);
+					}
+					free(argv);
+
 					if (ret==-1)
 					{
 						printf("\n");

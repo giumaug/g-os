@@ -435,7 +435,7 @@ void page_fault_handler()
 	PRINTK("page fault address=%d",fault_addr);
 	PRINTK("\n");
 
-	if (fault_addr==0x100000)
+	if (aligned_fault_addr==0x40020000)
 	{
 		printk("ok \n");
 	}
