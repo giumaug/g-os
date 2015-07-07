@@ -239,11 +239,17 @@ void free_vm_process_user_space(void* page_dir)
 	
 	for (i=256;i<1024;i++)
 	{
-		//unsigned int aa;
-		//aa=page_table[i];
-		//printk("phy mem=%d \n",aa);
-		page_table[i]=0;
+		if (page_table[i]!=0 && system.buddy_desc->count[BLOCK_INDEX(ALIGN_4K(page_table[i]))]==1)
+		{
+			buddy_free_page(system.buddy_desc,page_table[i]);
+			system.buddy_desc->count[BLOCK_INDEX(ALIGN_4K(page_table[i]))]=0;
+		}
+		else if (page_table[i]!=0)
+		{
+			system.buddy_desc->count[BLOCK_INDEX(ALIGN_4K(page_table[i]))]--;
+		}
 	}
+	buddy_free_page(system.buddy_desc,page_table);
 
 	for (i=1;i<768;i++) 
 	{
