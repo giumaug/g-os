@@ -559,7 +559,6 @@ u32 _exec(char* path,char* argv[])
 		bk_area[k][i++]='\0';
 	}
 			
-	free_vm_process_user_space(current_process_context->page_dir);
 	//init_vm_process(current_process_context);
 	//SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 
 
@@ -572,6 +571,10 @@ u32 _exec(char* path,char* argv[])
 		map_vm_mem(current_process_context->page_dir,(USER_STACK-PAGE_SIZE),FROM_VIRT_TO_PHY(page_addr),PAGE_SIZE,7);
 		system.buddy_desc->count[BLOCK_INDEX(FROM_VIRT_TO_PHY((unsigned int)page_addr))]++;
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 
+	}
+	else
+	{
+		free_vm_process_user_space(current_process_context->page_dir);
 	}
 	current_process_context->process_type=USERSPACE_PROCESS;
 

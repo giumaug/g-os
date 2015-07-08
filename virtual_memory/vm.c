@@ -246,8 +246,10 @@ void free_vm_process_user_space(void* page_dir)
 		}
 		else if (page_table[i]!=0)
 		{
+			u32 tmp=BLOCK_INDEX(ALIGN_4K(page_table[i]));
 			system.buddy_desc->count[BLOCK_INDEX(ALIGN_4K(page_table[i]))]--;
 		}
+		page_table[i]=0;
 	}
 	buddy_free_page(system.buddy_desc,page_table);
 
@@ -438,10 +440,10 @@ void page_fault_handler()
 	aligned_fault_addr=fault_addr & (~(PAGE_SIZE-1));
 	parent_page_table=current_process_context->parent->page_dir;
 
-	PRINTK("page fault address=%d",fault_addr);
+	PRINTK("page fault address=%d \n",fault_addr);
 	PRINTK("\n");
 
-	if (aligned_fault_addr==0x40020000)
+	if (aligned_fault_addr==0x40000000)
 	{
 		printk("ok \n");
 	}
