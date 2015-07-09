@@ -53,6 +53,8 @@ void printk(char *text,...)
 	struct t_process_context *current_process_context=system.process_info->current_process->val;
 	t_console_desc *console_desc=current_process_context->console_desc;
 
+	u32 xxx=&text;
+
 	while (text[++index]!='\0')
 	{
 		if (text[index]=='%' && text[index+1]=='d')
