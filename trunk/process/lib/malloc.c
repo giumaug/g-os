@@ -27,6 +27,10 @@ static void a_usr_space_init(t_a_usr_space_desc *a_fixed_size_desc,unsigned int 
 	for (index=1;index<num_block;index++)
         {	
                 next_block_desc=((char *)current_block_desc)+sizeof(t_us_block_desc)+a_fixed_size_desc->block_size;
+		if (next_block_desc>50000000)
+		{
+			printf("desc=%d \n",next_block_desc);
+		}
 		current_block_desc->next_block=next_block_desc;
 		current_block_desc->previous_block=previous_block_desc;
                 previous_block_desc=current_block_desc;
