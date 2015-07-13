@@ -139,6 +139,7 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 						child_page_table[j]=parent_page_table[j];
 						if (child_page_table[j]!=0)
 						{
+							u32 tmp=BLOCK_INDEX(ALIGN_4K(parent_page_table[j]));
 							system.buddy_desc->count[BLOCK_INDEX(ALIGN_4K(parent_page_table[j]))]++;
 						}
 					}
@@ -251,7 +252,6 @@ void free_vm_process_user_space(void* page_dir)
 		}
 		page_table[i]=0;
 	}
-	buddy_free_page(system.buddy_desc,page_table);
 
 	for (i=1;i<768;i++) 
 	{
@@ -274,7 +274,7 @@ void free_vm_process_user_space(void* page_dir)
 					}
 				}	
 			}
-			if (i!=767)
+			if (i!=767)????? break scheduler 565
 			{
 				buddy_free_page(system.buddy_desc,page_table);
 				((unsigned int*)page_dir)[i]=0;
@@ -443,7 +443,7 @@ void page_fault_handler()
 	PRINTK("page fault address=%d \n",fault_addr);
 	PRINTK("\n");
 
-	if (aligned_fault_addr==0x40000000)
+	if (aligned_fault_addr==0xBFFFB000)
 	{
 		printk("ok \n");
 	}
@@ -467,7 +467,7 @@ void page_fault_handler()
 			{
 				page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
 				map_vm_mem(current_process_context->page_dir,aligned_fault_addr,FROM_VIRT_TO_PHY(page_addr),PAGE_SIZE,7);
-				system.buddy_desc->count[BLOCK_INDEX(FROM_VIRT_TO_PHY(page_addr))]++;
+				system.buddy_desc->count[BLOCK_INDEX(FROM_VIRT_TO_PHY(page_addr))]++;				
 			}
 			else if ((fault_code & 0x3)==(PAGE_IN_MEMORY | PAGE_WRITE))
 			{
