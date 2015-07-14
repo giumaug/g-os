@@ -261,20 +261,22 @@ void free_vm_process_user_space(void* page_dir)
 				
 			for (j=0;j<1024;j++)
 			{
-				if (i!=767 && j!=1021 && j!=1022) 
+				if (i!=767 || (i==767 && j!=1021 && j!=1022)) 
 				{
 					if (page_table[j]!=0 && system.buddy_desc->count[BLOCK_INDEX(ALIGN_4K(page_table[j]))]==1)
 					{
 						buddy_free_page(system.buddy_desc,page_table[j]);
 						system.buddy_desc->count[BLOCK_INDEX(ALIGN_4K(page_table[j]))]=0;
+						page_table[j]=0;
 					}
 					else if (page_table[j]!=0)
 					{
 						system.buddy_desc->count[BLOCK_INDEX(ALIGN_4K(page_table[j]))]--;
+						page_table[j]=0;
 					}
 				}	
 			}
-			if (i!=767)????? break scheduler 565
+			if (i!=767)
 			{
 				buddy_free_page(system.buddy_desc,page_table);
 				((unsigned int*)page_dir)[i]=0;
@@ -463,7 +465,7 @@ void page_fault_handler()
 				system.buddy_desc->count[BLOCK_INDEX(FROM_VIRT_TO_PHY(page_addr))]++;
 				elf_loader_read(current_process_context->elf_desc,fault_addr,page_addr);
 			}
-			else if ((fault_code & 0x1)==PAGE_OUT_MEMORY && CHECK_MEM_REG(fault_addr,current_process_context->heap_mem_reg))
+			else if ((fault_code & 0x1)==PAGE_OUT_MEMORY && (CHECK_MEM_REG(fault_addr,current_process_context->heap_mem_reg) || CHECK_MEM_REG(fault_addr,current_process_context->ustack_mem_reg)))
 			{
 				page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
 				map_vm_mem(current_process_context->page_dir,aligned_fault_addr,FROM_VIRT_TO_PHY(page_addr),PAGE_SIZE,7);
@@ -485,7 +487,7 @@ void page_fault_handler()
 					kmemcpy(page_addr,aligned_fault_addr ,PAGE_SIZE);
 					map_vm_mem(current_process_context->page_dir,aligned_fault_addr,FROM_VIRT_TO_PHY(page_addr),PAGE_SIZE,7);
 					system.buddy_desc->count[BLOCK_INDEX(phy_fault_addr)]--;
-					system.buddy_desc->count[BLOCK_INDEX(page_addr)]++;
+					system.buddy_desc->count[BLOCK_INDEX(FROM_VIRT_TO_PHY(page_addr))]++;------ok ma check
 					//kmemcpy(page_addr,aligned_fault_addr ,PAGE_SIZE);
 					u32* xxx;
 					xxx=aligned_fault_addr;
