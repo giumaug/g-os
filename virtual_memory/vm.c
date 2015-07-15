@@ -487,7 +487,7 @@ void page_fault_handler()
 					kmemcpy(page_addr,aligned_fault_addr ,PAGE_SIZE);
 					map_vm_mem(current_process_context->page_dir,aligned_fault_addr,FROM_VIRT_TO_PHY(page_addr),PAGE_SIZE,7);
 					system.buddy_desc->count[BLOCK_INDEX(phy_fault_addr)]--;
-					system.buddy_desc->count[BLOCK_INDEX(FROM_VIRT_TO_PHY(page_addr))]++;------ok ma check
+					system.buddy_desc->count[BLOCK_INDEX(FROM_VIRT_TO_PHY(page_addr))]++;
 					//kmemcpy(page_addr,aligned_fault_addr ,PAGE_SIZE);
 					u32* xxx;
 					xxx=aligned_fault_addr;
