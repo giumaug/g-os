@@ -28,7 +28,7 @@ int main (int _argc, char* _argv[])
 		//BUILT IN COMMAND!!!
 		if (cmd[0]=='c' && cmd[1]=='d' && cmd[2]==' ')
 		{
-				cd(&cmd[index+3]);
+				cd(&cmd[3]);
 				printf("\n");
 		}
 
@@ -95,8 +95,9 @@ int main (int _argc, char* _argv[])
 				i++;
 				argv[k][j++]='\0';
 				printf("argv=%s \n",argv[k]);
-			
 			}
+			printf("argv=%d \n",argv);
+			printf("argv[0]=%d \n",argv[0]);
 			argv[argc+1]=NULL;
 			pid=fork();
 
@@ -104,12 +105,6 @@ int main (int _argc, char* _argv[])
 			{
 				//ret=execv(argv[0],argv);
 				ret=exec(argv[0],argv);
-
-				for(k=0;k<=argc;k++)
-				{
-					free(argv[k]);
-				}
-				free(argv);
 
 				if (ret==-1)
 				{
@@ -124,6 +119,15 @@ int main (int _argc, char* _argv[])
 				if (!is_background)
 				{
 					pause();
+					printf("... \n");
+					printf("argv=%d \n",argv);
+					printf("argv[0]=%d \n",argv[0]);
+					for(k=0;k<=argc;k++)
+					{
+						free(argv[k]);
+						printf("++ \n");
+					}
+					free(argv);
 					printf("woken up \n");
 				}
 			}
