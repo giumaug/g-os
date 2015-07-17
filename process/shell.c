@@ -96,8 +96,6 @@ int main (int _argc, char* _argv[])
 				argv[k][j++]='\0';
 				printf("argv=%s \n",argv[k]);
 			}
-			printf("argv=%d \n",argv);
-			printf("argv[0]=%d \n",argv[0]);
 			argv[argc+1]=NULL;
 			pid=fork();
 
@@ -119,16 +117,12 @@ int main (int _argc, char* _argv[])
 				if (!is_background)
 				{
 					pause();
-					printf("... \n");
-					printf("argv=%d \n",argv);
-					printf("argv[0]=%d \n",argv[0]);
 					for(k=0;k<=argc;k++)
 					{
 						free(argv[k]);
 						printf("++ \n");
 					}
 					free(argv);
-					printf("woken up \n");
 				}
 			}
 		}
