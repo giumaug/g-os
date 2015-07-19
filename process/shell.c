@@ -120,7 +120,6 @@ int main (int _argc, char* _argv[])
 					for(k=0;k<=argc;k++)
 					{
 						free(argv[k]);
-						printf("++ \n");
 					}
 					free(argv);
 				}

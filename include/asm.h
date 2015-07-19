@@ -29,8 +29,7 @@
 				asm("pop %es");                                       \
 				asm ("movl %%es, %0;":"=r"(processor_reg.es));        \
 
-
-// push and pop registers on stack to avoid inline asm dirties them
+// PUSH AND POP REGITERS ON STACK TO AVIOD INLINE ASM DIRTIES THEM
 #define RESTORE_PROCESSOR_REG	asm ("movl %0,%%esp;"::"r"(_processor_reg.esp)); \
 				asm ("movl %0,%%eax;"::"r"(_processor_reg.eax)); \
 				asm ("push %eax;");                              \
@@ -76,32 +75,6 @@
 					push   %eax;                                            \
 					iret;");
 
-//#define	SWITCH_DS_TO_KERNEL_MODE asm("                                             \
-//				      	.comm TMP,2;                               \
-//        			      	mov  %ax,TMP; 				   \
-//				      	mov $0x18,%ax;                             \
-//				      	mov  %ax,%ds;				   \
-//				      	mov %ax,%es;				   \
-//				      	mov TMP,%ax;	                           \
-//				     ");
-//
-//#define	SWITCH_DS_TO_USER_MODE asm("						   \
-//				      	.comm TMP_2,2;                             \
-//        			      	mov  %ax,TMP; 				   \
-//				      	mov $0x20,%ax;                             \
-//				      	mov  %ax,%ds;				   \
-//				      	mov %ax,%es;				   \
-//				      	mov TMP,%ax;			           \
-//				     ");
-//
-//#define	GET_DS(ds)  asm("						           \
-//        			      	mov  %ax,TMP; 				   \
-//				      	mov  %ds,%ax;                              \
-//                    ");                                                            \
-//		asm ("                  mov  %%ax, %0;":"=r"(ds));                 \
-//                asm ("			mov TMP,%ax;                               \
-//		    ");
-
 #define	SWITCH_DS_TO_KERNEL_MODE asm("                                             \
         			      	push %ax; 				   \
 				      	mov $0x18,%ax;                             \
@@ -122,7 +95,7 @@
         			      	push %ax; 				   \
 				      	mov  %ds,%ax;                              \
                     ");                                                            \
-		asm ("                  mov  %%ax, %0;":"=r"(ds));                 \
+		asm ("                  mov  %%ax, %0;":"=r"(ds)::"%eax");                 \
                 asm ("			pop %ax;                                   \
 		    ");	
 
@@ -132,6 +105,8 @@
 						     mov  %%eax, %0;                             \
 						     pop %%eax;":"=r"(ustack_pointer)::"%eax");
 
+//IN ORDER TO PROTECT EAX I NEED BOTH TO PUSH AND POP IT ON STACK AND HITS ABOUT IT ASM INLNE
+//ASM INLINE DOSN'T KNOW REGARDING FINAL POP
 #define GET_FAULT_ADDRESS(fault_addr,fault_code) asm ("						 \
 							push %%eax;				 \
 							mov %%cr2,%%eax;		         \
@@ -141,22 +116,6 @@
 							:"=r"(fault_addr),"=r"(fault_code)	 \
 							::"%eax"                                 \
 						      );
-
-#define vGET_FAULT_ADDRESS(fault_addr,fault_code) asm ("						 \
-							push %%eax;				 \
-							mov %%cr2,%%eax;		         \
-							mov  %%eax, %0;	                         \
-							mov  4(%%ebp), %1;                       \
-							pop %%eax;"                              \
-							:"=r"(fault_addr),"=r"(fault_code)	 \
-						      );
-
-
-
-
-
-
-             
 
 #define EOI_TO_MASTER_PIC asm("mov $0x20,%%al; \
 		 out %%al,$0x20;"              \
@@ -170,25 +129,25 @@
 		:                              \
 		:"%eax");
 
-#define SAVE_IF_STATUS          unsigned int if_status;          \
-	asm("                   push %eax;                       \
-				pushfl;                          \
-				movl (%esp),%eax;                \
-				andl $0x200,%eax;                \
-	");	                                                 \
-        asm("                   movl %%eax,%0;":"=r"(if_status));\
-	asm("	                popfl;                           \
-				pop %eax;                        \
+#define SAVE_IF_STATUS          unsigned int if_status;          		\
+	asm("                   push %eax;                       		\
+				pushfl;                          		\
+				movl (%esp),%eax;                		\
+				andl $0x200,%eax;                		\
+	");	                                                 		\
+        asm("                   movl %%eax,%0;":"=r"(if_status)::"%eax");	\
+	asm("	                popfl;                           		\
+				pop %eax;                        		\
         ");
 
-#define RESTORE_IF_STATUS asm("                                  \
-				push %eax;                       \
-				pushfl;                          \
-			      ");	                         \
-		          asm(" movl %0,%%eax;"::"r"(if_status));\
-		          asm("	orl %eax,(%esp);	         \
-				popfl;			         \
-				pop %eax;                        \
+#define RESTORE_IF_STATUS asm("                                  		\
+				push %eax;                       		\
+				pushfl;                          		\
+			      ");	                         		\
+		          asm(" movl %0,%%eax;"::"r"(if_status));		\
+		          asm("	orl %eax,(%esp);	         		\
+				popfl;			         		\
+				pop %eax;                        		\
 			  ");
 
 #define RET_FROM_INT_HANDLER_FLUSH asm("		\
