@@ -213,11 +213,11 @@ void syscall_handler()
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))                                                          
 		DO_STACK_FRAME(_processor_reg.esp-8); 
 
-		unsigned int* xxx;
-		unsigned int* yyy;
-		unsigned int* zzz;
-		xxx=FROM_PHY_TO_VIRT(((unsigned int*)_new_process_context.page_dir)[0]) & 0xFFFFF000;
-		zzz=FROM_PHY_TO_VIRT(xxx[256]);
+//		unsigned int* xxx;
+//		unsigned int* yyy;
+//		unsigned int* zzz;
+//		xxx=FROM_PHY_TO_VIRT(((unsigned int*)_new_process_context.page_dir)[0]) & 0xFFFFF000;
+//		zzz=FROM_PHY_TO_VIRT(xxx[256]);
 	
 		if (_action==2)                                                                              
 		{                                                                           

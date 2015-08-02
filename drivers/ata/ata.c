@@ -48,6 +48,14 @@ void int_handler_ata()
 	EOI_TO_MASTER_PIC
 	STI
 
+//	static unsigned int* xx;
+//	xx=0xBFFFEC18;
+//	if ((*xx)==0xcc27a000)
+//	{
+//		printk("got!! \n");
+//	}
+
+
 	io_request=system.device_desc->serving_request;
 	process_context=io_request->process_context;
 	if (system.device_desc->status!=POOLING_MODE)
