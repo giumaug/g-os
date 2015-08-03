@@ -186,6 +186,11 @@ void syscall_handler()
 //		params[0]=_flush_ata_pending_request();
 		_flush_ata_pending_request();
 	}
+	//DEBUG WRAPPER
+	else if (syscall_num==103)
+	{
+		check_free_mem();
+	}
 	else
 	{
 		panic();

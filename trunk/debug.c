@@ -20,12 +20,12 @@ void check_free_mem()
 	check_active_process();
 	if (buddy_mem!=160194560)
 	{
-		panic();
+		//panic();
 	}
 	//279852
 	if (pool_mem!=279850)
 	{
-		panic();
+		//panic();
 	}
 }
 

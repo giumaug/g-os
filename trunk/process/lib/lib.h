@@ -54,5 +54,8 @@ int chdir(char* path);
 //stat.h
 int mkdir(const char *fullpath);
 
+//debug.h
+void check_free_mem();
+
 #endif
 
