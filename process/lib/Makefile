@@ -2,7 +2,7 @@ include ../../make.rules
 
 #vpath %.h $(INCLUDE)/lib
 
-all.o: math.o stdio.o stdlib.o string.o unistd.o fcntl.o stat.o malloc.o
+all.o: math.o stdio.o stdlib.o string.o unistd.o fcntl.o stat.o malloc.o debug.o
 
 math.o: math.c lib.h
 	$(CC) $(CPPFLAGS) $(CFLAGS) math.c
@@ -28,5 +28,8 @@ stat.o: stat.c lib.h
 malloc.o: malloc.c malloc.h
 	$(CC) $(CPPFLAGS) $(CFLAGS) malloc.c
 
+debug.o: debug.c lib.h
+	$(CC) $(CPPFLAGS) $(CFLAGS) debug.c
+
 clean:	
-	rm -f math.o stdio.o stdlib.o string.o unistd.o fcntl.o stat.o malloc.o
+	rm -f math.o stdio.o stdlib.o string.o unistd.o fcntl.o stat.o malloc.o debug.o
