@@ -487,6 +487,8 @@ int _fork(struct t_processor_reg processor_reg)
 //	return 0;
 //}
 
+extern unsigned int collect_mem;
+
 u32 _exec(char* path,char* argv[]) 
 {
 	struct t_process_context* current_process_context;
@@ -509,6 +511,12 @@ u32 _exec(char* path,char* argv[])
 
 //	CLI  ----------non serve
 	CURRENT_PROCESS_CONTEXT(current_process_context);
+
+	if (current_process_context->pid >=2)
+	{
+		collect_mem=1;
+	}
+
 	if (current_process_context->elf_desc==NULL)
 	{
 		elf_desc=kmalloc(sizeof(t_elf_desc));

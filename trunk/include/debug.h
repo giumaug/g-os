@@ -4,7 +4,9 @@
 #include "system.h"
 
 void check_free_mem();
-check_process_context();
-check_active_process();
+void check_process_context();
+void check_active_process();
+void collect_mem_alloc(unsigned int page_addr);
+void collect_mem_free(unsigned int page_addr);
 
 #endif                                
