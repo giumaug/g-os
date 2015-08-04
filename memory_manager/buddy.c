@@ -41,6 +41,8 @@ void buddy_init(t_buddy_desc* buddy)
 	//buddy_init_mem(buddy);
 	return;
 }
+
+extern unsigned int collect_mem;
 	
 void* buddy_alloc_page(t_buddy_desc* buddy,unsigned int mem_size)
 {
@@ -103,6 +105,12 @@ void* buddy_alloc_page(t_buddy_desc* buddy,unsigned int mem_size)
 	buddy->page_list_ref[BLOCK_INDEX((int)page_addr)]=node;
 	system.buddy_desc->count[BLOCK_INDEX((int)page_addr)]=0;
 	new_mem_addr=page_addr+BUDDY_START_ADDR + VIRT_MEM_START_ADDR;
+
+	if (collect_mem==1)
+	{
+		collect_mem_alloc(page_addr);
+	}
+	
 	//SPINLOCK_UNLOCK
 	RESTORE_IF_STATUS
 	return new_mem_addr;
@@ -126,6 +134,11 @@ void buddy_free_page(t_buddy_desc* buddy,void* to_free_page_addr)
 	SAVE_IF_STATUS
 	CLI	
 	//SPINLOCK_LOCK
+
+	if (collect_mem==1)
+	{
+		collect_mem_free(page_addr);
+	}
 
 	page_addr=to_free_page_addr;
 	page_addr-=(BUDDY_START_ADDR + VIRT_MEM_START_ADDR);

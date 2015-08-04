@@ -5,8 +5,11 @@
 extern unsigned int free_mem_list[POOL_NUM];
 
 unsigned int proc[100];
-int t_sched_debug[10][10];
+//int t_sched_debug[10][10];
 int index_2=0;
+unsigned int collect_mem=0;
+unsigned int collected_mem[1000];
+unsigned int collected_mem_index=0;
 
 void check_free_mem()
 {
@@ -29,7 +32,7 @@ void check_free_mem()
 	}
 }
 
-check_process_context()
+void check_process_context()
 {
 	t_llist_node* next;
 	t_llist_node* sentinel_node;
@@ -54,7 +57,7 @@ check_process_context()
 	}
 }
 
-check_active_process()
+void check_active_process()
 {
 	t_llist_node* next;
 	t_llist_node* sentinel_node;
@@ -78,3 +81,27 @@ check_active_process()
 		index++;
 	}
 }
+
+void collect_mem_alloc(unsigned int page_addr)
+{
+	collected_mem[collected_mem_index++]=page_addr;
+	if (collected_mem_index>999)
+	{
+		painic();
+	}
+}
+
+void collect_mem_free(unsigned int page_addr)
+{
+	for (int i=0;i<collected_mem_index;i++)
+	{
+		if (collected_mem[i]==page_addr)
+		{
+			collected_mem[i]=0;
+			break;
+		}
+	}
+}
+
+
+
