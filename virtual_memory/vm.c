@@ -261,6 +261,10 @@ void free_vm_process_user_space(void* page_dir)
 				
 			for (j=0;j<1024;j++)
 			{
+				if (j==1023 && i==767)
+				{
+					printk("??? \n");
+				}
 				if (i!=767 || (i==767 && j!=1021 && j!=1022)) 
 				{
 					if (page_table[j]!=0 && system.buddy_desc->count[BLOCK_INDEX(ALIGN_4K(page_table[j]))]==1)

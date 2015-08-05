@@ -20,6 +20,15 @@ void check_free_mem()
 	pool_mem=kfree_mem();
 	//buddy_check_mem_status(system.buddy_desc);
 	//a_fixed_size_check_mem_status();
+
+	for (i=0;i<collected_mem_index;i++)
+	{
+		if (collected_mem[i]!=0)
+		{
+			printk("mem_add=%d \n",collected_mem[i]);
+		}
+	}
+
 	check_active_process();
 	if (buddy_mem!=160194560)
 	{
@@ -84,16 +93,22 @@ void check_active_process()
 
 void collect_mem_alloc(unsigned int page_addr)
 {
+	if (page_addr==161259520 || page_addr==161251328 || page_addr==161255424 || page_addr==161247232 )
+	{
+		printk("here!!!!\n");
+	}
 	collected_mem[collected_mem_index++]=page_addr;
 	if (collected_mem_index>999)
 	{
-		painic();
+		panic();
 	}
 }
 
 void collect_mem_free(unsigned int page_addr)
 {
-	for (int i=0;i<collected_mem_index;i++)
+	unsigned int i=0;
+
+	for (i=0;i<collected_mem_index;i++)
 	{
 		if (collected_mem[i]==page_addr)
 		{
