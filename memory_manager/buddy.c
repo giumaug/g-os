@@ -135,14 +135,14 @@ void buddy_free_page(t_buddy_desc* buddy,void* to_free_page_addr)
 	CLI	
 	//SPINLOCK_LOCK
 
+	page_addr=to_free_page_addr;
+	page_addr-=(BUDDY_START_ADDR + VIRT_MEM_START_ADDR);
+
 	if (collect_mem==1)
 	{
 		collect_mem_free(page_addr);
 	}
 
-	page_addr=to_free_page_addr;
-	page_addr-=(BUDDY_START_ADDR + VIRT_MEM_START_ADDR);
-	
 	if ((buddy->order[BLOCK_INDEX(page_addr)] & 16)==0)
 	{
 		return;

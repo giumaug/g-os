@@ -10,6 +10,7 @@ int index_2=0;
 unsigned int collect_mem=0;
 unsigned int collected_mem[1000];
 unsigned int collected_mem_index=0;
+unsigned int allocated_block=0;
 
 void check_free_mem()
 {
@@ -102,6 +103,7 @@ void collect_mem_alloc(unsigned int page_addr)
 	{
 		panic();
 	}
+	allocated_block++;
 }
 
 void collect_mem_free(unsigned int page_addr)
@@ -112,6 +114,7 @@ void collect_mem_free(unsigned int page_addr)
 	{
 		if (collected_mem[i]==page_addr)
 		{
+			allocated_block--;
 			collected_mem[i]=0;
 			break;
 		}

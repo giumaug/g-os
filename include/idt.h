@@ -44,7 +44,6 @@ void set_idt_entry(int entry,struct t_i_desc* i_desc);
 		{                                                                                                  		\
 			DO_STACK_FRAME(_processor_reg.esp-8);                                                      		\
 			free_vm_process(&_old_process_context);                                                               	\
-			buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_kernel_stack));             \
 			  													\
 		}                                                                                                  		\
 		RESTORE_PROCESSOR_REG                                                                              		\
