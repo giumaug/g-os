@@ -234,7 +234,7 @@ void syscall_handler()
 //				buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_add_space));
 //				buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_user_stack));
 //			}
-			buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_kernel_stack)); 	                                  
+			//buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_kernel_stack)); 	                                  
 		}                                                                             
 		RESTORE_PROCESSOR_REG                                
 		EXIT_SYSCALL_HANDLER                                                        

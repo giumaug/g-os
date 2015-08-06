@@ -225,9 +225,24 @@ void free_vm_process(struct t_process_context* process_context)
 		free_vm_process_user_space(process_context->page_dir);
 	}
 	umap_vm_mem(process_context->page_dir,KERNEL_STACK,KERNEL_STACK_SIZE,1);
+	free_kernel_stack(process_context->page_dir,process_context->phy_kernel_stack);
 	buddy_free_page(system.buddy_desc,process_context->page_dir);
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 
+}
+
+void free_kernel_stack(char* page_dir,u32 phy_kernel_stack)
+{
+	unsigned int* page_table;
+
+//	page_table=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*)page_dir)[767]));
+
+//	u32 tmp1=page_table[1021];
+//	u32 tmp2=page_table[1022];
+
+//	buddy_free_page(system.buddy_desc,page_table[1021]);
+//	buddy_free_page(system.buddy_desc,page_table[1022]);
+	buddy_free_page(&system.buddy_desc,FROM_PHY_TO_VIRT(phy_kernel_stack)); 
 }
 
 void free_vm_process_user_space(void* page_dir)
@@ -542,7 +557,7 @@ void page_fault_handler()
 		{                                                                                                  		
 			DO_STACK_FRAME(_processor_reg.esp-8);                                                      	
 			free_vm_process(&_old_process_context.page_dir);                                                 	
-			buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_kernel_stack));             
+//			buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_kernel_stack));             
 			  													
 		}                                                                                                  		
 		RESTORE_PROCESSOR_REG                                                                           		
