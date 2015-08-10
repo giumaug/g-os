@@ -218,7 +218,7 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 void free_vm_process(struct t_process_context* process_context)
 {
 	struct t_process_context* current_process_context;
-
+	
 	umap_vm_mem(process_context->page_dir,0,0x100000,0);
 	if (process_context->process_type==USERSPACE_PROCESS)
 	{

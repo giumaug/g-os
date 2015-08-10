@@ -3,6 +3,9 @@
 #include "memory_manager/fixed_size.h"
 #include "memory_manager/general.h"
 #include "virtual_memory/vm.h"
+#include "debug.h"
+
+extern unsigned int collect_mem;
 
 t_a_fixed_size_desc a_fixed_size_desc[POOL_NUM];
 unsigned int free_mem_list[POOL_NUM];
@@ -61,12 +64,14 @@ void* kmalloc(unsigned int mem_size)
 	{
 		panic();
 	}
+
+	if (collect_mem==1)
+	{
+		collect_mem_alloc(mem_add);
+	}
+
 	//SPINLOCK_UNLOCK
 	RESTORE_IF_STATUS
-	if (mem_add==0xc1c8808f)
-	{
-		i=0;
-	}
 	return mem_add;
 }
 
@@ -74,9 +79,9 @@ void kfree(void *address)
 {	
 	unsigned int pool_index;
 
-	if (address==0xc1c8808f)
+	if (collect_mem==1)
 	{
-		pool_index=0;
+		collect_mem_free((u32) address);
 	}
 
 	SAVE_IF_STATUS
