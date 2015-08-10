@@ -8,7 +8,7 @@ unsigned int proc[100];
 //int t_sched_debug[10][10];
 int index_2=0;
 unsigned int collect_mem=0;
-unsigned int collected_mem[1000];
+unsigned int collected_mem[1500];
 unsigned int collected_mem_index=0;
 unsigned int allocated_block=0;
 
@@ -24,10 +24,10 @@ void check_free_mem()
 
 	for (i=0;i<collected_mem_index;i++)
 	{
-		if (collected_mem[i]!=0)
-		{
-			printk("mem_add=%d \n",collected_mem[i]);
-		}
+//		if (collected_mem[i]!=0)
+//		{
+//			printk("mem_add=%d \n",collected_mem[i]);
+//		}
 	}
 
 	check_active_process();
@@ -94,12 +94,12 @@ void check_active_process()
 
 void collect_mem_alloc(unsigned int page_addr)
 {
-	if (page_addr==161259520 || page_addr==161251328 || page_addr==161255424 || page_addr==161247232 )
+	if (page_addr=0xC193702E)
 	{
-		printk("here!!!!\n");
+		printk("!!!\n");
 	}
 	collected_mem[collected_mem_index++]=page_addr;
-	if (collected_mem_index>999)
+	if (collected_mem_index>1499)
 	{
 		panic();
 	}
