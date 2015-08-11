@@ -284,7 +284,8 @@ void _exit(int status)
 		next_process=next->val;
 	}
 
-	kfree(current_process->file_desc);
+	//kfree(current_process->file_desc);
+	hashtable_free(current_process->file_desc);
 	if (current_process->elf_desc!=NULL)
 	{
 		elf_loader_free(current_process->elf_desc);
