@@ -19,7 +19,7 @@ int main (int argc, char* argv[])
 //	while(1)
 	{
 //		n_request=(rand() % 100 + 1);
-		n_request=1;
+		n_request=2;
 		printf("\nage=%d \n",age);
 		printf("\nrequest number=%d \n",n_request);
 		for (i=0;i<n_request;i++)
@@ -29,7 +29,7 @@ int main (int argc, char* argv[])
 			{	
 				exec(params[0],params);
 			}
-			sleep(30000);
+			sleep(60000);
 		}
 //		age++;
 //		sleep(60000);

@@ -24,6 +24,14 @@ void check_free_mem()
 
 	for (i=0;i<collected_mem_index;i++)
 	{
+		if (collected_mem[i]!=0)
+		{
+			//printk("sds\n");
+		}
+	}
+
+	for (i=0;i<collected_mem_index;i++)
+	{
 //		if (collected_mem[i]!=0)
 //		{
 //			printk("mem_add=%d \n",collected_mem[i]);
@@ -94,9 +102,9 @@ void check_active_process()
 
 void collect_mem_alloc(unsigned int page_addr)
 {
-	if (page_addr=0xC193702E)
+	if (page_addr==3252302914)
 	{
-		printk("!!!\n");
+		printk("aa\n");
 	}
 	collected_mem[collected_mem_index++]=page_addr;
 	if (collected_mem_index>1499)
@@ -109,6 +117,11 @@ void collect_mem_alloc(unsigned int page_addr)
 void collect_mem_free(unsigned int page_addr)
 {
 	unsigned int i=0;
+
+	if (page_addr==3252302914)
+	{
+		printk("bb\n");
+	}
 
 	for (i=0;i<collected_mem_index;i++)
 	{
