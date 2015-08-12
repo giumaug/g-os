@@ -6,6 +6,9 @@
 #include "debug.h"
 
 extern unsigned int collect_mem;
+extern unsigned int collected_mem[1500];
+extern unsigned int collected_mem_index;
+extern unsigned int allocated_block;
 
 t_a_fixed_size_desc a_fixed_size_desc[POOL_NUM];
 unsigned int free_mem_list[POOL_NUM];
@@ -77,6 +80,7 @@ void* kmalloc(unsigned int mem_size)
 
 void kfree(void *address) 
 {	
+	int i;
 	unsigned int pool_index;
 
 	if (collect_mem==1)
@@ -93,6 +97,7 @@ void kfree(void *address)
 		pool_index++;
 	}
 	a_fixed_size_free(&a_fixed_size_desc[pool_index],address);
+	
 	//SPINLOCK_UNLOCK
 	RESTORE_IF_STATUS
 }
