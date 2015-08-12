@@ -26,7 +26,7 @@ void check_free_mem()
 	{
 		if (collected_mem[i]!=0)
 		{
-			//printk("sds\n");
+			printk("sds\n");
 		}
 	}
 
@@ -102,34 +102,45 @@ void check_active_process()
 
 void collect_mem_alloc(unsigned int page_addr)
 {
-	if (page_addr==3252302914)
+	struct t_process_context* current_process;
+
+	CURRENT_PROCESS_CONTEXT(current_process);
+	//if (current_process->pid==3)
 	{
-		printk("aa\n");
+		if (page_addr==3247664262)
+		{
+			printk("aa\n");
+		}
+		collected_mem[collected_mem_index++]=page_addr;
+		if (collected_mem_index>1499)
+		{
+			panic();
+		}
+		allocated_block++;
 	}
-	collected_mem[collected_mem_index++]=page_addr;
-	if (collected_mem_index>1499)
-	{
-		panic();
-	}
-	allocated_block++;
 }
 
 void collect_mem_free(unsigned int page_addr)
 {
 	unsigned int i=0;
+	struct t_process_context* current_process;
 
-	if (page_addr==3252302914)
+	CURRENT_PROCESS_CONTEXT(current_process);
+	//if (current_process->pid==3)
 	{
-		printk("bb\n");
-	}
-
-	for (i=0;i<collected_mem_index;i++)
-	{
-		if (collected_mem[i]==page_addr)
+		if (page_addr==3247664262)
 		{
-			allocated_block--;
-			collected_mem[i]=0;
-			break;
+			printk("bb\n");
+		}
+
+		for (i=0;i<collected_mem_index;i++)
+		{
+			if (collected_mem[i]==page_addr)
+			{
+				allocated_block--;
+				collected_mem[i]=0;
+				break;
+			}
 		}
 	}
 }

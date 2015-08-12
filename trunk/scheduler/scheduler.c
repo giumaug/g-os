@@ -283,9 +283,6 @@ void _exit(int status)
 		next=ll_next(next);
 		next_process=next->val;
 	}
-
-	//kfree(current_process->file_desc);
-	hashtable_free(current_process->file_desc);
 	if (current_process->elf_desc!=NULL)
 	{
 		elf_loader_free(current_process->elf_desc);
@@ -296,6 +293,7 @@ void _exit(int status)
 		delete_mem_reg(current_process->heap_mem_reg);
 		delete_mem_reg(current_process->ustack_mem_reg);
 	}
+	hashtable_free(current_process->file_desc);
 	RESTORE_IF_STATUS
 }
 
@@ -513,7 +511,7 @@ u32 _exec(char* path,char* argv[])
 //	CLI  ----------non serve
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 
-	if (current_process_context->pid >=2)
+	if (current_process_context->pid >2)
 	{
 		collect_mem=1;
 	}
