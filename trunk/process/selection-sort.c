@@ -16,7 +16,7 @@ int main (int argc, char* argv[])
 	selection(elements, maxsize);
 	for (i=0;i<MAXSIZE;i++) 
 	{	
-		printf("value=%d \n",elements[i]);
+		//printf("value=%d \n",elements[i]);
 	} 
 	exit(0);
 }

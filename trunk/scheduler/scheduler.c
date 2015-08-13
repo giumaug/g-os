@@ -514,7 +514,7 @@ u32 _exec(char* path,char* argv[])
 
 	if (current_process_context->pid >2)
 	{
-		collect_mem=1;
+		//collect_mem=1;
 	}
 
 	if (current_process_context->elf_desc==NULL)
