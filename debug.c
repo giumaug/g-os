@@ -107,7 +107,7 @@ void collect_mem_alloc(unsigned int page_addr)
 	CURRENT_PROCESS_CONTEXT(current_process);
 	//if (current_process->pid==3)
 	{
-		if (page_addr==3246502923)
+		if (page_addr==3247665294)
 		{
 			printk("aa\n");
 		}
@@ -128,7 +128,7 @@ void collect_mem_free(unsigned int page_addr)
 	CURRENT_PROCESS_CONTEXT(current_process);
 	//if (current_process->pid==3)
 	{
-		if (page_addr==3246502923)
+		if (page_addr==3247665294)
 		{
 			printk("bb\n");
 		}

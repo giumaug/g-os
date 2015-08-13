@@ -286,6 +286,7 @@ void _exit(int status)
 	if (current_process->elf_desc!=NULL)
 	{
 		elf_loader_free(current_process->elf_desc);
+		kfree(current_process->elf_desc);
 	}
 	if (current_process->process_type==USERSPACE_PROCESS)
 	{
