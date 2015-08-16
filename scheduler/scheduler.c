@@ -384,8 +384,10 @@ int _fork(struct t_processor_reg processor_reg)
 		child_process_context->ustack_mem_reg=create_mem_reg(parent_process_context->ustack_mem_reg->start_addr,
 								     parent_process_context->ustack_mem_reg->end_addr);	
 	}
-	
+
 	ll_prepend(system.scheduler_desc->scheduler_queue[parent_process_context->curr_sched_queue_index],child_process_context);
+
+
 	child_process_context->page_dir=clone_vm_process(parent_process_context->page_dir,
 							 parent_process_context->process_type,
 							 FROM_VIRT_TO_PHY(kernel_stack_addr));
@@ -507,14 +509,12 @@ u32 _exec(char* path,char* argv[])
 	u32 process_size;
 	t_elf_desc* elf_desc;
 
-	printk("path= %s \n",path);
-
 //	CLI  ----------non serve
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 
 	if (current_process_context->pid >2)
 	{
-		//collect_mem=1;
+		collect_mem=1;
 	}
 
 	if (current_process_context->elf_desc==NULL)

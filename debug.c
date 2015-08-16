@@ -22,32 +22,33 @@ void check_free_mem()
 	//buddy_check_mem_status(system.buddy_desc);
 	//a_fixed_size_check_mem_status();
 
+	int kk=0;
 	for (i=0;i<collected_mem_index;i++)
 	{
 		if (collected_mem[i]!=0)
-		{
-			printk("sds\n");
+		{	kk++;
+			if (kk>10)
+			{
+				panic();
+			}
 		}
 	}
 
-	for (i=0;i<collected_mem_index;i++)
-	{
-//		if (collected_mem[i]!=0)
-//		{
-//			printk("mem_add=%d \n",collected_mem[i]);
-//		}
-	}
-
 	check_active_process();
-	if (buddy_mem!=160194560)
+	if (buddy_mem<160700560)
 	{
-		//panic();
+		PRINTK("BUDDY MEMEMORY LEAK!!!");
+		panic();
 	}
-	//279852
-	if (pool_mem!=279850)
+	if (pool_mem<279000)
 	{
-		//panic();
+		PRINTK("POOL MEMEMORY LEAK!!!");
+		panic();
 	}
+	printk("BUDDY MEMORY=%d \n",buddy_mem);
+	printk("POOL MEMORY=%d \n",pool_mem);
+	//collected_mem_index=0;
+	//allocated_block=0;
 }
 
 void check_process_context()
@@ -105,19 +106,17 @@ void collect_mem_alloc(unsigned int page_addr)
 	struct t_process_context* current_process;
 
 	CURRENT_PROCESS_CONTEXT(current_process);
-	//if (current_process->pid==3)
+
+	if (page_addr==3425300480)
 	{
-		if (page_addr==3247664382)
-		{
-			printk("aa\n");
-		}
-		collected_mem[collected_mem_index++]=page_addr;
-		if (collected_mem_index>1499)
-		{
-			panic();
-		}
-		allocated_block++;
+		printk("aa\n");
 	}
+	collected_mem[collected_mem_index++]=page_addr;
+	if (collected_mem_index>1499)
+	{
+		panic();
+	}
+	allocated_block++;
 }
 
 void collect_mem_free(unsigned int page_addr)
@@ -126,21 +125,19 @@ void collect_mem_free(unsigned int page_addr)
 	struct t_process_context* current_process;
 
 	CURRENT_PROCESS_CONTEXT(current_process);
-	//if (current_process->pid==3)
+	
+	if (page_addr==3425300480)
 	{
-		if (page_addr==3247664382)
-		{
-			printk("bb\n");
-		}
+		printk("bb\n");
+	}
 
-		for (i=0;i<collected_mem_index;i++)
+	for (i=0;i<collected_mem_index;i++)
+	{
+		if (collected_mem[i]==page_addr)
 		{
-			if (collected_mem[i]==page_addr)
-			{
-				allocated_block--;
-				collected_mem[i]=0;
-				break;
-			}
+			allocated_block--;
+			collected_mem[i]=0;
+			break;
 		}
 	}
 }

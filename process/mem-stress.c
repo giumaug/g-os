@@ -14,12 +14,10 @@ int main (int argc, char* argv[])
 	params[0]=path;
 	params[1]=NULL;
 
-	check_free_mem();
-
-//	while(1)
+	while(1)
 	{
 //		n_request=(rand() % 100 + 1);
-		n_request=1000;
+		n_request=5;
 		printf("\nage=%d \n",age);
 		printf("\nrequest number=%d \n",n_request);
 		for (i=0;i<n_request;i++)
@@ -29,12 +27,9 @@ int main (int argc, char* argv[])
 			{	
 				exec(params[0],params);
 			}
-			sleep(60000);
-			printf("\nage=%d \n",i);
 		}
-//		age++;
-//		sleep(60000);
-//		printf("\n.........");
+		age++;
+		sleep(60000);
 		check_free_mem();
 	}
 	exit(0);

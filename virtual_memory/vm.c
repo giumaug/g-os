@@ -22,11 +22,9 @@ void* init_virtual_memory()
 	set_idt_entry(0x0E,&i_desc);
 	
 	new_page_dir=buddy_alloc_page(system.buddy_desc,0x1000);
-	for (i=0;i<1024;i++) new_page_dir[i]=0;
+	buddy_clean_mem(new_page_dir);
 	map_vm_mem(new_page_dir,0,0,0x100000,3);
 	map_vm_mem(new_page_dir,VIRT_MEM_START_ADDR,PHY_MEM_START_ADDR,(VIRT_MEM_END_ADDR-VIRT_MEM_START_ADDR),3);
-	//CURRENT_PROCESS_CONTEXT(current_process_context);
-	//SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 
 	return new_page_dir;
 }
 
@@ -95,6 +93,8 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 	struct t_process_context* current_process_context;
 
 	child_page_dir=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
+	
+	buddy_clean_mem(child_page_dir);
 	map_vm_mem(child_page_dir,0,0,0x100000,3); 
 	map_vm_mem(child_page_dir,(KERNEL_STACK-KERNEL_STACK_SIZE),kernel_stack_addr,KERNEL_STACK_SIZE,3);
 
@@ -119,6 +119,7 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 				if (i!=767)
 				{				
 					child_page_table=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
+					buddy_clean_mem(child_page_table);
 				}
 				else
 				{
@@ -316,10 +317,7 @@ void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_ad
 		if (((int*)(page_dir))[i]==0)
 		{	
 			page_table=buddy_alloc_page(system.buddy_desc,0x1000);
-			for (j=0;j<1024;j++)
-			{
-				page_table[j]=0;
-			}
+			buddy_clean_mem(page_table);
 			//ENABLE TO ALL PAGE DIR TO MANAGE PAGE DIR WITH PAGE TABLE WITH DIFFERENT PRIVILEGES
 			((unsigned int*)page_dir)[i]=FROM_VIRT_TO_PHY((unsigned int)page_table) | 7;
 		}
@@ -445,11 +443,6 @@ void page_fault_handler()
 	PRINTK("page fault address=%d \n",fault_addr);
 	PRINTK("\n");
 
-	if (fault_addr==0x0c377000)
-	{
-		printk("ok \n");
-	}
-
 //	if ((fault_code==(PAGE_OUT_MEMORY | USER | PAGE_READ)) || 
 //	    (fault_code==(PAGE_OUT_MEMORY | USER | PAGE_WRITE))|| 
 //	    (fault_code==(PAGE_IN_MEMORY  | USER | PAGE_WRITE))) 
@@ -537,7 +530,7 @@ void page_fault_handler()
 		if (_action2==2)                                                                                   		
 		{                                                                                                  		
 			DO_STACK_FRAME(_processor_reg.esp-8);                                                      	
-			free_vm_process(&_old_process_context.page_dir);                                                 	
+			free_vm_process(_old_process_context.page_dir);                                                 	
 			buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_kernel_stack));             
 			  													
 		}                                                                                                  		
