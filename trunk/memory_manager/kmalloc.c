@@ -68,10 +68,10 @@ void* kmalloc(unsigned int mem_size)
 		panic();
 	}
 
-	if (collect_mem==1)
-	{
-		collect_mem_alloc(mem_add);
-	}
+//	if (collect_mem==1)
+//	{
+//		collect_mem_alloc(mem_add);
+//	}
 
 	//SPINLOCK_UNLOCK
 	RESTORE_IF_STATUS
@@ -83,10 +83,10 @@ void kfree(void *address)
 	int i;
 	unsigned int pool_index;
 
-	if (collect_mem==1)
-	{
-		collect_mem_free((u32) address);
-	}
+//	if (collect_mem==1)
+//	{
+//		collect_mem_free((u32) address);
+//	}
 
 	SAVE_IF_STATUS
 	CLI	

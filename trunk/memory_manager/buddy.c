@@ -87,11 +87,6 @@ void* buddy_alloc_page(t_buddy_desc* buddy,unsigned int mem_size)
 
 	page_addr=*(unsigned int*)(node->val);
 
-	if (page_addr==161226752)
-	{
-		printk("!!!\n");
-	}
-
 	kfree(node->val);
 	ll_delete_node(node);
 	if (next_list_index!=list_index)
@@ -112,6 +107,11 @@ void* buddy_alloc_page(t_buddy_desc* buddy,unsigned int mem_size)
 	buddy->page_list_ref[BLOCK_INDEX((int)page_addr)]=node;
 	system.buddy_desc->count[BLOCK_INDEX((int)page_addr)]=0;
 	new_mem_addr=page_addr+BUDDY_START_ADDR + VIRT_MEM_START_ADDR;
+
+	if (collect_mem==1)
+	{
+		collect_mem_alloc(new_mem_addr);
+	}
 	
 	//SPINLOCK_UNLOCK
 	RESTORE_IF_STATUS
@@ -138,8 +138,13 @@ void buddy_free_page(t_buddy_desc* buddy,void* to_free_page_addr)
 	//SPINLOCK_LOCK
 
 	page_addr=to_free_page_addr;
-	page_addr-=(BUDDY_START_ADDR + VIRT_MEM_START_ADDR);
 
+	if (collect_mem==1)
+	{
+		collect_mem_free(page_addr);
+	}
+
+	page_addr-=(BUDDY_START_ADDR + VIRT_MEM_START_ADDR);
 	if ((buddy->order[BLOCK_INDEX(page_addr)] & 16)==0)
 	{
 		panic();
@@ -200,6 +205,16 @@ unsigned int buddy_free_mem(t_buddy_desc* buddy_desc)
 		tot=tot+4096*(1<<i)*tmp;
 	}
 	return tot;
+}
+
+void buddy_clean_mem(void* page_addr)
+{
+	int i;
+
+	for (i=0;i<PAGE_SIZE/4;i++)
+	{
+		((u32*)page_addr)[i]=0;
+	}
 }
 
 static void buddy_init_mem(t_buddy_desc* buddy)

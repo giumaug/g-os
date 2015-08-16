@@ -116,5 +116,5 @@ void panic()
 	printk("\n");
 	printk("Kernel panic!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 	printk("\n");
-	while(1);
+//	while(1);
 }
