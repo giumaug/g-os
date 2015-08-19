@@ -121,10 +121,6 @@ void hashtable_put(t_hashtable* hashtable,int key,void* value)
 	index=key % hashtable->size;
 	hashtable->elements++;
 	bucket_data=(t_bucket_data*)kmalloc(sizeof(t_bucket_data));
-	if (bucket_data==3246502923)
-	{
-		printk("dd\n");
-	}
 	bucket_data->key=key;
 	bucket_data->value=value;
 	ll_prepend(hashtable->bucket[index],bucket_data);

@@ -8,18 +8,17 @@ int main (int argc, char* argv[])
 	unsigned int age=0;
 	unsigned int pid;
 	char** params;
-	char path[] = "/selection-sort";
+	char path[] = "/fork-wrapper";
+//	char path[] = "/selection-sort";
 	
 	params=malloc(sizeof(char*)*2);
 	params[0]=path;
 	params[1]=NULL;
 
-	check_free_mem();
-
-//	while(1)
+	while(1)
 	{
 //		n_request=(rand() % 100 + 1);
-		n_request=100;
+		n_request=2;
 		printf("\nage=%d \n",age);
 		printf("\nrequest number=%d \n",n_request);
 		for (i=0;i<n_request;i++)
@@ -31,9 +30,8 @@ int main (int argc, char* argv[])
 			}
 		}
 		age++;
-		sleep(60000);
-//		check_free_mem();
+		sleep(90000);
+		check_free_mem();
 	}
-	check_free_mem();
 	exit(0);
 }
