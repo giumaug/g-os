@@ -107,10 +107,10 @@ void collect_mem_alloc(unsigned int page_addr)
 
 	CURRENT_PROCESS_CONTEXT(current_process);
 
-	if (page_addr==3425300480)
-	{
-		printk("aa\n");
-	}
+//	if (page_addr==3425300480)
+//	{
+//		printk("aa\n");
+//	}
 	collected_mem[collected_mem_index++]=page_addr;
 	if (collected_mem_index>1499)
 	{
@@ -126,10 +126,10 @@ void collect_mem_free(unsigned int page_addr)
 
 	CURRENT_PROCESS_CONTEXT(current_process);
 	
-	if (page_addr==3425300480)
-	{
-		printk("bb\n");
-	}
+//	if (page_addr==3425300480)
+//	{
+//		printk("bb\n");
+//	}
 
 	for (i=0;i<collected_mem_index;i++)
 	{
