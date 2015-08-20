@@ -31,6 +31,7 @@ static void a_usr_space_init(t_a_usr_space_desc *a_fixed_size_desc,unsigned int 
 		current_block_desc->previous_block=previous_block_desc;
                 previous_block_desc=current_block_desc;
                 current_block_desc=next_block_desc;
+		//printf("--block=%d \n",current_block_desc);
         }
 	current_block_desc->next_block=first_block_desc;
 	current_block_desc->previous_block=previous_block_desc;
@@ -82,7 +83,9 @@ static void init_malloc()
 	for (i=0;i<POOL_NUM;i++)
 	{
 		mem_addr+=MEM_TO_POOL;
-		a_usr_space_init(&a_fixed_size_desc[i],pow2(2+i),mem_addr,MEM_TO_POOL);  
+		printf("...1 \n");
+		a_usr_space_init(&a_fixed_size_desc[i],pow2(2+i),mem_addr,MEM_TO_POOL); 
+		printf("...2 \n");
 	}
 }
 
