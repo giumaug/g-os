@@ -83,9 +83,7 @@ static void init_malloc()
 	for (i=0;i<POOL_NUM;i++)
 	{
 		mem_addr+=MEM_TO_POOL;
-		printf("...1 \n");
 		a_usr_space_init(&a_fixed_size_desc[i],pow2(2+i),mem_addr,MEM_TO_POOL); 
-		printf("...2 \n");
 	}
 }
 

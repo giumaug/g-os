@@ -430,6 +430,7 @@ void page_fault_handler()
 	void* parent_page_table;
 
 	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
 	GET_FAULT_ADDRESS(fault_addr,fault_code);
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 
