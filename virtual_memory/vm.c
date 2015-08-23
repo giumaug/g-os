@@ -434,6 +434,11 @@ void page_fault_handler()
 	GET_FAULT_ADDRESS(fault_addr,fault_code);
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 
+	if (current_process_context->pid>1000)
+	{
+		panic();
+	}
+
 	on_exit_action=0;
 	GET_STACK_POINTER(ustack_pointer)
 	page_num=fault_addr / PAGE_SIZE;
@@ -532,8 +537,7 @@ void page_fault_handler()
 		{                                                                                                  		
 			DO_STACK_FRAME(_processor_reg.esp-8);                                                      	
 			free_vm_process(_old_process_context.page_dir);                                                 	
-			buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_kernel_stack));             
-			  													
+			buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_kernel_stack)); 						
 		}                                                                                                  		
 		RESTORE_PROCESSOR_REG                                                                           		
 		EXIT_SYSCALL_HANDLER_FLUSH                                                                               		
