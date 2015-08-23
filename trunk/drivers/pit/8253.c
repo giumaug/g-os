@@ -146,7 +146,7 @@ exit_handler:;
 		DO_STACK_FRAME(_processor_reg.esp-8); 
 		if (_action2==2)                                                                              
 		{                                                                         
-			DO_STACK_FRAME(_processor_reg.esp-8);                                               
+			DO_STACK_FRAME(_processor_reg.esp-8); 	                                
 //			free_vm_process(_old_process_context.page_dir,INIT_VM_USERSPACE);
 			free_vm_process(&_old_process_context);
 //			if (_old_process_context.phy_add_space!=NULL)
