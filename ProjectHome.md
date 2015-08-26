@@ -1,0 +1,2 @@
+Fully preemptive scheduler with virtual memory manager for x86 architecture.
+Some features:user/kernel mode separation,memory manager,virtual memory,fully preemption,ext2 support,elf loader,copy on write and demand paging.
