@@ -216,27 +216,27 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 //	buddy_free_page(system.buddy_desc,process_context->page_dir);
 //}
 
+
+
+//NO SWITCH_PAGE_DIR NEEDED BECAUSE IT WORKS ON OLD PROCESS
 void free_vm_process(struct t_process_context* process_context)
-{
-	struct t_process_context* current_process_context;
-	
+{	
 	if (process_context->process_type==USERSPACE_PROCESS)
 	{
-		free_vm_process_user_space(process_context->page_dir);
+		free_vm_process_user_space(process_context);
 	}
 	umap_vm_mem(process_context->page_dir,0,0x100000,1);
 	umap_vm_mem(process_context->page_dir,KERNEL_STACK,KERNEL_STACK_SIZE,1);
 	buddy_free_page(system.buddy_desc,process_context->page_dir);
-	CURRENT_PROCESS_CONTEXT(current_process_context);
-	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 
 }
 
-void free_vm_process_user_space(void* page_dir)
+void free_vm_process_user_space(struct t_process_context* process_context)
 {
 	unsigned int i,j;
 	unsigned int* page_table;
-	struct t_process_context* current_process_context;
+	void* page_dir;
 
+	page_dir=process_context->page_dir;
 	page_table=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*)page_dir)[0]));
 	
 	for (i=256;i<1024;i++)
@@ -284,8 +284,7 @@ void free_vm_process_user_space(void* page_dir)
 			}
 		}
 	}
-	CURRENT_PROCESS_CONTEXT(current_process_context);
-	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 
+	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) process_context->page_dir))) 
 }
 
 void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_addr,int mem_size,u32 flags)
@@ -540,7 +539,7 @@ void page_fault_handler()
 		if (_action2==2)                                                                                   		
 		{                                                                                                  		
 			DO_STACK_FRAME(_processor_reg.esp-8);                                                      	
-			free_vm_process(_old_process_context.page_dir);                                                 	
+			free_vm_process(&_old_process_context);                                                 	
 			buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_kernel_stack)); 						
 		}                                                                                                  		
 		RESTORE_PROCESSOR_REG                                                                           		

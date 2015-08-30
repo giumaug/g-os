@@ -583,7 +583,7 @@ u32 _exec(char* path,char* argv[])
 	}
 	else
 	{
-		free_vm_process_user_space(current_process_context->page_dir);
+		free_vm_process_user_space(current_process_context);
 	}
 	current_process_context->process_type=USERSPACE_PROCESS;
 

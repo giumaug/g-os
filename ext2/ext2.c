@@ -69,10 +69,10 @@ int _close(t_ext2* ext2,int fd)
 	if (inode!=NULL)
 	{
 		ret=0;
+		kfree(inode);
 	}
 	//AT THE MOMENT READ ONLY	
 	//write_inode(system.root_fs,inode);
-	kfree(inode);
 	return ret;
 }
 

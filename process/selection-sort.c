@@ -9,6 +9,10 @@ void selection(int elements[], int array_size);
 
 int main (int argc, char* argv[])
 {
+	int* xxx;
+	xxx=0;
+	*xxx=1;
+
 	int elements[MAXSIZE];
 	int i;
 	for (i=MAXSIZE;i>0;i--) 
