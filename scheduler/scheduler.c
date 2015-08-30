@@ -516,7 +516,7 @@ u32 _exec(char* path,char* argv[])
 	{
 		//collect_mem=1;
 	}
-	printk("exec: %s \n",path);
+	//printk("exec: %s \n",path);
 
 	if (current_process_context->elf_desc==NULL)
 	{

@@ -37,9 +37,6 @@ void int_handler_ata()
 	struct t_processor_reg processor_reg;
 	t_io_request* io_request;
 	struct t_process_context* process_context;
-	struct t_process_context* xxx;
-
-	CURRENT_PROCESS_CONTEXT(xxx);
 
 	SAVE_PROCESSOR_REG
 	disable_irq_line(14);

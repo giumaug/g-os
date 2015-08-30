@@ -434,11 +434,6 @@ void page_fault_handler()
 	GET_FAULT_ADDRESS(fault_addr,fault_code);
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 
-	if (current_process_context->pid>1000)
-	{
-		panic();
-	}
-
 	on_exit_action=0;
 	GET_STACK_POINTER(ustack_pointer)
 	page_num=fault_addr / PAGE_SIZE;
@@ -461,6 +456,12 @@ void page_fault_handler()
 			{
 				page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
 				map_vm_mem(current_process_context->page_dir,aligned_fault_addr,FROM_VIRT_TO_PHY(page_addr),PAGE_SIZE,7);
+				
+				u32 tmp1=BLOCK_INDEX(FROM_VIRT_TO_PHY(page_addr));
+				void* aaa=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) current_process_context->page_dir)[0]));
+				u32 bbb=ALIGN_4K(((unsigned int*) aaa)[256]);
+
+
 				system.buddy_desc->count[BLOCK_INDEX(FROM_VIRT_TO_PHY(page_addr))]++;
 				elf_loader_read(current_process_context->elf_desc,fault_addr,page_addr);
 			}
@@ -487,13 +488,6 @@ void page_fault_handler()
 					map_vm_mem(current_process_context->page_dir,aligned_fault_addr,FROM_VIRT_TO_PHY(page_addr),PAGE_SIZE,7);
 					system.buddy_desc->count[BLOCK_INDEX(phy_fault_addr)]--;
 					system.buddy_desc->count[BLOCK_INDEX(FROM_VIRT_TO_PHY(page_addr))]++;
-					//kmemcpy(page_addr,aligned_fault_addr ,PAGE_SIZE);
-					u32* xxx;
-					xxx=aligned_fault_addr;
-					if (xxx==100)
-					{
-						//uso ancora vecchio stack????
-					}
 				}
 			}
 		}
