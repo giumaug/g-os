@@ -505,7 +505,7 @@ void page_fault_handler()
 		{
 			current_process_context->ustack_mem_reg->start_addr=aligned_fault_addr;
 			page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
-			map_vm_mem(current_process_context->page_dir,aligned_fault_addr,page_addr,PAGE_SIZE,7);
+			map_vm_mem(current_process_context->page_dir,aligned_fault_addr,FROM_VIRT_TO_PHY(page_addr),PAGE_SIZE,7);
 			system.buddy_desc->count[BLOCK_INDEX(FROM_VIRT_TO_PHY(page_addr))]++;
 		}
 		else

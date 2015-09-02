@@ -14,7 +14,6 @@ int main (int argc, char* argv[])
 	for (i=MAXSIZE;i>0;i--) 
 	{	
 		elements[MAXSIZE-i]=i;
-		printf("ite=%d \n",i);
 	} 
         maxsize=MAXSIZE;
 	selection(elements, maxsize);
