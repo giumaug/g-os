@@ -445,10 +445,10 @@ void page_fault_handler()
 
 	ustack_pointer=processor_reg.esp+20;
 
-//	if (fault_addr>=current_process_context->ustack_mem_reg->start_addr && fault_addr<=current_process_context->ustack_mem_reg->end_addr)
-//	{
-//		printk("stack exception \n");
-//	}
+	if (fault_addr>=current_process_context->ustack_mem_reg->start_addr && fault_addr<=current_process_context->ustack_mem_reg->end_addr)
+	{
+		printk("user stack exception \n");
+	}
 
 //	if ((fault_code==(PAGE_OUT_MEMORY | USER | PAGE_READ)) || 
 //	    (fault_code==(PAGE_OUT_MEMORY | USER | PAGE_WRITE))|| 
