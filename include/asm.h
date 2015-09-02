@@ -99,11 +99,11 @@
                 asm ("			pop %ax;                                   \
 		    ");	
 
-#define GET_STACK_POINTER(ustack_pointer)	asm("                                            \
-						     push %%eax;                                 \
-						     mov %%esp,%%eax;                            \
-						     mov  %%eax, %0;                             \
-						     pop %%eax;":"=r"(ustack_pointer)::"%eax");
+//#define GET_STACK_POINTER(ustack_pointer)	asm("                                            \
+//						     push %%eax;                                 \
+//						     mov %%esp,%%eax;                            \
+//						     mov  %%eax, %0;                             \
+//						     pop %%eax;":"=r"(ustack_pointer)::"%eax");
 
 //IN ORDER TO PROTECT EAX I NEED BOTH TO PUSH AND POP IT ON STACK AND HITS ABOUT IT ASM INLNE
 //ASM INLINE DOSN'T KNOW REGARDING FINAL POP

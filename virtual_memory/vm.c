@@ -413,7 +413,7 @@ void umap_vm_mem(void* page_dir,unsigned int virt_mem_addr,unsigned int mem_size
 void page_fault_handler()
 {
 	u32 on_exit_action;
-	u32 ustack_pointer;
+	u32* ustack_pointer;
 	u32 fault_addr;
 	u32 aligned_fault_addr;
 	char fault_code;
@@ -435,7 +435,6 @@ void page_fault_handler()
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 
 	on_exit_action=0;
-	GET_STACK_POINTER(ustack_pointer)
 	page_num=fault_addr / PAGE_SIZE;
 	page_offset=fault_addr % PAGE_SIZE;
 	aligned_fault_addr=fault_addr & (~(PAGE_SIZE-1));
@@ -443,6 +442,13 @@ void page_fault_handler()
 
 	PRINTK("page fault address=%d \n",fault_addr);
 	PRINTK("\n");
+
+	ustack_pointer=processor_reg.esp+20;
+
+//	if (fault_addr>=current_process_context->ustack_mem_reg->start_addr && fault_addr<=current_process_context->ustack_mem_reg->end_addr)
+//	{
+//		printk("stack exception \n");
+//	}
 
 //	if ((fault_code==(PAGE_OUT_MEMORY | USER | PAGE_READ)) || 
 //	    (fault_code==(PAGE_OUT_MEMORY | USER | PAGE_WRITE))|| 
@@ -490,10 +496,14 @@ void page_fault_handler()
 					system.buddy_desc->count[BLOCK_INDEX(FROM_VIRT_TO_PHY(page_addr))]++;
 				}
 			}
+			else
+			{
+				printk("ssssssssssssssssssssss\n");
+			}
 		}
-		else if ((ustack_pointer-32)<=fault_addr)
+		else if ((fault_code & 0x4)==USER && ((*(u32*)(processor_reg.esp+20))-32)<=fault_addr)
 		{
-			current_process_context->ustack_mem_reg->start_addr=-PAGE_SIZE;
+			current_process_context->ustack_mem_reg->start_addr=aligned_fault_addr;
 			page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
 			map_vm_mem(current_process_context->page_dir,aligned_fault_addr,page_addr,PAGE_SIZE,7);
 			system.buddy_desc->count[BLOCK_INDEX(FROM_VIRT_TO_PHY(page_addr))]++;
