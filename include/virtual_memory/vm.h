@@ -39,7 +39,7 @@ void free_vm_process(struct t_process_context* process_context);
 void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_addr,int mem_size,u32 flags);
 void umap_vm_mem(void* page_dir,unsigned int virt_mem_addr,unsigned int mem_size,unsigned int flush);
 void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_addr);
-void free_vm_process_user_space(void* page_dir);
+void free_vm_process_user_space(struct t_process_context* process_context);
 
 #endif
 
