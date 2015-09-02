@@ -290,10 +290,34 @@ int _seek(t_ext2* ext2,int fd,unsigned int offset,int whence)
 	struct t_process_context* current_process_context;
 	t_inode* inode;
 
+	if (whence==SEEK_SET)
+	{
+		if (offset>inode->i_size || offset<0)
+		{
+			return -1;
+		}
+		inode->file_offset=offset;
+	}
+	else if (whence==SEEK_CUR)
+	{
+		if (inode->file_offset+offset>inode->i_size || inode->file_offset+offset<0)
+		{
+			return -1;
+		}
+		inode->file_offset+=offset;
+	}
+	else if (whence==SEEK_END)
+	{
+		if (inode->i_size+offset>inode->i_size || inode->i_size+offset<0)
+		{
+			return -1;
+		}
+		inode->i_size+=offset;
+	}
+
 	CURRENT_PROCESS_CONTEXT(current_process_context);	
 	inode=hashtable_get(current_process_context->file_desc,fd);
-	// ONLY SEEK_SET AT THE MOMENT
-	inode->file_offset=offset;
+	//inode->file_offset=offset;
 	return offset;
 }
 

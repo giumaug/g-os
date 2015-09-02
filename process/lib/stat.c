@@ -8,3 +8,10 @@ int mkdir(const char *fullpath)
 	SYSCALL(23,params);
 	return  params[1];
 }
+
+int stat(const char *pathname, struct stat *buf)
+{
+
+}
+
+
