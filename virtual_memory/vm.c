@@ -284,7 +284,7 @@ void free_vm_process_user_space(struct t_process_context* process_context)
 			}
 		}
 	}
-	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) process_context->page_dir))) 
+	//SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) process_context->page_dir))) 
 }
 
 void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_addr,int mem_size,u32 flags)
@@ -543,7 +543,7 @@ void page_fault_handler()
 			buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_kernel_stack)); 						
 		}                                                                                                  		
 		RESTORE_PROCESSOR_REG                                                                           		
-		EXIT_SYSCALL_HANDLER_FLUSH                                                                               		
+		EXIT_SYSCALL_HANDLER                                                                           		
 	}                                                                                                          		
 	else                                                                                                       		
 	{                                                                                                            		
