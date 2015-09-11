@@ -13,6 +13,19 @@
 
 unsigned int seed;
 
+struct s_stat 
+{             
+	unsigned short st_ino;
+	unsigned short st_mode;
+	unsigned short st_uid;
+	unsigned short st_gid;
+	unsigned int st_size;
+	unsigned int st_atime;
+	unsigned int st_mtime;
+	unsigned int st_ctime;
+}
+typedef t_stat;
+
 //fcntl.h
 int open(const char *fullpath, int flags);
 
@@ -56,6 +69,9 @@ int mkdir(const char *fullpath);
 
 //debug.h
 void check_free_mem();
+
+//sys/stat.h
+int stat(char* pathname, t_stat* stat);
 
 #endif
 

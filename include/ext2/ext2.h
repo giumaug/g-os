@@ -184,6 +184,19 @@ typedef struct s_inode
 }
 t_inode;
 
+struct s_stat 
+{             
+	u16 st_ino;
+	u16 st_mode;
+	u16 st_uid;
+	u16 st_gid;
+	u32 st_size;
+	u32 st_atime;
+	u32 st_mtime;
+	u32 st_ctime;
+}
+typedef t_stat;
+
 struct s_device_desc;
 
 typedef struct s_ext2
@@ -205,6 +218,7 @@ int _seek(t_ext2* ext2,int fd,unsigned int offset,int whence);
 int _rm(t_ext2* ext2,char* fullpath);
 int _mkdir(t_ext2* ext2,const char* fullpath);
 int _chdir(t_ext2* ext2,char* path);
+int _stat(t_ext2* ext2,char* pathname,t_stat* stat);
 void _break();
 
 #endif

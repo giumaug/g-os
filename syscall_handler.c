@@ -177,6 +177,10 @@ void syscall_handler()
 		params[1]=_chdir(system.root_fs,(char*) params[0]); 
 		on_exit_action=1; 	
 	}
+	else if (syscall_num==27)
+	{
+		params[2]=_stat(system.root_fs,(char*) params[0],params[1]); 	
+	}
 	else if (syscall_num==101) 
 	{
 		on_exit_action=1; 

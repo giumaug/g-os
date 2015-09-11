@@ -421,3 +421,15 @@ int _chdir(t_ext2* ext2,char* path)
 	}
 	kfree(inode);
 }
+
+int _stat(t_ext2* ext2,char* pathname,t_stat* stat)
+{
+	int ret_code=-1;
+
+	ret_code=lookup_inode(pathname,ext2,stat);		
+	if (ret_code==-1)
+	{
+		return -1;
+	}
+	return 0;	
+}
