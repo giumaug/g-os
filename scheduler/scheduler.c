@@ -584,6 +584,7 @@ u32 _exec(char* path,char* argv[])
 	else
 	{
 		free_vm_process_user_space(current_process_context);
+		current_process_context->process_mem_reg->end_addr=PROC_VIRT_MEM_START_ADDR+process_size;
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 
 	}
 	current_process_context->process_type=USERSPACE_PROCESS;
