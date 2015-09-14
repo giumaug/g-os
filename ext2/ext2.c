@@ -20,6 +20,11 @@ void free_ext2(t_ext2* ext2)
 	//kfree(ext2->root_dir_inode);
 }
 
+void stop_here()
+{
+	printk("stop!!!\n");
+}
+
 int _open(t_ext2* ext2,const char* fullpath, int flags)
 {
 	u32 fd;
@@ -40,6 +45,7 @@ int _open(t_ext2* ext2,const char* fullpath, int flags)
 	{
 		int a=1;
 		printk("!!!---------!\n");
+		stop_here();
 	}
 
 	if (flags & O_CREAT & O_RDWR)

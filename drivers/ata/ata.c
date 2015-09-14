@@ -55,6 +55,7 @@ void int_handler_ata()
 
 	io_request=system.device_desc->serving_request;
 	process_context=io_request->process_context;
+
 	if (system.device_desc->status!=POOLING_MODE)
 	{
 		sem_up(&io_request->device_desc->sem);
