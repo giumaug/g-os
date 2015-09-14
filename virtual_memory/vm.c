@@ -433,6 +433,11 @@ void page_fault_handler()
 	GET_FAULT_ADDRESS(fault_addr,fault_code);
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 
+	if (current_process_context->pid==2)
+	{
+		printk("eeee!!!\n");
+	}
+
 	on_exit_action=0;
 	page_num=fault_addr / PAGE_SIZE;
 	page_offset=fault_addr % PAGE_SIZE;
@@ -443,11 +448,6 @@ void page_fault_handler()
 	PRINTK("\n");
 
 	ustack_pointer=processor_reg.esp+20;
-
-	if (fault_addr>=current_process_context->ustack_mem_reg->start_addr && fault_addr<=current_process_context->ustack_mem_reg->end_addr)
-	{
-		printk("user stack exception \n");
-	}
 
 //	if ((fault_code==(PAGE_OUT_MEMORY | USER | PAGE_READ)) || 
 //	    (fault_code==(PAGE_OUT_MEMORY | USER | PAGE_WRITE))|| 

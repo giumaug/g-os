@@ -333,10 +333,6 @@ u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode)
 		PRINTK("\n");
 	}
 	
-//	else
-//	{
-//		parent_dir_inode=inode_parent;
-//	}
 	if (found_inode)
 	{	
 		j=0;
@@ -353,7 +349,7 @@ u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode)
 				name[j++]='\0';
 				j=0;
 				ret=read_dir_inode(name,parent_dir_inode,ext2,inode);
-				if (!ret)
+				if (ret<0)
 				{
 					break;
 				}

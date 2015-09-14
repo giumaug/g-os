@@ -290,6 +290,8 @@ int _seek(t_ext2* ext2,int fd,unsigned int offset,int whence)
 	struct t_process_context* current_process_context;
 	t_inode* inode;
 
+	CURRENT_PROCESS_CONTEXT(current_process_context);
+	inode=hashtable_get(current_process_context->file_desc,fd);
 	if (whence==SEEK_SET)
 	{
 		if (offset>inode->i_size || offset<0)
@@ -315,9 +317,9 @@ int _seek(t_ext2* ext2,int fd,unsigned int offset,int whence)
 		inode->i_size+=offset;
 	}
 
-	CURRENT_PROCESS_CONTEXT(current_process_context);	
-	inode=hashtable_get(current_process_context->file_desc,fd);
-	//inode->file_offset=offset;
+//	CURRENT_PROCESS_CONTEXT(current_process_context);	
+//	inode=hashtable_get(current_process_context->file_desc,fd);
+//	inode->file_offset=offset;
 	return offset;
 }
 
@@ -424,12 +426,26 @@ int _chdir(t_ext2* ext2,char* path)
 
 int _stat(t_ext2* ext2,char* pathname,t_stat* stat)
 {
+	t_inode* inode;
 	int ret_code=-1;
 
-	ret_code=lookup_inode(pathname,ext2,stat);		
+	inode=kmalloc(sizeof(t_inode));
+	ret_code=lookup_inode(pathname,ext2,inode);		
 	if (ret_code==-1)
 	{
+		kfree(inode);
 		return -1;
 	}
+       
+	stat->st_ino=inode->i_number;
+	stat->st_mode=inode->i_mode;
+	stat->st_uid=inode->i_uid;
+	stat->st_gid=inode->i_gid;
+	stat->st_size=inode->i_size;
+	stat->st_atime=inode->i_atime;
+	stat->st_mtime=inode->i_mtime;
+	stat->st_ctime=inode->i_ctime;
+
+	kfree(inode);
 	return 0;	
 }

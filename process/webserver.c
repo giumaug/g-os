@@ -106,11 +106,14 @@ int main (int argc, char* argv[])
 
 	while(1)
 	{
+		printf("-----1 \n");
 		source_id=(rand() % 83 + 1);
 		n_request=(rand() % 100 + 1);
 
 		printf("\nage=%d \n",age);
 		printf("\nrequest number=%d \n",n_request);
+
+		printf("-----2 \n");
 
 		for (i=0;i<n_request;i++)
 		{
