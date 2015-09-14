@@ -5,17 +5,16 @@ int main (int argc, char* argv[])
 {
 	int i,f;
         char* io_buffer;
+	t_stat stat;
 	
-	io_buffer=malloc(30000);
+	stat(argv[0],&stat);
+	io_buffer=malloc(stat.st_size+1);
 	f=open(argv[1], O_RDWR | O_APPEND);
-	read(f,io_buffer,18736);
+	read(f,io_buffer,stat.st_size);
 	close(f);
-	printf("\n");
-	printf("hello !!!!!!");
-	io_buffer[18737]='\0';
-	printf("\n");
+	
+	io_buffer[stat.st_size+1]='\0';
 	printf(io_buffer);
-	printf("\n");
 	free(io_buffer);
 	exit(0);
 }
