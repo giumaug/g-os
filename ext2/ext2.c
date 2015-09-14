@@ -36,6 +36,12 @@ int _open(t_ext2* ext2,const char* fullpath, int flags)
 	//current_process_context->file_desc=kmalloc(sizeof(t_hashtable));
 	//hashtable_init(current_process_context->file_desc,10);
 
+	if (current_process_context->pid==6)
+	{
+		int a=1;
+		printk("!!!---------!\n");
+	}
+
 	if (flags & O_CREAT & O_RDWR)
 	{
 		alloc_inode(fullpath,0,system.root_fs,inode);

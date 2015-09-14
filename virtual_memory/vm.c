@@ -433,11 +433,6 @@ void page_fault_handler()
 	GET_FAULT_ADDRESS(fault_addr,fault_code);
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 
-	if (current_process_context->pid==2)
-	{
-		printk("eeee!!!\n");
-	}
-
 	on_exit_action=0;
 	page_num=fault_addr / PAGE_SIZE;
 	page_offset=fault_addr % PAGE_SIZE;
@@ -509,7 +504,7 @@ void page_fault_handler()
 		}
 		else
 		{
-			printk("\n Segmentation fault. \n");
+			printk("\n ...Segmentation fault. \n");
 			_exit(0);
 			on_exit_action=2;
 		}
