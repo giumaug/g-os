@@ -284,6 +284,11 @@ void free_block()
 	//nothing
 }
 
+void _break()
+{
+	return;
+}
+
 u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode)
 {
 	u32 ret;
@@ -347,6 +352,17 @@ u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode)
 			else 
 			{
 				name[j++]='\0';
+
+				if (current_process_context->pid==6)
+				{
+					//_break();
+				}
+
+				if (strcmp(name,"memory_manager")==0)
+				{
+					_break();
+				}
+
 				j=0;
 				ret=read_dir_inode(name,parent_dir_inode,ext2,inode);
 				if (ret<0)

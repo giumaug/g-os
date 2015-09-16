@@ -413,12 +413,6 @@ int _mkdir(t_ext2* ext2,const char* fullpath)
 //	return 0;
 //}
 
-//just to setup a breakpoint
-_break()
-{
-	return;
-}
-
 int _chdir(t_ext2* ext2,char* path)
 {
 	u32 current_dir_inode;
