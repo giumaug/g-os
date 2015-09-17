@@ -358,13 +358,14 @@ u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode)
 					//_break();
 				}
 
-				if (strcmp(name,"memory_manager")==0)
+				j=0;
+				ret=read_dir_inode(name,parent_dir_inode,ext2,inode);
+
+				if (current_process_context->pid==6)
 				{
 					_break();
 				}
-
-				j=0;
-				ret=read_dir_inode(name,parent_dir_inode,ext2,inode);
+			
 				if (ret<0)
 				{
 					break;
