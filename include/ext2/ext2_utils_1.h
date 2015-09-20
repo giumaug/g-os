@@ -295,6 +295,7 @@ u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode)
 	u32 found_inode;
         int i,j;
         t_inode* parent_dir_inode;
+	t_inode* tmp_parent_dir_inode;
         char name[NAME_MAX];
 
 	struct t_process_context* current_process_context;
@@ -302,7 +303,6 @@ u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode)
 
 	ret=-1;
 	found_inode=0;
-	parent_dir_inode=kmalloc(sizeof(t_inode));
 
 	if (path[0]=='/' && path[1]=='\0')
 	{
@@ -315,19 +315,20 @@ u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode)
 		inode->i_number=current_process_context->current_dir_inode_number;
 		read_inode(ext2,inode);
 		return 0;
-	}  
-        else if (path[0]=='/')
+	}
+	tmp_parent_dir_inode=kmalloc(sizeof(t_inode));
+        if (path[0]=='/')
         {
-		parent_dir_inode->i_number=current_process_context->root_dir_inode_number;
-		read_inode(ext2,parent_dir_inode);
+		tmp_parent_dir_inode->i_number=current_process_context->root_dir_inode_number;
+		read_inode(ext2,tmp_parent_dir_inode);
 		found_inode=1;                              
                 i=1;
         }
         else if(path[0]=='.' && path[1]=='/')
         {
 //		CURRENT_PROCESS_CONTEXT(current_process_context);
-		parent_dir_inode->i_number=current_process_context->current_dir_inode_number;
-		read_inode(ext2,parent_dir_inode);
+		tmp_parent_dir_inode->i_number=current_process_context->current_dir_inode_number;
+		read_inode(ext2,tmp_parent_dir_inode);
 		found_inode=1;
                 i=2;    
         }
@@ -341,6 +342,7 @@ u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode)
 	if (found_inode)
 	{	
 		j=0;
+		parent_dir_inode=tmp_parent_dir_inode;
 		while (path[i]!='\0')
 		{
 			found_inode=0;
@@ -353,7 +355,7 @@ u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode)
 			{
 				name[j++]='\0';
 
-				if (current_process_context->pid==6)
+				if (current_process_context->pid==9)
 				{
 					//_break();
 				}
@@ -361,11 +363,11 @@ u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode)
 				j=0;
 				ret=read_dir_inode(name,parent_dir_inode,ext2,inode);
 
-				if (current_process_context->pid==6)
+				if (current_process_context->pid==9)
 				{
 					_break();
 				}
-			
+				
 				if (ret<0)
 				{
 					break;
@@ -386,7 +388,7 @@ u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode)
 			ret=read_dir_inode(name,parent_dir_inode,ext2,inode);
 		}
 	}
-	kfree(parent_dir_inode);
+	kfree(tmp_parent_dir_inode);
 	return ret;
 }
 

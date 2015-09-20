@@ -68,12 +68,11 @@ void* kmalloc(unsigned int mem_size)
 		panic();
 	}
 
-//	if (collect_mem==1)
-//	{
-//		collect_mem_alloc(mem_add);
-//	}
-
 	//SPINLOCK_UNLOCK
+//	if (mem_add==0xc1da3652)
+//	{
+//		printk("allocated!!!\n");
+//	}
 	RESTORE_IF_STATUS
 	return mem_add;
 }
@@ -83,14 +82,14 @@ void kfree(void *address)
 	int i;
 	unsigned int pool_index;
 
-//	if (collect_mem==1)
-//	{
-//		collect_mem_free((u32) address);
-//	}
-
 	SAVE_IF_STATUS
 	CLI	
 	//SPINLOCK_LOCK
+//	if ((u32*)address==0xc1da3652)
+//	{
+//		printk("deallocated!!!\n");
+//	}
+
 	pool_index=0;
 	while ((pool_index+1)*MEM_TO_POOL<(address-VIRT_MEM_START_ADDR-POOL_START_ADDR))
 	{

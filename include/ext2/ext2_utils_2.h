@@ -622,7 +622,7 @@ u32 static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext2
 //			j++;
 //		}
 //		if(name_len==j && name_len!=0)
-		if (strcmp(&io_buffer[next_entry+8+j],file_name)==0) 
+		if (strncmp(&io_buffer[next_entry+8+j],file_name,name_len)==0) 
 		{
 			found_inode=1;
 			breakpoint();

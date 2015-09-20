@@ -126,7 +126,7 @@ int main (int argc, char* argv[])
 			}
 		}
 		age++;
-		sleep(90000);
+		sleep(150000);
 		check_free_mem();
 	}
 	exit(0);
