@@ -45,6 +45,16 @@ static read_mac_i8254x(t_i8254x* i8254x)
 
 static rx_init_i8254x()
 {
+	int i;
+	char* rx_desc_ring;
+	t_rx_desc_i8254x* rx_desc;
+
+	rx_desc_ring=kmalloc(sizeof(t_rx_desc_i8254x)*NUM_RX_DESC);
+	rx_desc=rx_desc_ring;
+	for (i=0;i<NUM_RX_DESC;i++)
+	{
+		rx_desc[i]->addr=
+	}
 
 }
 
