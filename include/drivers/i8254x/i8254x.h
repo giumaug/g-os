@@ -16,6 +16,8 @@
 #define TDLEN                   0x03808
 #define NUM_RX_DESC             0x20
 #define NUM_TX_DESC             0x20
+#define RX_BUF_SIZE             0x2000
+#define TX_BUF_SIZE
 
 typedef struct s_i8254x
 {
@@ -26,9 +28,10 @@ typedef struct s_i8254x
 }
 t_i8254x;
 
-typedef struct s_rx_desc_i8254x 
+typedef struct __attribute__((packed)) s_rx_desc_i8254x 
 {
-        volatile u32 addr;
+	volatile u32 low_addr:
+        volatile u32 hi_addr;
         volatile u16 length;
         volatile u16 checksum;
         volatile u8 status;
@@ -37,9 +40,10 @@ typedef struct s_rx_desc_i8254x
 }
 t_rx_desc_i8254x;
  
-typedef struct tx_desc_i8254x 
+typedef struct __attribute__((packed)) tx_desc_i8254x 
 {
-        volatile u32 addr;
+        volatile u32 low_addr;
+	volatile u32 hi_addr;
         volatile u16 length;
         volatile u8 cso;
         volatile u8 cmd;

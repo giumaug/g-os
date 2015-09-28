@@ -53,9 +53,13 @@ static rx_init_i8254x()
 	rx_desc=rx_desc_ring;
 	for (i=0;i<NUM_RX_DESC;i++)
 	{
-		rx_desc[i]->addr=
+		rx_desc[i]->low_addr=0;
+		rx_desc[i]->low_addr=kmalloc(RX_BUF_SIZE);
+		rx_desc[i]->status=0;
 	}
-
+	write_i8254x(i8254x,TDBAL,rx_desc_ring);
+	write_i8254x(i8254x,TDBAH,0);
+	write_i8254x(i8254x,TDLEN,NUM_RX_DESC*16);
 }
 
 static tx_init_i8254x()
