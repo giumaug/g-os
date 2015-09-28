@@ -8,16 +8,41 @@
 #define I8254X_FUNC 		XX
 #define I8254X_MEM_BASE 	XX
 #define I8254X_IRQ_LINE 	XX
-#define CTRL	 		0x0000
-#define SLU 			0x40
-#define MLTC_TBL_ARRY 		0x5200
-#define TDBAL                   0x03800
-#define TDBAH                   0x03804
-#define TDLEN                   0x03808
-#define NUM_RX_DESC             0x20
-#define NUM_TX_DESC             0x20
-#define RX_BUF_SIZE             0x2000
+#define RX_BUF_SIZE         	0x2000
 #define TX_BUF_SIZE
+
+
+#define CTRL_REG	 	0x0000
+#define CTRL_SLU 		0x40
+
+#define MLTC_TBL_ARRY_REG       0x5200
+#define TDBAL_REG               0x03800 //Transmit Descriptor Base Low
+#define TDBAH_REG               0x03804 //Transmit Descriptor Base High
+#define TDLEN_REG               0x03808 //Transmit Descriptor Length
+#define RHD_REG			0x3810  //Transmit Descriptor Head
+#define RDT_REG			0x3818  //Transmit Descriptor Tail
+
+#define RDBAL_REG       	0x2800  //Receive Descriptor Base Low
+#define RDBAH_REG  		0x2804  //Receive Descriptor Base High
+#define RDLEN_REG       	0x2808  //Receive Descriptor Length
+#define RHD_REG			0x2810  //Receive Descriptor Head
+#define RDT_REG			0x2818  //Receive Descriptor Tail
+
+#define NUM_RX_DESC             0x20   //Receive payload buffer size
+#define NUM_TX_DESC             0x20   //Transmit payload buffer size
+
+#define RCTRL_REG		0x100 //receive control register
+#define	RCTL_EN 		(1 << 1)    			// Receiver Enable
+#define	RCTL_SBP		(1 << 2)    			// Store Bad Packets
+#define	RCTL_UPE       		(1 << 3)    			// Unicast Promiscuous Enabled
+#define	RCTL_MPE               	(1 << 4)    			// Multicast Promiscuous Enabled
+#define	RCTL_LBM_NONE		(0 << 6)    			// No Loopback
+#define	RTCL_RDMTS_HALF         (0 << 8)    			// Free Buffer Threshold is 1/2 of RDLEN
+#define	RCTL_BAM               	(1 << 15)   			// Broadcast Accept Mode
+#define	RCTL_SECRC             	(1 << 26)   			// Strip Ethernet CRC
+#define	RCTL_BSIZE_8192        	((2 << 16) | (1 << 25))
+
+#define TSTA_DD                 (1 << 0)    			// Descriptor Done
 
 typedef struct s_i8254x
 {
