@@ -603,7 +603,6 @@ u32 static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext2
 
 	for (j=0;j<=(i-1);j++)
 	{
-		//lba=ext2->partition_start_sector+((parent_dir_inode->i_block[j])*(BLOCK_SIZE/SECTOR_SIZE));
 		lba=FROM_BLOCK_TO_LBA(parent_dir_inode->i_block[j]);
 		READ((BLOCK_SIZE/SECTOR_SIZE),lba,(io_buffer+BLOCK_SIZE*j));
 	}
@@ -617,11 +616,7 @@ u32 static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext2
 		READ_DWORD(&io_buffer[next_entry],i_number);
 		READ_BYTE(&io_buffer[next_entry+6],name_len);
 		READ_WORD(&io_buffer[next_entry+4],rec_len);
-//		while(io_buffer[next_entry+8+j]==file_name[j] && j<name_len)		
-//		{
-//			j++;
-//		}
-//		if(name_len==j && name_len!=0)
+
 		if (strncmp(&io_buffer[next_entry+8+j],file_name,name_len)==0) 
 		{
 			found_inode=1;

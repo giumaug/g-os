@@ -106,7 +106,7 @@ int main (int argc, char* argv[])
 
 	while(1)
 	{
-		n_request=(rand() % 5 + 1);
+		n_request=(rand() % 15 + 1);
 
 		printf("\nage=%d \n",age);
 		printf("\nrequest number=%d \n",n_request);
@@ -126,7 +126,7 @@ int main (int argc, char* argv[])
 			}
 		}
 		age++;
-		sleep(150000);
+		sleep(200000);
 		check_free_mem();
 	}
 	exit(0);

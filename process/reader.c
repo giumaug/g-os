@@ -18,7 +18,7 @@ int main (int argc, char* argv[])
 	read(f,io_buffer,stat_data.st_size+1);
 	close(f);
 	io_buffer[stat_data.st_size+1]='\0';
-//	printf(io_buffer);
+	printf(io_buffer);
 	free(io_buffer);
 	exit(0);
 }

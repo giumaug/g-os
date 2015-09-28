@@ -1,3 +1,12 @@
+/*
+Consideration on how to manage race condition on atomic block.
+I allow interruption (no lock) in a block (logically) atomic if the resulting corrupted state
+cannot be observed abroad.
+Following this rule free_vm_process_user_space needs lock because system.buddy_desc->count 
+variable can be observed abroad. map_vm_mem doesn't lock because corrupted state cannot
+observed abroad.
+*/
+
 #include "idt.h"
 #include "asm.h"
 #include "memory_manager/general.h"
@@ -27,32 +36,6 @@ void* init_virtual_memory()
 	map_vm_mem(new_page_dir,VIRT_MEM_START_ADDR,PHY_MEM_START_ADDR,(VIRT_MEM_END_ADDR-VIRT_MEM_START_ADDR),3);
 	return new_page_dir;
 }
-
-//void* __init_vm_process(struct t_process_context* process_context)
-//{
-//	unsigned int* page_dir;	
-//	unsigned int start,end;
-//	unsigned int pad;
-//	unsigned int i=0;
-//
-//	page_dir=buddy_alloc_page(system.buddy_desc,0x1000);
-//	for (i=0;i<768;i++) 
-//	{
-//		page_dir[i]=0;
-//	}
-//	for (i=768;i<1024;i++) 
-//	{
-//		page_dir[i]=((unsigned int*)system.master_page_dir)[i];
-//	}
-//	map_vm_mem(page_dir,0,0,0x100000);
-//	if (process_context->phy_add_space!=NULL)
-//	{
-//		map_vm_mem(page_dir,PROC_VIRT_MEM_START_ADDR,process_context->phy_add_space,process_context->phy_space_size);
-//		map_vm_mem(page_dir,USER_STACK,process_context->phy_user_stack,0x10000);
-//	}
-//	map_vm_mem(page_dir,KERNEL_STACK,process_context->phy_kernel_stack,KERNEL_STACK_SIZE);	
-//	return page_dir;
-//}
 
 void init_vm_process(struct t_process_context* process_context)
 {
@@ -92,6 +75,8 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 	char* page_addr;
 	struct t_process_context* current_process_context;
 
+	SAVE_IF_STATUS
+	CLI
 	child_page_dir=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
 	
 	buddy_clean_mem(child_page_dir);
@@ -171,56 +156,15 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 	}
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 
-
-/*
-	if (process_type==USERSPACE_PROCESS)
-	{
-		unsigned static int* xxx;
-		unsigned static int* zzz;	
-		unsigned static int* yyy;
-		xxx=FROM_PHY_TO_VIRT(((unsigned int*) current_process_context->page_dir)[767]);
-		yyy=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) current_process_context->page_dir)[767]));
-        	zzz=FROM_PHY_TO_VIRT(yyy[1019]);	
-		
-		unsigned static int* kkk;
-        	kkk=0xbfffb000;
-		*kkk=1;
-		zzz=FROM_PHY_TO_VIRT(yyy[1019]);
-		if (*kkk==1)
-		{
-			return;
-		}
-		*kkk=1;
-		zzz=FROM_PHY_TO_VIRT(yyy[1019]);
-		if (*kkk==11)
-		{
-			return;
-		}
-		kkk=0xcc0f1000;
-		*kkk=4;
-
-	}
-*/
+	RESTORE_IF_STATUS
 	return child_page_dir;
 }
 
-//void _free_vm_process(struct t_process_context* process_context)
-//{
-//	umap_vm_mem(process_context->page_dir,0,0x100000,0);
-//	if (process_context->phy_add_space!=NULL)
-//	{
-//		umap_vm_mem(process_context->page_dir,PROC_VIRT_MEM_START_ADDR,process_context->phy_space_size,1);
-//		umap_vm_mem(process_context->page_dir,USER_STACK,0x10000,1);
-//	}
-//	umap_vm_mem(process_context->page_dir,KERNEL_STACK,0x4000,1);
-//	buddy_free_page(system.buddy_desc,process_context->page_dir);
-//}
-
-
-
 //NO SWITCH_PAGE_DIR NEEDED BECAUSE IT WORKS ON OLD PROCESS
 void free_vm_process(struct t_process_context* process_context)
-{	
+{
+	SAVE_IF_STATUS
+	CLI	
 	if (process_context->process_type==USERSPACE_PROCESS)
 	{
 		free_vm_process_user_space(process_context);
@@ -228,6 +172,7 @@ void free_vm_process(struct t_process_context* process_context)
 	umap_vm_mem(process_context->page_dir,0,0x100000,1);
 	umap_vm_mem(process_context->page_dir,KERNEL_STACK,KERNEL_STACK_SIZE,1);
 	buddy_free_page(system.buddy_desc,process_context->page_dir);
+	RESTORE_IF_STATUS
 }
 
 void free_vm_process_user_space(struct t_process_context* process_context)
@@ -236,6 +181,8 @@ void free_vm_process_user_space(struct t_process_context* process_context)
 	unsigned int* page_table;
 	void* page_dir;
 
+	SAVE_IF_STATUS
+	CLI
 	page_dir=process_context->page_dir;
 	page_table=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*)page_dir)[0]));
 	
@@ -285,6 +232,7 @@ void free_vm_process_user_space(struct t_process_context* process_context)
 		}
 	}
 	//SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) process_context->page_dir))) 
+	RESTORE_IF_STATUS
 }
 
 void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_addr,int mem_size,u32 flags)
@@ -444,71 +392,62 @@ void page_fault_handler()
 
 	ustack_pointer=processor_reg.esp+20;
 
-//	if ((fault_code==(PAGE_OUT_MEMORY | USER | PAGE_READ)) || 
-//	    (fault_code==(PAGE_OUT_MEMORY | USER | PAGE_WRITE))|| 
-//	    (fault_code==(PAGE_IN_MEMORY  | USER | PAGE_WRITE))) 
-//	{
-		if (CHECK_MEM_REG(fault_addr,current_process_context->process_mem_reg)
+	if (CHECK_MEM_REG(fault_addr,current_process_context->process_mem_reg)
 		    || CHECK_MEM_REG(fault_addr,current_process_context->heap_mem_reg)
 		    || CHECK_MEM_REG(fault_addr,current_process_context->ustack_mem_reg))
+	{
+		if ((fault_code & 0x1)==PAGE_OUT_MEMORY && CHECK_MEM_REG(fault_addr,current_process_context->process_mem_reg))
 		{
-			if ((fault_code & 0x1)==PAGE_OUT_MEMORY && CHECK_MEM_REG(fault_addr,current_process_context->process_mem_reg))
-			{
-				page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
-				map_vm_mem(current_process_context->page_dir,aligned_fault_addr,FROM_VIRT_TO_PHY(page_addr),PAGE_SIZE,7);
-				
-				u32 tmp1=BLOCK_INDEX(FROM_VIRT_TO_PHY(page_addr));
-				void* aaa=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) current_process_context->page_dir)[0]));
-				u32 bbb=ALIGN_4K(((unsigned int*) aaa)[256]);
-
-
-				system.buddy_desc->count[BLOCK_INDEX(FROM_VIRT_TO_PHY(page_addr))]++;
-				elf_loader_read(current_process_context->elf_desc,fault_addr,page_addr);
-			}
-			else if ((fault_code & 0x1)==PAGE_OUT_MEMORY && (CHECK_MEM_REG(fault_addr,current_process_context->heap_mem_reg) || CHECK_MEM_REG(fault_addr,current_process_context->ustack_mem_reg)))
-			{
-				page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
-				map_vm_mem(current_process_context->page_dir,aligned_fault_addr,FROM_VIRT_TO_PHY(page_addr),PAGE_SIZE,7);
-				system.buddy_desc->count[BLOCK_INDEX(FROM_VIRT_TO_PHY(page_addr))]++;				
-			}
-			else if ((fault_code & 0x3)==(PAGE_IN_MEMORY | PAGE_WRITE))
-			{
-				pd_num=aligned_fault_addr>>22;
-				pt_num=(aligned_fault_addr & 0x3FFFFF)>>12;
-				page_table=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) current_process_context->page_dir)[pd_num]));
-				phy_fault_addr=ALIGN_4K(((unsigned int*) page_table)[pt_num]);
-				((unsigned int*) page_table)[pt_num] |= 7;
-                                
-				u32 tmp=BLOCK_INDEX(phy_fault_addr);
-
-				if (system.buddy_desc->count[BLOCK_INDEX(phy_fault_addr)]>1)
-				{
-					page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
-					kmemcpy(page_addr,aligned_fault_addr ,PAGE_SIZE);
-					map_vm_mem(current_process_context->page_dir,aligned_fault_addr,FROM_VIRT_TO_PHY(page_addr),PAGE_SIZE,7);
-					system.buddy_desc->count[BLOCK_INDEX(phy_fault_addr)]--;
-					system.buddy_desc->count[BLOCK_INDEX(FROM_VIRT_TO_PHY(page_addr))]++;
-				}
-			}
-			else
-			{
-				printk("ssssssssssssssssssssss\n");
-			}
-		}
-		else if ((fault_code & 0x4)==USER && ((*(u32*)(processor_reg.esp+20))-32)<=fault_addr)
-		{
-			current_process_context->ustack_mem_reg->start_addr=aligned_fault_addr;
 			page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
 			map_vm_mem(current_process_context->page_dir,aligned_fault_addr,FROM_VIRT_TO_PHY(page_addr),PAGE_SIZE,7);
+				
 			system.buddy_desc->count[BLOCK_INDEX(FROM_VIRT_TO_PHY(page_addr))]++;
+			elf_loader_read(current_process_context->elf_desc,fault_addr,page_addr);
+		}
+		else if ((fault_code & 0x1)==PAGE_OUT_MEMORY && (CHECK_MEM_REG(fault_addr,current_process_context->heap_mem_reg) || CHECK_MEM_REG(fault_addr,current_process_context->ustack_mem_reg)))
+		{
+			page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
+			map_vm_mem(current_process_context->page_dir,aligned_fault_addr,FROM_VIRT_TO_PHY(page_addr),PAGE_SIZE,7);
+			system.buddy_desc->count[BLOCK_INDEX(FROM_VIRT_TO_PHY(page_addr))]++;				
+		}
+		else if ((fault_code & 0x3)==(PAGE_IN_MEMORY | PAGE_WRITE))
+		{
+			pd_num=aligned_fault_addr>>22;
+			pt_num=(aligned_fault_addr & 0x3FFFFF)>>12;
+			page_table=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) current_process_context->page_dir)[pd_num]));
+			phy_fault_addr=ALIGN_4K(((unsigned int*) page_table)[pt_num]);
+			((unsigned int*) page_table)[pt_num] |= 7;
+                                
+			u32 tmp=BLOCK_INDEX(phy_fault_addr);
+
+			if (system.buddy_desc->count[BLOCK_INDEX(phy_fault_addr)]>1)
+			{
+				page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
+				kmemcpy(page_addr,aligned_fault_addr ,PAGE_SIZE);
+				map_vm_mem(current_process_context->page_dir,aligned_fault_addr,FROM_VIRT_TO_PHY(page_addr),PAGE_SIZE,7);
+				system.buddy_desc->count[BLOCK_INDEX(phy_fault_addr)]--;
+				system.buddy_desc->count[BLOCK_INDEX(FROM_VIRT_TO_PHY(page_addr))]++;
+			}
 		}
 		else
 		{
-			printk("\n ...Segmentation fault. \n");
-			_exit(0);
-			on_exit_action=2;
+			printk("ssssssssssssssssssssss\n");
 		}
-//	}
+	}
+	else if ((fault_code & 0x4)==USER && ((*(u32*)(processor_reg.esp+20))-32)<=fault_addr)
+	{
+		current_process_context->ustack_mem_reg->start_addr=aligned_fault_addr;
+		page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
+		map_vm_mem(current_process_context->page_dir,aligned_fault_addr,FROM_VIRT_TO_PHY(page_addr),PAGE_SIZE,7);
+		system.buddy_desc->count[BLOCK_INDEX(FROM_VIRT_TO_PHY(page_addr))]++;
+	}
+	else
+	{
+		printk("\n ...Segmentation fault. \n");
+		_exit(0);
+		on_exit_action=2;
+	}
+
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 	
 //-	EXIT_INT_HANDLER(on_exit_action,processor_reg)
                                                 

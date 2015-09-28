@@ -3,11 +3,15 @@
 
 #include "system.h"
 
-#define I8254X_BUS XX;
-#define I8254X_SLOT XX;
-#define I8254X_FUNC XX;
-#define I8254X_MEM_BASE XX;
-#define I8254X_IRQ_LINE XX;
+#define I8254X_BUS 		XX
+#define I8254X_SLOT 		XX
+#define I8254X_FUNC 		XX
+#define I8254X_MEM_BASE 	XX
+#define I8254X_IRQ_LINE 	XX
+#define CTRL	 		0x0000
+#define SLU 			0x40
+#define MLTC_TBL_ARRY 		0x5200
+#define TDBAL
 
 typedef struct s_i8254x
 {

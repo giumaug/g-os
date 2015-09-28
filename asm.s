@@ -54,7 +54,35 @@ inw:
 	#pop    %eax
 	pop    %edx
  	pop    %ebp
- 	ret  
+ 	ret
+
+# void out(unsigend int value,unsigned int address)
+outdw:
+	push   %ebp
+ 	mov    %esp,%ebp
+	push   %edx
+	push   %eax
+ 	mov    0x10(%ebp),%edx  # address
+ 	mov    0x8(%ebp),%eax  # value
+ 	out    %eax,%edx
+	pop    %eax
+	pop    %edx
+ 	pop    %ebp
+ 	ret
+
+# unsigned int in(unsigned int address)
+indw:
+	push   %ebp
+ 	mov    %esp,%ebp
+	push   %edx
+	#push   %eax
+	mov    $0x0,%eax
+ 	mov    0x8(%ebp),%edx  # address
+ 	in     %edx,%eax
+	#pop    %eax
+	pop    %edx
+ 	pop    %ebp
+ 	ret
 
 switch_to_user_mode_old:
 	push   %ebp
