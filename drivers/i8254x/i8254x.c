@@ -139,7 +139,7 @@ void init_8254x(t_i8254x* i8254x)
 	tx_init_i8254x(i8254x);
 }
 
-void init_8254x(t_i8254x* i8254x)
+void free_8254x(t_i8254x* i8254x)
 {
 
 }
