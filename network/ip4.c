@@ -1,6 +1,6 @@
 
 #define IP4_MAX_PACKET_SIZE
-#define IP4_FIX_HEADER_SIZE 160
+#define IP4_FIX_HEADER_SIZE 20
 #define MTU_ETH 1526
 #define IP4_BUFFER_SIZE 2000
 
@@ -10,6 +10,15 @@
 #define IP_MID_RGT_OCT(data)	(data>>8 && 0xFF)
 #define IP_MID_LFT_OCT(data)	(data>>16 && 0xFF)
 #define IP_HI_OCT(data)		(data>>24 && 0xFF)
+
+#define ENQUEUE_PACKET(packet)
+		SPINLOCK_LOCK(ip4_desc.spinlock);
+		if (ip4_desc.buf_index+1<=ip4_desc.buf)
+		{
+			 enqueue(ip4_desc.ip_buf,ip_row_packet);
+			 ip4_desc.buf_index++;
+		}
+		SPINLOCK_UNLOCK(ip4_desc.spinlock);
 
 typedef struct s_ip4_header
 {
@@ -31,10 +40,11 @@ t_ip4_header;
 
 typedef struct s_ip4_desc
 {
-	t_queue* ip_buffer;
+	t_queue* ip_buf;
 	t_arp* arp_desc;
 	u16 packet_id;
-	u32 buffer_size;
+	u32 buf_size;
+	u32 buf_index;
 	t_spinlock_desc spinlock;
 }
 t_ip4_desc ip4_desc;
@@ -43,17 +53,18 @@ static t_ip4_desc ip4_desc;
 
 void init_ip4()
 {
-	ip4_desc.ip_buffer=new_queue();
+	ip4_desc.ip_buf=new_queue();
 	ip4_desc.packet_id=0;
-	buffer_size=IP4_BUFFER_SIZE;
+	ip4_desc.buf_size=IP4_BUFFER_SIZE;
+	ip4_desc.buf_index=0;
 	SPINLOCK_INIT(ip4_desc.spinlock);
-	
 }
 
-int put_ip4(u32 src_ip,u32 dest_ip,void* data,u16 data_len)
+int put_ip4(u32 src_ip,u32 dest_ip,void* data,u16 data_len,u8 protocol)
 {
 	u16 packet_len;
 	char* ip_row_packet;
+	u16 chksum_val;
 
 	if (len>IP4_MAX_PACKET_SIZE)
 	{
@@ -90,9 +101,9 @@ int put_ip4(u32 src_ip,u32 dest_ip,void* data,u16 data_len)
 		ip_row_packet[7]=??				//HI FLAG AND FRAG OFFSET
 	
 		ip_row_packet[8]=64;				//TTL(8)
-		ip_row_packet[9]=   				//PROTOCOL(8)
-		ip_row_packet[10]=             			//LOW HEADER CRC(8)
-		ip_row_packet[11]=             			//HI HEADER CRC(8)
+		ip_row_packet[9]=protocol;   			//PROTOCOL(8)
+		ip_row_packet[10]=0;             		//LOW HEADER CRC(8)
+		ip_row_packet[11]=0;             		//HI HEADER CRC(8)
 	
 		ip_row_packet[12]=IP_LOW_OCT(src_ip);          	//LOW SRC IP(8)
 		ip_row_packet[13]=IP_MID_LFT_OCT(src_ip);	//MID RIGHT  SRC IP(8)
@@ -103,12 +114,49 @@ int put_ip4(u32 src_ip,u32 dest_ip,void* data,u16 data_len)
 		ip_row_packet[17]=IP_MID_LFT_OCT(dest_ip);	//MID RIGHT DST IP(8)
 		ip_row_packet[18]=IP_MID_RGT(dest_ip);          //MID LEFT IP(8)
 		ip_row_packet[19]=IP_HI_OCT(dest_ip);           //HI DST IP(8)
+
+		chksum_val=checksum(ip_row_packet,IP4_FIX_HEADER_SIZE);
+		ip_row_packet[10]=LOW_16(chksum_val);
+		ip_row_packet[11]=HI_16(chksum_val);
+
+		ENQUEUE_PACKET(packet)
+		SPINLOCK_LOCK(ip4_desc.spinlock);
+		if (ip4_desc.buf_index+1<=ip4_desc.buf)
+		{
+			 enqueue(ip4_desc.ip_buf,ip_row_packet);
+			 ip4_desc.buf_index++;
+		}
+		SPINLOCK_UNLOCK(ip4_desc.spinlock);
+
 	}
 	else
 	{
 		//make here fragmentation
 	}
 }
+
+u16 checksum(byte* addr,u32 count)
+{
+ 	register u32 sum = 0;
+
+ 	while(count > 1)
+  	{
+    	sum = sum + *((word16 *) addr)++;
+    	count = count - 2;
+  	}
+
+ 	if (count > 0)
+	{
+		sum = sum + *((byte *) addr);
+	}
+
+  	while (sum>>16)
+	{
+    		sum = (sum & 0xFFFF) + (sum >> 16);
+	}
+  	return(~sum);
+}
+
 
 for crc look rfc1071
 
