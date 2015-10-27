@@ -144,8 +144,8 @@ int put_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dest_ip,void* data,u16
 		ip_row_packet[10]=LOW_16(chksum_val);
 		ip_row_packet[11]=HI_16(chksum_val);
 
-		kmemcpy((ip_row_packet+IP4_FIX_HEADER_SIZE),data,data_len);
-		ENQUEUE_PACKET(packet);
+//		kmemcpy((ip_row_packet+IP4_FIX_HEADER_SIZE),data,data_len);
+//		ENQUEUE_PACKET(packet);
 	}
 	else
 	{
