@@ -2,9 +2,17 @@
 //#include "synchro_types/semaphore.h"
 #include "asm.h"
 
+//CESATI AND BOVE explain how to protect kernel data structures at pag 216 parag. 5.3.
+//Intresting also is chapter 5 of Linux Device Drivers.
 //With count zero init mutex (formally process holding mutex should be the only permitted to release mutex )
 //Process holding mutex or semaphore can sleep.Process holding spinlock can't.
-//Spinlock can't be used inside interrupt context (deadlock),spinlock are useless in uniprocessor system.
+//Spinlock are useless in uniprocessor system without preemption.In uniprocessor system with preemption spinlock 
+//needs to disable interrupt otherwise deadlock:if i use a spinlock and interrupt is fired when spinlock 
+//is held system get deadlocked.
+//In multiporcessor system spinlock needs to disable local interrupt.
+//If the spinlook is used only in race between exception it is still possible to have
+//interrupt enabled.Linux offer two variant of spinlock.
+
 void sem_init(t_sem_desc* sem_desc,int count)
 {
 	sem_desc->wait_queue=new_dllist();

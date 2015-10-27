@@ -35,6 +35,7 @@ typedef struct s_ip4_desc
 	t_arp* arp_desc;
 	u16 packet_id;
 	u32 buffer_size;
+	t_spinlock_desc spinlock;
 }
 t_ip4_desc ip4_desc;
 
@@ -45,6 +46,7 @@ void init_ip4()
 	ip4_desc.ip_buffer=new_queue();
 	ip4_desc.packet_id=0;
 	buffer_size=IP4_BUFFER_SIZE;
+	SPINLOCK_INIT(ip4_desc.spinlock);
 	
 }
 
@@ -106,10 +108,9 @@ int put_ip4(u32 src_ip,u32 dest_ip,void* data,u16 data_len)
 	{
 		//make here fragmentation
 	}
-	
-
-
 }
+
+for crc look rfc1071
 
 ip_get()
 {
