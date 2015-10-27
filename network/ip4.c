@@ -11,13 +11,13 @@
 #define IP_MID_LFT_OCT(data)	(data>>16 && 0xFF)
 #define IP_HI_OCT(data)		(data>>24 && 0xFF)
 
-#define ENQUEUE_PACKET(packet)
-		SPINLOCK_LOCK(ip4_desc.spinlock);
-		if (ip4_desc.buf_index+1<=ip4_desc.buf)
-		{
-			 enqueue(ip4_desc.ip_buf,ip_row_packet);
-			 ip4_desc.buf_index++;
-		}
+#define ENQUEUE_PACKET(packet)						\
+		SPINLOCK_LOCK(ip4_desc.spinlock);			\
+		if (ip4_desc.buf_index+1<=ip4_desc.buf)			\
+		{							\
+			 enqueue(ip4_desc.ip_buf,packet);		\
+			 ip4_desc.buf_index++;				\
+		}							\
 		SPINLOCK_UNLOCK(ip4_desc.spinlock);
 
 typedef struct s_ip4_header
@@ -97,8 +97,8 @@ int put_ip4(u32 src_ip,u32 dest_ip,void* data,u16 data_len,u8 protocol)
 	
 		ip_row_packet[4]=LOW_16(ip4_desc.packet_id);    //LOW PACKET ID(8)       
 		ip_row_packet[5]=HI_16(ip4_desc.packet_id);     //HI PACKET ID(8)	
-		ip_row_packet[6]=??				//LOW FLAG AND FRAG OFFSET
-		ip_row_packet[7]=??				//HI FLAG AND FRAG OFFSET
+		ip_row_packet[6]=0				//LOW FLAG AND FRAG OFFSET
+		ip_row_packet[7]=0				//HI FLAG AND FRAG OFFSET
 	
 		ip_row_packet[8]=64;				//TTL(8)
 		ip_row_packet[9]=protocol;   			//PROTOCOL(8)
@@ -119,15 +119,8 @@ int put_ip4(u32 src_ip,u32 dest_ip,void* data,u16 data_len,u8 protocol)
 		ip_row_packet[10]=LOW_16(chksum_val);
 		ip_row_packet[11]=HI_16(chksum_val);
 
-		ENQUEUE_PACKET(packet)
-		SPINLOCK_LOCK(ip4_desc.spinlock);
-		if (ip4_desc.buf_index+1<=ip4_desc.buf)
-		{
-			 enqueue(ip4_desc.ip_buf,ip_row_packet);
-			 ip4_desc.buf_index++;
-		}
-		SPINLOCK_UNLOCK(ip4_desc.spinlock);
-
+		kmemcpy((ip_row_packet+IP4_FIX_HEADER_SIZE),data,data_len);
+		ENQUEUE_PACKET(packet);
 	}
 	else
 	{
@@ -157,10 +150,13 @@ u16 checksum(byte* addr,u32 count)
   	return(~sum);
 }
 
-
-for crc look rfc1071
-
-ip_get()
+dequeue_packet_ip4()
 {
+	char* ip_row_packet;
+
+	while (ip4_desc.buf_index!=0)
+	{
+		ip_row_packet=dequeue(ip4_desc.ip_buf);
+	}
 
 }
