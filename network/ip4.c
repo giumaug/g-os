@@ -1,6 +1,7 @@
-#define IP4_MAX_PACKET_SIZE
-#define IP4_FIX_HEADER_SIZE 20
+#define MTU_IP4 65536
 #define MTU_ETH 1526
+#define HEADER_IP4 20
+#define HEADER_ETH 26
 #define SOCKET_BUFFER_SIZE 2000
 #define TCP_PROTOCOL 	4
 #define UDP_PROTOCOL 	6
@@ -91,7 +92,7 @@ int put_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dest_ip,void* data,u16
 	char* ip_row_packet;
 	u16 chksum_val;
 
-	if (len>IP4_MAX_PACKET_SIZE)
+	if (data_len+HEADR_IP4>MTU_IP4)
 	{
 		return -1;
 	}
