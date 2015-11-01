@@ -1,8 +1,12 @@
-
 #define IP4_MAX_PACKET_SIZE
 #define IP4_FIX_HEADER_SIZE 20
 #define MTU_ETH 1526
-#define IP4_BUFFER_SIZE 2000
+#define SOCKET_BUFFER_SIZE 2000
+#define TCP_PROTOCOL 	4
+#define UDP_PROTOCOL 	6
+#define ICMP_PROTOCOL	1
+#define LOCAL_IP	0xC0A8010A
+#define LOCAL_NETMASK   0xFFFFFF00   
 
 #define LOW_16(data) 		(data_len & 0xFF)
 #define HI_16(data)  		((data>>8) & 0xFF)
@@ -11,56 +15,77 @@
 #define IP_MID_LFT_OCT(data)	(data>>16 && 0xFF)
 #define IP_HI_OCT(data)		(data>>24 && 0xFF)
 
-#define ENQUEUE_PACKET(packet)						\
-		SPINLOCK_LOCK(ip4_desc.spinlock);			\
-		if (ip4_desc.buf_index+1<=ip4_desc.buf)			\
+#define ENQUEUE_PACKET(data_sckt_buf)					\
+		SPINLOCK_LOCK(sckt_buf_desc.spinlock);			\
+		if (sckt_buf_desc.buf_index+1<=ip4_desc.buf)		\
 		{							\
-			 enqueue(ip4_desc.ip_buf,packet);		\
-			 ip4_desc.buf_index++;				\
+			 enqueue(sckt_buf_desc.buf,data_sckt_buf);	\
+			 sckt_buf_desc.buf_index++;			\
 		}							\
-		SPINLOCK_UNLOCK(ip4_desc.spinlock);
+		SPINLOCK_UNLOCK(sckt_buf_desc.lock);
 
-typedef struct s_ip4_header
+#define DEQUEUE_PACKET(data_sckt_buf)					\
+		SPINLOCK_LOCK(sckt_buf_desc.lock);			\
+		if (ip4_desc.buf_index>0)				\
+		{							\
+			data_sckt_buf=denqueue(sckt_buf_desc.buf);	\
+			sckt_buf_desc.buf_index--;			\
+		}							\
+		SPINLOCK_UNLOCK(sckt_buf_desc.lock);
+
+typedef struct data_sckt_buf
 {
-	u8 ver;
-	u8 ihl;
-	u8 dsf;
-	u16 tot_len;
-	u16 id;
-	u8 flags:
-	u16 frag_offset;
-	u8 ttl;
-	u8 protocol;
-	u16 header_chk;
-	u32 src_addr;
-	u32 dst_addr;
-	char* opt;
+	unsigned char* trasport_hdr;
+	unsigned char* network_hdr;
+	unsigned char* mac_hdr;
+	unsigned char* tail;
+	unsigned char* end;
+	unsigned char* head;
+	unsigned char* data;
 }
-t_ip4_header;
+t_data_sckt_buf;
 
-typedef struct s_ip4_desc
+typedef struct sckt_buf_desc
 {
-	t_queue* ip_buf;
-	t_arp* arp_desc;
-	u16 packet_id;
+	t_queue* buf;
 	u32 buf_size;
 	u32 buf_index;
-	t_spinlock_desc spinlock;
+	t_spinlock_desc lock;
 }
-t_ip4_desc ip4_desc;
+t_sckt_buf_desc;
 
-static t_ip4_desc ip4_desc;
-
-void init_ip4()
+//DOVE VA MESSO?????????????
+static void sckt_buf_desc_init()
 {
-	ip4_desc.ip_buf=new_queue();
-	ip4_desc.packet_id=0;
-	ip4_desc.buf_size=IP4_BUFFER_SIZE;
-	ip4_desc.buf_index=0;
-	SPINLOCK_INIT(ip4_desc.spinlock);
+	sckt_buf_desc.buf=new_queue();
+	sckt_buf_desc.buf.buf_size=SOCKET_BUFFER_SIZE;
+	sckt_buf_desc.buf.buf_index=0;
+	SPINLOCK_INIT(sckt_buf_desc.buf.lock);
 }
 
-int put_ip4(u32 src_ip,u32 dest_ip,void* data,u16 data_len,u8 protocol)
+u16 checksum(byte* addr,u32 count)
+{
+ 	register u32 sum = 0;
+
+ 	while(count > 1)
+  	{
+    	sum = sum + *((word16 *) addr)++;
+    	count = count - 2;
+  	}
+
+ 	if (count > 0)
+	{
+		sum = sum + *((byte *) addr);
+	}
+
+  	while (sum>>16)
+	{
+    		sum = (sum & 0xFFFF) + (sum >> 16);
+	}
+  	return(~sum);
+}
+
+int put_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dest_ip,void* data,u16 data_len,u8 protocol)
 {
 	u16 packet_len;
 	char* ip_row_packet;
@@ -87,7 +112,7 @@ int put_ip4(u32 src_ip,u32 dest_ip,void* data,u16 data_len,u8 protocol)
 	
 	if (packet_len<=MTU_ETH)
 	{
-		ip_row_packet=kmalloc(IP4_FIX_HEADER_SIZE+len);
+		ip_row_packet=data_sckt_buf->network_hdr;
 	
 		//PACKET TAKES BIG ENDIAN/NETWORK BYTE ORDER
 		ip_row_packet[0]= (1>>3) | 5; 			//VERSION(4) IHL(4)
@@ -128,35 +153,33 @@ int put_ip4(u32 src_ip,u32 dest_ip,void* data,u16 data_len,u8 protocol)
 	}
 }
 
-u16 checksum(byte* addr,u32 count)
-{
- 	register u32 sum = 0;
-
- 	while(count > 1)
-  	{
-    	sum = sum + *((word16 *) addr)++;
-    	count = count - 2;
-  	}
-
- 	if (count > 0)
-	{
-		sum = sum + *((byte *) addr);
-	}
-
-  	while (sum>>16)
-	{
-    		sum = (sum & 0xFFFF) + (sum >> 16);
-	}
-  	return(~sum);
-}
-
-dequeue_packet_ip4()
+void dequeue_packet_ip4()
 {
 	char* ip_row_packet;
+	t_data_sckt_buf data_sckt_buf=NULL;
+	u16 chksum_val;
+	u32 src_ip;
 
-	while (ip4_desc.buf_index!=0)
+	while (DEQUEUE_PACKET(data_sckt_buf))
 	{
-		ip_row_packet=dequeue(ip4_desc.ip_buf);
-	}
+		ip_row_packet=data_sckt_buf->network_hdr;
+		chksum_val=ip_row_packet[10]+(ip_row_packet[11]<<8);
+		src_ip=ip_row_packet[12]+(ip_row_packet[13]<<8)+(ip_row_packet[14]<<8)+(ip_row_packet[15]<<24);
+		if ((checksum(ip_row_packet,IP4_FIX_HEADER_SIZE)+chksum_val==0) && src_ip==LOCAL_IP)
+		{
+			if(ip_row_packet[9]==TCP_PROTOCOL)
+			{
+				//TCP
+			}
+			else if(ip_row_packet[9]==UDP_PROTOCOL)
+			{
+				rcv_packet_udp(data_sckt_buf);
+			}
+			else if(ip_row_packet[9]==ICMP_PROTOCOL)
+			{
 
+			}
+		}
+		kfree(data_sckt_buf);
+	}
 }
