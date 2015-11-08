@@ -6,14 +6,11 @@ typedef struct s_mac_addr
 }
 t_mac_addr
 
-
-(t_data_sckt_buf* data_sckt_buf,_mac_addr src_mac,_mac_addr dest_mac)
-
 void put_packet_mac(t_data_sckt_buf* data_sckt_buf,_mac_addr src_mac,_mac_addr dst_mac)
 {
 	char* mac_row_packet;
 
-	mac_row_packet=data_sckt_buf->mac_hdr;
+	mac_row_packet=data_sckt_buf->network_hdr-HEADER_ETH;
 	
 	mac_row_packet[0]=0xAA;  		//PREAMBLE
 	mac_row_packet[1]=0xAA;			//PREAMBLE
@@ -36,14 +33,6 @@ void put_packet_mac(t_data_sckt_buf* data_sckt_buf,_mac_addr src_mac,_mac_addr d
 	mac_row_packet[16]=HI_16(dst_mac.mi); 	//BYTE 4 DST MAC ADDRESS
 	mac_row_packet[17]=LOW_16(dst_mac.hi); 	//BYTE 5 DST MAC ADDRESS
 	mac_row_packet[18]=HI_16(dst_mac.hi); 	//BYTE 6 DST MAC ADDRESS
-
-	
-
-	
-
-	
-
-
 }
 
 void dequeue_packet_mac()

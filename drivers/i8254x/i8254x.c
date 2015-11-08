@@ -83,7 +83,7 @@ static tx_init_i8254x(t_i8254x* i8254x)
 	for (i=0;i<NUM_TX_DESC;i++)
 	{
 		tx_desc[i]->hi_addr=0;
-		tx_desc[i]->low_addr=kmalloc(RX_BUF_SIZE);
+		tx_desc[i]->low_addr=kmalloc(RX_BUF_SIZE);no !!!! uso socket_buff addr
 		tx_desc[i]->status=TSTA_DD;
 		tx_desc[i]->cmd=0;
 	}
