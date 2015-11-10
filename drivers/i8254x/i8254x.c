@@ -145,7 +145,14 @@ void free_8254x(t_i8254x* i8254x)
 
 void int_handler_i8254x(t_i8254x* i8254x)
 {
+	u16 cur;
 	u32 status;
+	u32 low_addr;
+	u32 hi_addr;
+	t_rx_desc_i8254x* rx_desc;
+	u32 frame_addr;
+	u32 low_addr;
+	u32 hi_addr;
 
 	status=read_i8254x(i8254x,REG_ICR);
 	if (status & ICR_LSC)
@@ -154,6 +161,26 @@ void int_handler_i8254x(t_i8254x* i8254x)
 	}
 	else if (status & ICR_RXT0)
 	{
+		cur=i8254x->rx_desc_cur;
+		rx_desc=i8254x->rx_desc;
+		while(rx_desc[cur]->status & 0x1)
+		{
+			//i use 32 bit addressing
+			low_addr=rx_desc[cur]->low_add;
+			hi_addr=rx_desc[cur]->hi_add;
+			frame_addr=FROM_PHY_TO_VIRT(low_addr);
+
+			xxx
+
+			
+		}
+
+
+		
+
+		phy_frame_addr=FROM_PHY_TO_VIRT(frame_addr);
+
+
 
 	}
 
@@ -169,8 +196,8 @@ void send_packet_i8254x(t_i8254x* i8254x,void* frame_addr,u16 frame_len)
 	tx_desc=i8254x->tx_desc;
 	phy_frame_addr=FROM_PHY_TO_VIRT(frame_addr);
 
-	tx_desc[cur]->low_addr=LOW_32(phy_frame_addr);
-	tx_desc[cur]->hi_addr=HI_32(phy_frame_addr);
+	tx_desc[cur]->low_addr=phy_frame_addr;
+	tx_desc[cur]->hi_addr=0;
 	tx_desc[cur]->length=frame_len;
 	tx_desc[cur]->cso=0;
 	tx_desc[cur]->cmd=CMD_EOP | CMD_RS | CMD_RPS; 
@@ -179,9 +206,8 @@ void send_packet_i8254x(t_i8254x* i8254x,void* frame_addr,u16 frame_len)
 	tx_desc[cur]->special=0;
 
 	i8254x->tx_desc_cur = (cur + 1) % NUM_TX_DESC;
-	write_i8254x(i8254x,TDBAL_REG,rx_desc_ring);
-	write_i8254x(i8254x,THD_REG,TDT_REG);
-	while(!(tx_desc[cur]->status & 0xff));-----------qui
+	write_i8254x(i8254x,TDT_REG,i8254x->tx_desc_cur);
+	while(!(tx_desc[cur]->status & 0xff));
 }
 
 
