@@ -70,8 +70,8 @@ typedef struct s_i8254x
 	u32 hi_mac;
 	t_rx_desc_i8254x* rx_desc;
 	t_tx_desc_i8254x* tx_desc;
-	u16 rx_desc->cur;
-	u16 tx_desc->cur;
+	u16 rx_cur;
+	u16 tx_cur;
 }
 t_i8254x;
 

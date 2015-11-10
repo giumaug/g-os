@@ -9,9 +9,6 @@ typedef struct s_mac_addr
 }
 t_mac_addr
 
-
-(t_data_sckt_buf* data_sckt_buf,_mac_addr src_mac,_mac_addr dest_mac)
-
 void put_packet_mac(t_data_sckt_buf* data_sckt_buf,_mac_addr src_mac,_mac_addr dst_mac)
 {
 	char* mac_row_packet;
@@ -62,9 +59,7 @@ void equeue_packet_mac(t_sckt_buf_desc* sckt_buf_desc)
 void dequeue_packet_mac(t_sckt_buf_desc* sckt_buf_desc)
 {
 	while ((data_sckt_buf=dequeue_sckt(sckt_buf_desc))!=NULL)
-	{
-		frame=data_sckt_buf->mac_hdr;----------------------------------------------qui
-		frame_len=data_sckt_buf->mac_hdr->tail-data_sckt_buf->mac_hdr;
+	{	
 		data_sckt_buf->mac_network=data_sckt_buf->mac_hdr-HEADER_ETH;
 		rcv_packet_ip4(data_sckt_buf);
 	}

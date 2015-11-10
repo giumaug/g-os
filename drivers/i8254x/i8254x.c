@@ -64,6 +64,7 @@ static rx_init_i8254x(t_i8254x* i8254x)
 	write_i8254x(i8254x,RDBAL_REG,rx_desc);
 	write_i8254x(i8254x,RDBAH_REG,0);
 	write_i8254x(i8254x,RDLEN,NUM_RX_DESC*16);
+	i8254x->rx_cur=0;
 	
 	write_i8254x(i8254x,RHD_REG,0);
 	write_i8254x(i8254x,RDT_REG,NUM_RX_DESC-1);
@@ -87,6 +88,7 @@ static tx_init_i8254x(t_i8254x* i8254x)
 	write_i8254x(i8254x,TDBAL_REG,rx_desc_ring);
 	write_i8254x(i8254x,TDBAH_REG,0);
 	write_i8254x(i8254x,TDLEN,NUM_RX_DESC*16);
+	i8254x->tx_cur=0;
 
 	write_i8254x(i8254x,THD_REG,0);
 	write_i8254x(i8254x,TDT_REG,NUM_RX_DESC-1);
@@ -179,7 +181,7 @@ void send_packet_i8254x(t_i8254x* i8254x,void* frame_addr,u16 frame_len)
 	i8254x->tx_desc_cur = (cur + 1) % NUM_TX_DESC;
 	write_i8254x(i8254x,TDBAL_REG,rx_desc_ring);
 	write_i8254x(i8254x,THD_REG,TDT_REG);
-	while(!(tx_desc[cur]->status & 0xff));
+	while(!(tx_desc[cur]->status & 0xff));-----------qui
 }
 
 
