@@ -66,7 +66,11 @@ typedef struct s_i8254x
 	u32 mem_base;
 	u8 irq_line;
 	u32 low_mac;
-	u32 hi_mac:
+	u32 hi_mac;
+	t_rx_desc_i8254x* rx_desc;
+	t_tx_desc_i8254x* tx_desc;
+	u16 rx_desc->cur;
+	u16 tx_desc->cur;
 }
 t_i8254x;
 

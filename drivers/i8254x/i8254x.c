@@ -51,18 +51,17 @@ static void read_mac_i8254x(t_i8254x* i8254x)
 static rx_init_i8254x(t_i8254x* i8254x)
 {
 	int i;
-	char* rx_desc_ring;
 	t_rx_desc_i8254x* rx_desc;
 
-	rx_desc_ring=kmalloc(sizeof(t_rx_desc_i8254x)*NUM_RX_DESC);
-	rx_desc=rx_desc_ring;
+	rx_desc=kmalloc(sizeof(t_rx_desc_i8254x)*NUM_RX_DESC);
 	for (i=0;i<NUM_RX_DESC;i++)
 	{
 		rx_desc[i]->hi_addr=0;
 		rx_desc[i]->low_addr=kmalloc(RX_BUF_SIZE);
 		rx_desc[i]->status=0;
 	}
-	write_i8254x(i8254x,RDBAL_REG,rx_desc_ring);
+	i8254x->rx_desc=rx_desc;
+	write_i8254x(i8254x,RDBAL_REG,rx_desc);
 	write_i8254x(i8254x,RDBAH_REG,0);
 	write_i8254x(i8254x,RDLEN,NUM_RX_DESC*16);
 	
@@ -75,11 +74,9 @@ static rx_init_i8254x(t_i8254x* i8254x)
 static tx_init_i8254x(t_i8254x* i8254x)
 {
 	int i;
-	char* tx_desc_ring;
 	t_tx_desc_i8254x* tx_desc;
 
-	tx_desc_ring=kmalloc(sizeof(t_tx_desc_i8254x)*NUM_TX_DESC);
-	tx_desc=tx_desc_ring;
+	tx_desc=kmalloc(sizeof(t_tx_desc_i8254x)*NUM_TX_DESC);
 	for (i=0;i<NUM_TX_DESC;i++)
 	{
 		tx_desc[i]->hi_addr=0;
@@ -87,6 +84,7 @@ static tx_init_i8254x(t_i8254x* i8254x)
 		tx_desc[i]->status=TSTA_DD;
 		tx_desc[i]->cmd=0;
 	}
+	i8254x->tx_desc=tx_desc;
 	write_i8254x(i8254x,TDBAL_REG,rx_desc_ring);
 	write_i8254x(i8254x,TDBAH_REG,0);
 	write_i8254x(i8254x,TDLEN,NUM_RX_DESC*16);
@@ -160,7 +158,42 @@ void int_handler_i8254x(t_i8254x* i8254x)
 
 }
 
-void send_packet_i8254x()
+void send_packet_i8254x(t_i8254x* i8254x,void* frame,u16 frame_len)
 {
+	u16 cur;
+	t_tx_desc_i8254x* tx_desc;
+
+
+	cur=i8254x->tx_desc_cur;
+	tx_desc=i8254x->tx_desc;
+
+	tx_desc[cur]->
+
+
+	volatile u32 low_addr;
+	volatile u32 hi_addr;
+        volatile u16 length;
+        volatile u8 cso;
+        volatile u8 cmd;
+        volatile u8 status;
+        volatile u8 css;
+        volatile u16 special;
+	
+	
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -16,9 +16,8 @@ void put_packet_mac(t_data_sckt_buf* data_sckt_buf,_mac_addr src_mac,_mac_addr d
 {
 	char* mac_row_packet;
 
-	????-->qiui
+	data_sckt_buf->mac_hdr=data_sckt_buf->network_hdr-HEADER_IP4;
 	mac_row_packet=data_sckt_buf->mac_hdr;
-	
 	
 //	mac_row_packet[0]=0xAA;  				//PREAMBLE
 //	mac_row_packet[1]=0xAA;					//PREAMBLE
@@ -44,12 +43,24 @@ void put_packet_mac(t_data_sckt_buf* data_sckt_buf,_mac_addr src_mac,_mac_addr d
 
 	mac_row_packet[12]=LOW_16(NETWORK_PROTOCOL_TYPE)  	//LOW PROTOCOL TYPE
 	mac_row_packet[13]=HI_16(NETWORK_PROTOCOL_TYPE)		//PROTOCOL TYPE
-	
+}
 
-	
+void equeue_packet_mac(t_sckt_buf_desc* sckt_buf_desc)
+{
+	t_data_sckt_buf* data_sckt_buf;
+	void* frame,
+	u16 frame_len;
 
-	
+	while ((data_sckt_buf=dequeue_sckt(sckt_buf_desc))!=NULL)
+	{
+		frame=data_sckt_buf->mac_hdr;
+		frame_len=data_sckt_buf->mac_hdr->tail-data_sckt_buf->mac_hdr;
 
+		frame,u16 frame_len)
+
+		send_packet_i8254x(system.i8254x,)
+	}
+	
 
 }
 

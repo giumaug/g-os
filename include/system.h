@@ -66,8 +66,8 @@ typedef struct s_system
 	struct s_ext2* root_fs;
 	t_device_desc* device_desc;
 	unsigned int int_path_count;
-//	unsigned int tracepoint_index;
-//	t_tracepoint tracepoint[200000];
+	//WOULD BE BETTER TO ABSTRACT WITH A DEVICE
+	t_i8254x* i8254x;
 	unsigned int panic;
 }
 t_system;

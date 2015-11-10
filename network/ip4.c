@@ -1,7 +1,7 @@
 #define MTU_IP4 65536
 #define MTU_ETH 1526
 #define HEADER_IP4 20
-#define HEADER_ETH 26
+#define HEADER_ETH 14
 #define SOCKET_BUFFER_SIZE 2000
 #define TCP_PROTOCOL 	4
 #define UDP_PROTOCOL 	6
