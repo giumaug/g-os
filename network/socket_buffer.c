@@ -2,7 +2,7 @@
 
 typedef struct data_sckt_buf
 {
-	unsigned char* trasport_hdr;
+	unsigned char* transport_hdr;
 	unsigned char* network_hdr;
 	unsigned char* mac_hdr;
 	unsigned char* head		//start protocol memory area

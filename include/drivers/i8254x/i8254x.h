@@ -58,8 +58,9 @@
 #define ICR_RXDMT0 		0x10				//Receive Descriptor Minimum Threshold Reached
 #define ICR_RXT0 		0x80				//Receiver Timer Interrupt
 
-
-
+#define CMD_EOP	   		(1<<0)		
+#define CMD_RS     		(1<<3)
+#define CMD_RPS    		(1<<4)
 
 typedef struct s_i8254x
 {

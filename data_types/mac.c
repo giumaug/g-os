@@ -55,16 +55,17 @@ void equeue_packet_mac(t_sckt_buf_desc* sckt_buf_desc)
 	{
 		frame=data_sckt_buf->mac_hdr;
 		frame_len=data_sckt_buf->mac_hdr->tail-data_sckt_buf->mac_hdr;
-
-		frame,u16 frame_len)
-
-		send_packet_i8254x(system.i8254x,)
+		send_packet_i8254x(system.i8254x,frame,frame_len);
 	}
-	
-
 }
 
-void dequeue_packet_mac()
+void dequeue_packet_mac(t_sckt_buf_desc* sckt_buf_desc)
 {
-
+	while ((data_sckt_buf=dequeue_sckt(sckt_buf_desc))!=NULL)
+	{
+		frame=data_sckt_buf->mac_hdr;----------------------------------------------qui
+		frame_len=data_sckt_buf->mac_hdr->tail-data_sckt_buf->mac_hdr;
+		data_sckt_buf->mac_network=data_sckt_buf->mac_hdr-HEADER_ETH;
+		rcv_packet_ip4(data_sckt_buf);
+	}
 }

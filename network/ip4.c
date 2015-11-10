@@ -2,6 +2,8 @@
 #define MTU_ETH 1526
 #define HEADER_IP4 20
 #define HEADER_ETH 14
+#define HEADER_UDP
+#define HEADER_TCP
 #define SOCKET_BUFFER_SIZE 2000
 #define TCP_PROTOCOL 	4
 #define UDP_PROTOCOL 	6
@@ -9,6 +11,8 @@
 #define LOCAL_IP	0xC0A8010A
 #define LOCAL_NETMASK   0xFFFFFF00   
 
+#define LOW_32(data)		(data_len & 0xFFFF)
+#define HI_32(data)		((data>>16) & 0xFFFF)
 #define LOW_16(data) 		(data_len & 0xFF)
 #define HI_16(data)  		((data>>8) & 0xFF)
 #define IP_LOW_OCT(data)	(data & 0xFF)
@@ -86,7 +90,7 @@ u16 checksum(byte* addr,u32 count)
   	return(~sum);
 }
 
-int put_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dest_ip,void* data,u16 data_len,u8 protocol)
+int send_packet_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dest_ip,void* data,u16 data_len,u8 protocol)
 {
 	u16 packet_len;
 	char* ip_row_packet;
@@ -114,6 +118,7 @@ int put_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dest_ip,void* data,u16
 	if (packet_len<=MTU_ETH)
 	{
 		ip_row_packet=data_sckt_buf->network_hdr;
+		data_sckt_buf->mac_hdr=data_sckt_buf->network_hdr-HEADER_IP4;
 	
 		//PACKET TAKES BIG ENDIAN/NETWORK BYTE ORDER
 		ip_row_packet[0]= (1>>3) | 5; 			//VERSION(4) IHL(4)
@@ -145,8 +150,6 @@ int put_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dest_ip,void* data,u16
 		ip_row_packet[10]=LOW_16(chksum_val);
 		ip_row_packet[11]=HI_16(chksum_val);
 
-//		kmemcpy((ip_row_packet+IP4_FIX_HEADER_SIZE),data,data_len);
-//		ENQUEUE_PACKET(packet);
 	}
 	else
 	{
@@ -154,33 +157,29 @@ int put_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dest_ip,void* data,u16
 	}
 }
 
-void dequeue_packet_ip4()
+void rcv_packet_ip4(t_data_sckt_buf* data_sckt_buf)
 {
 	char* ip_row_packet;
-	t_data_sckt_buf data_sckt_buf=NULL;
 	u16 chksum_val;
 	u32 src_ip;
 
-	while (DEQUEUE_PACKET(data_sckt_buf))
+	ip_row_packet=data_sckt_buf->network_hdr;
+	chksum_val=ip_row_packet[10]+(ip_row_packet[11]<<8);
+	src_ip=ip_row_packet[12]+(ip_row_packet[13]<<8)+(ip_row_packet[14]<<8)+(ip_row_packet[15]<<24);
+	if ((checksum(ip_row_packet,IP4_FIX_HEADER_SIZE)+chksum_val==0) && src_ip==LOCAL_IP)
 	{
-		ip_row_packet=data_sckt_buf->network_hdr;
-		chksum_val=ip_row_packet[10]+(ip_row_packet[11]<<8);
-		src_ip=ip_row_packet[12]+(ip_row_packet[13]<<8)+(ip_row_packet[14]<<8)+(ip_row_packet[15]<<24);
-		if ((checksum(ip_row_packet,IP4_FIX_HEADER_SIZE)+chksum_val==0) && src_ip==LOCAL_IP)
+		if(ip_row_packet[9]==TCP_PROTOCOL)
 		{
-			if(ip_row_packet[9]==TCP_PROTOCOL)
-			{
-				//TCP
-			}
-			else if(ip_row_packet[9]==UDP_PROTOCOL)
-			{
-				rcv_packet_udp(data_sckt_buf);
-			}
-			else if(ip_row_packet[9]==ICMP_PROTOCOL)
-			{
-
-			}
+			//TCP
 		}
-		kfree(data_sckt_buf);
+		else if(ip_row_packet[9]==UDP_PROTOCOL)
+		{
+			data_sckt_buf->transport_hdr=data_sckt_buf->transport_hdr-HEADER_UDP;
+			rcv_packet_udp(data_sckt_buf);
+		}
+		else if(ip_row_packet[9]==ICMP_PROTOCOL)
+		{
+
+		}
 	}
 }

@@ -65,9 +65,8 @@ static rx_init_i8254x(t_i8254x* i8254x)
 	write_i8254x(i8254x,RDBAH_REG,0);
 	write_i8254x(i8254x,RDLEN,NUM_RX_DESC*16);
 	
-	write_i8254x(i8254x,RHD,0);
-	write_i8254x(i8254x,RDT,NUM_RX_DESC-1);
-
+	write_i8254x(i8254x,RHD_REG,0);
+	write_i8254x(i8254x,RDT_REG,NUM_RX_DESC-1);
 	write_i8254x(i8254x,REG_RCTRL, (RCTL_EN | RCTL_SBP | RCTL_UPE | RCTL_MPE | RCTL_LBM_NONE | RTCL_RDMTS_HALF | RCTL_BAM | RCTL_SECRC  | RCTL_BSIZE_8192));
 }
 
@@ -89,8 +88,8 @@ static tx_init_i8254x(t_i8254x* i8254x)
 	write_i8254x(i8254x,TDBAH_REG,0);
 	write_i8254x(i8254x,TDLEN,NUM_RX_DESC*16);
 
-	write_i8254x(i8254x,THD,0);
-	write_i8254x(i8254x,TDT,NUM_RX_DESC-1);
+	write_i8254x(i8254x,THD_REG,0);
+	write_i8254x(i8254x,TDT_REG,NUM_RX_DESC-1);
 
 	write_i8254x(i8254x,REG_TCTRL,TCTL_EN,
 			    | TCTL_PSP
@@ -158,29 +157,29 @@ void int_handler_i8254x(t_i8254x* i8254x)
 
 }
 
-void send_packet_i8254x(t_i8254x* i8254x,void* frame,u16 frame_len)
+void send_packet_i8254x(t_i8254x* i8254x,void* frame_addr,u16 frame_len)
 {
+	u32 phy_frame_addr;
 	u16 cur;
 	t_tx_desc_i8254x* tx_desc;
 
-
 	cur=i8254x->tx_desc_cur;
 	tx_desc=i8254x->tx_desc;
+	phy_frame_addr=FROM_PHY_TO_VIRT(frame_addr);
 
-	tx_desc[cur]->
+	tx_desc[cur]->low_addr=LOW_32(phy_frame_addr);
+	tx_desc[cur]->hi_addr=HI_32(phy_frame_addr);
+	tx_desc[cur]->length=frame_len;
+	tx_desc[cur]->cso=0;
+	tx_desc[cur]->cmd=CMD_EOP | CMD_RS | CMD_RPS; 
+	tx_desc[cur]->status=0;
+	tx_desc[cur]->css=0;
+	tx_desc[cur]->special=0;
 
-
-	volatile u32 low_addr;
-	volatile u32 hi_addr;
-        volatile u16 length;
-        volatile u8 cso;
-        volatile u8 cmd;
-        volatile u8 status;
-        volatile u8 css;
-        volatile u16 special;
-	
-	
-
+	i8254x->tx_desc_cur = (cur + 1) % NUM_TX_DESC;
+	write_i8254x(i8254x,TDBAL_REG,rx_desc_ring);
+	write_i8254x(i8254x,THD_REG,TDT_REG);
+	while(!(tx_desc[cur]->status & 0xff));
 }
 
 
