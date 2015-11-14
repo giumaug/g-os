@@ -118,10 +118,12 @@ static reset_multicast_array(t_i8254x* i8254x)
 	}
 }
 
-void init_8254x(t_i8254x* i8254x)
+t_i8254x* init_8254x()
 {
+	t_i8254x* i8254x=NULL;
 	struct t_i_desc i_desc;
 
+	i8254x=kmalloc(sizeof(t_i8254x));
 	i8254x->mem_base=read_pci_config_word(I8254X_BUS,I8254X_SLOT,I8254X_FUNC,I8254X_MEM_BASE);
 	i8254x->irq_line=read_pci_config_word(I8254X_BUS,I8254X_SLOT,I8254X_FUNC,I8254X_IRQ_LINE);
 	read_mac_i8254x(i8254x);
@@ -136,11 +138,12 @@ void init_8254x(t_i8254x* i8254x)
 	reset_multicast_array(i8254x);
 	rx_init_i8254x(i8254x);
 	tx_init_i8254x(i8254x);
+	return i8254x;
 }
 
 void free_8254x(t_i8254x* i8254x)
 {
-
+	kfree(i8254x);
 }
 
 void int_handler_i8254x(t_i8254x* i8254x)

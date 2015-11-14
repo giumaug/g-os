@@ -1,28 +1,7 @@
-
-
-typedef struct data_sckt_buf
-{
-	unsigned char* transport_hdr;
-	unsigned char* network_hdr;
-	unsigned char* mac_hdr;
-	unsigned char* head		//start protocol memory area
-	unsigned char* end;    		//end protocol memory area
-	unsigned char* data;   		//start data memory area
-	unsigned char* tail;   		//end data memory area
-}
-t_data_sckt_buf;
-
-typedef struct sckt_buf_desc
-{
-	t_queue* buf;
-	u32 buf_size;
-	u32 buf_index;
-	t_spinlock_desc lock;
-}
-t_sckt_buf_desc;
+#include "network/socket_buffer.h"
 
 //FROM NOW EVERY INIT MUST FOLLOW THIS PATTERN!!!!!!!!!!!!!!!!!!!!!!!!!!
-t_sckt_buf_desc* sckt_buf_desc_init(t_sckt_buf_desc* sckt_buf_desc)
+t_sckt_buf_desc* sckt_buf_desc_init()
 {
 	t_sckt_buf_desc* sckt_buf_desc=kmalloc(sizeof(t_sckt_buf_desc));
 	sckt_buf_desc->buf=new_queue();
