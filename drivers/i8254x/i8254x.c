@@ -156,6 +156,10 @@ void int_handler_i8254x(t_i8254x* i8254x)
 	u32 frame_addr;
 	u32 low_addr;
 	u32 hi_addr;
+	u16 frame_len;
+	t_data_sckt_buf* data_sckt_buf;
+	t_sckt_buf_desc* sckt_buf_desc;
+	u32 crc;
 
 	status=read_i8254x(i8254x,REG_ICR);
 	if (status & ICR_LSC)
@@ -164,16 +168,23 @@ void int_handler_i8254x(t_i8254x* i8254x)
 	}
 	else if (status & ICR_RXT0)
 	{
+		sckt_buf_desc=system.network_desc->rx_queue;
 		cur=i8254x->rx_desc_cur;
 		rx_desc=i8254x->rx_desc;
 		while(rx_desc[cur]->status & 0x1)
 		{
+			crc=
 			//i use 32 bit addressing
 			low_addr=rx_desc[cur]->low_add;
 			hi_addr=rx_desc[cur]->hi_add;
 			frame_addr=FROM_PHY_TO_VIRT(low_addr);
+			frame_len=rx_desc[cur]->length;
+			
+			crc=frame_addr[frame_len-3]+(frame_addr[frame_len-2]<<8)+(frame_addr[frame_len-1]<<16)+(frame_addr[frame_len-0]<<24);
 
-			t_network_desc* network_desc;xxx
+
+			data_sckt_buf=alloc_sckt(frame_len);
+			enqueue_sckt(sckt_buf_desc,data_sckt_buf);
 
 			
 		}

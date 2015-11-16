@@ -53,6 +53,7 @@ void equeue_packet_mac(t_sckt_buf_desc* sckt_buf_desc)
 		frame=data_sckt_buf->mac_hdr;
 		frame_len=data_sckt_buf->mac_hdr->tail-data_sckt_buf->mac_hdr;
 		send_packet_i8254x(system.i8254x,frame,frame_len);
+		sckt_buf_desc_free(sckt_buf_desc);
 	}
 }
 
