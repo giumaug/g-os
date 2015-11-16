@@ -173,7 +173,7 @@ void int_handler_i8254x(t_i8254x* i8254x)
 			hi_addr=rx_desc[cur]->hi_add;
 			frame_addr=FROM_PHY_TO_VIRT(low_addr);
 
-			xxx
+			t_network_desc* network_desc;xxx
 
 			
 		}
