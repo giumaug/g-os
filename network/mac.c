@@ -42,6 +42,12 @@ void put_packet_mac(t_data_sckt_buf* data_sckt_buf,_mac_addr src_mac,_mac_addr d
 	mac_row_packet[13]=HI_16(NETWORK_PROTOCOL_TYPE)		//PROTOCOL TYPE
 }
 
+void rcv_packet_mac(data_sckt_buf)
+{
+	data_sckt_buf->mac_network=data_sckt_buf->mac_hdr-HEADER_ETH;
+	rcv_packet_ip4(data_sckt_buf);
+}
+
 void equeue_packet_mac(t_sckt_buf_desc* sckt_buf_desc)
 {
 	t_data_sckt_buf* data_sckt_buf;
