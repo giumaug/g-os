@@ -27,6 +27,7 @@ int send_packet_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dest_ip,void* 
 	u16 packet_len;
 	char* ip_row_packet;
 	u16 chksum_val;
+	mac_addr dst_mac;
 
 	if (data_len+HEADR_IP4>MTU_IP4)
 	{
@@ -81,7 +82,9 @@ int send_packet_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dest_ip,void* 
 		chksum_val=checksum(ip_row_packet,IP4_FIX_HEADER_SIZE);
 		ip_row_packet[10]=LOW_16(chksum_val);
 		ip_row_packet[11]=HI_16(chksum_val);
-
+		
+		dst_mac=lookup_mac(dest_ip);
+		put_packet_mac(system.network->tx_queue,system.network->dev.mac_addr,dst_mac);
 	}
 	else
 	{

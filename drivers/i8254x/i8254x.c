@@ -25,27 +25,27 @@ static void read_mac_i8254x(t_i8254x* i8254x)
 
 	tmp=read_i8254x(i8254x,0);
 	tmp=(tmp && 0xf);
-	i8254x->low_mac=read_i8254x(i8254x,0);
+	i8254x->mac_addr.lo=read_i8254x(i8254x,0);
 
 	tmp=read_i8254x(i8254x,1);
 	tmp=(tmp && 0xf)<<8;
-	i8254x->low_mac | = tmp;
+	i8254x->mac_addr.lo | = tmp;
 
 	tmp=read_i8254x(i8254x,2);
 	tmp=(tmp && 0xf)<<16;
-	i8254x->low_mac | = tmp;
+	i8254x->mac_addr.mi | = tmp;
 
 	tmp=read_i8254x(i8254x,3);
 	tmp=(tmp && 0xf)<<24;
-	i8254x->low_mac | = tmp;
+	i8254x->mac_addr.mi | = tmp;
 
 	tmp=read_i8254x(i8254x,4);
 	tmp=(tmp && 0xf);
-	i8254x->hi_mac=read_i8254x(i8254x,0);
+	i8254x->mac_addr.hi=read_i8254x(i8254x,0);
 
 	tmp=read_i8254x(i8254x,5);
 	tmp=(tmp && 0xf)<<8;
-	i8254x->hi_mac | = tmp;
+	i8254x->mac_addr.hi | = tmp;
 }
 
 static rx_init_i8254x(t_i8254x* i8254x)
@@ -136,6 +136,7 @@ t_i8254x* init_8254x()
 	set_idt_entry(0x20+i8254x->irq_line,&int_handler_i8254x);
 
 	reset_multicast_array(i8254x);
+	read_mac_i8254x(i8254x);
 	rx_init_i8254x(i8254x);
 	tx_init_i8254x(i8254x);
 	return i8254x;
@@ -148,6 +149,7 @@ void free_8254x(t_i8254x* i8254x)
 
 void int_handler_i8254x(t_i8254x* i8254x)
 {
+	struct t_processor_reg processor_reg;
 	u16 cur;
 	u32 status;
 	u32 low_addr;
@@ -161,6 +163,13 @@ void int_handler_i8254x(t_i8254x* i8254x)
 	t_sckt_buf_desc* sckt_buf_desc;
 	u32 crc;
 
+	SAVE_PROCESSOR_REG
+	disable_irq_line(i8254x->irq_line);
+	DISABLE_PREEMPTION
+	EOI_TO_SLAVE_PIC
+	EOI_TO_MASTER_PIC
+	STI
+
 	status=read_i8254x(i8254x,REG_ICR);
 	if (status & ICR_LSC)
 	{
@@ -173,7 +182,6 @@ void int_handler_i8254x(t_i8254x* i8254x)
 		rx_desc=i8254x->rx_desc;
 		while(rx_desc[cur]->status & 0x1)
 		{
-			crc=
 			//i use 32 bit addressing
 			low_addr=rx_desc[cur]->low_add;
 			hi_addr=rx_desc[cur]->hi_add;
@@ -181,23 +189,16 @@ void int_handler_i8254x(t_i8254x* i8254x)
 			frame_len=rx_desc[cur]->length;
 			
 			crc=frame_addr[frame_len-3]+(frame_addr[frame_len-2]<<8)+(frame_addr[frame_len-1]<<16)+(frame_addr[frame_len-0]<<24);
-
-
-			data_sckt_buf=alloc_sckt(frame_len);
-			enqueue_sckt(sckt_buf_desc,data_sckt_buf);
-
-			
+			if (rx_desc[cur]->checksum==crc)
+			{
+				data_sckt_buf=alloc_sckt(frame_len);
+				enqueue_sckt(sckt_buf_desc,data_sckt_buf);
+			}
 		}
-
-
-		
-
-		phy_frame_addr=FROM_PHY_TO_VIRT(frame_addr);
-
-
-
 	}
-
+	enable_irq_line(i8254x->irq_line);
+	ENABLE_PREEMPTION
+	EXIT_INT_HANDLER(0,processor_reg)
 }
 
 void send_packet_i8254x(t_i8254x* i8254x,void* frame_addr,u16 frame_len)

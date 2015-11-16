@@ -72,6 +72,7 @@ typedef struct s_i8254x
 	t_tx_desc_i8254x* tx_desc;
 	u16 rx_cur;
 	u16 tx_cur;
+	t_mac_addr mac_addr;
 }
 t_i8254x;
 
