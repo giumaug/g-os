@@ -39,13 +39,8 @@ void int_handler_pit()
 	
 	SAVE_PROCESSOR_REG
 	EOI_TO_MASTER_PIC
-//	GET_DS(ds)
-//	if (ds==0x20) 
-//	{
-//		SWITCH_DS_TO_KERNEL_MODE
-//	}
-
 	SWITCH_DS_TO_KERNEL_MODE
+
 	system.time+=QUANTUM_DURATION;
 
 	if (system.int_path_count>0)
@@ -123,6 +118,9 @@ void int_handler_pit()
 			}
 		}
 	}
+	//FLUSH NETWORK QUEUES BEFORE EXITING
+	equeue_packet(system.network_desc);
+	dequeue_packet(system.network_desc);
 exit_handler:;
 //	EXIT_INT_HANDLER(is_schedule,processor_reg);
 

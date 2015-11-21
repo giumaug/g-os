@@ -1,13 +1,4 @@
-//PARTIAMO DALL'IPOTESI 1518 BYTES FRAME CON 14 HEADER BYTES.SUPPONGO PURE CHE PREAMBOLO E CRC E' INSERITO DALL'HARDWARE.
-#define NETWORK_PROTOCOL_TYPE 0x800
-
-typedef struct s_mac_addr
-{
-	u16 lo;
-	u16 mi;
-	u16 hi;
-}
-t_mac_addr
+#include "network/mac.h"
 
 void put_packet_mac(t_data_sckt_buf* data_sckt_buf,_mac_addr src_mac,_mac_addr dst_mac)
 {
@@ -46,28 +37,4 @@ void rcv_packet_mac(data_sckt_buf)
 {
 	data_sckt_buf->mac_network=data_sckt_buf->mac_hdr-HEADER_ETH;
 	rcv_packet_ip4(data_sckt_buf);
-}
-
-void equeue_packet_mac(t_sckt_buf_desc* sckt_buf_desc)
-{
-	t_data_sckt_buf* data_sckt_buf;
-	void* frame,
-	u16 frame_len;
-
-	while ((data_sckt_buf=dequeue_sckt(sckt_buf_desc))!=NULL)
-	{
-		frame=data_sckt_buf->mac_hdr;
-		frame_len=data_sckt_buf->mac_hdr->tail-data_sckt_buf->mac_hdr;
-		send_packet_i8254x(system.i8254x,frame,frame_len);
-		sckt_buf_desc_free(sckt_buf_desc);
-	}
-}
-
-void dequeue_packet_mac(t_sckt_buf_desc* sckt_buf_desc)
-{
-	while ((data_sckt_buf=dequeue_sckt(sckt_buf_desc))!=NULL)
-	{	
-		data_sckt_buf->mac_network=data_sckt_buf->mac_hdr-HEADER_ETH;
-		rcv_packet_ip4(data_sckt_buf);
-	}
 }
