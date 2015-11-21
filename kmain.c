@@ -6,6 +6,7 @@
 #include "memory_manager/buddy.h"
 #include "virtual_memory/vm.h"
 #include "syscall_handler.h"
+#include "network/network.h"
 #include "drivers/kbc/8042.h"
 #include "drivers/ata/ata.h"
 
@@ -13,7 +14,6 @@
 unsigned int seed=105491;
 extern unsigned int PAGE_DIR;
 t_system system;
-//char tmp_kernel_stack[4096];
 
 void kmain( void* mbd, unsigned int magic,int init_data_add)
 {
@@ -31,10 +31,6 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 
 	system.time=0;
 	init_data=init_data_add;
-//	asm ("movl %0,%%esp;"::"r"(tmp_kernel_stack+0xFF0));
-//	asm ("movl %0,%%ebp;"::"r"(tmp_kernel_stack+0xFF0));
-
-	
 	if ( magic != 0x2BADB002 )
    	{
       		/* Something went not according to specs. Print an error */
@@ -82,14 +78,12 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	process_context->curr_sched_queue_index=9;
 	process_context->pid=0;
         process_context->tick=TICK;
-//      process_context->processor_reg.esp=0x1EFFFF;//64K user mode stack 
 	process_context->processor_reg.esp=NULL;
 	process_context->console_desc=&console_desc;
 	system.process_info->current_process=ll_prepend(system.scheduler_desc->scheduler_queue[9],process_context);
 	system.process_info->tss.ss= *init_data;
 	system.process_info->tss.esp= *(init_data+1);
 	system.process_info->pause_queue=new_dllist();
-//	process_context->phy_add_space=NULL;
 	process_context->phy_kernel_stack=FROM_VIRT_TO_PHY(buddy_alloc_page(system.buddy_desc,KERNEL_STACK_SIZE));
 	process_context->process_type=KERNEL_THREAD;
 	process_context->file_desc=hashtable_init(PROCESS_INIT_FILE);
@@ -99,14 +93,11 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	*(system.process_info->tss.ss)=0x18;
 	*(system.process_info->tss.esp)=KERNEL_STACK;
 
-	//map_vm_mem(process_context->page_dir,(KERNEL_STACK-KERNEL_STACK_SIZE),process_context->phy_kernel_stack,KERNEL_STACK_SIZE);
-	//SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) process_context->page_dir)))                           	
-	
+	system.network_desc=network_init();
+                       		
 	kernel_stack=KERNEL_STACK;
 	asm("movl %0,%%ebp;"::"r"(kernel_stack));
 	asm("movl %0,%%esp;"::"r"(kernel_stack));
-//	asm("movl $KERNEL_STACK,%ebp");
-//	asm("movl $KERNEL_STACK,%esp");
 	STI
 	process_0();				       	
 }
@@ -116,5 +107,5 @@ void panic()
 	printk("\n");
 	printk("Kernel panic!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 	printk("\n");
-//	while(1);
+	while(1);
 }
