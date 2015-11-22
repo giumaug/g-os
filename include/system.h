@@ -10,6 +10,7 @@
 #include "console/console.h"
 #include "scheduler/scheduler.h"
 #include "memory_manager/buddy.h"
+#include "network/network.h"
 
 //#define DEBUG
 #ifdef DEBUG 

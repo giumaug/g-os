@@ -1,11 +1,15 @@
+#ifndef SOCKET_BUFFER_H                
+#define SOCKET_BUFFER_H
+
 #include "system.h"
+#include "data_types/queue.h"
 
 typedef struct s_data_sckt_buf
 {
 	unsigned char* transport_hdr;
 	unsigned char* network_hdr;
 	unsigned char* mac_hdr;
-	unsigned char* head		//start protocol memory area
+	unsigned char* head;		//start protocol memory area
 	unsigned char* end;    		//end protocol memory area
 	unsigned char* data;   		//start data memory area
 	unsigned char* tail;   		//end data memory area
@@ -27,3 +31,5 @@ void enqueue_sckt(t_sckt_buf_desc* sckt_buf_desc,t_data_sckt_buf* data_sckt_buf)
 t_data_sckt_buf* dequeue_sckt(t_sckt_buf_desc* sckt_buf_desc);
 t_data_sckt_buf* alloc_sckt(u16 data_len);
 void free_sckt(t_data_sckt_buf* data_sckt_buf);
+
+#endif
