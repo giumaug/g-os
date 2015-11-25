@@ -2,6 +2,7 @@
 #define I8254X_H
 
 #include "system.h"
+//#include "network/network.h"
 
 #define I8254X_BUS 		XX
 #define I8254X_SLOT 		XX
@@ -62,23 +63,9 @@
 #define CMD_RS     		(1<<3)
 #define CMD_RPS    		(1<<4)
 
-typedef struct s_i8254x
-{
-	u32 mem_base;
-	u8 irq_line;
-	u32 low_mac;
-	u32 hi_mac;
-	t_rx_desc_i8254x* rx_desc;
-	t_tx_desc_i8254x* tx_desc;
-	u16 rx_cur;
-	u16 tx_cur;
-	t_mac_addr mac_addr;
-}
-t_i8254x;
-
 typedef struct __attribute__((packed)) s_rx_desc_i8254x 
 {
-	volatile u32 low_addr:
+	volatile u32 low_addr;
         volatile u32 hi_addr;
         volatile u16 length;
         volatile u16 checksum;
@@ -100,5 +87,19 @@ typedef struct __attribute__((packed)) tx_desc_i8254x
         volatile u16 special;
 }
 t_tx_desc_i8254x;
+
+typedef struct s_i8254x
+{
+	u32 mem_base;
+	u8 irq_line;
+	u32 low_mac;
+	u32 hi_mac;
+	t_rx_desc_i8254x* rx_desc;
+	t_tx_desc_i8254x* tx_desc;
+	u16 rx_cur;
+	u16 tx_cur;
+	t_mac_addr mac_addr;
+}
+t_i8254x;
 
 #endif

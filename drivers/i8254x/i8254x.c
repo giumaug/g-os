@@ -1,3 +1,4 @@
+#include "drivers/i8254x/i8254x.h"
 
 static void write_i8254x(t_i8254x* i8254x,u32 address,u32 value)
 {
@@ -16,12 +17,12 @@ static u16 read_eeprom_i8254x(t_i8254x* i8254x,u8 addr)
 	write_i8254x(i8254x,REG_EERD, 1 | ((u32)(addr)<< 8));
 	while( !((tmp = read_i8254x(i8254x,REG_EERD)) & (1 << 4)));
 
-	return (uint16_t)((tmp >> 16) & 0xFFFF);
+	return (u16)((tmp >> 16) & 0xFFFF);
 }
 
 static void read_mac_i8254x(t_i8254x* i8254x)
 {
-	u32 tmp;	
+	u16 tmp;	
 
 	tmp=read_i8254x(i8254x,0);
 	tmp=(tmp && 0xf);
@@ -29,7 +30,7 @@ static void read_mac_i8254x(t_i8254x* i8254x)
 
 	tmp=read_i8254x(i8254x,1);
 	tmp=(tmp && 0xf)<<8;
-	i8254x->mac_addr.lo | = tmp;
+	(i8254x->mac_addr.lo) + = tmp;
 
 	tmp=read_i8254x(i8254x,2);
 	tmp=(tmp && 0xf)<<16;
