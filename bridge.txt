@@ -1,0 +1,26 @@
+su macchina fisica:
+chmod 777 /dev/vm*
+
+su macchina virtuale (toolchain)
+
+/usr/sbin/tunctl -t tap0 -u peppe
+brctl addbr virbr0
+brctl addif virbr0 eth2
+sudo brctl addif virbr0 tap0
+
+ifconfig eth2 up
+ifconfig tap0 up
+ifconfig virbr0 up
+
+ifconfig virbr0 172.16.1.2/16
+ifconfig eth2 0.0.0.0 promisc
+
+per monitorare traffico:
+tcpdump host 172.16.1.2
+
+
+
+qemu-system-x86_64 -boot  d -cdrom ./Fedora-13-i686-Live.iso -device e1000,netdev=net0 -netdev tap,id=net0,script=no,ifname=tap0 -m 1024
+
+ifconfig 172.16.1.10 netmask 255.255.0.0 up
+route add 172.16.0.0 gw 172.16.1.2
