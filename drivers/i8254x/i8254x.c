@@ -1,3 +1,4 @@
+#include "asm.h" 
 #include "idt.h"
 #include "drivers/i8254x/i8254x.h"
 
@@ -49,6 +50,8 @@ static void read_mac_i8254x(t_i8254x* i8254x)
 	tmp=(tmp && 0xf)<<8;
 	i8254x->mac_addr.hi |= tmp;
 }
+
+void int_handler_i8254x(t_i8254x* i8254x);
 
 static rx_init_i8254x(t_i8254x* i8254x)
 {
@@ -130,10 +133,10 @@ t_i8254x* init_8254x()
 	read_mac_i8254x(i8254x);
 	start_link_i8254x(i8254x);
 
-	i_desc.baseLow=((int)&int_handler_ata) & 0xFFFF;
+	i_desc.baseLow=((int)&int_handler_i8254x) & 0xFFFF;
 	i_desc.selector=0x8;
 	i_desc.flags=0x08e00;
-	i_desc.baseHi=((int)&int_handler_ata)>>0x10;
+	i_desc.baseHi=((int)&int_handler_i8254x)>>0x10;
 	set_idt_entry(0x20+i8254x->irq_line,&int_handler_i8254x);
 
 	reset_multicast_array(i8254x);
@@ -153,10 +156,8 @@ void int_handler_i8254x(t_i8254x* i8254x)
 	struct t_processor_reg processor_reg;
 	u16 cur;
 	u32 status;
-	u32 low_addr;
-	u32 hi_addr;
 	t_rx_desc_i8254x* rx_desc;
-	u32 frame_addr;
+	char* frame_addr;
 	u32 low_addr;
 	u32 hi_addr;
 	u16 frame_len;
@@ -179,27 +180,27 @@ void int_handler_i8254x(t_i8254x* i8254x)
 	else if (status & ICR_RXT0)
 	{
 		sckt_buf_desc=system.network_desc->rx_queue;
-		cur=i8254x->rx_desc_cur;
+		cur=i8254x->rx_cur;
 		rx_desc=i8254x->rx_desc;
-		while(rx_desc[cur]->status & 0x1)
+		while(rx_desc[cur].status & 0x1)
 		{
 			//i use 32 bit addressing
-			low_addr=rx_desc[cur]->low_add;
-			hi_addr=rx_desc[cur]->hi_add;
+			low_addr=rx_desc[cur].low_addr;
+			hi_addr=rx_desc[cur].hi_addr;
 			frame_addr=FROM_PHY_TO_VIRT(low_addr);
-			frame_len=rx_desc[cur]->length;
+			frame_len=rx_desc[cur].length;
 
 			//ALLOC IN ADVANCE BUFFER TO AVOID MEMCPY
 			data_sckt_buf=frame_addr-MTU_ETH;
 			crc=frame_addr[frame_len-3]+(frame_addr[frame_len-2]<<8)+(frame_addr[frame_len-1]<<16)+(frame_addr[frame_len-0]<<24);
-			if (rx_desc[cur]->checksum==crc)
+			if (rx_desc[cur].checksum==crc)
 			{
 				data_sckt_buf=alloc_sckt(frame_len);
 				data_sckt_buf->mac_hdr=data_sckt_buf;
-				enqueue_sckt(system.netowork_desc->rx_queue,data_sckt_buf);
+				enqueue_sckt(system.network_desc->rx_queue,data_sckt_buf);
 				//ALLOC IN ADVANCE BUFFER TO AVOID MEMCPY				
 				data_sckt_buf=alloc_sckt(MTU_ETH);
-				rx_desc[cur]->low_add=data_sckt_buf+MTU_ETH;
+				rx_desc[cur].low_addr=data_sckt_buf+MTU_ETH;
 			}
 		}
 	}
@@ -214,22 +215,22 @@ void send_packet_i8254x(t_i8254x* i8254x,void* frame_addr,u16 frame_len)
 	u16 cur;
 	t_tx_desc_i8254x* tx_desc;
 
-	cur=i8254x->tx_desc_cur;
+	cur=i8254x->tx_cur;
 	tx_desc=i8254x->tx_desc;
 	phy_frame_addr=FROM_PHY_TO_VIRT(frame_addr);
 
-	tx_desc[cur]->low_addr=phy_frame_addr;
-	tx_desc[cur]->hi_addr=0;
-	tx_desc[cur]->length=frame_len;
-	tx_desc[cur]->cso=0;
-	tx_desc[cur]->cmd=CMD_EOP | CMD_RS | CMD_RPS; 
-	tx_desc[cur]->status=0;
-	tx_desc[cur]->css=0;
-	tx_desc[cur]->special=0;
+	tx_desc[cur].low_addr=phy_frame_addr;
+	tx_desc[cur].hi_addr=0;
+	tx_desc[cur].length=frame_len;
+	tx_desc[cur].cso=0;
+	tx_desc[cur].cmd=CMD_EOP | CMD_RS | CMD_RPS; 
+	tx_desc[cur].status=0;
+	tx_desc[cur].css=0;
+	tx_desc[cur].special=0;
 
-	i8254x->tx_desc_cur = (cur + 1) % NUM_TX_DESC;
-	write_i8254x(i8254x,TDT_REG,i8254x->tx_desc_cur);
-	while(!(tx_desc[cur]->status & 0xff));
+	i8254x->tx_cur = (cur + 1) % NUM_TX_DESC;
+	write_i8254x(i8254x,TDT_REG,i8254x->tx_cur);
+	while(!(tx_desc[cur].status & 0xff));
 }
 
 

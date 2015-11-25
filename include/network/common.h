@@ -16,9 +16,9 @@
 #define LOCAL_IP	0xC0A8010A
 #define LOCAL_NETMASK   0xFFFFFF00
    
-#define LOW_32(data)		(data_len & 0xFFFF)
+#define LOW_32(data)		(data & 0xFFFF)
 #define HI_32(data)		((data>>16) & 0xFFFF)
-#define LOW_16(data) 		(data_len & 0xFF)
+#define LOW_16(data) 		(data & 0xFF)
 #define HI_16(data)  		((data>>8) & 0xFF)
 #define IP_LOW_OCT(data)	(data & 0xFF)
 #define IP_MID_RGT_OCT(data)	(data>>8 && 0xFF)
