@@ -2,13 +2,12 @@
 #define I8254X_H
 
 #include "system.h"
-//#include "network/network.h"
 
-#define I8254X_BUS 		XX
-#define I8254X_SLOT 		XX
-#define I8254X_FUNC 		XX
-#define I8254X_MEM_BASE 	XX
-#define I8254X_IRQ_LINE 	XX
+#define I8254X_BUS 		0 //LANCIAMO G-OS SU QEMU E VERIFICHIAMO DAL MONITOR CON INFO PCI
+#define I8254X_SLOT 		0
+#define I8254X_FUNC 		0
+#define I8254X_MEM_BASE 	0
+#define I8254X_IRQ_LINE 	0
 #define RX_BUF_SIZE         	0x2000
 #define TX_BUF_SIZE
 
@@ -23,7 +22,7 @@
 #define THD_REG			0x3810  			//Transmit Descriptor Head
 #define TDT_REG			0x3818  			//Transmit Descriptor Tail
 
-#define REG_TCTRL		0x400				//Trasmit control register
+#define TCTRL_REG		0x400				//Trasmit control register
 #define TCTL_EN                 (1 << 1)    			//Transmit Enable
 #define TCTL_PSP         	(1 << 3)    			//Pad Short Packets
 #define TCTL_CT_SHIFT          	0x4           			//Collision Threshold

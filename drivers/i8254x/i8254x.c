@@ -1,3 +1,4 @@
+#include "idt.h"
 #include "drivers/i8254x/i8254x.h"
 
 static void write_i8254x(t_i8254x* i8254x,u32 address,u32 value)
@@ -30,15 +31,15 @@ static void read_mac_i8254x(t_i8254x* i8254x)
 
 	tmp=read_i8254x(i8254x,1);
 	tmp=(tmp && 0xf)<<8;
-	(i8254x->mac_addr.lo) + = tmp;
+	(i8254x->mac_addr.lo) |= tmp;
 
 	tmp=read_i8254x(i8254x,2);
 	tmp=(tmp && 0xf)<<16;
-	i8254x->mac_addr.mi | = tmp;
+	i8254x->mac_addr.mi |= tmp;
 
 	tmp=read_i8254x(i8254x,3);
 	tmp=(tmp && 0xf)<<24;
-	i8254x->mac_addr.mi | = tmp;
+	i8254x->mac_addr.mi |= tmp;
 
 	tmp=read_i8254x(i8254x,4);
 	tmp=(tmp && 0xf);
@@ -46,7 +47,7 @@ static void read_mac_i8254x(t_i8254x* i8254x)
 
 	tmp=read_i8254x(i8254x,5);
 	tmp=(tmp && 0xf)<<8;
-	i8254x->mac_addr.hi | = tmp;
+	i8254x->mac_addr.hi |= tmp;
 }
 
 static rx_init_i8254x(t_i8254x* i8254x)
@@ -60,19 +61,19 @@ static rx_init_i8254x(t_i8254x* i8254x)
 	{
 		//ALLOC IN ADVANCE BUFFER TO AVOID MEMCPY
 		data_sckt_buf=alloc_sckt(MTU_ETH);
-		rx_desc[i]->hi_addr=data_sckt_buf->head;
-		rx_desc[i]->low_addr=kmalloc(RX_BUF_SIZE);
-		rx_desc[i]->status=0;
+		rx_desc[i].hi_addr=data_sckt_buf->head;
+		rx_desc[i].low_addr=kmalloc(RX_BUF_SIZE);
+		rx_desc[i].status=0;
 	}
 	i8254x->rx_desc=rx_desc;
 	write_i8254x(i8254x,RDBAL_REG,rx_desc);
 	write_i8254x(i8254x,RDBAH_REG,0);
-	write_i8254x(i8254x,RDLEN,NUM_RX_DESC*16);
+	write_i8254x(i8254x,RDLEN_REG,NUM_RX_DESC*16);
 	i8254x->rx_cur=0;
 	
 	write_i8254x(i8254x,RHD_REG,0);
 	write_i8254x(i8254x,RDT_REG,NUM_RX_DESC-1);
-	write_i8254x(i8254x,REG_RCTRL, (RCTL_EN | RCTL_SBP | RCTL_UPE | RCTL_MPE | RCTL_LBM_NONE | RTCL_RDMTS_HALF | RCTL_BAM | RCTL_SECRC  | RCTL_BSIZE_8192));
+	write_i8254x(i8254x,RCTRL_REG, (RCTL_EN | RCTL_SBP | RCTL_UPE | RCTL_MPE | RCTL_LBM_NONE | RTCL_RDMTS_HALF | RCTL_BAM | RCTL_SECRC  | RCTL_BSIZE_8192));
 }
 
 static tx_init_i8254x(t_i8254x* i8254x)
@@ -83,25 +84,21 @@ static tx_init_i8254x(t_i8254x* i8254x)
 	tx_desc=kmalloc(sizeof(t_tx_desc_i8254x)*NUM_TX_DESC);
 	for (i=0;i<NUM_TX_DESC;i++)
 	{
-		tx_desc[i]->hi_addr=0;
-		tx_desc[i]->low_addr=kmalloc(RX_BUF_SIZE);no !!!! uso socket_buff addr
-		tx_desc[i]->status=TSTA_DD;
-		tx_desc[i]->cmd=0;
+		tx_desc[i].hi_addr=0;
+		tx_desc[i].low_addr=0;
+		tx_desc[i].status=TSTA_DD;
+		tx_desc[i].cmd=0;
 	}
 	i8254x->tx_desc=tx_desc;
-	write_i8254x(i8254x,TDBAL_REG,rx_desc_ring);
+	write_i8254x(i8254x,TDBAL_REG,tx_desc);
 	write_i8254x(i8254x,TDBAH_REG,0);
-	write_i8254x(i8254x,TDLEN,NUM_RX_DESC*16);
+	write_i8254x(i8254x,TDLEN_REG,NUM_RX_DESC*16);
 	i8254x->tx_cur=0;
 
 	write_i8254x(i8254x,THD_REG,0);
 	write_i8254x(i8254x,TDT_REG,NUM_RX_DESC-1);
 
-	write_i8254x(i8254x,REG_TCTRL,TCTL_EN,
-			    | TCTL_PSP
-        		    | (15 << TCTL_CT_SHIFT)
-        		    | (64 << TCTL_COLD_SHIFT)
-          		    | TCTL_RTLC);
+	write_i8254x(i8254x,TCTRL_REG,(TCTL_EN| TCTL_PSP | (15 << TCTL_CT_SHIFT) | (64 << TCTL_COLD_SHIFT) | TCTL_RTLC));
 }
 
 static start_link_i8254x(t_i8254x* i8254x)
