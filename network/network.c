@@ -21,14 +21,14 @@ void equeue_packet(t_network_desc* network_desc)
 {
 	t_sckt_buf_desc* sckt_buf_desc;
 	t_data_sckt_buf* data_sckt_buf;
-	void* frame,
+	void* frame;
 	u16 frame_len;
 
 	sckt_buf_desc=network_desc->tx_queue;
 	while ((data_sckt_buf=dequeue_sckt(sckt_buf_desc))!=NULL)
 	{
 		frame=data_sckt_buf->mac_hdr;
-		frame_len=data_sckt_buf->mac_hdr->tail-data_sckt_buf->mac_hdr;
+		frame_len=data_sckt_buf->tail-data_sckt_buf->data;
 		send_packet_i8254x(network_desc->dev,frame,frame_len);
 		sckt_buf_desc_free(sckt_buf_desc);
 	}
@@ -36,6 +36,7 @@ void equeue_packet(t_network_desc* network_desc)
 
 void dequeue_packet(t_network_desc* network_desc)
 {
+	t_sckt_buf_desc* sckt_buf_desc;??????????????
 	t_data_sckt_buf* data_sckt_buf;
 
 	while ((data_sckt_buf=dequeue_sckt(sckt_buf_desc))!=NULL)

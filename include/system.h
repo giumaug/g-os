@@ -30,6 +30,8 @@
 struct s_ext2;
 struct s_scheduler_desc;
 struct s_buddy_desc;
+struct s_device_desc;
+struct s_network_desc;
 
 typedef struct s_io_request 
 {
@@ -65,9 +67,9 @@ typedef struct s_system
 	unsigned int *master_page_dir;
 	struct s_scheduler_desc* scheduler_desc;
 	struct s_ext2* root_fs;
-	t_device_desc* device_desc;
+	struct s_device_desc* device_desc;
 	unsigned int int_path_count;
-	t_network_desc* network_desc;
+	struct s_network_desc* network_desc;
 	unsigned int panic;
 }
 t_system;

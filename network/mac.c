@@ -1,6 +1,6 @@
 #include "network/mac.h"
 
-void put_packet_mac(t_data_sckt_buf* data_sckt_buf,_mac_addr src_mac,_mac_addr dst_mac)
+void put_packet_mac(t_data_sckt_buf* data_sckt_buf,t_mac_addr src_mac,t_mac_addr dst_mac)
 {
 	char* mac_row_packet;
 
@@ -29,12 +29,12 @@ void put_packet_mac(t_data_sckt_buf* data_sckt_buf,_mac_addr src_mac,_mac_addr d
 	mac_row_packet[10]=LOW_16(dst_mac.hi); 			//BYTE 5 DST MAC ADDRESS
 	mac_row_packet[11]=HI_16(dst_mac.hi); 		   	//BYTE 6 DST MAC ADDRESS
 
-	mac_row_packet[12]=LOW_16(NETWORK_PROTOCOL_TYPE)  	//LOW PROTOCOL TYPE
-	mac_row_packet[13]=HI_16(NETWORK_PROTOCOL_TYPE)		//PROTOCOL TYPE
+	mac_row_packet[12]=LOW_16(NETWORK_PROTOCOL_TYPE);  	//LOW PROTOCOL TYPE
+	mac_row_packet[13]=HI_16(NETWORK_PROTOCOL_TYPE);		//PROTOCOL TYPE
 }
 
-void rcv_packet_mac(data_sckt_buf)
+void rcv_packet_mac(t_data_sckt_buf* data_sckt_buf)
 {
-	data_sckt_buf->mac_network=data_sckt_buf->mac_hdr-HEADER_ETH;
+	data_sckt_buf->mac_hdr=data_sckt_buf->mac_hdr-HEADER_ETH;
 	rcv_packet_ip4(data_sckt_buf);
 }
