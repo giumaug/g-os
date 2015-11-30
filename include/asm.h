@@ -1,3 +1,5 @@
+#include "system.h"
+
 #define GET_FROM_STACK(n,var) asm("mov %%ebp,%0;":"=r"(var));var+=n+2;
 #define STI asm ("sti");
 #define CLI asm ("cli");
@@ -180,6 +182,8 @@ unsigned char in(unsigned int address);
 void out(unsigned char value,unsigned int address);
 unsigned short inw(unsigned int address);
 void outw(unsigned short value,unsigned int address);
+unsigned int indw(u32 address);
+void outdw(u32 value,u32 address);
 void switch_to_user_mode();
 void adjust_kernel_stack(unsigned int,unsigned int);
 void syscall(unsigned int syscall_num,int* params);

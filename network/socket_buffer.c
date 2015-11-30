@@ -34,7 +34,7 @@ t_data_sckt_buf* dequeue_sckt(t_sckt_buf_desc* sckt_buf_desc)
 		SPINLOCK_LOCK(sckt_buf_desc->lock);
 		if (sckt_buf_desc->buf_index>0)
 		{
-			data_sckt_buf=denqueue(sckt_buf_desc->buf);
+			data_sckt_buf=dequeue(sckt_buf_desc->buf);
 			sckt_buf_desc->buf_index--;
 		}
 		SPINLOCK_UNLOCK(sckt_buf_desc->lock);

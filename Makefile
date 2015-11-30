@@ -20,7 +20,8 @@ all:	kmain.o                       \
 	elf_loader.o                  \
 	process_0.o                   \
 	mem_regs.o		      \
-	network.o
+	network.o	              \
+	pci.o
 
 	ld -T linker.ld -o kernel.bin \
 	*.o                           \
@@ -33,12 +34,14 @@ all:	kmain.o                       \
 	drivers/pic/*.o               \
 	drivers/kbc/*.o               \
 	drivers/ata/*.o               \
+	drivers/i8254x/i8254x.o       \
 	data_types/*.o		      \
 	synchro_types/*.o             \
 	ext2/*.o                      \
 	elf_loader/*.o                \
 	memory_region/*.o             \
-	network/*.o             
+	network/*.o                   \
+	pci/*.o    
 
 process_0.o:process_0.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) process_0.c
@@ -100,6 +103,9 @@ elf_loader.o:
 mem_regs.o:
 	$(MAKE) -C memory_region
 
+pci.o:
+	$(MAKE) -C pci
+
 network.o:
 	$(MAKE) -C network
 
@@ -126,6 +132,7 @@ clean:
 	$(MAKE) -C elf_loader clean
 	$(MAKE) -C process clean
 	$(MAKE) -C memory_region clean
+	$(MAKE) -C pci clean
 	$(MAKE) -C network clean
 	rm -f kernel.bin
 

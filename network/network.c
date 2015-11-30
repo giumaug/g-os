@@ -1,10 +1,10 @@
-#include "network/ip4.h"
+#include "network/network.h"
 
 t_network_desc* network_init()
 {
 	t_network_desc* network_desc;
 
-	network_desc=kamolloc(sizeof(network_desc));
+	network_desc=kmalloc(sizeof(network_desc));
 	network_desc->tx_queue=sckt_buf_desc_init();
 	network_desc->tx_queue=sckt_buf_desc_init();
 	network_desc->dev=init_8254x();
@@ -36,7 +36,7 @@ void equeue_packet(t_network_desc* network_desc)
 
 void dequeue_packet(t_network_desc* network_desc)
 {
-	t_sckt_buf_desc* sckt_buf_desc;??????????????
+	t_sckt_buf_desc* sckt_buf_desc;
 	t_data_sckt_buf* data_sckt_buf;
 
 	while ((data_sckt_buf=dequeue_sckt(sckt_buf_desc))!=NULL)

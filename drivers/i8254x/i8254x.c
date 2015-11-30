@@ -1,5 +1,3 @@
-#include "asm.h" 
-#include "idt.h"
 #include "drivers/i8254x/i8254x.h"
 
 static void write_i8254x(t_i8254x* i8254x,u32 address,u32 value)
@@ -7,9 +5,9 @@ static void write_i8254x(t_i8254x* i8254x,u32 address,u32 value)
 	outdw(value,i8254x->mem_base+address);
 }
 
-static u32 read_i8254x(t_i8254x* i8254x,u32 adrress)
+static u32 read_i8254x(t_i8254x* i8254x,u32 address)
 {
-	return indw(i8254x,CTRL_REG);
+	return indw(i8254x->mem_base+address);
 }
 
 static u16 read_eeprom_i8254x(t_i8254x* i8254x,u8 addr)

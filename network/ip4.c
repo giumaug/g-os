@@ -61,12 +61,12 @@ int send_packet_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,void* d
 	
 		ip_row_packet[12]=IP_LOW_OCT(src_ip);          	//LOW SRC IP(8)
 		ip_row_packet[13]=IP_MID_LFT_OCT(src_ip);	//MID RIGHT  SRC IP(8)
-		ip_row_packet[14]=IP_MID_RGT(src_ip); 		//MID LEFT SRC IP(8)
+		ip_row_packet[14]=IP_MID_RGT_OCT(src_ip); 		//MID LEFT SRC IP(8)
 		ip_row_packet[15]=IP_HI_OCT(src_ip);		//HI SRC IP(8)
 
 		ip_row_packet[16]=IP_LOW_OCT(dst_ip);          //LOW DST IP(8)
 		ip_row_packet[17]=IP_MID_LFT_OCT(dst_ip);	//MID RIGHT DST IP(8)
-		ip_row_packet[18]=IP_MID_RGT(dst_ip);          //MID LEFT IP(8)
+		ip_row_packet[18]=IP_MID_RGT_OCT(dst_ip);          //MID LEFT IP(8)
 		ip_row_packet[19]=IP_HI_OCT(dst_ip);           //HI DST IP(8)
 
 		chksum_val=checksum(ip_row_packet,HEADER_IP4);
@@ -100,7 +100,7 @@ void rcv_packet_ip4(t_data_sckt_buf* data_sckt_buf)
 		else if(ip_row_packet[9]==UDP_PROTOCOL)
 		{
 			data_sckt_buf->transport_hdr=data_sckt_buf->transport_hdr-HEADER_UDP;
-			rcv_packet_udp(data_sckt_buf);
+			//rcv_packet_udp(data_sckt_buf);
 		}
 		else if(ip_row_packet[9]==ICMP_PROTOCOL)
 		{

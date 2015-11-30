@@ -56,7 +56,7 @@ inw:
  	pop    %ebp
  	ret
 
-# void out(unsigend int value,unsigned int address)
+# void outdw(unsigend int value,unsigned int address)
 outdw:
 	push   %ebp
  	mov    %esp,%ebp
@@ -70,7 +70,7 @@ outdw:
  	pop    %ebp
  	ret
 
-# unsigned int in(unsigned int address)
+# unsigned int indw(unsigned int address)
 indw:
 	push   %ebp
  	mov    %esp,%ebp

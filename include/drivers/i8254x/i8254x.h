@@ -2,6 +2,10 @@
 #define I8254X_H
 
 #include "system.h"
+#include "asm.h" 
+#include "idt.h"
+#include "virtual_memory/vm.h"
+#include "pci/pci.h"
 
 #define I8254X_BUS 		0 //LANCIAMO G-OS SU QEMU E VERIFICHIAMO DAL MONITOR CON INFO PCI
 #define I8254X_SLOT 		0
@@ -100,5 +104,10 @@ typedef struct s_i8254x
 	t_mac_addr mac_addr;
 }
 t_i8254x;
+
+t_i8254x* init_8254x();
+void free_8254x(t_i8254x* i8254x);
+void int_handler_i8254x(t_i8254x* i8254x);
+void send_packet_i8254x(t_i8254x* i8254x,void* frame_addr,u16 frame_len);
 
 #endif
