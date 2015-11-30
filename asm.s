@@ -1,4 +1,4 @@
-.global out,in,outw,inw,adjust_kernel_stack,syscall
+.global out,in,outw,inw,indw,outdw,adjust_kernel_stack,syscall
 
 # void out(unsigend char value,unsigned int address)
 out:

@@ -1,5 +1,4 @@
-#include "network/ip4.h"
-#include "network/arp.h"
+#include "network/network.h"
 
 static u16 ipv4_id=0;
 
@@ -74,7 +73,8 @@ int send_packet_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,void* d
 		ip_row_packet[11]=HI_16(chksum_val);
 		
 		dst_mac=lookup_mac(dst_ip);
-		put_packet_mac(system.network_desc->tx_queue,system.network_desc->dev->mac_addr,dst_mac);
+		put_packet_mac(data_sckt_buf,system.network_desc->dev->mac_addr,dst_mac);
+		void put_packet_mac(t_data_sckt_buf* data_sckt_buf,t_mac_addr src_mac,t_mac_addr dst_mac);
 	}
 	else
 	{

@@ -4,16 +4,16 @@ vpath %.h $(INCLUDE)/network
 
 all:socket_buffer.o mac.o ip4.o arp.o network.o
 
-socket_buffer.o:socket_buffer.c socket_buffer.h
+socket_buffer.o:socket_buffer.c network.h
 		$(CC) $(CPPFLAGS) $(CFLAGS) socket_buffer.c
 
-mac.o: 	mac.c mac.h
+mac.o: 	mac.c network.h
 	$(CC) $(CPPFLAGS) $(CFLAGS) mac.c
 
-ip4.o: ip4.c ip4.h
+ip4.o: ip4.c network.h
 	$(CC) $(CPPFLAGS) $(CFLAGS) ip4.c
 
-arp.o: 	arp.c arp.h
+arp.o: 	arp.c network.h
 	$(CC) $(CPPFLAGS) $(CFLAGS) arp.c
 
 network.o: network.c network.h

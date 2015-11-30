@@ -2,6 +2,7 @@
 #define I8254X_H
 
 #include "system.h"
+#include "network/network.h"
 #include "asm.h" 
 #include "idt.h"
 #include "virtual_memory/vm.h"
@@ -14,7 +15,6 @@
 #define I8254X_IRQ_LINE 	0
 #define RX_BUF_SIZE         	0x2000
 #define TX_BUF_SIZE
-
 
 #define CTRL_REG	 	0x0000
 #define CTRL_SLU 		0x40

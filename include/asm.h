@@ -1,3 +1,6 @@
+#ifndef ASM_H                
+#define ASM_H
+
 #include "system.h"
 
 #define GET_FROM_STACK(n,var) asm("mov %%ebp,%0;":"=r"(var));var+=n+2;
@@ -187,3 +190,5 @@ void outdw(u32 value,u32 address);
 void switch_to_user_mode();
 void adjust_kernel_stack(unsigned int,unsigned int);
 void syscall(unsigned int syscall_num,int* params);
+
+#endif
