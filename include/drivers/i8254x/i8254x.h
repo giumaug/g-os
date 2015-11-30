@@ -7,6 +7,7 @@
 #include "idt.h"
 #include "virtual_memory/vm.h"
 #include "pci/pci.h"
+#include "data_types/primitive_types.h"
 
 #define I8254X_BUS 		0 //LANCIAMO G-OS SU QEMU E VERIFICHIAMO DAL MONITOR CON INFO PCI
 #define I8254X_SLOT 		0
@@ -91,6 +92,8 @@ typedef struct __attribute__((packed)) tx_desc_i8254x
 }
 t_tx_desc_i8254x;
 
+struct s_mac_addr;
+
 typedef struct s_i8254x
 {
 	u32 mem_base;
@@ -101,7 +104,7 @@ typedef struct s_i8254x
 	t_tx_desc_i8254x* tx_desc;
 	u16 rx_cur;
 	u16 tx_cur;
-	t_mac_addr mac_addr;
+	struct s_mac_addr* mac_addr;
 }
 t_i8254x;
 
