@@ -119,8 +119,8 @@ void int_handler_pit()
 		}
 	}
 	//FLUSH NETWORK QUEUES BEFORE EXITING
-	equeue_packet(system.network_desc);
-	dequeue_packet(system.network_desc);
+//	equeue_packet(system.network_desc);
+//	dequeue_packet(system.network_desc);
 exit_handler:;
 //	EXIT_INT_HANDLER(is_schedule,processor_reg);
 

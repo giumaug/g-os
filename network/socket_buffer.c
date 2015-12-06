@@ -1,4 +1,4 @@
-#include "network/network.h"
+#include "network/socket_buffer.h"
 
 //FROM NOW EVERY INIT MUST FOLLOW THIS PATTERN!!!!!!!!!!!!!!!!!!!!!!!!!!
 t_sckt_buf_desc* sckt_buf_desc_init()

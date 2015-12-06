@@ -93,9 +93,9 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	*(system.process_info->tss.ss)=0x18;
 	*(system.process_info->tss.esp)=KERNEL_STACK;
 
-	system.network_desc=network_init();
+//	system.network_desc=network_init();
                        		
-	kernel_stack=KERNEL_STACK;
+	kernel_stack=KERNEL_STACK-100;
 	asm("movl %0,%%ebp;"::"r"(kernel_stack));
 	asm("movl %0,%%esp;"::"r"(kernel_stack));
 	STI

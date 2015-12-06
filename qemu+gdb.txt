@@ -1,3 +1,5 @@
+losetup -o 1048576 /dev/loop3 ./disk.img
+
 qemu -monitor stdio -s -S -m 200M -monitor stdio -kernel ./kernel.bin
 gdb ./kernel.bin
 dentro gdb:

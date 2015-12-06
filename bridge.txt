@@ -15,6 +15,8 @@ ifconfig virbr0 up
 ifconfig virbr0 172.16.1.2/16
 ifconfig eth2 0.0.0.0 promisc
 
+route add default gw 172.16.243.5
+
 per monitorare traffico:
 tcpdump host 172.16.1.2
 
