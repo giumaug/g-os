@@ -62,8 +62,8 @@ outdw:
  	mov    %esp,%ebp
 	push   %edx
 	push   %eax
- 	mov    0x0a(%ebp),%edx  # address
- 	mov    0x6(%ebp),%eax  # value
+ 	mov    0x0c(%ebp),%edx  # address
+ 	mov    0x8(%ebp),%eax  # value
  	outl    %eax,%dx
 	pop    %eax
 	pop    %edx

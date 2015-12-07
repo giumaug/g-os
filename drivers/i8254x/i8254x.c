@@ -127,7 +127,8 @@ t_i8254x* init_8254x()
 
 	i8254x=kmalloc(sizeof(t_i8254x));
 	i8254x->mem_base=read_pci_config_word(I8254X_BUS,I8254X_SLOT,I8254X_FUNC,I8254X_MEM_BASE);
-	i8254x->irq_line=read_pci_config_word(I8254X_BUS,I8254X_SLOT,I8254X_FUNC,I8254X_IRQ_LINE);
+	u32 pippo=read_pci_config_word(I8254X_BUS,I8254X_SLOT,I8254X_FUNC,I8254X_IRQ_LINE-3);
+	i8254x->irq_line=read_pci_config_word(I8254X_BUS,I8254X_SLOT,I8254X_FUNC,I8254X_IRQ_LINE-3) & 0xFF;
 	read_mac_i8254x(i8254x);
 	start_link_i8254x(i8254x);
 

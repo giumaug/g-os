@@ -11,10 +11,10 @@
 #include "network/common.h"
 
 #define I8254X_BUS 		0 //LANCIAMO G-OS SU QEMU E VERIFICHIAMO DAL MONITOR CON INFO PCI
-#define I8254X_SLOT 		2
+#define I8254X_SLOT 		3
 #define I8254X_FUNC 		0
-#define I8254X_MEM_BASE 	0
-#define I8254X_IRQ_LINE 	0
+#define I8254X_MEM_BASE 	0x10
+#define I8254X_IRQ_LINE 	0x3F
 #define RX_BUF_SIZE         	0x2000
 #define TX_BUF_SIZE
 
