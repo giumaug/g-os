@@ -24,5 +24,7 @@ tcpdump host 172.16.1.2
 
 qemu-system-x86_64 -boot  d -cdrom ./Fedora-13-i686-Live.iso -device e1000,netdev=net0 -netdev tap,id=net0,script=no,ifname=tap0 -m 1024
 
+qemu -s -S -m 200M -hda /opt/virtutech/simics-3.0.31/workspace/disk.img  -monitor stdio -device e1000,netdev=net0 -netdev tap,id=net0,script=no,ifname=tap0
+
 ifconfig 172.16.1.10 netmask 255.255.0.0 up
 route add 172.16.0.0 gw 172.16.1.2
