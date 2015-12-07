@@ -14,6 +14,7 @@
 #define I8254X_SLOT 		3
 #define I8254X_FUNC 		0
 #define I8254X_MEM_BASE 	0x10
+#define I8254X_IO_BASE 		0x14
 #define I8254X_IRQ_LINE 	0x3F
 #define RX_BUF_SIZE         	0x2000
 #define TX_BUF_SIZE
@@ -96,6 +97,7 @@ t_tx_desc_i8254x;
 typedef struct s_i8254x
 {
 	u32 mem_base;
+	u16 io_base;
 	u8 irq_line;
 	u32 low_mac;
 	u32 hi_mac;
