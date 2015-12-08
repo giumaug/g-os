@@ -64,7 +64,7 @@ outdw:
 	push   %eax
  	mov    0x10(%ebp),%dx  # address
  	mov    0x8(%ebp),%eax  # value
- 	out    %eax,%dx
+ 	outl    %eax,%dx
 	pop    %eax
 	pop    %edx
  	pop    %ebp
@@ -77,7 +77,7 @@ indw:
 	push   %edx
 	mov    $0x0,%eax
  	mov    0x8(%ebp),%dx  # address
- 	in     %dx,%eax
+ 	inl    %dx,%eax
 	pop    %edx
  	pop    %ebp
  	ret
