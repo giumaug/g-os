@@ -2,14 +2,31 @@
 
 static void write_i8254x(t_i8254x* i8254x,u32 address,u32 value)
 {
-	outdw(address,i8254x->io_base);
-	outdw(value,i8254x->io_base+4);
+	if (i8254x->var_type==0)
+	{
+
+	}
+	else 
+	{
+		outdw(address,i8254x->io_base);
+		outdw(value,i8254x->io_base+4);
+	}
 }
 
 static u32 read_i8254x(t_i8254x* i8254x,u32 address)
 {
-	outdw(address,i8254x->io_base);
-	return indw(i8254x->io_base+4);
+	u32 val=0;
+
+	if (i8254x->var_type==0)
+	{
+
+	}
+	else 
+	{
+		outdw(address,i8254x->io_base);
+		val=indw(i8254x->io_base+4);
+	}
+	return val;
 }
 
 static u16 read_eeprom_i8254x(t_i8254x* i8254x,u8 addr)
@@ -130,9 +147,33 @@ t_i8254x* init_8254x()
 {
 	t_i8254x* i8254x=NULL;
 	struct t_i_desc i_desc;
+	u32 bar0;
 
 	i8254x=kmalloc(sizeof(t_i8254x));
-	i8254x->io_base=read_pci_config_word(I8254X_BUS,I8254X_SLOT,I8254X_FUNC,I8254X_IO_BASE) & 0xFFFC;
+
+	bar0=read_pci_config_word(I8254X_BUS,I8254X_SLOT,I8254X_FUNC,I8254X_BAR0);
+	if (bar0 & 0x1) 
+	{
+		i8254x->io_base=bar0 & 0xFFFC;
+		i8254x->mem_base=NULL;
+		i8254x->bar_type=1;
+	}
+	else 
+	{
+		i8254x->mem_base=bar0 & 0xFFFC;
+		i8254x->io_base=NULL;
+		i8254x->bar_type=0;
+
+		check size:
+		1) write all 1
+		2) read back
+		3) bitwise not and add 1
+		4) restore old value
+
+		//80000 9FBFF
+	
+	}
+
 	i8254x->irq_line=read_pci_config_word(I8254X_BUS,I8254X_SLOT,I8254X_FUNC,I8254X_IRQ_LINE-3) & 0xFF;
 	read_mac_i8254x(i8254x);
 	start_link_i8254x(i8254x);
