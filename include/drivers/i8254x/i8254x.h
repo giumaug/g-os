@@ -10,6 +10,7 @@
 #include "data_types/primitive_types.h"
 #include "network/common.h"
 
+#define I8254X_VIRT_BAR0_MEM    0x80000
 #define I8254X_BUS 		0 //LANCIAMO G-OS SU QEMU E VERIFICHIAMO DAL MONITOR CON INFO PCI
 #define I8254X_SLOT 		3
 #define I8254X_FUNC 		0
@@ -97,7 +98,8 @@ t_tx_desc_i8254x;
 typedef struct s_i8254x
 {
 	u8 bar_type;
-	u32 mem_base;
+	u32* mem_base;
+	u32 mem_base_size;
 	u16 io_base;
 	u8 irq_line;
 	u32 low_mac;

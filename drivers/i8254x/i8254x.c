@@ -1,10 +1,11 @@
 #include "drivers/i8254x/i8254x.h"
+#include "virtual_memory/vm.h"
 
 static void write_i8254x(t_i8254x* i8254x,u32 address,u32 value)
 {
-	if (i8254x->var_type==0)
+	if (i8254x->bar_type==0)
 	{
-
+		 (*((volatile u32*)(i8254x->mem_base+address)))=(value);
 	}
 	else 
 	{
@@ -17,9 +18,9 @@ static u32 read_i8254x(t_i8254x* i8254x,u32 address)
 {
 	u32 val=0;
 
-	if (i8254x->var_type==0)
+	if (i8254x->bar_type==0)
 	{
-
+		val=*((volatile u32*)(address));
 	}
 	else 
 	{
@@ -147,31 +148,42 @@ t_i8254x* init_8254x()
 {
 	t_i8254x* i8254x=NULL;
 	struct t_i_desc i_desc;
-	u32 bar0;
+	u32* bar0;
+	u32 tmp;
 
 	i8254x=kmalloc(sizeof(t_i8254x));
 
 	bar0=read_pci_config_word(I8254X_BUS,I8254X_SLOT,I8254X_FUNC,I8254X_BAR0);
-	if (bar0 & 0x1) 
+	if ((u32)bar0 & 0x1) 
 	{
-		i8254x->io_base=bar0 & 0xFFFC;
+		i8254x->io_base=(u32)bar0 & 0xFFFC;
 		i8254x->mem_base=NULL;
 		i8254x->bar_type=1;
 	}
 	else 
 	{
-		i8254x->mem_base=bar0 & 0xFFFC;
+		i8254x->mem_base=(u32)bar0 & 0xFFFC;
 		i8254x->io_base=NULL;
 		i8254x->bar_type=0;
 
-		check size:
-		1) write all 1
-		2) read back
-		3) bitwise not and add 1
-		4) restore old value
+		tmp=*bar0;
+		*bar0=0xFFFF;
+		i8254x->mem_base_size=*bar0;
+		i8254x->mem_base_size=(~i8254x->mem_base_size)+1;
+		*bar0=tmp;
 
-		//80000 9FBFF
-	
+		if (i8254x->mem_base_size>0x10000)
+		{
+			i8254x->mem_base_size=0x10000;
+		}
+		map_vm_mem(system.master_page_dir,I8254X_VIRT_BAR0_MEM,i8254x->mem_base,i8254x->mem_base_size,3);
+		
+//		80000 9FBFF
+//		check size:
+//		1) write all 1
+//		2) read back
+//		3) bitwise not and add 1
+//		4) restore old value	
 	}
 
 	i8254x->irq_line=read_pci_config_word(I8254X_BUS,I8254X_SLOT,I8254X_FUNC,I8254X_IRQ_LINE-3) & 0xFF;
