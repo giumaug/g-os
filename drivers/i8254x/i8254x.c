@@ -3,9 +3,13 @@
 
 static void write_i8254x(t_i8254x* i8254x,u32 address,u32 value)
 {
+	u32 virt_addr;
+
+
 	if (i8254x->bar_type==0)
 	{
-		 (*((volatile u32*)(i8254x->mem_base+address)))=(value);
+		virt_addr=(u32)i8254x->mem_base+address;
+		 (*((volatile u32*)(virt_addr)))=(value);
 	}
 	else 
 	{
@@ -17,10 +21,12 @@ static void write_i8254x(t_i8254x* i8254x,u32 address,u32 value)
 static u32 read_i8254x(t_i8254x* i8254x,u32 address)
 {
 	u32 val=0;
+	u32* virt_addr;
 
 	if (i8254x->bar_type==0)
 	{
-		val=*((volatile u32*)(address));
+		virt_addr=i8254x->mem_base+address;
+		val=*((volatile u32*)(virt_addr));
 	}
 	else 
 	{
@@ -149,10 +155,8 @@ t_i8254x* init_8254x()
 	t_i8254x* i8254x=NULL;
 	struct t_i_desc i_desc;
 	u32* bar0;
-	u32 tmp;
 
 	i8254x=kmalloc(sizeof(t_i8254x));
-
 	bar0=read_pci_config_word(I8254X_BUS,I8254X_SLOT,I8254X_FUNC,I8254X_BAR0);
 	if ((u32)bar0 & 0x1) 
 	{
@@ -162,28 +166,22 @@ t_i8254x* init_8254x()
 	}
 	else 
 	{
-		i8254x->mem_base=(u32)bar0 & 0xFFFC;
+		i8254x->mem_base=I8254X_VIRT_BAR0_MEM;
 		i8254x->io_base=NULL;
 		i8254x->bar_type=0;
 
-		tmp=*bar0;
-		*bar0=0xFFFF;
-		i8254x->mem_base_size=*bar0;
-		i8254x->mem_base_size=(~i8254x->mem_base_size)+1;
-		*bar0=tmp;
-
-		if (i8254x->mem_base_size>0x10000)
-		{
-			i8254x->mem_base_size=0x10000;
-		}
-		map_vm_mem(system.master_page_dir,I8254X_VIRT_BAR0_MEM,i8254x->mem_base,i8254x->mem_base_size,3);
-		
-//		80000 9FBFF
-//		check size:
-//		1) write all 1
-//		2) read back
-//		3) bitwise not and add 1
-//		4) restore old value	
+//		tmp=*bar0;
+//		*bar0=0xFFFFFFFF;
+//		i8254x->mem_base_size=*bar0;
+//		i8254x->mem_base_size=(~i8254x->mem_base_size)+1;
+//		*bar0=tmp;
+//
+//		if (i8254x->mem_base_size>0x10000)
+//		{
+//			i8254x->mem_base_size=0x10000;
+//		}
+		map_vm_mem(system.master_page_dir,I8254X_VIRT_BAR0_MEM,(((u32) (bar0)) & 0xFFFFFFF0),I8254X_VIRT_BAR0_MEM_SIZE,3);
+		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) system.master_page_dir))) 
 	}
 
 	i8254x->irq_line=read_pci_config_word(I8254X_BUS,I8254X_SLOT,I8254X_FUNC,I8254X_IRQ_LINE-3) & 0xFF;
