@@ -21,11 +21,11 @@ static void write_i8254x(t_i8254x* i8254x,u32 address,u32 value)
 static u32 read_i8254x(t_i8254x* i8254x,u32 address)
 {
 	u32 val=0;
-	u32* virt_addr;
+	u32 virt_addr;
 
 	if (i8254x->bar_type==0)
 	{
-		virt_addr=i8254x->mem_base+address;
+		virt_addr=(u32)i8254x->mem_base+address;
 		val=*((volatile u32*)(virt_addr));
 	}
 	else 
@@ -52,31 +52,14 @@ static void read_mac_i8254x(t_i8254x* i8254x)
 
 	//tmp=read_i8254x(i8254x,0x5400);
 
+	tmp=read_eeprom_i8254x(i8254x,2);	
+	i8254x->mac_addr.lo=(tmp>>8) | (tmp<<8);
+	
+	tmp=read_eeprom_i8254x(i8254x,1);	
+	i8254x->mac_addr.mi=(tmp>>8) | (tmp<<8);
+
 	tmp=read_eeprom_i8254x(i8254x,0);	
-
-	tmp=read_i8254x(i8254x,REG_EERD);
-	tmp=(tmp && 0xf);
-	i8254x->mac_addr.lo=read_i8254x(i8254x,0);
-
-	tmp=read_i8254x(i8254x,1);
-	tmp=(tmp && 0xf)<<8;
-	(i8254x->mac_addr.lo) |= tmp;
-
-	tmp=read_i8254x(i8254x,2);
-	tmp=(tmp && 0xf)<<16;
-	i8254x->mac_addr.mi |= tmp;
-
-	tmp=read_i8254x(i8254x,3);
-	tmp=(tmp && 0xf)<<24;
-	i8254x->mac_addr.mi |= tmp;
-
-	tmp=read_i8254x(i8254x,4);
-	tmp=(tmp && 0xf);
-	i8254x->mac_addr.hi=read_i8254x(i8254x,0);
-
-	tmp=read_i8254x(i8254x,5);
-	tmp=(tmp && 0xf)<<8;
-	i8254x->mac_addr.hi |= tmp;
+	i8254x->mac_addr.hi=(tmp>>8) | (tmp<<8);
 }
 
 void int_handler_i8254x(t_i8254x* i8254x);
@@ -195,7 +178,6 @@ t_i8254x* init_8254x()
 	set_idt_entry(0x20+i8254x->irq_line,&int_handler_i8254x);
 
 	reset_multicast_array(i8254x);
-	read_mac_i8254x(i8254x);
 	rx_init_i8254x(i8254x);
 	tx_init_i8254x(i8254x);
 	return i8254x;
