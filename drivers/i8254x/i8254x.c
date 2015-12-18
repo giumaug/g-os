@@ -75,9 +75,14 @@ static rx_init_i8254x(t_i8254x* i8254x)
 	{
 		//ALLOC IN ADVANCE BUFFER TO AVOID MEMCPY
 		data_sckt_buf=alloc_sckt(MTU_ETH);
-		rx_desc[i].hi_addr=data_sckt_buf->head;
-		rx_desc[i].low_addr=kmalloc(RX_BUF_SIZE);
+		rx_desc[i].hi_addr=0;
+		rx_desc[i].low_addr=data_sckt_buf->head;
 		rx_desc[i].status=0;
+
+		rx_desc[i].length=0;
+		rx_desc[i].checksum=0;
+		rx_desc[i].errors=0;
+		rx_desc[i].special=0;
 	}
 	i8254x->rx_desc=rx_desc;
 	write_i8254x(i8254x,RDBAL_REG,rx_desc);
@@ -102,6 +107,11 @@ static tx_init_i8254x(t_i8254x* i8254x)
 		tx_desc[i].low_addr=0;
 		tx_desc[i].status=TSTA_DD;
 		tx_desc[i].cmd=0;
+
+		tx_desc[i].length=0;
+		tx_desc[i].cso=0;
+		tx_desc[i].css=0;
+		tx_desc[i].special=0;
 	}
 	i8254x->tx_desc=tx_desc;
 	write_i8254x(i8254x,TDBAL_REG,tx_desc);
@@ -135,6 +145,7 @@ static reset_multicast_array(t_i8254x* i8254x)
 
 t_i8254x* init_8254x()
 {
+	struct t_process_context* current_process_context;
 	t_i8254x* i8254x=NULL;
 	struct t_i_desc i_desc;
 	u32* bar0;
@@ -152,19 +163,12 @@ t_i8254x* init_8254x()
 		i8254x->mem_base=I8254X_VIRT_BAR0_MEM;
 		i8254x->io_base=NULL;
 		i8254x->bar_type=0;
+		CURRENT_PROCESS_CONTEXT(current_process_context);
+		map_vm_mem(current_process_context->page_dir,I8254X_VIRT_BAR0_MEM,(((u32) (bar0)) & 0xFFFFFFF0),I8254X_VIRT_BAR0_MEM_SIZE,3);
+		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 
 
-//		tmp=*bar0;
-//		*bar0=0xFFFFFFFF;
-//		i8254x->mem_base_size=*bar0;
-//		i8254x->mem_base_size=(~i8254x->mem_base_size)+1;
-//		*bar0=tmp;
-//
-//		if (i8254x->mem_base_size>0x10000)
-//		{
-//			i8254x->mem_base_size=0x10000;
-//		}
-		map_vm_mem(system.master_page_dir,I8254X_VIRT_BAR0_MEM,(((u32) (bar0)) & 0xFFFFFFF0),I8254X_VIRT_BAR0_MEM_SIZE,3);
-		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) system.master_page_dir))) 
+//		map_vm_mem(system.master_page_dir,I8254X_VIRT_BAR0_MEM,(((u32) (bar0)) & 0xFFFFFFF0),I8254X_VIRT_BAR0_MEM_SIZE,3);
+//		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) system.master_page_dir))) 
 	}
 
 	i8254x->irq_line=read_pci_config_word(I8254X_BUS,I8254X_SLOT,I8254X_FUNC,I8254X_IRQ_LINE-3) & 0xFF;
