@@ -24,6 +24,7 @@
 #define IP_MID_RGT_OCT(data)	(data>>8 && 0xFF)
 #define IP_MID_LFT_OCT(data)	(data>>16 && 0xFF)
 #define IP_HI_OCT(data)		(data>>24 && 0xFF)
+#define IP_FROM_OCT_TO_LONG(a,b,c,d) (d | (c>>8) | (b>>16) | (a >> 24))
 
 typedef struct s_mac_addr
 {

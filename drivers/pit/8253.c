@@ -118,6 +118,12 @@ void int_handler_pit()
 			}
 		}
 	}
+	t_data_sckt_buf* data_sckt_buf=alloc_sckt(MTU_ETH);
+	char[] data="this is my first ip packet!!!!!";
+	long src_ip=IP_FROM_OCT_TO_LONG(172,16,6,25);
+	long dst_ip=IP_FROM_OCT_TO_LONG(172,16,6,200);
+	int send_packet_ip4(data_sckt_buf,src_ip,dst_ip,data,31,0x11)
+
 	//FLUSH NETWORK QUEUES BEFORE EXITING
 //	equeue_packet(system.network_desc);
 //	dequeue_packet(system.network_desc);
