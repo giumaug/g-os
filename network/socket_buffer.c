@@ -43,14 +43,17 @@ t_data_sckt_buf* dequeue_sckt(t_sckt_buf_desc* sckt_buf_desc)
 
 t_data_sckt_buf* alloc_sckt(u16 data_len)
 {
-	t_data_sckt_buf* data_sckt_buf=kmalloc(sizeof(t_data_sckt_buf)+data_len);
-	data_sckt_buf->head=data_sckt_buf+sizeof(t_data_sckt_buf);
-	data_sckt_buf->end=data_sckt_buf->head+data_len;
+	char* data;
+	t_data_sckt_buf* data_sckt_buf=kmalloc(sizeof(t_data_sckt_buf));
+	data=kmalloc(data_len);
+	data_sckt_buf->data=data;
+	data_sckt_buf->data_len=data_len;
 	return data_sckt_buf;
 }
 
 void free_sckt(t_data_sckt_buf* data_sckt_buf)
 {
+	kfree(data_sckt_buf->data);
 	kfree(data_sckt_buf);
 }
 

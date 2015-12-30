@@ -22,6 +22,14 @@
 #define TX_BUF_SIZE
 
 #define CTRL_REG	 	0x0000
+#define STATUS_REG              0x0008
+#define TDFPC_REG		0x3430
+#define TDFH_REG      		0x3410 //hw head
+#define TDFT_REG	 	0x3418 //hw tail
+
+
+
+
 #define CTRL_SLU 		0x40
 
 #define MLTC_TBL_ARRY_REG       0x5200

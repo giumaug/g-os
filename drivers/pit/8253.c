@@ -118,11 +118,16 @@ void int_handler_pit()
 			}
 		}
 	}
+	CLI
 	t_data_sckt_buf* data_sckt_buf=alloc_sckt(MTU_ETH);
-	char[] data="this is my first ip packet!!!!!";
-	long src_ip=IP_FROM_OCT_TO_LONG(172,16,6,25);
-	long dst_ip=IP_FROM_OCT_TO_LONG(172,16,6,200);
-	int send_packet_ip4(data_sckt_buf,src_ip,dst_ip,data,31,0x11)
+	data_sckt_buf->network_hdr=data_sckt_buf->data;
+	enqueue_sckt(system.network_desc->tx_queue,data_sckt_buf);
+	
+	char data[]="this is my first ip packet!!!!!";
+	u32 src_ip=IP_FROM_OCT_TO_LONG(172,16,6,25);
+	u32 dst_ip=IP_FROM_OCT_TO_LONG(172,16,6,200);
+	send_packet_ip4(data_sckt_buf,src_ip,dst_ip,data,31,0x11);
+	equeue_packet(system.network_desc);
 
 	//FLUSH NETWORK QUEUES BEFORE EXITING
 //	equeue_packet(system.network_desc);

@@ -6,8 +6,9 @@ t_network_desc* network_init()
 
 	network_desc=kmalloc(sizeof(network_desc));
 	network_desc->tx_queue=sckt_buf_desc_init();
-	network_desc->tx_queue=sckt_buf_desc_init();
+	network_desc->rx_queue=sckt_buf_desc_init();
 	network_desc->dev=init_8254x();
+	return network_desc;
 }
 
 void network_free(t_network_desc* network_desc)
@@ -28,7 +29,7 @@ void equeue_packet(t_network_desc* network_desc)
 	while ((data_sckt_buf=dequeue_sckt(sckt_buf_desc))!=NULL)
 	{
 		frame=data_sckt_buf->mac_hdr;
-		frame_len=data_sckt_buf->tail-data_sckt_buf->data;
+		frame_len=data_sckt_buf->data_len;
 		send_packet_i8254x(network_desc->dev,frame,frame_len);
 		sckt_buf_desc_free(sckt_buf_desc);
 	}

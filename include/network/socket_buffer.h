@@ -10,10 +10,12 @@ typedef struct s_data_sckt_buf
 	unsigned char* transport_hdr;
 	unsigned char* network_hdr;
 	unsigned char* mac_hdr;
-	unsigned char* head;		//start protocol memory area
-	unsigned char* end;    		//end protocol memory area
-	unsigned char* data;   		//start data memory area
-	unsigned char* tail;   		//end data memory area
+	unsigned char* data;
+	u16 data_len;
+//	unsigned char* head;		//start protocol memory area
+//	unsigned char* end;    		//end protocol memory area
+//	unsigned char* data;   		//start data memory area
+//	unsigned char* tail;   		//end data memory area
 }
 t_data_sckt_buf;
 
