@@ -24,7 +24,7 @@ static u16 checksum(u8* addr,u32 count)
   	return(~sum);
 }
 
-int send_packet_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,void* data,u16 data_len,u8 protocol)
+int send_packet_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len,u8 protocol)
 {
 	u16 packet_len;
 	char* ip_row_packet;
@@ -40,7 +40,7 @@ int send_packet_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,void* d
 	if (packet_len<=MTU_ETH)
 	{
 		ip_row_packet=data_sckt_buf->network_hdr;
-		data_sckt_buf->mac_hdr=data_sckt_buf->network_hdr-HEADER_IP4;
+		data_sckt_buf->mac_hdr=data_sckt_buf->network_hdr-HEADER_ETH;
 	
 		//PACKET TAKES BIG ENDIAN/NETWORK BYTE ORDER
 		ip_row_packet[0]= (1>>3) | 5; 			//VERSION(4) IHL(4)
@@ -59,13 +59,13 @@ int send_packet_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,void* d
 		ip_row_packet[11]=0;             		//HI HEADER CRC(8)
 	
 		ip_row_packet[12]=IP_LOW_OCT(src_ip);          	//LOW SRC IP(8)
-		ip_row_packet[13]=IP_MID_LFT_OCT(src_ip);	//MID RIGHT  SRC IP(8)
-		ip_row_packet[14]=IP_MID_RGT_OCT(src_ip); 		//MID LEFT SRC IP(8)
+		ip_row_packet[13]=IP_MID_RGT_OCT(src_ip);	//MID RIGHT  SRC IP(8)
+		ip_row_packet[14]=IP_MID_LFT_OCT(src_ip); 	//MID LEFT SRC IP(8)
 		ip_row_packet[15]=IP_HI_OCT(src_ip);		//HI SRC IP(8)
 
 		ip_row_packet[16]=IP_LOW_OCT(dst_ip);          //LOW DST IP(8)
-		ip_row_packet[17]=IP_MID_LFT_OCT(dst_ip);	//MID RIGHT DST IP(8)
-		ip_row_packet[18]=IP_MID_RGT_OCT(dst_ip);          //MID LEFT IP(8)
+		ip_row_packet[17]=IP_MID_RGT_OCT(dst_ip);      //MID RIGHT DST IP(8)
+		ip_row_packet[18]=IP_MID_LFT_OCT(dst_ip);      //MID LEFT IP(8)
 		ip_row_packet[19]=IP_HI_OCT(dst_ip);           //HI DST IP(8)
 
 		chksum_val=checksum(ip_row_packet,HEADER_IP4);
@@ -74,7 +74,6 @@ int send_packet_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,void* d
 		
 		dst_mac=lookup_mac(dst_ip);
 		put_packet_mac(data_sckt_buf,system.network_desc->dev->mac_addr,dst_mac);
-		void put_packet_mac(t_data_sckt_buf* data_sckt_buf,t_mac_addr src_mac,t_mac_addr dst_mac);
 	}
 	else
 	{

@@ -100,7 +100,8 @@ static tx_init_i8254x(t_i8254x* i8254x)
 	int i;
 	t_tx_desc_i8254x* tx_desc;
 
-	tx_desc=kmalloc(sizeof(t_tx_desc_i8254x)*NUM_TX_DESC);
+	tx_desc=kmalloc(16 + sizeof(t_tx_desc_i8254x) * NUM_TX_DESC);
+	tx_desc = ((u32)tx_desc + 16) - ((u32)tx_desc % 16);
 	for (i=0;i<NUM_TX_DESC;i++)
 	{
 		tx_desc[i].hi_addr=0;
@@ -114,7 +115,7 @@ static tx_init_i8254x(t_i8254x* i8254x)
 		tx_desc[i].special=0;
 	}
 	i8254x->tx_desc=tx_desc;
-	write_i8254x(i8254x,TDBAL_REG,tx_desc);
+	write_i8254x(i8254x,TDBAL_REG,FROM_VIRT_TO_PHY(tx_desc)); //first 4 bit zero
 	write_i8254x(i8254x,TDBAH_REG,0);
 	write_i8254x(i8254x,TDLEN_REG,NUM_RX_DESC*16);
 	i8254x->tx_cur=0;
@@ -258,7 +259,7 @@ void send_packet_i8254x(t_i8254x* i8254x,void* frame_addr,u16 frame_len)
 
 	cur=i8254x->tx_cur;
 	tx_desc=i8254x->tx_desc;
-	phy_frame_addr=FROM_PHY_TO_VIRT(frame_addr);
+	phy_frame_addr=FROM_VIRT_TO_PHY(frame_addr);
 
 	tx_desc[cur].low_addr=phy_frame_addr;
 	tx_desc[cur].hi_addr=0;

@@ -4,7 +4,6 @@ void put_packet_mac(t_data_sckt_buf* data_sckt_buf,t_mac_addr src_mac,t_mac_addr
 {
 	char* mac_row_packet;
 
-	data_sckt_buf->mac_hdr=data_sckt_buf->network_hdr-HEADER_IP4;
 	mac_row_packet=data_sckt_buf->mac_hdr;
 	
 //	mac_row_packet[0]=0xAA;  				//PREAMBLE
