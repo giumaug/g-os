@@ -123,6 +123,8 @@ static tx_init_i8254x(t_i8254x* i8254x)
 	write_i8254x(i8254x,THD_REG,0);
 	write_i8254x(i8254x,TDT_REG,0);
 
+	int aa=(TCTL_EN| TCTL_PSP | (15 << TCTL_CT_SHIFT) | (64 << TCTL_COLD_SHIFT) | TCTL_RTLC);
+
 	write_i8254x(i8254x,TCTRL_REG,(TCTL_EN| TCTL_PSP | (15 << TCTL_CT_SHIFT) | (64 << TCTL_COLD_SHIFT) | TCTL_RTLC));
 }
 
@@ -272,23 +274,23 @@ void send_packet_i8254x(t_i8254x* i8254x,void* frame_addr,u16 frame_len)
 
 	i8254x->tx_cur = (cur + 1) % NUM_TX_DESC;
 
-	u32 current_state1=read_i8254x(i8254x,TCTRL_REG);
+//	u32 current_state1=read_i8254x(i8254x,TCTRL_REG);
 	u32 head1=read_i8254x(i8254x,THD_REG);
-	u32 status1=read_i8254x(i8254x,STATUS_REG);
-	u32 tmp1=read_i8254x(i8254x,TDT_REG);
-	u32 pc1=read_i8254x(i8254x,TDFPC_REG);
-	u32 hwhead1=read_i8254x(i8254x,TDFH_REG);
-	u32 hwtail1=read_i8254x(i8254x,TDFT_REG);
+//	u32 status1=read_i8254x(i8254x,STATUS_REG);
+//	u32 tmp1=read_i8254x(i8254x,TDT_REG);
+//	u32 pc1=read_i8254x(i8254x,TDFPC_REG);
+//	u32 hwhead1=read_i8254x(i8254x,TDFH_REG);
+//	u32 hwtail1=read_i8254x(i8254x,TDFT_REG);
 	
 	write_i8254x(i8254x,TDT_REG,i8254x->tx_cur);
 
-	u32 hwhead2=read_i8254x(i8254x,TDFH_REG);
-	u32 hwtail2=read_i8254x(i8254x,TDFT_REG);
-	u32 pc2=read_i8254x(i8254x,TDFPC_REG);
-	u32 tmp2=read_i8254x(i8254x,TDT_REG);
-	u32 status2=read_i8254x(i8254x,STATUS_REG);
+//	u32 hwhead2=read_i8254x(i8254x,TDFH_REG);
+//	u32 hwtail2=read_i8254x(i8254x,TDFT_REG);
+//	u32 pc2=read_i8254x(i8254x,TDFPC_REG);
+//	u32 tmp2=read_i8254x(i8254x,TDT_REG);
+//	u32 status2=read_i8254x(i8254x,STATUS_REG);
 	u32 head2=read_i8254x(i8254x,THD_REG);
-	u32 current_state2=read_i8254x(i8254x,TCTRL_REG);
+//	u32 current_state2=read_i8254x(i8254x,TCTRL_REG);
 
 	while(!(tx_desc[cur].status & 0xff));
 }
