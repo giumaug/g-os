@@ -100,7 +100,8 @@ static tx_init_i8254x(t_i8254x* i8254x)
 	int i;
 	t_tx_desc_i8254x* tx_desc;
 
-	tx_desc=kmalloc(16 + sizeof(t_tx_desc_i8254x) * NUM_TX_DESC);
+	//tx_desc=kmalloc(16 + sizeof(t_tx_desc_i8254x) * NUM_TX_DESC);
+	tx_desc=0x90000;
 	tx_desc = ((u32)tx_desc + 16) - ((u32)tx_desc % 16);
 	for (i=0;i<NUM_TX_DESC;i++)
 	{
@@ -115,7 +116,9 @@ static tx_init_i8254x(t_i8254x* i8254x)
 		tx_desc[i].special=1;
 	}
 	i8254x->tx_desc=tx_desc;
-	write_i8254x(i8254x,TDBAL_REG,FROM_VIRT_TO_PHY((u32)tx_desc)); //first 4 bit zero
+	int aaa=FROM_VIRT_TO_PHY((u32)tx_desc);
+	//write_i8254x(i8254x,TDBAL_REG,FROM_VIRT_TO_PHY((u32)tx_desc)); //first 4 bit zero
+	write_i8254x(i8254x,TDBAL_REG,0x90010);
 	write_i8254x(i8254x,TDBAH_REG,0);
 	write_i8254x(i8254x,TDLEN_REG,NUM_RX_DESC*16);
 	i8254x->tx_cur=0;
@@ -169,7 +172,6 @@ t_i8254x* init_8254x()
 		CURRENT_PROCESS_CONTEXT(current_process_context);
 		map_vm_mem(current_process_context->page_dir,I8254X_VIRT_BAR0_MEM,(((u32) (bar0)) & 0xFFFFFFF0),I8254X_VIRT_BAR0_MEM_SIZE,3);
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 
-
 //		map_vm_mem(system.master_page_dir,I8254X_VIRT_BAR0_MEM,(((u32) (bar0)) & 0xFFFFFFF0),I8254X_VIRT_BAR0_MEM_SIZE,3);
 //		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) system.master_page_dir))) 
 	}
@@ -262,6 +264,14 @@ void send_packet_i8254x(t_i8254x* i8254x,void* frame_addr,u16 frame_len)
 	cur=i8254x->tx_cur;
 	tx_desc=i8254x->tx_desc;
 	phy_frame_addr=FROM_VIRT_TO_PHY(frame_addr);
+
+	u32* pippo;
+	u32 aa1;
+
+	pippo=0x90010;
+	aa1=*pippo;
+	
+
 
 	tx_desc[cur].low_addr=phy_frame_addr;
 	tx_desc[cur].hi_addr=0;
