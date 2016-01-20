@@ -100,34 +100,28 @@ static tx_init_i8254x(t_i8254x* i8254x)
 	int i;
 	t_tx_desc_i8254x* tx_desc;
 
-	//tx_desc=kmalloc(16 + sizeof(t_tx_desc_i8254x) * NUM_TX_DESC);
-	tx_desc=0x90000;
+	tx_desc=kmalloc(16 + sizeof(t_tx_desc_i8254x) * NUM_TX_DESC);
 	tx_desc = ((u32)tx_desc + 16) - ((u32)tx_desc % 16);
 	for (i=0;i<NUM_TX_DESC;i++)
 	{
-		tx_desc[i].hi_addr=1;
-		tx_desc[i].low_addr=1;
+		tx_desc[i].hi_addr=0;
+		tx_desc[i].low_addr=0;
 		tx_desc[i].status=TSTA_DD;
-		tx_desc[i].cmd=1;
+		tx_desc[i].cmd=0;
 
-		tx_desc[i].length=1;
-		tx_desc[i].cso=1;
-		tx_desc[i].css=1;
-		tx_desc[i].special=1;
+		tx_desc[i].length=0;
+		tx_desc[i].cso=0;
+		tx_desc[i].css=0;
+		tx_desc[i].special=0;
 	}
 	i8254x->tx_desc=tx_desc;
-	int aaa=FROM_VIRT_TO_PHY((u32)tx_desc);
-	//write_i8254x(i8254x,TDBAL_REG,FROM_VIRT_TO_PHY((u32)tx_desc)); //first 4 bit zero
-	write_i8254x(i8254x,TDBAL_REG,0x90010);
+	write_i8254x(i8254x,TDBAL_REG,FROM_VIRT_TO_PHY((u32)tx_desc)); //first 4 bit zero
 	write_i8254x(i8254x,TDBAH_REG,0);
 	write_i8254x(i8254x,TDLEN_REG,NUM_RX_DESC*16);
 	i8254x->tx_cur=0;
 
 	write_i8254x(i8254x,THD_REG,0);
 	write_i8254x(i8254x,TDT_REG,0);
-
-	int aa=(TCTL_EN| TCTL_PSP | (15 << TCTL_CT_SHIFT) | (64 << TCTL_COLD_SHIFT) | TCTL_RTLC);
-
 	write_i8254x(i8254x,TCTRL_REG,(TCTL_EN| TCTL_PSP | (15 << TCTL_CT_SHIFT) | (64 << TCTL_COLD_SHIFT) | TCTL_RTLC));
 }
 
@@ -264,14 +258,6 @@ void send_packet_i8254x(t_i8254x* i8254x,void* frame_addr,u16 frame_len)
 	cur=i8254x->tx_cur;
 	tx_desc=i8254x->tx_desc;
 	phy_frame_addr=FROM_VIRT_TO_PHY(frame_addr);
-
-	u32* pippo;
-	u32 aa1;
-
-	pippo=0x90010;
-	aa1=*pippo;
-	
-
 
 	tx_desc[cur].low_addr=phy_frame_addr;
 	tx_desc[cur].hi_addr=0;
