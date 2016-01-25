@@ -148,7 +148,7 @@ void int_handler_pit()
 
 
 		//FAKE UDP
-//		send_packet_ip4(data_sckt_buf,src_ip,dst_ip,31,UDP_PROTOCOL);
+//		send_packet_up(data_sckt_buf,src_ip,dst_ip,31,UDP_PROTOCOL);
 //		equeue_packet(system.network_desc);
 		send_packet_i8254x(system.network_desc->dev,tmp,76);
 	}

@@ -2,6 +2,7 @@
 
 static u16 ipv4_id=0;
 
+/*
 static u16 checksum(u8* addr,u32 count)
 {
  	register u32 sum = 0;
@@ -23,6 +24,7 @@ static u16 checksum(u8* addr,u32 count)
 	}
   	return(~sum);
 }
+*/
 
 int send_packet_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len,u8 protocol)
 {
