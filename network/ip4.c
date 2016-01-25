@@ -73,6 +73,8 @@ int send_packet_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		chksum_val=checksum((unsigned short*)ip_row_packet,HEADER_IP4);
 		ip_row_packet[10]=HI_16(chksum_val);
 		ip_row_packet[11]=LOW_16(chksum_val);
+                 
+		u16 chksum_val1=checksum((unsigned short*)ip_row_packet,HEADER_IP4);
 		
 		dst_mac=lookup_mac(dst_ip);
 		put_packet_mac(data_sckt_buf,system.network_desc->dev->mac_addr,dst_mac);

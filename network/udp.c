@@ -9,7 +9,7 @@ int send_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 src
 	u16 ip_packet_len;
 
 	udp_row_packet=data_sckt_buf->transport_hdr;
-	data_sckt_buf->network_hdr=data_sckt_buf->transport_hdr-HEADER_UDP;
+	data_sckt_buf->network_hdr=data_sckt_buf->transport_hdr-HEADER_IP4;
 	ip_packet_len=HEADER_UDP+data_len;
 
 	if (data_len<=0xFFFF-HEADER_UDP)
