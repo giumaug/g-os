@@ -70,7 +70,7 @@ int send_packet_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		ip_row_packet[18]=IP_MID_RGT_OCT(dst_ip);       //MID RIGHT IP(8)
 		ip_row_packet[19]=IP_LOW_OCT(dst_ip);           //LOW DST IP(8)
 
-		chksum_val=checksum(ip_row_packet,HEADER_IP4);
+		chksum_val=checksum((unsigned short*)ip_row_packet,HEADER_IP4);
 		ip_row_packet[10]=HI_16(chksum_val);
 		ip_row_packet[11]=LOW_16(chksum_val);
 		

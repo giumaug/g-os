@@ -82,30 +82,31 @@ u16 checksum(u8* addr,u32 count)
 }
 */
 
-unsigned short checksum(char* ip, int len){
-           long sum = 0;  /* assume 32 bit long, 16 bit short */
+unsigned short checksum(unsigned short* ip, int len)
+{
+	long sum = 0;  /* assume 32 bit long, 16 bit short */
 
-           while(len > 1){
-	     unsigned short* xx;
-	     unsigned short* yy;
-	     xx=((unsigned short*)yy++);
-	     //xx=(((unsigned short*) ip)++);
-	     
-             sum += *((unsigned short*) ip)++;
-             if(sum & 0x80000000)   /* if high order bit set, fold */
-               sum = (sum & 0xFFFF) + (sum >> 16);
-             len -= 2;
-           }
+	while(len > 1)
+	{
+		//sum += *((unsigned short*) ip)++; orig line
+             	sum += *(ip++);
+             	if(sum & 0x80000000)
+		{
+			/* if high order bit set, fold */
+               		sum = (sum & 0xFFFF) + (sum >> 16);
+		}		
+             	len -= 2;
+	}
 
-           if(len)       /* take care of left over byte */
-             sum += (unsigned short) *(unsigned char *)ip;
+        if(len)
+	{         
+		/* take care of left over byte */
+             	sum += (unsigned short) *(unsigned char *)ip;
+	}
           
-           while(sum>>16)
+	while(sum>>16)
+	{
              sum = (sum & 0xFFFF) + (sum >> 16);
-
-           return ~sum;
-         }
-
-
-
-
+	}
+	return ~sum;
+}

@@ -1,5 +1,7 @@
 #include "network/udp.h"
 
+static u16 checksum_udp(unsigned short* udp_row_packet,u16 data_len);
+
 int send_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u16 data_len)
 {
 	u16 chk;
@@ -21,7 +23,7 @@ int send_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 src
 		udp_row_packet[6]=0;	   			 //HIGH CHECKSUM
 		udp_row_packet[7]=0;    			 //LOW CHECKSUM
 
-		chk=checksum_udp(udp_row_packet,data_len);
+		chk=checksum_udp((unsigned short*) udp_row_packet,data_len);
 		udp_row_packet[6]=HI_16(chk);
 		udp_row_packet[7]=LOW_16(chk);
 		send_packet_ip4(data_sckt_buf,src_ip,dst_ip,ip_packet_len,UDP_PROTOCOL);
@@ -32,7 +34,7 @@ int send_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 src
 	}
 }
 
-u16 checksum_udp(char* udp_row_packet,u16 data_len)
+static u16 checksum_udp(unsigned short* udp_row_packet,u16 data_len)
 {
 	u16 packet_len;
 	u16 chk;
