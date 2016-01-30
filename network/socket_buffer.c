@@ -57,5 +57,27 @@ void free_sckt(t_data_sckt_buf* data_sckt_buf)
 	kfree(data_sckt_buf);
 }
 
+u16 checksum(u8* addr,u32 count)
+{
+ 	register u32 sum = 0;
+
+ 	while(count > 1)
+  	{
+    		sum = sum + (*((u16*) addr))++;
+    		count = count - 2;
+  	}
+
+ 	if (count > 0)
+	{
+		sum = sum + *((u16*) addr);
+	}
+
+  	while (sum>>16)
+	{
+    		sum = (sum & 0xFFFF) + (sum >> 16);
+	}
+  	return(~sum);
+}
+
 
 

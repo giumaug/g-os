@@ -2,6 +2,7 @@
 
 static u16 ipv4_id=0;
 
+/*
 static u16 checksum(u8* addr,u32 count)
 {
  	register u32 sum = 0;
@@ -23,6 +24,7 @@ static u16 checksum(u8* addr,u32 count)
 	}
   	return(~sum);
 }
+*/
 
 int send_packet_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len,u8 protocol)
 {
@@ -46,12 +48,12 @@ int send_packet_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		ip_row_packet[0]= (1>>3) | 5; 			//VERSION(4) IHL(4)
 		ip_row_packet[1]=0;	 			//DSFIELD(6) ECN(2)
 		ip_row_packet[2]=LOW_16(packet_len);     	//LOW TOTAL LENGHT(8)
-		ip_row_packet[3]=HI_16(packet_len);      	//HI TOTAL LENGHT(8)
+		ip_row_packet[3]=HI_16(packet_len);      	//HIGH TOTAL LENGHT(8)
 	
 		ip_row_packet[4]=LOW_16(ipv4_id++);	    	//LOW PACKET ID(8)     
-		ip_row_packet[5]=HI_16(ipv4_id++);              //HI PACKET ID(8)	
+		ip_row_packet[5]=HI_16(ipv4_id++);              //HIGH PACKET ID(8)	
 		ip_row_packet[6]=0;				//LOW FLAG AND FRAG OFFSET
-		ip_row_packet[7]=0;				//HI FLAG AND FRAG OFFSET
+		ip_row_packet[7]=0;				//HIGH FLAG AND FRAG OFFSET
 	
 		ip_row_packet[8]=64;				//TTL(8)
 		ip_row_packet[9]=protocol;   			//PROTOCOL(8)
@@ -61,12 +63,12 @@ int send_packet_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		ip_row_packet[12]=IP_LOW_OCT(src_ip);          	//LOW SRC IP(8)
 		ip_row_packet[13]=IP_MID_RGT_OCT(src_ip);	//MID RIGHT  SRC IP(8)
 		ip_row_packet[14]=IP_MID_LFT_OCT(src_ip); 	//MID LEFT SRC IP(8)
-		ip_row_packet[15]=IP_HI_OCT(src_ip);		//HI SRC IP(8)
+		ip_row_packet[15]=IP_HI_OCT(src_ip);		//HIGH SRC IP(8)
 
 		ip_row_packet[16]=IP_LOW_OCT(dst_ip);          //LOW DST IP(8)
 		ip_row_packet[17]=IP_MID_RGT_OCT(dst_ip);      //MID RIGHT DST IP(8)
 		ip_row_packet[18]=IP_MID_LFT_OCT(dst_ip);      //MID LEFT IP(8)
-		ip_row_packet[19]=IP_HI_OCT(dst_ip);           //HI DST IP(8)
+		ip_row_packet[19]=IP_HI_OCT(dst_ip);           //HIGH DST IP(8)
 
 		chksum_val=checksum(ip_row_packet,HEADER_IP4);
 		ip_row_packet[10]=LOW_16(chksum_val);

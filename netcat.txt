@@ -1,0 +1,38 @@
+netcat
+
+nc -l 127.0.0.1 4444
+nc 127.0.0.1 4444
+tcpdump  port 4444 -U -XX -vv -e -nn  -i lo
+
+
+
+
+
+0x0000:  0000 0000 0000 0000 0000 0000 0800 4500  ..............E.
+0x0010:  003e af7b 4000 4011 8d31 7f00 0001 7f00  .>.{@.@..1......
+0x0020:  0001 c520 115c 002a fe3d 5468 6973 2069  .....\.*.=This.i
+0x0030:  7320 6120 6661 6b65 2075 6470 2070 6163  s.a.fake.udp.pac
+0x0040:  6b65 7421 2121 2121 2121 210a            ket!!!!!!!!.
+
+ip
+08 version ip+header lenght
+11 protocol type
+8d31 checsum
+7f00 0001 ip
+udp
+c520 source port
+115c dest port
+002a length
+fe3d checksum
+5468 start payload con This...
+
+
+
+13:38:54.280964 IP (tos 0x0, ttl 64, id 46402, offset 0, flags [DF], proto UDP (17), length 62)
+    172.16.6.100.49847 > localhost.localdomain.krb524: [udp sum ok] UDP, length 34
+	0x0000:  0050 56c0 0008 000c 2910 64b3 0800 4500  .PV.....).d...E.
+	0x0010:  003e b542 4000 4011 20e7 ac10 0664 ac10  .>.B@.@......d..
+	0x0020:  0601 c2b7 115c 002a d806 5468 6973 2069  .....\.*..This.i
+	0x0030:  7320 6120 6661 6b65 2075 6470 2070 6163  s.a.fake.udp.pac
+	0x0040:  6b65 7421 2121 2121 2121 210a            ket!!!!!!!!.
+
