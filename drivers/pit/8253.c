@@ -125,15 +125,17 @@ void int_handler_pit()
 		xxx=0;
 		char* ip_payload;
 		t_data_sckt_buf* data_sckt_buf=alloc_sckt(MTU_ETH);
-		data_sckt_buf->network_hdr=data_sckt_buf->data+HEADER_ETH;
+		data_sckt_buf->transport_hdr=data_sckt_buf->data+HEADER_ETH+HEADER_IP4;
 		enqueue_sckt(system.network_desc->tx_queue,data_sckt_buf);
 	
-		char data[]="this is my first ip packet!!!!!";
-		ip_payload=data_sckt_buf->network_hdr+HEADER_IP4;
-		u32 src_ip=IP_FROM_OCT_TO_LONG(172,16,6,25);
-		u32 dst_ip=IP_FROM_OCT_TO_LONG(172,16,6,200);
+		char data[]="This.is.a.fake.udp.packet!!!!!!!!";
+		ip_payload=data_sckt_buf->transport_hdr+HEADER_UDP;
+		u32 src_ip=IP_FROM_OCT_TO_LONG(172,16,6,100);
+		u32 dst_ip=IP_FROM_OCT_TO_LONG(172,16,6,1);
 		kmemcpy(ip_payload,data,31);
 
+/*
+		//FAKE UDP
 		char frame_addr[100]={
 				0x00, 0x50, 0x56, 0xc0, 0x00, 0x08, 0x00, 0x0c, 0x29, 0x10, 0x64, 0xb3, 0x08, 0x00, 0x45, 0x00,  
 				0x00, 0x3e, 0xb5, 0x42, 0x40, 0x00, 0x40, 0x11, 0x20, 0xe7, 0xac, 0x10, 0x06, 0x64, 0xac, 0x10,  
@@ -144,13 +146,11 @@ void int_handler_pit()
 	
 		void* tmp=kmalloc(100);			 
 		kmemcpy(tmp,frame_addr,76);
-
-
-
-		//FAKE UDP
-//		send_packet_up(data_sckt_buf,src_ip,dst_ip,31,UDP_PROTOCOL);
-//		equeue_packet(system.network_desc);
 		send_packet_i8254x(system.network_desc->dev,tmp,76);
+*/
+
+		send_packet_udp(data_sckt_buf,src_ip,dst_ip,9999,9999,34);
+		equeue_packet(system.network_desc);
 	}
 
 	//FLUSH NETWORK QUEUES BEFORE EXITING

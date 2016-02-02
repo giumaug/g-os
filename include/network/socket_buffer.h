@@ -34,6 +34,6 @@ void enqueue_sckt(t_sckt_buf_desc* sckt_buf_desc,t_data_sckt_buf* data_sckt_buf)
 t_data_sckt_buf* dequeue_sckt(t_sckt_buf_desc* sckt_buf_desc);
 t_data_sckt_buf* alloc_sckt(u16 data_len);
 void free_sckt(t_data_sckt_buf* data_sckt_buf);
-u16 checksum(u8* addr,u32 count);
+u16 checksum_udp(char* udp_row_packet,u16 data_len);
 
 #endif

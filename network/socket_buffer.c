@@ -57,13 +57,15 @@ void free_sckt(t_data_sckt_buf* data_sckt_buf)
 	kfree(data_sckt_buf);
 }
 
+/*
 u16 checksum(u8* addr,u32 count)
 {
  	register u32 sum = 0;
 
  	while(count > 1)
   	{
-    		sum = sum + (*((u16*) addr))++;
+		//sum += *((unsigned short*) ip)++;
+    		sum = sum + (*((u16*) addr)++);
     		count = count - 2;
   	}
 
@@ -78,6 +80,32 @@ u16 checksum(u8* addr,u32 count)
 	}
   	return(~sum);
 }
+*/
+
+unsigned short checksum(char* ip, int len){
+           long sum = 0;  /* assume 32 bit long, 16 bit short */
+
+           while(len > 1){
+	     unsigned short* xx;
+	     unsigned short* yy;
+	     xx=((unsigned short*)yy++);
+	     //xx=(((unsigned short*) ip)++);
+	     
+             sum += *((unsigned short*) ip)++;
+             if(sum & 0x80000000)   /* if high order bit set, fold */
+               sum = (sum & 0xFFFF) + (sum >> 16);
+             len -= 2;
+           }
+
+           if(len)       /* take care of left over byte */
+             sum += (unsigned short) *(unsigned char *)ip;
+          
+           while(sum>>16)
+             sum = (sum & 0xFFFF) + (sum >> 16);
+
+           return ~sum;
+         }
+
 
 
 

@@ -14,8 +14,10 @@ tcpdump  port 4444 -U -XX -vv -e -nn  -i lo
 0x0030:  7320 6120 6661 6b65 2075 6470 2070 6163  s.a.fake.udp.pac
 0x0040:  6b65 7421 2121 2121 2121 210a            ket!!!!!!!!.
 
+eth
+08 00 version
 ip
-08 version ip+header lenght
+45 version ip+header ip lenght
 11 protocol type
 8d31 checsum
 7f00 0001 ip
