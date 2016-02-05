@@ -12,6 +12,8 @@ int send_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 src
 	data_sckt_buf->network_hdr=data_sckt_buf->transport_hdr-HEADER_IP4;
 	ip_packet_len=HEADER_UDP+data_len;
 
+	src_port=55492;
+
 	if (data_len<=0xFFFF-HEADER_UDP)
 	{
 		udp_row_packet[0]=HI_16(src_port); 		 //HIGH UDP SOURCE PORT NUMBER

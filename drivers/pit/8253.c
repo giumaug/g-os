@@ -124,7 +124,8 @@ void int_handler_pit()
 	{	
 		xxx=0;
 		char* ip_payload;
-		t_data_sckt_buf* data_sckt_buf=alloc_sckt(MTU_ETH);
+		//t_data_sckt_buf* data_sckt_buf=alloc_sckt(MTU_ETH);
+                t_data_sckt_buf* data_sckt_buf=alloc_sckt(31+HEADER_ETH+HEADER_IP4+HEADER_UDP);
 		data_sckt_buf->transport_hdr=data_sckt_buf->data+HEADER_ETH+HEADER_IP4;
 		enqueue_sckt(system.network_desc->tx_queue,data_sckt_buf);
 	
