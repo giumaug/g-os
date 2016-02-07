@@ -85,6 +85,7 @@ u16 checksum(u8* addr,u32 count)
 unsigned short checksum(unsigned short* ip, int len)
 {
 	long sum = 0;  /* assume 32 bit long, 16 bit short */
+	unsigned short chks=0;
 
 	while(len > 1)
 	{
@@ -101,12 +102,14 @@ unsigned short checksum(unsigned short* ip, int len)
         if(len)
 	{         
 		/* take care of left over byte */
-             	sum += (unsigned short) *(unsigned char *)ip;
+             	sum += ((unsigned short) *(unsigned char *)ip) & 0xFF;
 	}
           
 	while(sum>>16)
 	{
              sum = (sum & 0xFFFF) + (sum >> 16);
 	}
-	return ~sum;
+	//need to swap because x86 is little endian
+	chks=~sum;
+	return (chks>>8) | (chks<<8);
 }

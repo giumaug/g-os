@@ -125,7 +125,7 @@ void int_handler_pit()
 		xxx=0;
 		char* ip_payload;
 		//t_data_sckt_buf* data_sckt_buf=alloc_sckt(MTU_ETH);
-                t_data_sckt_buf* data_sckt_buf=alloc_sckt(31+HEADER_ETH+HEADER_IP4+HEADER_UDP);
+                t_data_sckt_buf* data_sckt_buf=alloc_sckt(33+HEADER_ETH+HEADER_IP4+HEADER_UDP);
 		data_sckt_buf->transport_hdr=data_sckt_buf->data+HEADER_ETH+HEADER_IP4;
 		enqueue_sckt(system.network_desc->tx_queue,data_sckt_buf);
 	
@@ -133,7 +133,7 @@ void int_handler_pit()
 		ip_payload=data_sckt_buf->transport_hdr+HEADER_UDP;
 		u32 src_ip=IP_FROM_OCT_TO_LONG(172,16,6,100);
 		u32 dst_ip=IP_FROM_OCT_TO_LONG(172,16,6,1);
-		kmemcpy(ip_payload,data,31);
+		kmemcpy(ip_payload,data,33);
 
 /*
 		//FAKE UDP
@@ -150,7 +150,7 @@ void int_handler_pit()
 		send_packet_i8254x(system.network_desc->dev,tmp,76);
 */
 
-		send_packet_udp(data_sckt_buf,src_ip,dst_ip,9999,9999,34);
+		send_packet_udp(data_sckt_buf,src_ip,dst_ip,9999,9999,33);
 		equeue_packet(system.network_desc);
 	}
 

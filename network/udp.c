@@ -40,14 +40,17 @@ static u16 checksum_udp(unsigned short* udp_row_packet,u16 data_len)
 {
 	u16 packet_len;
 	u16 chk;
+	u16 chk_virt;
+	unsigned short header_virt[16];
+	
+	kmemcpy(header_virt,udp_row_packet-8,8);
+	header_virt[8]=0;
+	header_virt[9]=17;
+	header_virt[10]=udp_row_packet[4];
+	header_virt[11]=udp_row_packet[5];
 
-	packet_len=8+HEADER_UDP+data_len;	
-	if (packet_len & 1)
-	{
-		//alloc_sckt has to care of allocating even packet.
-		//virtual pad if present has to be discarded using packet len info.
-		packet_len++;
-	}
-	chk=checksum(udp_row_packet-8,packet_len);
-	return chk;
+	packet_len=HEADER_UDP+data_len;	
+	chk=checksum(udp_row_packet,packet_len);
+	chk_virt=checksum(header_virt,12);
+	return chk+chk_virt;
 }
