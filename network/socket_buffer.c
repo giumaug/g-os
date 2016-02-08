@@ -90,6 +90,7 @@ unsigned short checksum(unsigned short* ip, int len)
 	while(len > 1)
 	{
 		//sum += *((unsigned short*) ip)++; orig line
+		printk("addind=%d \n",*ip);
              	sum += *(ip++);
              	if(sum & 0x80000000)
 		{
@@ -102,14 +103,15 @@ unsigned short checksum(unsigned short* ip, int len)
         if(len)
 	{         
 		/* take care of left over byte */
-             	sum += ((unsigned short) *(unsigned char *)ip) & 0xFF;
+             	//sum += (*ip & 0xFF);
 	}
           
+        unsigned int ddd=~sum;
 	while(sum>>16)
 	{
              sum = (sum & 0xFFFF) + (sum >> 16);
 	}
 	//need to swap because x86 is little endian
-	chks=~sum;
+	chks=~(unsigned short)sum;
 	return (chks>>8) | (chks<<8);
 }
