@@ -25,7 +25,7 @@ int send_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 src
 		udp_row_packet[6]=0;	   			 //HIGH CHECKSUM
 		udp_row_packet[7]=0;    			 //LOW CHECKSUM
 
-		chk=checksum_udp((unsigned short*) udp_row_packet,src_ip,dst_ip,data_len);
+		chk=SWAP_WORD(checksum_udp((unsigned short*) udp_row_packet,src_ip,dst_ip,data_len));
 		udp_row_packet[6]=HI_16(chk);
 		udp_row_packet[7]=LOW_16(chk);
 		send_packet_ip4(data_sckt_buf,src_ip,dst_ip,ip_packet_len,UDP_PROTOCOL);
@@ -61,10 +61,10 @@ static u16 checksum_udp(char* udp_row_packet,u32 src_ip,u32 dst_ip,u16 data_len)
 	chk=checksum((unsigned short*) udp_row_packet,packet_len);
 	chk_virt=checksum((unsigned short*) header_virt,12);
 
-	chk_final[0]=HI_16(chk_virt);
-	chk_final[1]=LOW_16(chk_virt);
-	chk_final[2]=HI_16(chk);
-	chk_final[3]=LOW_16(chk);
-
+	chk_final[0]=LOW_16(chk_virt);
+	chk_final[1]=HI_16(chk_virt);
+	chk_final[2]=LOW_16(chk);
+	chk_final[3]=HI_16(chk);
+	u16 fff= checksum(chk_final,4);
 	return checksum(chk_final,4);
 }

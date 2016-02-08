@@ -113,5 +113,6 @@ unsigned short checksum(unsigned short* ip, int len)
 	}
 	//need to swap because x86 is little endian
 	chks=~(unsigned short)sum;
-	return (chks>>8) | (chks<<8);
+	return chks;
+	//return ~(unsigned short)sum;
 }
