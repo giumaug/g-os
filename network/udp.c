@@ -1,6 +1,6 @@
 #include "network/udp.h"
 
-static u16 checksum_udp(unsigned short* udp_row_packet,u32 src_ip,u32 dst_ip,u16 data_len);
+static u16 checksum_udp(char* udp_row_packet,u32 src_ip,u32 dst_ip,u16 data_len);
 
 int send_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u16 data_len)
 {
@@ -36,12 +36,13 @@ int send_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 src
 	}
 }
 
-static u16 checksum_udp(unsigned short* udp_row_packet,u32 src_ip,u32 dst_ip,u16 data_len)
+static u16 checksum_udp(char* udp_row_packet,u32 src_ip,u32 dst_ip,u16 data_len)
 {
 	u16 packet_len;
 	u16 chk;
 	u16 chk_virt;
 	unsigned char header_virt[16];
+	unsigned char chk_final[4];
 	
 	header_virt[0]=IP_HI_OCT(src_ip);          	
 	header_virt[1]=IP_MID_LFT_OCT(src_ip);
@@ -57,7 +58,13 @@ static u16 checksum_udp(unsigned short* udp_row_packet,u32 src_ip,u32 dst_ip,u16
 	header_virt[11]=udp_row_packet[5];
 
 	packet_len=HEADER_UDP+data_len;	
-	chk=checksum(udp_row_packet,packet_len);
-	chk_virt=checksum(header_virt,12);
-	return chk+chk_virt;
+	chk=checksum((unsigned short*) udp_row_packet,packet_len);
+	chk_virt=checksum((unsigned short*) header_virt,12);
+
+	chk_final[0]=HI_16(chk_virt);
+	chk_final[1]=LOW_16(chk_virt);
+	chk_final[2]=HI_16(chk);
+	chk_final[3]=LOW_16(chk);
+
+	return checksum(chk_final,4);
 }

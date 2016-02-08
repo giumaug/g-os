@@ -62,3 +62,6 @@ virtual header
 ac10+0664+ac10+0601+0011+0029 =164BF=64c0 !64c0=9b3f
 
 checksum=1909+64c0=7dc9
+
+ip checksum
+4500+003d+0001+0000+4011+162a+ac10+0664+ac10+0601
