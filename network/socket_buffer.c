@@ -103,10 +103,10 @@ unsigned short checksum(unsigned short* ip, int len)
         if(len)
 	{         
 		/* take care of left over byte */
-             	//sum += (*ip & 0xFF);
+             	sum += (*ip & 0xFF);
 	}
           
-        unsigned int ddd=~sum;
+        unsigned int ddd=sum;
 	while(sum>>16)
 	{
              sum = (sum & 0xFFFF) + (sum >> 16);

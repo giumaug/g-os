@@ -1,6 +1,6 @@
 #include "network/udp.h"
 
-static u16 checksum_udp(unsigned short* udp_row_packet,u16 data_len);
+static u16 checksum_udp(unsigned short* udp_row_packet,u32 src_ip,u32 dst_ip,u16 data_len);
 
 int send_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u16 data_len)
 {
@@ -25,7 +25,7 @@ int send_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 src
 		udp_row_packet[6]=0;	   			 //HIGH CHECKSUM
 		udp_row_packet[7]=0;    			 //LOW CHECKSUM
 
-		chk=checksum_udp((unsigned short*) udp_row_packet,data_len);
+		chk=checksum_udp((unsigned short*) udp_row_packet,src_ip,dst_ip,data_len);
 		udp_row_packet[6]=HI_16(chk);
 		udp_row_packet[7]=LOW_16(chk);
 		send_packet_ip4(data_sckt_buf,src_ip,dst_ip,ip_packet_len,UDP_PROTOCOL);
@@ -36,14 +36,21 @@ int send_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 src
 	}
 }
 
-static u16 checksum_udp(unsigned short* udp_row_packet,u16 data_len)
+static u16 checksum_udp(unsigned short* udp_row_packet,u32 src_ip,u32 dst_ip,u16 data_len)
 {
 	u16 packet_len;
 	u16 chk;
 	u16 chk_virt;
-	unsigned short header_virt[16];
+	unsigned char header_virt[16];
 	
-	kmemcpy(header_virt,udp_row_packet-8,8);
+	header_virt[0]=IP_HI_OCT(src_ip);          	
+	header_virt[1]=IP_MID_LFT_OCT(src_ip);
+	header_virt[2]=IP_MID_RGT_OCT(src_ip);
+	header_virt[3]=IP_LOW_OCT(src_ip);
+	header_virt[4]=IP_HI_OCT(dst_ip);          	
+	header_virt[5]=IP_MID_LFT_OCT(dst_ip);
+	header_virt[6]=IP_MID_RGT_OCT(dst_ip);
+	header_virt[7]=IP_LOW_OCT(dst_ip);		
 	header_virt[8]=0;
 	header_virt[9]=17;
 	header_virt[10]=udp_row_packet[4];
