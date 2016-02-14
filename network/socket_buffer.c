@@ -29,7 +29,7 @@ void enqueue_sckt(t_sckt_buf_desc* sckt_buf_desc,t_data_sckt_buf* data_sckt_buf)
 
 t_data_sckt_buf* dequeue_sckt(t_sckt_buf_desc* sckt_buf_desc)
 {
-		t_data_sckt_buf* data_sckt_buf;
+		t_data_sckt_buf* data_sckt_buf=NULL;
 
 		SPINLOCK_LOCK(sckt_buf_desc->lock);
 		if (sckt_buf_desc->buf_index>0)
@@ -57,35 +57,9 @@ void free_sckt(t_data_sckt_buf* data_sckt_buf)
 	kfree(data_sckt_buf);
 }
 
-/*
-u16 checksum(u8* addr,u32 count)
-{
- 	register u32 sum = 0;
-
- 	while(count > 1)
-  	{
-		//sum += *((unsigned short*) ip)++;
-    		sum = sum + (*((u16*) addr)++);
-    		count = count - 2;
-  	}
-
- 	if (count > 0)
-	{
-		sum = sum + *((u16*) addr);
-	}
-
-  	while (sum>>16)
-	{
-    		sum = (sum & 0xFFFF) + (sum >> 16);
-	}
-  	return(~sum);
-}
-*/
-
 unsigned short checksum(unsigned short* ip, int len)
 {
 	long sum = 0;  /* assume 32 bit long, 16 bit short */
-	unsigned short chks=0;
 
 	while(len > 1)
 	{
@@ -112,7 +86,5 @@ unsigned short checksum(unsigned short* ip, int len)
              sum = (sum & 0xFFFF) + (sum >> 16);
 	}
 	//need to swap because x86 is little endian
-	chks=~(unsigned short)sum;
-	return chks;
-	//return ~(unsigned short)sum;
+	return ~(unsigned short)sum;
 }
