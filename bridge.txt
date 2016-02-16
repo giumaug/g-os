@@ -28,3 +28,12 @@ qemu -s -S -m 200M -hda /opt/virtutech/simics-3.0.31/workspace/disk.img  -monito
 
 ifconfig 172.16.1.10 netmask 255.255.0.0 up
 route add 172.16.0.0 gw 172.16.1.2
+
+
+gos
+./qemu-system-i386 -s -S -m 1000M -hda /opt/virtutech/simics-3.0.31/workspace/disk.img  -monitor stdio -device e1000,netdev=net0,mac=00:0C:29:10:64:B3 -netdev tap,id=net0,script=no,ifname=tap0
+
+
+fedora
+./qemu-system-i386 -s -S -m 1000M -cdrom /home/peppe/Desktop/Fedora-13-i686-Live.iso  -monitor stdio -device e1000,netdev=net0,mac=00:0C:29:10:64:B3 -netdev tap,id=net0,script=no,ifname=tap0
+

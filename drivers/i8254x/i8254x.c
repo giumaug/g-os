@@ -76,7 +76,7 @@ static rx_init_i8254x(t_i8254x* i8254x)
 		//ALLOC IN ADVANCE BUFFER TO AVOID MEMCPY
 		data_sckt_buf=alloc_sckt(MTU_ETH);
 		rx_desc[i].hi_addr=0;
-		u32 aaa=FROM_VIRT_TO_PHY(data_sckt_buf->data);
+		u32 aaa=FROM_VIRT_TO_PHY((u32)data_sckt_buf->data);
 		rx_desc[i].low_addr=FROM_VIRT_TO_PHY(data_sckt_buf->data);
 		rx_desc[i].status=0;
 
@@ -86,7 +86,7 @@ static rx_init_i8254x(t_i8254x* i8254x)
 		rx_desc[i].special=0;
 	}
 	i8254x->rx_desc=rx_desc;
-	write_i8254x(i8254x,RDBAL_REG,FROM_VIRT_TO_PHY(rx_desc));
+	write_i8254x(i8254x,RDBAL_REG,FROM_VIRT_TO_PHY((u32)rx_desc));
 	write_i8254x(i8254x,RDBAH_REG,0);
 	write_i8254x(i8254x,RDLEN_REG,NUM_RX_DESC*16);
 	i8254x->rx_cur=0;
@@ -179,11 +179,15 @@ t_i8254x* init_8254x()
 	i_desc.selector=0x8;
 	i_desc.flags=0x08e00;
 	i_desc.baseHi=((int)&int_handler_i8254x)>>0x10;
-	set_idt_entry(0x20+i8254x->irq_line,&int_handler_i8254x);
+	set_idt_entry(0x20+i8254x->irq_line,&i_desc);
 
 	reset_multicast_array(i8254x);
 	rx_init_i8254x(i8254x);
 	tx_init_i8254x(i8254x);
+	//ENABLE INTERRUPT ON DEVIDE
+	write_i8254x(i8254x,REG_IMASK ,0x1F6DC);
+	write_i8254x(i8254x,REG_IMASK ,(0xff & ~4));
+	read_i8254x(i8254x,0xc0);
 	return i8254x;
 }
 
@@ -240,8 +244,8 @@ void int_handler_i8254x(t_i8254x* i8254x)
 				data_sckt_buf->mac_hdr=data_sckt_buf;
 				enqueue_sckt(system.network_desc->rx_queue,data_sckt_buf);
 				//ALLOC IN ADVANCE BUFFER TO AVOID MEMCPY				
-				data_sckt_buf=alloc_sckt(MTU_ETH);
-				rx_desc[cur].low_addr=data_sckt_buf+MTU_ETH;
+				//data_sckt_buf=alloc_sckt(MTU_ETH);
+				//rx_desc[cur].low_addr=data_sckt_buf+MTU_ETH;
 			}
 		}
 	}

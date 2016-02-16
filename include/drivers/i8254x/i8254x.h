@@ -79,6 +79,8 @@
 #define CMD_RS     		(1<<3)
 #define CMD_RPS    		(1<<4)
 
+#define REG_IMASK               0x00D0
+
 typedef struct __attribute__((packed)) s_rx_desc_i8254x 
 {
 	volatile u32 low_addr;
