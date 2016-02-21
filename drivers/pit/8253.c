@@ -132,10 +132,10 @@ void int_handler_pit()
 	
 		char data[]="This.is.a.fake.udp.packet!!!!!!!!";
 		ip_payload=data_sckt_buf->transport_hdr+HEADER_UDP;
-		u32 src_ip=IP_FROM_OCT_TO_LONG(172,16,6,101);
-		u32 dst_ip=IP_FROM_OCT_TO_LONG(172,16,6,1);
-//		u32 src_ip=IP_FROM_OCT_TO_LONG(172,16,243,100);
-//		u32 dst_ip=IP_FROM_OCT_TO_LONG(172,16,243,1);
+//		u32 src_ip=IP_FROM_OCT_TO_LONG(172,16,6,101);
+//		u32 dst_ip=IP_FROM_OCT_TO_LONG(172,16,6,1);
+		u32 src_ip=IP_FROM_OCT_TO_LONG(172,16,243,101);
+		u32 dst_ip=IP_FROM_OCT_TO_LONG(172,16,243,1);
 
 		kmemcpy(ip_payload,data,33);
 

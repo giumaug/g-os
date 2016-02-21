@@ -75,11 +75,12 @@
 #define ICR_RXDMT0 		0x10				//Receive Descriptor Minimum Threshold Reached
 #define ICR_RXT0 		0x80				//Receiver Timer Interrupt
 
+#define REG_IMS			0xD0				//Interrupt Mask Set/Read Register
+#define IMS_RXT0	        0x080         
+
 #define CMD_EOP	   		(1<<0)		
 #define CMD_RS     		(1<<3)
 #define CMD_RPS    		(1<<4)
-
-#define REG_IMASK               0x00D0
 
 typedef struct __attribute__((packed)) s_rx_desc_i8254x 
 {
@@ -93,7 +94,7 @@ typedef struct __attribute__((packed)) s_rx_desc_i8254x
 }
 t_rx_desc_i8254x;
  
-typedef struct __attribute__((packed)) tx_desc_i8254x 
+typedef struct __attribute__((packed)) s_tx_desc_i8254x 
 {
         volatile u32 low_addr;
 	volatile u32 hi_addr;
@@ -125,7 +126,7 @@ t_i8254x;
 
 t_i8254x* init_8254x();
 void free_8254x(t_i8254x* i8254x);
-void int_handler_i8254x(t_i8254x* i8254x);
+void int_handler_i8254x();
 void send_packet_i8254x(t_i8254x* i8254x,void* frame_addr,u16 frame_len);
 
 #endif

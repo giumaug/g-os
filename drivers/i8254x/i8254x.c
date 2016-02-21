@@ -62,7 +62,7 @@ static void read_mac_i8254x(t_i8254x* i8254x)
 	i8254x->mac_addr.hi=(tmp>>8) | (tmp<<8);
 }
 
-void int_handler_i8254x(t_i8254x* i8254x);
+void int_handler_i8254x();
 
 static rx_init_i8254x(t_i8254x* i8254x)
 {
@@ -77,7 +77,7 @@ static rx_init_i8254x(t_i8254x* i8254x)
 		data_sckt_buf=alloc_sckt(MTU_ETH);
 		rx_desc[i].hi_addr=0;
 		u32 aaa=FROM_VIRT_TO_PHY((u32)data_sckt_buf->data);
-		rx_desc[i].low_addr=FROM_VIRT_TO_PHY(data_sckt_buf->data);
+		rx_desc[i].low_addr=FROM_VIRT_TO_PHY((u32)data_sckt_buf->data);
 		rx_desc[i].status=0;
 
 		rx_desc[i].length=0;
@@ -184,10 +184,9 @@ t_i8254x* init_8254x()
 	reset_multicast_array(i8254x);
 	rx_init_i8254x(i8254x);
 	tx_init_i8254x(i8254x);
-	//ENABLE INTERRUPT ON DEVIDE
-	write_i8254x(i8254x,REG_IMASK ,0x1F6DC);
-	write_i8254x(i8254x,REG_IMASK ,(0xff & ~4));
-	read_i8254x(i8254x,0xc0);
+
+	write_i8254x(i8254x,REG_IMS,IMS_RXT0);
+	read_i8254x(i8254x,REG_ICR);
 	return i8254x;
 }
 
@@ -196,8 +195,9 @@ void free_8254x(t_i8254x* i8254x)
 	kfree(i8254x);
 }
 
-void int_handler_i8254x(t_i8254x* i8254x)
+void int_handler_i8254x()
 {
+	t_i8254x* i8254x;
 	struct t_processor_reg processor_reg;
 	u16 cur;
 	u32 status;
@@ -211,12 +211,14 @@ void int_handler_i8254x(t_i8254x* i8254x)
 	u32 crc;
 
 	SAVE_PROCESSOR_REG
+	i8254x=system.network_desc->dev;
 	disable_irq_line(i8254x->irq_line);
 	DISABLE_PREEMPTION
 	EOI_TO_SLAVE_PIC
 	EOI_TO_MASTER_PIC
-	STI
+//	STI
 
+	int ccc=read_i8254x(i8254x,RHD_REG);
 	status=read_i8254x(i8254x,REG_ICR);
 	if (status & ICR_LSC)
 	{
@@ -268,7 +270,8 @@ void send_packet_i8254x(t_i8254x* i8254x,void* frame_addr,u16 frame_len)
 	tx_desc[cur].hi_addr=0;
 	tx_desc[cur].length=frame_len;
 	tx_desc[cur].cso=0;
-	tx_desc[cur].cmd=CMD_EOP | CMD_RS | CMD_RPS; 
+//	tx_desc[cur].cmd=CMD_EOP | CMD_RS | CMD_RPS;
+ 	tx_desc[cur].cmd=CMD_EOP | CMD_RPS;
 	tx_desc[cur].status=0;
 	tx_desc[cur].css=0;
 	tx_desc[cur].special=0;
