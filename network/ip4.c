@@ -61,7 +61,7 @@ int send_packet_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 
 void rcv_packet_ip4(t_data_sckt_buf* data_sckt_buf)
 {
-	char* ip_row_packet;
+	unsigned char* ip_row_packet;
 	u32 src_ip;
 
 	ip_row_packet=data_sckt_buf->network_hdr;
