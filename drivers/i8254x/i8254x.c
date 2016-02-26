@@ -201,6 +201,7 @@ void int_handler_i8254x()
 	t_i8254x* i8254x;
 	struct t_processor_reg processor_reg;
 	u16 cur;
+	u16 old_cur;
 	u32 status;
 	t_rx_desc_i8254x* rx_desc;
 	char* frame_addr;
@@ -209,7 +210,6 @@ void int_handler_i8254x()
 	u16 frame_len;
 	t_data_sckt_buf* data_sckt_buf;
 	t_sckt_buf_desc* sckt_buf_desc;
-	u32 crc;
 
 	SAVE_PROCESSOR_REG
 	i8254x=system.network_desc->dev;
@@ -219,7 +219,6 @@ void int_handler_i8254x()
 	EOI_TO_MASTER_PIC
 //	STI
 
-	int ccc=read_i8254x(i8254x,RHD_REG);
 	status=read_i8254x(i8254x,REG_ICR);
 	if (status & ICR_LSC)
 	{
@@ -240,18 +239,17 @@ void int_handler_i8254x()
 
 			//ALLOC IN ADVANCE BUFFER TO AVOID MEMCPY
 			data_sckt_buf=frame_addr-MTU_ETH;
-//			crc=frame_addr[frame_len-3]+(frame_addr[frame_len-2]<<8)+(frame_addr[frame_len-1]<<16)+(frame_addr[frame_len-0]<<24);
-//			if (rx_desc[cur].checksum==crc)
-			
 			data_sckt_buf=alloc_sckt(frame_len);
 			data_sckt_buf->mac_hdr=data_sckt_buf;
 			enqueue_sckt(system.network_desc->rx_queue,data_sckt_buf);
-			//ALLOC IN ADVANCE BUFFER TO AVOID MEMCPY				
-			//data_sckt_buf=alloc_sckt(MTU_ETH);
-			//rx_desc[cur].low_addr=data_sckt_buf+MTU_ETH;
-//			}
+			rx_desc[cur].status=0;
+			old_cur=cur;
+			cur =(cur + 1) % NUM_RX_DESC;
+			write_i8254x(i8254x,RDT_REG,old_cur);
 		}
 	}
+	i8254x->rx_cur=cur;
+	write_i8254x(i8254x,RDT_REG,old_cur);
 	enable_irq_line(i8254x->irq_line);
 	ENABLE_PREEMPTION
 	EXIT_INT_HANDLER(0,processor_reg)
