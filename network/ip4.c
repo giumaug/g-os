@@ -63,18 +63,14 @@ void rcv_packet_ip4(t_data_sckt_buf* data_sckt_buf)
 {
 	unsigned char* ip_row_packet;
 	u32 src_ip;
+        u32 dst_ip;
+	u16 packet_len;
 
+	data_sckt_buf->transport_hdr=data_sckt_buf->network_hdr+HEADER_IP4;
 	ip_row_packet=data_sckt_buf->network_hdr;
-	src_ip=ip_row_packet[19]+((u32)ip_row_packet[18]<<8)+((u32)ip_row_packet[17]<<16)+((u32)ip_row_packet[16]<<24);
-	
-        u32 qq1,qq2,qq4;
-	unsigned int qq3;
-	qq1=(u32)ip_row_packet[16]<<24;
-	qq2=(u32)ip_row_packet[17]<<16;
-	qq3=((unsigned int)ip_row_packet[18]);
-	qq4=(u32)ip_row_packet[19];
+	dst_ip=ip_row_packet[19]+((u32)ip_row_packet[18]<<8)+((u32)ip_row_packet[17]<<16)+((u32)ip_row_packet[16]<<24);
 
-	if ((checksum(ip_row_packet,HEADER_IP4)==0) && src_ip==LOCAL_IP)
+	if ((checksum(ip_row_packet,HEADER_IP4)==0) && dst_ip==LOCAL_IP)
 	{
 		if(ip_row_packet[9]==TCP_PROTOCOL)
 		{
@@ -82,8 +78,10 @@ void rcv_packet_ip4(t_data_sckt_buf* data_sckt_buf)
 		}
 		else if(ip_row_packet[9]==UDP_PROTOCOL)
 		{
-			data_sckt_buf->transport_hdr=data_sckt_buf->transport_hdr-HEADER_UDP;
-			//rcv_packet_udp(data_sckt_buf);
+			packet_len=ip_row_packet[3]+((u16)ip_row_packet[2]<<8)-HEADER_IP4-HEADER_UDP;
+			src_ip=ip_row_packet[15]+((u32)ip_row_packet[14]<<8)+((u32)ip_row_packet[13]<<16)+((u32)ip_row_packet[12]<<24);
+			data_sckt_buf->transport_hdr=data_sckt_buf->network_hdr+HEADER_IP4;
+			rcv_packet_udp(data_sckt_buf,src_ip,dst_ip,packet_len);
 		}
 		else if(ip_row_packet[9]==ICMP_PROTOCOL)
 		{

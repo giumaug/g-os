@@ -36,6 +36,23 @@ int send_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 src
 	}
 }
 
+
+void rcv_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len)
+{
+	unsigned char* udp_row_packet;
+
+	udp_row_packet=data_sckt_buf->transport_hdr;
+
+	int aaa=checksum_udp((unsigned short*) udp_row_packet,src_ip,dst_ip,data_len);
+
+
+	if (checksum_udp((unsigned short*) udp_row_packet,src_ip,dst_ip,data_len)==0)
+	{
+
+	}
+
+}
+
 static u16 checksum_udp(char* udp_row_packet,u32 src_ip,u32 dst_ip,u16 data_len)
 {
 	u16 packet_len;

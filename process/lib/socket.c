@@ -1,9 +1,3 @@
-//sockfd = socket(int socket_family, int socket_type, int protocol); 
-
-//int bind(int sockfd, const struct sockaddr *addr,socklen_t addrlen);
-
-//ssize_t recvfrom(int sockfd, void *buf, size_t len, int flags,struct sockaddr *src_addr, socklen_t *addrlen);
-
 #define AF_INET  2
 
 typedef unsigned short  sa_family_t;
@@ -51,6 +45,11 @@ int bind(int sockfd, const struct sockaddr *addr,socklen_t addrlen)
 }
 
 ssize_t recvfrom(int sockfd, void *buf, size_t len, int flags,struct sockaddr *src_addr, socklen_t *addrlen)
+{
+
+}
+
+ssize_t sendto(int sockfd, const void *buf, size_t len, int flags,const struct sockaddr *dest_addr, socklen_t addrlen)
 {
 
 }
