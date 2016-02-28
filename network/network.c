@@ -42,7 +42,6 @@ void dequeue_packet(t_network_desc* network_desc)
 
 	while ((data_sckt_buf=dequeue_sckt(network_desc->rx_queue))!=NULL)
 	{	
-		data_sckt_buf->mac_hdr-HEADER_ETH;
 		rcv_packet_mac(data_sckt_buf);
 	}
 }

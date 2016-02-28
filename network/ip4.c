@@ -2,30 +2,6 @@
 
 static u16 ipv4_id=0;
 
-/*
-static u16 checksum(u8* addr,u32 count)
-{
- 	register u32 sum = 0;
-
- 	while(count > 1)
-  	{
-    		sum = sum + (*((u16*) addr))++;
-    		count = count - 2;
-  	}
-
- 	if (count > 0)
-	{
-		sum = sum + *((u16*) addr);
-	}
-
-  	while (sum>>16)
-	{
-    		sum = (sum & 0xFFFF) + (sum >> 16);
-	}
-  	return(~sum);
-}
-*/
-
 int send_packet_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len,u8 protocol)
 {
 	u16 packet_len;
@@ -86,13 +62,19 @@ int send_packet_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 void rcv_packet_ip4(t_data_sckt_buf* data_sckt_buf)
 {
 	char* ip_row_packet;
-	u16 chksum_val;
 	u32 src_ip;
 
 	ip_row_packet=data_sckt_buf->network_hdr;
-	chksum_val=ip_row_packet[10]+(ip_row_packet[11]<<8);
-	src_ip=ip_row_packet[12]+(ip_row_packet[13]<<8)+(ip_row_packet[14]<<8)+(ip_row_packet[15]<<24);
-	if ((checksum(ip_row_packet,HEADER_IP4)+chksum_val==0) && src_ip==LOCAL_IP)
+	src_ip=ip_row_packet[19]+((u32)ip_row_packet[18]<<8)+((u32)ip_row_packet[17]<<16)+((u32)ip_row_packet[16]<<24);
+	
+        u32 qq1,qq2,qq4;
+	unsigned int qq3;
+	qq1=(u32)ip_row_packet[16]<<24;
+	qq2=(u32)ip_row_packet[17]<<16;
+	qq3=((unsigned int)ip_row_packet[18]);
+	qq4=(u32)ip_row_packet[19];
+
+	if ((checksum(ip_row_packet,HEADER_IP4)==0) && src_ip==LOCAL_IP)
 	{
 		if(ip_row_packet[9]==TCP_PROTOCOL)
 		{

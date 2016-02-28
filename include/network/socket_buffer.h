@@ -33,6 +33,7 @@ void sckt_buf_desc_free(t_sckt_buf_desc* sckt_buf_desc);
 void enqueue_sckt(t_sckt_buf_desc* sckt_buf_desc,t_data_sckt_buf* data_sckt_buf);
 t_data_sckt_buf* dequeue_sckt(t_sckt_buf_desc* sckt_buf_desc);
 t_data_sckt_buf* alloc_sckt(u16 data_len);
+t_data_sckt_buf* alloc_void_sckt();
 void free_sckt(t_data_sckt_buf* data_sckt_buf);
 unsigned short checksum(unsigned short* ip, int len);
 

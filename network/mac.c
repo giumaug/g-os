@@ -38,6 +38,6 @@ void put_packet_mac(t_data_sckt_buf* data_sckt_buf,t_mac_addr src_mac,t_mac_addr
 
 void rcv_packet_mac(t_data_sckt_buf* data_sckt_buf)
 {
-	data_sckt_buf->mac_hdr=data_sckt_buf->mac_hdr-HEADER_ETH;
+	data_sckt_buf->network_hdr=data_sckt_buf->mac_hdr+HEADER_ETH;
 	rcv_packet_ip4(data_sckt_buf);
 }

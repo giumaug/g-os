@@ -51,10 +51,21 @@ t_data_sckt_buf* alloc_sckt(u16 data_len)
 	return data_sckt_buf;
 }
 
+t_data_sckt_buf* alloc_void_sckt()
+{
+	t_data_sckt_buf* data_sckt_buf=kmalloc(sizeof(t_data_sckt_buf));
+	data_sckt_buf->data=NULL;
+	data_sckt_buf->data_len=0;
+	return data_sckt_buf;
+}
+
 void free_sckt(t_data_sckt_buf* data_sckt_buf)
 {
 	kfree(data_sckt_buf->data);
-	kfree(data_sckt_buf);
+	if (data_sckt_buf->data!=NULL)
+	{
+		kfree(data_sckt_buf);
+	}
 }
 
 unsigned short checksum(unsigned short* ip, int len)

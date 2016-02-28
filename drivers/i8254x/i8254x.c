@@ -68,17 +68,15 @@ static rx_init_i8254x(t_i8254x* i8254x)
 {
 	int i;
 	t_rx_desc_i8254x* rx_desc;
-	t_data_sckt_buf* data_sckt_buf;
+	char* data_buffer;
 
 	rx_desc=kmalloc(16 + sizeof(t_rx_desc_i8254x) * NUM_RX_DESC);
 	rx_desc = ((u32)rx_desc + 16) - ((u32)rx_desc % 16);
 	for (i=0;i<NUM_RX_DESC;i++)
 	{
-		//ALLOC IN ADVANCE BUFFER TO AVOID MEMCPY
-		data_sckt_buf=alloc_sckt(MTU_ETH);
+		data_buffer=kmalloc(MTU_ETH);
 		rx_desc[i].hi_addr=0;
-		u32 aaa=FROM_VIRT_TO_PHY((u32)rx_desc);
-		rx_desc[i].low_addr=FROM_VIRT_TO_PHY((u32)data_sckt_buf->data);
+		rx_desc[i].low_addr=FROM_VIRT_TO_PHY((u32)data_buffer);
 		rx_desc[i].status=0;
 
 		rx_desc[i].length=0;
@@ -210,6 +208,7 @@ void int_handler_i8254x()
 	u16 frame_len;
 	t_data_sckt_buf* data_sckt_buf;
 	t_sckt_buf_desc* sckt_buf_desc;
+	char* data_buffer;
 
 	SAVE_PROCESSOR_REG
 	i8254x=system.network_desc->dev;
@@ -237,15 +236,24 @@ void int_handler_i8254x()
 			frame_addr=FROM_PHY_TO_VIRT(low_addr);
 			frame_len=rx_desc[cur].length;
 
-			//ALLOC IN ADVANCE BUFFER TO AVOID MEMCPY
-			data_sckt_buf=frame_addr-MTU_ETH;
-			data_sckt_buf=alloc_sckt(frame_len);
-			data_sckt_buf->mac_hdr=data_sckt_buf;
+			data_sckt_buf=alloc_void_sckt();
+			data_sckt_buf->mac_hdr=frame_addr;
+			data_sckt_buf->data=frame_addr;
+			data_sckt_buf->data_len=frame_len;
+
+			data_buffer=kmalloc(MTU_ETH);
+			rx_desc[cur].hi_addr=0;
+			rx_desc[cur].low_addr=FROM_VIRT_TO_PHY((u32)data_buffer);
+			rx_desc[cur].status=0;
+			rx_desc[cur].length=0;
+			rx_desc[cur].checksum=0;
+			rx_desc[cur].errors=0;
+			rx_desc[cur].special=0;
+
 			enqueue_sckt(system.network_desc->rx_queue,data_sckt_buf);
 			rx_desc[cur].status=0;
 			old_cur=cur;
 			cur =(cur + 1) % NUM_RX_DESC;
-			write_i8254x(i8254x,RDT_REG,old_cur);
 		}
 	}
 	i8254x->rx_cur=cur;
