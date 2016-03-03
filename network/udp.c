@@ -43,12 +43,12 @@ void rcv_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 
 	udp_row_packet=data_sckt_buf->transport_hdr;
 
-	int aaa=checksum_udp((unsigned short*) udp_row_packet,src_ip,dst_ip,data_len);
+	unsigned short aaa=checksum_udp((unsigned short*) udp_row_packet,src_ip,dst_ip,data_len);
 
 
 	if (checksum_udp((unsigned short*) udp_row_packet,src_ip,dst_ip,data_len)==0)
 	{
-
+		printk("udp packet received!!!!!!!!!!!");
 	}
 
 }
@@ -78,9 +78,11 @@ static u16 checksum_udp(char* udp_row_packet,u32 src_ip,u32 dst_ip,u16 data_len)
 	chk=checksum((unsigned short*) udp_row_packet,packet_len);
 	chk_virt=checksum((unsigned short*) header_virt,12);
 
-	chk_final[0]=LOW_16(chk_virt);
-	chk_final[1]=HI_16(chk_virt);
-	chk_final[2]=LOW_16(chk);
-	chk_final[3]=HI_16(chk);
-	return ~checksum(chk_final,4);
+	chk_final[0]=LOW_16(~chk_virt);
+	chk_final[1]=HI_16(~chk_virt);
+	chk_final[2]=LOW_16(~chk);
+	chk_final[3]=HI_16(~chk);
+	u16 xxx=checksum(chk_final,4);
+	//return ~checksum(chk_final,4);
+	return checksum(chk_final,4);
 }
