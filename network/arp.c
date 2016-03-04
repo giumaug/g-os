@@ -10,4 +10,13 @@ t_mac_addr lookup_mac(u32 ip_addr)
 	return mac_addr;
 }
 
+send_packet_arp()
+{
+
+}
+
+rcv_packet_arp()
+{
+
+}
 
