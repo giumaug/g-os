@@ -207,7 +207,6 @@ void int_handler_i8254x()
 	u32 hi_addr;
 	u16 frame_len;
 	t_data_sckt_buf* data_sckt_buf;
-	t_sckt_buf_desc* sckt_buf_desc;
 	char* data_buffer;
 
 	SAVE_PROCESSOR_REG
@@ -225,7 +224,6 @@ void int_handler_i8254x()
 	}
 	else if (status & ICR_RXT0)
 	{
-		sckt_buf_desc=system.network_desc->rx_queue;
 		cur=i8254x->rx_cur;
 		rx_desc=i8254x->rx_desc;
 		while(rx_desc[cur].status & 0x1)

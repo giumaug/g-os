@@ -16,7 +16,8 @@ typedef struct s_network_desc
 	struct s_sckt_buf_desc* tx_queue;
 	//WOULD BE BETTER TO ABSTRACT WITH A DEVICE
 	struct s_i8254x* dev;
-
+	u32 ip;
+	u32 netmask;
 }
 t_network_desc;
 
