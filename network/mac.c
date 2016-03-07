@@ -4,17 +4,13 @@ void put_packet_mac(t_data_sckt_buf* data_sckt_buf,t_mac_addr src_mac,t_mac_addr
 {
 	char* mac_row_packet;
 
-        dst_mac.lo=0x8;
-	dst_mac.mi=0x56c0;
-        dst_mac.hi=0x50;
+//      dst_mac.lo=0x8;
+//	dst_mac.mi=0x56c0;
+//       dst_mac.hi=0x50;
 
-        src_mac.lo=0x64b9;
-	src_mac.mi=0x2910;
-        src_mac.hi=0xc;
-
-//	src_mac.lo=0x3456;
-//	src_mac.mi=0x12;
-//      src_mac.hi=5254;
+//      src_mac.lo=0x64b9;
+//	src_mac.mi=0x2910;
+//      src_mac.hi=0xc;
 
 	mac_row_packet=data_sckt_buf->mac_hdr;
 	

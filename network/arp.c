@@ -15,12 +15,10 @@ void arp_free()
 
 t_mac_addr lookup_mac(u32 ip_addr)
 {
-	t_mac_addr mac_addr;
-
-	mac_addr.lo=0xffff;
-	mac_addr.mi=0xffff;
-	mac_addr.hi=0xffff;
-	return mac_addr;
+	t_mac_addr* mac_addr=NULL;
+	
+	mac_addr=hashtable_put(arp_cache,src_ip);
+	return *mac_addr;
 }
 
 void send_packet_arp(t_mac_addr src_mac,t_mac_addr dst_mac,u32 src_ip,u32 dst_ip,u8 op_type)
@@ -105,27 +103,44 @@ void send_packet_arp(t_mac_addr src_mac,t_mac_addr dst_mac,u32 src_ip,u32 dst_ip
 	enqueue_sckt(system.network_desc->rx_queue,data_sckt_buf);	
 }
 
-ho due possibili receive!!!!-------------qui
 void rcv_packet_arp(t_data_sckt_buf* data_sckt_buf)
 {
-	u32 target_ip;
-	t_mac_addr target_mac;
+	u32 dst_ip;
+	u32 src_ip;
+	t_mac_addr dst_mac;
+	t_mac_addr src_mac;
+	t_mac_addr* mac_to_cache;
 	char* arp_rsp;
 
 	arp_rsp=data_sckt_buf->mac_hdr;
-	target_ip=GET_DWORD(arp_rsp[38],arp_rsp[39],arp_rsp[40],arp_rsp[41]);
-	src_ip=GET_DWORD(arp_rsp[38],arp_rsp[39],arp_rsp[40],arp_rsp[41]);
-	target_mac.hi=GET_WORD(arp_rsp[32],arp_rsp[33]);
-	target_mac.mi=GET_WORD(arp_rsp[34],arp_rsp[35]);
-	target_mac.lo=GET_WORD(arp_rsp[36],arp_rsp[37]);
-	if (target_ip==system.network_desc->ip)
+	u16 optype=arp_req[21];
+	
+	dst_ip=GET_DWORD(arp_rsp[38],arp_rsp[39],arp_rsp[40],arp_rsp[41]);
+	src_ip=GET_DWORD(arp_rsp[28],arp_rsp[29],arp_rsp[30],arp_rsp[31]);
+	
+	dst_mac.hi=GET_WORD(arp_rsp[32],arp_rsp[33]);
+	dst_mac.mi=GET_WORD(arp_rsp[34],arp_rsp[35]);
+	dst_mac.lo=GET_WORD(arp_rsp[36],arp_rsp[37]);
+
+	src_mac.hi=GET_WORD(arp_rsp[22],arp_rsp[23]);
+	src_mac.mi=GET_WORD(arp_rsp[24],arp_rsp[25]);
+	src_mac.lo=GET_WORD(arp_rsp[26],arp_rsp[27]);
+
+ 	if (optype==1)
 	{
-		send_packet_arp(t_mac_addr src_mac,t_mac_addr dst_mac,u32 src_ip,u32 dst_ip,u8 op_type)
+		if (target_ip==system.network_desc->ip)
+		{
+			dst_mac=system.network_desc->dev->mac_addr;
+			send_packet_arp(dst_mac,src_mac,dst_ip,u32 src_ip,2);
+		}
 	}
-	6-4
-	1-2
-	free_sckt(t_data_sckt_buf* data_sckt_buf)
-	
-	
+	else if (optype==2)
+	{
+		mac_to_cache=kmalloc(sizeof(t_mac_addr));
+		*mac_to_cache=src_mac;
+		hashtable_put(arp_cache,src_ip,mac_to_cache);
+	}
+
+	free_sckt(t_data_sckt_buf* data_sckt_buf);
 }
 
