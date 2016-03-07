@@ -1,5 +1,6 @@
 #include "network/network.h"
 
+//ONLY ONE INSTANCE FOR ALL POSSIBLE INTERFACES!!!!!
 t_network_desc* network_init()
 {
 	t_network_desc* network_desc;
@@ -10,6 +11,8 @@ t_network_desc* network_init()
 	network_desc->dev=init_8254x();
 	network_desc->ip=LOCAL_IP;
 	network_desc->netmsk=LOCAL_NETMASK;
+	arp_init()
+	ip_init();
 	return network_desc;
 }
 

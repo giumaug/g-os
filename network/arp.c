@@ -1,16 +1,20 @@
 #include "network/network.h"
 
-static t_hashtable* arp_cache;
+static t_hashtable* arp_cache=NULL;
+static t_hashtable* arp_request=NULL;
 
 void arp_init()
 {
 	arp_cache=hashtable_init(10);
+	arp_request=hashtable_init(10);
 }
 
 void arp_free()
 {
 	hashtable_free(arp_cache);
+	hashtable_free(arp_request);
 	arp_cache=NULL;
+	arp_request=NULL;
 }
 
 t_mac_addr lookup_mac(u32 ip_addr)
@@ -142,5 +146,14 @@ void rcv_packet_arp(t_data_sckt_buf* data_sckt_buf)
 	}
 
 	free_sckt(t_data_sckt_buf* data_sckt_buf);
+}
+
+void sleep_on_arp_req(u32 dst_ip)-----------serve barriera!!!!!!!
+{
+	struct t_process_context* current_process_context;
+
+	CURRENT_PROCESS_CONTEXT(current_process_context);
+	hashtable_put(dst_ip,current_process_context);
+	_sleep();
 }
 

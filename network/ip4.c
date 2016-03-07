@@ -4,6 +4,7 @@ static u16 ipv4_id=0;
 
 int send_packet_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len,u8 protocol)
 {
+	struct t_process_context* current_process_context;
 	u16 packet_len;
 	char* ip_row_packet;
 	u16 chksum_val;
@@ -55,9 +56,7 @@ int send_packet_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		
 		dst_mac=lookup_mac(dst_ip);
 		if(dst_mac==NULL)
-                {
-			send_packet_arp(t_mac_addr src_mac,t_mac_addr dst_mac,u32 src_ip,u32 dst_ip,u8 op_type)
-			
+                {	
 			src_mac=system.network_desc->dev->mac_addr;
 			dst_mac.hi=0xFF;
 			dst_mac.mi=0xFF;
@@ -65,7 +64,7 @@ int send_packet_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			src_ip=system.network_desc->ip;
 		
 			send_packet_arp(src_mac,dst_mac,src_ip,dst_ip,1);
-			sleep process!!!!!!!!!!
+			sleep_on_arp_req(dst_ip);
 		}
 		put_packet_mac(data_sckt_buf,system.network_desc->dev->mac_addr,dst_mac);
 	}
