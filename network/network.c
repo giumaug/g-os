@@ -10,9 +10,8 @@ t_network_desc* network_init()
 	network_desc->rx_queue=sckt_buf_desc_init();
 	network_desc->dev=init_8254x();
 	network_desc->ip=LOCAL_IP;
-	network_desc->netmsk=LOCAL_NETMASK;
-	arp_init()
-	ip_init();
+	network_desc->netmask=LOCAL_NETMASK;
+	arp_init();
 	return network_desc;
 }
 

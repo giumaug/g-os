@@ -1,12 +1,15 @@
 #include "network/network.h"
+#include "synchro_types/spin_lock.h"
 
 static t_hashtable* arp_cache=NULL;
 static t_hashtable* arp_request=NULL;
+static t_spinlock_desc lock;
 
 void arp_init()
 {
 	arp_cache=hashtable_init(10);
 	arp_request=hashtable_init(10);
+	SPINLOCK_INIT(lock);
 }
 
 void arp_free()
@@ -17,12 +20,18 @@ void arp_free()
 	arp_request=NULL;
 }
 
-t_mac_addr lookup_mac(u32 ip_addr)
+u8 lookup_mac(u32 target_ip,t_mac_addr* mac_addr)
 {
-	t_mac_addr* mac_addr=NULL;
+	u8 status=0;
+	t_mac_addr* _mac_addr=NULL;
 	
-	mac_addr=hashtable_put(arp_cache,src_ip);
-	return *mac_addr;
+	_mac_addr=hashtable_get(arp_cache,target_ip);
+	if (_mac_addr!=NULL) 
+	{
+		*mac_addr=*_mac_addr;
+		status=1;
+	}
+	return status;
 }
 
 void send_packet_arp(t_mac_addr src_mac,t_mac_addr dst_mac,u32 src_ip,u32 dst_ip,u8 op_type)
@@ -101,9 +110,9 @@ void send_packet_arp(t_mac_addr src_mac,t_mac_addr dst_mac,u32 src_ip,u32 dst_ip
 	arp_req[59]=0x0;			//18 BYTE PAD
 
 	data_sckt_buf=alloc_void_sckt();
-	data_sckt_buf->mac_hdr=frame_addr;
-	data_sckt_buf->data=frame_addr;
-	data_sckt_buf->data_len=frame_len;
+	data_sckt_buf->mac_hdr=arp_req;
+	data_sckt_buf->data=arp_req;
+	data_sckt_buf->data_len=MTU_ARP;
 	enqueue_sckt(system.network_desc->rx_queue,data_sckt_buf);	
 }
 
@@ -117,7 +126,7 @@ void rcv_packet_arp(t_data_sckt_buf* data_sckt_buf)
 	char* arp_rsp;
 
 	arp_rsp=data_sckt_buf->mac_hdr;
-	u16 optype=arp_req[21];
+	u16 optype=arp_rsp[21];
 	
 	dst_ip=GET_DWORD(arp_rsp[38],arp_rsp[39],arp_rsp[40],arp_rsp[41]);
 	src_ip=GET_DWORD(arp_rsp[28],arp_rsp[29],arp_rsp[30],arp_rsp[31]);
@@ -132,10 +141,10 @@ void rcv_packet_arp(t_data_sckt_buf* data_sckt_buf)
 
  	if (optype==1)
 	{
-		if (target_ip==system.network_desc->ip)
+		if (dst_ip==system.network_desc->ip)
 		{
 			dst_mac=system.network_desc->dev->mac_addr;
-			send_packet_arp(dst_mac,src_mac,dst_ip,u32 src_ip,2);
+			send_packet_arp(dst_mac,src_mac,dst_ip,src_ip,2);
 		}
 	}
 	else if (optype==2)
@@ -145,15 +154,17 @@ void rcv_packet_arp(t_data_sckt_buf* data_sckt_buf)
 		hashtable_put(arp_cache,src_ip,mac_to_cache);
 	}
 
-	free_sckt(t_data_sckt_buf* data_sckt_buf);
+	free_sckt(data_sckt_buf);
 }
 
-void sleep_on_arp_req(u32 dst_ip)-----------serve barriera!!!!!!!
+void sleep_on_arp_req(u32 dst_ip)
 {
 	struct t_process_context* current_process_context;
 
+	SPINLOCK_LOCK(lock);
 	CURRENT_PROCESS_CONTEXT(current_process_context);
-	hashtable_put(dst_ip,current_process_context);
+	hashtable_put(arp_request,dst_ip,current_process_context);
 	_sleep();
+	SPINLOCK_UNLOCK(lock);
 }
 
