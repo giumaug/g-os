@@ -509,6 +509,8 @@ u32 _exec(char* path,char* argv[])
 	u32 process_size;
 	t_elf_desc* elf_desc;
 
+	printk("exec called!!! \n");
+
 //	CLI  ----------non serve
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 
@@ -536,6 +538,8 @@ u32 _exec(char* path,char* argv[])
 	current_process_context->sleep_time=0;
 	current_process_context->assigned_sleep_time=0;
 	current_process_context->static_priority=0;
+
+	printk("1!!! \n");
 
 	i=0;
 	data_size=0;
@@ -567,6 +571,7 @@ u32 _exec(char* path,char* argv[])
 		}
 		bk_area[k][i++]='\0';
 	}
+	printk("2!!! \n");
 			
 	//init_vm_process(current_process_context);
 	//SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 
@@ -620,7 +625,7 @@ u32 _exec(char* path,char* argv[])
 		kfree(bk_area[k]);
 	}
 	kfree(bk_area);
-
+	printk("end exec \n");
 	SWITCH_TO_USER_MODE(stack_pointer)
 	return 0;
 }

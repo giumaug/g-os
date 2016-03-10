@@ -217,6 +217,8 @@ void int_handler_i8254x()
 	EOI_TO_MASTER_PIC
 //	STI
 
+	printk("in inter \n");
+	
 	status=read_i8254x(i8254x,REG_ICR);
 	if (status & ICR_LSC)
 	{
@@ -257,6 +259,7 @@ void int_handler_i8254x()
 	i8254x->rx_cur=cur;
 	write_i8254x(i8254x,RDT_REG,old_cur);
 	enable_irq_line(i8254x->irq_line);
+	printk("end inter \n");
 	ENABLE_PREEMPTION
 	EXIT_INT_HANDLER(0,processor_reg)
 }

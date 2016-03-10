@@ -1,3 +1,6 @@
+run-command-file "run-g-os"
+
+
 $disk_image="./disk.img"
 run-command-file "targets/x86-440bx/tango-common.simics"
 new-symtable file = kernel.bin
