@@ -113,7 +113,7 @@ void send_packet_arp(t_mac_addr src_mac,t_mac_addr dst_mac,u32 src_ip,u32 dst_ip
 	data_sckt_buf->mac_hdr=arp_req;
 	data_sckt_buf->data=arp_req;
 	data_sckt_buf->data_len=MTU_ARP;
-	enqueue_sckt(system.network_desc->rx_queue,data_sckt_buf);	
+	enqueue_sckt(system.network_desc->tx_queue,data_sckt_buf);	
 }
 
 void rcv_packet_arp(t_data_sckt_buf* data_sckt_buf)
@@ -160,11 +160,11 @@ void rcv_packet_arp(t_data_sckt_buf* data_sckt_buf)
 void sleep_on_arp_req(u32 dst_ip)
 {
 	struct t_process_context* current_process_context;
-
+	//equeue_packet(system.network_desc);
 	SPINLOCK_LOCK(lock);
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 	hashtable_put(arp_request,dst_ip,current_process_context);
-	_sleep();
 	SPINLOCK_UNLOCK(lock);
+	_sleep();
 }
 

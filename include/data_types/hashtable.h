@@ -20,12 +20,12 @@ struct s_bucket_data
 }
 typedef t_bucket_data;
 
-t_hashtable* hashtable_init(int init_size);
+t_hashtable* hashtable_init(u32 init_size);
 void hashtable_free(t_hashtable* hashtable);
-void* hashtable_get(t_hashtable* hashtable,int key);
-void* hashtable_remove(t_hashtable* hashtable,int key);
-void hashtable_put(t_hashtable* hashtable,int key,void* value);
-void hashtable_put_str(t_hashtable* hashtable,char* key,char* value);
+void* hashtable_get(t_hashtable* hashtable,u32 key);
+void* hashtable_remove(t_hashtable* hashtable,u32 key);
+void hashtable_put(t_hashtable* hashtable,u32 key,void* value);
+void hashtable_put_str(t_hashtable* hashtable,unsigned char* key,char* value);
 t_hashtable* hashtable_clone_map(t_hashtable* map);
 
 #endif

@@ -57,9 +57,9 @@ int send_packet_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		if(status==0)
                 {	
 			src_mac=system.network_desc->dev->mac_addr;
-			dst_mac.hi=0xFF;
-			dst_mac.mi=0xFF;
-			dst_mac.lo=0xFF;
+			dst_mac.hi=0xFFFF;
+			dst_mac.mi=0xFFFF;
+			dst_mac.lo=0xFFFF;
 		
 			send_packet_arp(src_mac,dst_mac,src_ip,dst_ip,1);
 			sleep_on_arp_req(dst_ip);

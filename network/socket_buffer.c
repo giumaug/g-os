@@ -75,7 +75,6 @@ unsigned short checksum(unsigned short* ip, int len)
 	while(len > 1)
 	{
 		//sum += *((unsigned short*) ip)++; orig line
-		printk("addind=%d \n",*ip);
              	sum += *(ip++);
              	if(sum & 0x80000000)
 		{

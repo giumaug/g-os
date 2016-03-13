@@ -121,45 +121,29 @@ void int_handler_pit()
 		}
 	}
 	
-	if (xxx==1)
-	{	
-		xxx=0;
-		char* ip_payload;
-		//t_data_sckt_buf* data_sckt_buf=alloc_sckt(MTU_ETH);
-                t_data_sckt_buf* data_sckt_buf=alloc_sckt(33+HEADER_ETH+HEADER_IP4+HEADER_UDP);
-		data_sckt_buf->transport_hdr=data_sckt_buf->data+HEADER_ETH+HEADER_IP4;
-		enqueue_sckt(system.network_desc->tx_queue,data_sckt_buf);
-	
-		char data[]="This.is.a.fake.udp.packet!!!!!!!!";
-		ip_payload=data_sckt_buf->transport_hdr+HEADER_UDP;
-		u32 src_ip=GET_DWORD(172,16,6,101);
-		u32 dst_ip=GET_DWORD(172,16,6,1);
+//	if (xxx==1)
+//	{	
+//		xxx=0;
+//		char* ip_payload;
+//              t_data_sckt_buf* data_sckt_buf=alloc_sckt(33+HEADER_ETH+HEADER_IP4+HEADER_UDP);
+//		data_sckt_buf->transport_hdr=data_sckt_buf->data+HEADER_ETH+HEADER_IP4;
+//		enqueue_sckt(system.network_desc->tx_queue,data_sckt_buf);
+//	
+//		char data[]="This.is.a.fake.udp.packet!!!!!!!!";
+//		ip_payload=data_sckt_buf->transport_hdr+HEADER_UDP;
+//		//u32 src_ip=GET_DWORD(172,16,6,101);
+//		//u32 dst_ip=GET_DWORD(172,16,6,1);
 //		u32 src_ip=GET_DWORD(172,16,243,101);
 //		u32 dst_ip=GET_DWORD(172,16,243,1);
-
-		kmemcpy(ip_payload,data,33);
-
-/*
-		//FAKE UDP
-		char frame_addr[100]={
-				0x00, 0x50, 0x56, 0xc0, 0x00, 0x08, 0x00, 0x0c, 0x29, 0x10, 0x64, 0xb3, 0x08, 0x00, 0x45, 0x00,  
-				0x00, 0x3e, 0xb5, 0x42, 0x40, 0x00, 0x40, 0x11, 0x20, 0xe7, 0xac, 0x10, 0x06, 0x64, 0xac, 0x10,  
-				0x06, 0x01, 0xc2, 0xb7, 0x11, 0x5c, 0x00, 0x2a, 0xd8, 0x06, 0x54, 0x68, 0x69, 0x73, 0x20, 0x69,  
-				0x73, 0x20, 0x61, 0x20, 0x66, 0x61, 0x6b, 0x65, 0x20, 0x75, 0x64, 0x70, 0x20, 0x70, 0x61, 0x63,  
-				0x6b, 0x65, 0x74, 0x21, 0x21, 0x21, 0x21, 0x21, 0x21, 0x21, 0x21, 0x0a
-			     };
-	
-		void* tmp=kmalloc(100);			 
-		kmemcpy(tmp,frame_addr,76);
-		send_packet_i8254x(system.network_desc->dev,tmp,76);
-*/
-
-		send_packet_udp(data_sckt_buf,src_ip,dst_ip,9999,9999,33);
-		equeue_packet(system.network_desc);
-	}
+//
+//		kmemcpy(ip_payload,data,33);
+//
+//		send_packet_udp(data_sckt_buf,src_ip,dst_ip,9999,9999,33);
+//		equeue_packet(system.network_desc);
+//	}
 
 	//FLUSH NETWORK QUEUES BEFORE EXITING
-//	equeue_packet(system.network_desc);
+	equeue_packet(system.network_desc);
 	dequeue_packet(system.network_desc);
 exit_handler:;
 //	EXIT_INT_HANDLER(is_schedule,processor_reg);

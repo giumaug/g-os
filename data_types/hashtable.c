@@ -1,9 +1,9 @@
 #include "memory_manager/kmalloc.h"
 #include "data_types/hashtable.h"
 
-static void* hashtable_search(t_hashtable* hashtable,int key,int remove)
+static void* hashtable_search(t_hashtable* hashtable,u32 key,int remove)
 {
-	int index;
+	u32 index;
 	t_bucket_data* bucket_data;
 	t_llist_node* next;
 	t_llist_node* sentinel;
@@ -29,9 +29,9 @@ static void* hashtable_search(t_hashtable* hashtable,int key,int remove)
 	return NULL;
 }
 
-static void hashtable_free_bucket(t_llist** bucket,int size)
+static void hashtable_free_bucket(t_llist** bucket,u32 size)
 {
-	int i;
+	u32 i;
 
 	for (i=0;i<size;i++)
 	{
@@ -45,7 +45,7 @@ static void hashtable_free_bucket(t_llist** bucket,int size)
 
 static void rehash(t_hashtable* hashtable)
 {
-	int i;	
+	u32 i;	
 	t_bucket_data* bucket_data;
 	t_llist_node* next;
 	t_llist_node* sentinel;
@@ -74,13 +74,11 @@ static void rehash(t_hashtable* hashtable)
 	hashtable->elements=new_hashtable->elements;	
 }
 
-t_hashtable* hashtable_init(int init_size)
+t_hashtable* hashtable_init(u32 init_size)
 {
-	int i;
-	//int size;
+	u32 i;
 	t_hashtable* hashtable; 
 
-	//size=init_size/LOAD_FACTOR;
 	hashtable=kmalloc(sizeof(t_hashtable));
 	hashtable->bucket=kmalloc(sizeof(t_llist*)*init_size);
 	hashtable->elements=0;
@@ -99,19 +97,19 @@ void hashtable_free(t_hashtable* hashtable)
 	kfree(hashtable);
 }
 
-void* hashtable_get(t_hashtable* hashtable,int key)
+void* hashtable_get(t_hashtable* hashtable,u32 key)
 {
 	return hashtable_search(hashtable,key,FALSE);
 }
 
-void* hashtable_remove(t_hashtable* hashtable,int key)
+void* hashtable_remove(t_hashtable* hashtable,u32 key)
 {
 	return hashtable_search(hashtable,key,TRUE);
 }
 
-void hashtable_put(t_hashtable* hashtable,int key,void* value)
+void hashtable_put(t_hashtable* hashtable,u32 key,void* value)
 {
-	int index;
+	u32 index;
 	t_bucket_data* bucket_data;
 	
 	if ((float)(hashtable->elements+1)/(float)hashtable->size>LOAD_FACTOR)
@@ -127,10 +125,10 @@ void hashtable_put(t_hashtable* hashtable,int key,void* value)
 }
 
 //djb2 hash function
-void hashtable_put_str(t_hashtable* hashtable,char* key,char* value)
+void hashtable_put_str(t_hashtable* hashtable,unsigned char* key,char* value)
 {
 	unsigned long long_key = 5381;
-	int c;
+	u32 c;
 
 	while (c = *value++)
 	{
@@ -143,7 +141,7 @@ t_hashtable* hashtable_clone_map(t_hashtable* map)
 {
 	t_hashtable* cloned_map=NULL;
 	void* value=NULL;
-	int i=0;
+	u32 i=0;
 
 	cloned_map=hashtable_init(map->size);
 	for (i=0;i<map->size;i++)

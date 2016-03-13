@@ -195,6 +195,10 @@ void syscall_handler()
 	{
 		check_free_mem();
 	}
+	else if (syscall_num==104)
+	{
+		debug_network();
+	}
 	else
 	{
 		panic();
