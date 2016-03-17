@@ -36,7 +36,7 @@ u8 lookup_mac(u32 target_ip,t_mac_addr* mac_addr)
 
 void send_packet_arp(t_mac_addr src_mac,t_mac_addr dst_mac,u32 src_ip,u32 dst_ip,u8 op_type)
 {
-	char* arp_req=NULL;
+	unsigned char* arp_req=NULL;
 	t_data_sckt_buf* data_sckt_buf=NULL;
 
 	arp_req=kmalloc(MTU_ARP);
@@ -123,7 +123,7 @@ void rcv_packet_arp(t_data_sckt_buf* data_sckt_buf)
 	t_mac_addr dst_mac;
 	t_mac_addr src_mac;
 	t_mac_addr* mac_to_cache;
-	char* arp_rsp;
+	unsigned char* arp_rsp;
 
 	arp_rsp=data_sckt_buf->mac_hdr;
 	u16 optype=arp_rsp[21];
@@ -157,14 +157,28 @@ void rcv_packet_arp(t_data_sckt_buf* data_sckt_buf)
 	free_sckt(data_sckt_buf);
 }
 
-void sleep_on_arp_req(u32 dst_ip)
+void sleep_on_arp_req(u32 ip)
 {
 	struct t_process_context* current_process_context;
-	//equeue_packet(system.network_desc);
+
 	SPINLOCK_LOCK(lock);
 	CURRENT_PROCESS_CONTEXT(current_process_context);
-	hashtable_put(arp_request,dst_ip,current_process_context);
+	hashtable_put(arp_request,ip,current_process_context);
 	SPINLOCK_UNLOCK(lock);
 	_sleep();
 }
+
+void awake_on_arp(u32 ip)
+{
+	struct t_process_context* process_context;
+
+	SPINLOCK_LOCK(lock);
+	process_context=hashtable_get(arp_request,ip);
+	SPINLOCK_UNLOCK(lock);
+	_awake(process_context);
+}
+
+
+
+
 
