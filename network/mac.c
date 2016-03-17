@@ -39,7 +39,8 @@ void rcv_packet_mac(t_data_sckt_buf* data_sckt_buf)
 	u16 protocol_type;
 
 	data_sckt_buf->network_hdr=data_sckt_buf->mac_hdr+HEADER_ETH;
-	protocol_type=(u16) data_sckt_buf->mac_hdr[12];
+	
+	protocol_type=GET_WORD(data_sckt_buf->mac_hdr[12],data_sckt_buf->mac_hdr[13]);
 	if (protocol_type==ARP_PROTOCOL_TYPE)
 	{
 		rcv_packet_arp(data_sckt_buf);

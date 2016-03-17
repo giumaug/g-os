@@ -529,8 +529,10 @@ u32 _exec(char* path,char* argv[])
 	hashtable_free(current_process_context->file_desc);
 	current_process_context->file_desc=hashtable_init(PROCESS_INIT_FILE);
 
+	printk("bbb!!! \n");
 	if (elf_loader_init(current_process_context->elf_desc,path)==-1)
 	{
+		printk("aaa \n");
 		return -1;
 	}
 	process_size=current_process_context->elf_desc->file_size;
