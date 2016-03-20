@@ -15,8 +15,8 @@
 #define TCP_PROTOCOL 	0x6
 #define UDP_PROTOCOL 	0x11
 #define ICMP_PROTOCOL	1
-//#define LOCAL_IP	0xAC10F365
-#define LOCAL_IP        0xAC100665
+#define LOCAL_IP	0xAC10F365
+//#define LOCAL_IP        0xAC100665
 #define LOCAL_NETMASK   0xFFFFFF00
    
 #define LOW_32(data)			(data & 0xFFFF)

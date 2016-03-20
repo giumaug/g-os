@@ -152,6 +152,7 @@ void rcv_packet_arp(t_data_sckt_buf* data_sckt_buf)
 		mac_to_cache=kmalloc(sizeof(t_mac_addr));
 		*mac_to_cache=src_mac;
 		hashtable_put(arp_cache,src_ip,mac_to_cache);
+		awake_on_arp(src_ip);
 	}
 
 	free_sckt(data_sckt_buf);
@@ -177,8 +178,3 @@ void awake_on_arp(u32 ip)
 	SPINLOCK_UNLOCK(lock);
 	_awake(process_context);
 }
-
-
-
-
-

@@ -215,9 +215,7 @@ void int_handler_i8254x()
 	DISABLE_PREEMPTION
 	EOI_TO_SLAVE_PIC
 	EOI_TO_MASTER_PIC
-//	STI
-
-	printk("in inter \n");
+//	STI occhio!!!!
 	
 	status=read_i8254x(i8254x,REG_ICR);
 	if (status & ICR_LSC)
@@ -230,7 +228,7 @@ void int_handler_i8254x()
 		rx_desc=i8254x->rx_desc;
 		while(rx_desc[cur].status & 0x1)
 		{
-			//i use 32 bit addressing
+			//I use 32 bit addressing
 			low_addr=rx_desc[cur].low_addr;
 			hi_addr=rx_desc[cur].hi_addr;
 			frame_addr=FROM_PHY_TO_VIRT(low_addr);
@@ -259,7 +257,6 @@ void int_handler_i8254x()
 	i8254x->rx_cur=cur;
 	write_i8254x(i8254x,RDT_REG,old_cur);
 	enable_irq_line(i8254x->irq_line);
-	printk("end inter \n");
 	ENABLE_PREEMPTION
 	EXIT_INT_HANDLER(0,processor_reg)
 }

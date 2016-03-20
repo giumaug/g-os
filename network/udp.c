@@ -39,16 +39,17 @@ int send_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 src
 
 void rcv_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len)
 {
+	char* rcv_data=NULL;
 	unsigned char* udp_row_packet;
 
+	rcv_data=kmalloc(100);
 	udp_row_packet=data_sckt_buf->transport_hdr;
-
-	unsigned short aaa=checksum_udp((unsigned short*) udp_row_packet,src_ip,dst_ip,data_len);
-
 
 	if (checksum_udp((unsigned short*) udp_row_packet,src_ip,dst_ip,data_len)==0)
 	{
-		printk("udp packet received!!!!!!!!!!!");
+		kmemcpy(rcv_data,udp_row_packet+HEADER_UDP,data_len);
+		rcv_data[data_len-1]='\0';
+		printk("received packet data: %s",rcv_data);
 	}
 
 }
