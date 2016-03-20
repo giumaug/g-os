@@ -8,7 +8,7 @@ int send_packet_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	u16 packet_len;
 	char* ip_row_packet;
 	u16 chksum_val;
-	t_mac_addr dst_mac;
+	t_mac_addr* dst_mac;
 	t_mac_addr src_mac;
 	u8 status;
 
@@ -53,23 +53,12 @@ int send_packet_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		ip_row_packet[10]=HI_16(chksum_val);
 		ip_row_packet[11]=LOW_16(chksum_val);
 		
-		status=lookup_mac(dst_ip,&dst_mac);
-		if(status==0)
+		dst_mac=lookup_mac(dst_ip);
+		if(dst_mac==NULL)
                 {	
-			src_mac=system.network_desc->dev->mac_addr;
-			dst_mac.hi=0xFFFF;
-			dst_mac.mi=0xFFFF;
-			dst_mac.lo=0xFFFF;
-		
-			send_packet_arp(src_mac,dst_mac,src_ip,dst_ip,1);
-			sleep_on_arp_req(dst_ip);
-			printk("sveglio!!!\n");
+			return 0;
 		}
-		else 
-		{
-
-		}
-		put_packet_mac(data_sckt_buf,system.network_desc->dev->mac_addr,dst_mac);
+		put_packet_mac(data_sckt_buf,system.network_desc->dev->mac_addr,*dst_mac);
 	}
 	else
 	{

@@ -4,6 +4,7 @@ static u16 checksum_udp(char* udp_row_packet,u32 src_ip,u32 dst_ip,u16 data_len)
 
 int send_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u16 data_len)
 {
+	int ret;
 	u16 chk;
 	char* udp_row_packet;
 	u16 ip_packet_len;
@@ -28,12 +29,13 @@ int send_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 src
 		chk=SWAP_WORD(checksum_udp((unsigned short*) udp_row_packet,src_ip,dst_ip,data_len));
 		udp_row_packet[6]=HI_16(chk);
 		udp_row_packet[7]=LOW_16(chk);
-		send_packet_ip4(data_sckt_buf,src_ip,dst_ip,ip_packet_len,UDP_PROTOCOL);
+		ret=send_packet_ip4(data_sckt_buf,src_ip,dst_ip,ip_packet_len,UDP_PROTOCOL);
 	}
 	else
 	{
 		//size not supported
 	}
+	return ret;
 }
 
 
