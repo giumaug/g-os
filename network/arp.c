@@ -20,6 +20,38 @@ void arp_free()
 	arp_request=NULL;
 }
 
+u8 _lookup_mac(t_mac_addr src_mac,t_mac_addr dst_mac,u32 src_ip,u32 dst_ip)
+{
+	struct t_process_context* current_process_context;
+	t_mac_addr* _mac_addr=NULL;
+
+	_mac_addr=hashtable_get(arp_cache,dst_ip);
+	if (_mac_addr==NULL)
+	{
+		for (i=0;i<ARP_ATTEMPT;i++)
+		{
+			send_packet_arp(src_mac,dst_mac,src_ip,dst_ip,1);
+			_sleep_time(ARP_REQUEST_TIMEOUT);
+			_mac_addr=hashtable_get(arp_cache,dst_ip);
+			if (_mac_addr!=NULL)
+			{
+				break;
+			}
+		}
+		if (_mac_addr==NULL)
+		{
+			return -1;
+		}
+	}
+	//qui!!!!!!!!		
+
+
+	
+	//_sleep_time(ARP_REQUEST_TIMEOUT)
+
+}
+
+
 u8 lookup_mac(u32 target_ip,t_mac_addr* mac_addr)
 {
 	u8 status=0;

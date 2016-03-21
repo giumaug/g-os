@@ -63,6 +63,7 @@ int send_packet_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		
 			send_packet_arp(src_mac,dst_mac,src_ip,dst_ip,1);
 			sleep_on_arp_req(dst_ip);
+			printk("sveglio!!!\n");
 		}
 		else 
 		{

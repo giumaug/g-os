@@ -1,6 +1,8 @@
 #ifndef COMMON_H                
 #define COMMON_H
 
+#define ARP_REQUEST_TIMEOUT   2000
+#define ARP_ATTEMPT 	      3
 #define NETWORK_PROTOCOL_TYPE 0x800
 #define ARP_PROTOCOL_TYPE     0x806
 #define MTU_IP4 65536
