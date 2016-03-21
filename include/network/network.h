@@ -25,5 +25,6 @@ t_network_desc* network_init();
 void network_free(t_network_desc* network_desc);
 void equeue_packet(t_network_desc* network_desc);
 void dequeue_packet(t_network_desc* network_desc);
+void debug_network(char* data,u32 data_len);
 
 #endif

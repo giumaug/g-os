@@ -197,7 +197,7 @@ void syscall_handler()
 	}
 	else if (syscall_num==104)
 	{
-		debug_network();
+		debug_network(params[0],params[1]);
 	}
 	else
 	{
