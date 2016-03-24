@@ -18,6 +18,7 @@ typedef struct s_network_desc
 	struct s_i8254x* dev;
 	u32 ip;
 	u32 netmask;
+        u32 default_gw_ip;
 }
 t_network_desc;
 

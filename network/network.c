@@ -11,6 +11,7 @@ t_network_desc* network_init()
 	network_desc->dev=init_8254x();
 	network_desc->ip=LOCAL_IP;
 	network_desc->netmask=LOCAL_NETMASK;
+	network_desc->default_gw_ip=DEFAULT_GW_IP;
 	arp_init();
 	return network_desc;
 }
