@@ -17,10 +17,11 @@
 #define TCP_PROTOCOL 	0x6
 #define UDP_PROTOCOL 	0x11
 #define ICMP_PROTOCOL	1
-//#define LOCAL_IP	0xAC10F365
-#define LOCAL_IP        0xAC100665
+#define LOCAL_IP	0xAC10F365
+//#define LOCAL_IP        0xAC100665
 #define LOCAL_NETMASK   0xFFFFFF00
-#define DEFAULT_GW_IP   0xC0A88F01
+//#define DEFAULT_GW_IP 0xC0A88F01
+#define DEFAULT_GW_IP   0xAC10F302
    
 #define LOW_32(data)			(data & 0xFFFF)
 #define HI_32(data)			((data>>16) & 0xFFFF)

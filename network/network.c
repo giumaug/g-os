@@ -57,13 +57,13 @@ void debug_network(char* data,u32 data_len)
         t_data_sckt_buf* data_sckt_buf=alloc_sckt(33+HEADER_ETH+HEADER_IP4+HEADER_UDP);
 	data_sckt_buf->transport_hdr=data_sckt_buf->data+HEADER_ETH+HEADER_IP4;
 	
-//	char data[]="This.is.a.fake.udp.packet!!!!!!!!";
 	ip_payload=data_sckt_buf->transport_hdr+HEADER_UDP;
-	u32 src_ip=GET_DWORD(172,16,6,101);
-	u32 dst_ip=GET_DWORD(172,16,6,1);
-//	u32 src_ip=GET_DWORD(172,16,243,101);
-//	u32 dst_ip=GET_DWORD(172,16,243,1);
+//	u32 src_ip=GET_DWORD(172,16,6,101);
+//	u32 dst_ip=GET_DWORD(172,16,6,1);
+	u32 src_ip=GET_DWORD(172,16,243,101);
+	u32 dst_ip=GET_DWORD(172,16,243,1);
+//	u32 dst_ip=GET_DWORD(95,246,209,232);
 
 	kmemcpy(ip_payload,data,data_len);
-	send_packet_udp(data_sckt_buf,src_ip,dst_ip,9999,9999,data_len);
+	send_packet_udp(data_sckt_buf,src_ip,dst_ip,9999,45446,data_len);
 }
