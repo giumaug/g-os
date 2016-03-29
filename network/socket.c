@@ -7,8 +7,8 @@ typedef struct s_socket_desc
 	t_hashtable* sd_map=NULL;
 	t_hashtable* tcp_map=NULL;
 	t_hashtable* udp_map=NULL;
-	u32 udp_port_indx;
-	u32 tcp_port_indx;
+	u16 udp_port_indx;
+	u16 tcp_port_indx;
 	u32 fd=0;
 }
 t_socket_desc;
@@ -18,11 +18,33 @@ typedef struct s_socket_addr
 	u32 ip;
 	u32 src_port;
 	u32 dst_port;
-	u32 protocol;
+	u32 prtcl;
 }
 t_socket_addr;
 
 static t_socket_desc socket_desc;
+
+private int free_port_search(t_hashtable* port_map,u16* port_indx)
+{
+	u16 src_port_indx;
+	void* port=NULL;
+
+	for (i=0;i<32767;i++)
+	{
+		port_map.udp_indx++;
+		src_port_indx=32768+(port_map->udp_map & 0x7FFF);
+		port=hashtable_get(socket_desc.udp_map,src_port_indx);
+		if (port!=NULL)
+		{
+			break;
+		}
+	}
+	if (port==NULL)
+	{
+		src_port=0;	
+	}
+	return src_port;
+}
 
 void socket_init()
 {
@@ -46,32 +68,39 @@ int _socket(u32 ip, u32 port, int protocol)
 
 	socket_addr=kmalloc(sizeof(t_socket_addr));
 	socket_addr->protocol=protocol;
-	socket_desc.fd++;
+	socket_desc.sd++;
 	hashtable_put(socket_desc.sd_map,socket_desc.fd,socket_addr);
-	return socket_desc.fd;
+	return socket_desc.sd;
 }
 
-int _bind(int sockfd,u32 ip,u32 port)
+int _bind(int sockfd,u32 ip,u32 dst_port)
 {
+	void* port;
 	t_socket_addr socket_addr=NULL;
-	u32 src_port=NULL;
-
+	u16 src_port=NULL;
+	int ret=-1;
+	
 	socket_addr=hashtable_get(socket_desc.sd_map,sockfd);
 	if (socket_addr!=NULL)
 	{
-		if (protocol==2)
+		if (socket_addr->prtcl==2)
 		{
-ù			for (i=0;i<32767;i++)
-			{
-				socket_desc.udp_map++;
-				src_port=32768+(socket_desc.udp_map & 0x7FFF ----------------qui!!!!
-			}
+			src_port=free_port_search(socket_desc.udp_map,&udp_port_indx);
 		}
-		socket_desc.udp_map++;
-		socket_addr->ip=ip;
-		socket_addr->dst_port=port;
-		socket_addr->src_port=
+		else
+		{
+			src_port=free_port_search(socket_desc.tcp_map,&tcp_port_indx);
+		}	
+		if (port!=NULL)
+		{
+			socket_addr->ip=ip;
+			socket_addr->dst_port=dst_port;
+			socket_addr->src_port=src_port;
+			ret=0;
+		}
+		
 	}
+	return ret;
 }
 
 ssize_t _recvfrom(int sockfd, void *buf, size_t len, int flags,struct sockaddr *src_addr, socklen_t *addrlen)
@@ -79,27 +108,34 @@ ssize_t _recvfrom(int sockfd, void *buf, size_t len, int flags,struct sockaddr *
 
 }
 
-ssize_t _sendto(int sockfd, const void *buf, size_t len, int flags,const struct sockaddr *dest_addr, socklen_t addrlen)
+int _sendto(int sockfd,void* data,u32 data_len)
 {
+	t_socket_addr* socket_addr=NULL;
+	t_data_sckt_buf* data_sckt_buf=NULL;
 	char* ip_payload=NULL;
-        t_data_sckt_buf* data_sckt_buf=NULL;
+	int ret=0;
 
-
-
-	data_sckt_buf=alloc_sckt(33+HEADER_ETH+HEADER_IP4+HEADER_UDP);
-	data_sckt_buf->transport_hdr=data_sckt_buf->data+HEADER_ETH+HEADER_IP4;
-	
-	ip_payload=data_sckt_buf->transport_hdr+HEADER_UDP;
-//	u32 src_ip=GET_DWORD(172,16,6,101);
-//	u32 dst_ip=GET_DWORD(172,16,6,1);
-	u32 src_ip=GET_DWORD(172,16,243,101);
-	u32 dst_ip=GET_DWORD(172,16,243,1);
-//	u32 dst_ip=GET_DWORD(95,246,209,232);
-
-	kmemcpy(ip_payload,data,data_len);
-	send_packet_udp(data_sckt_buf,src_ip,dst_ip,9999,45446,data_len);
-
-
+	socket_addr=hashtable_get(socket_desc.sd_map,sockfd);
+	if (socket_addr!=NULL)
+	{
+		if (socket_addr->prtcl==2)
+		{
+			data_sckt_buf=alloc_sckt(33+HEADER_ETH+HEADER_IP4+HEADER_UDP);
+			data_sckt_buf->transport_hdr=data_sckt_buf->data+HEADER_ETH+HEADER_IP4;
+			ip_payload=data_sckt_buf->transport_hdr+HEADER_UDP;
+			kmemcpy(ip_payload,data,data_len);
+			ret=send_packet_udp(data_sckt_buf,socket_addr->src_ip,socket_addr->dst_ip,socket_addr->src_port,socket_addr->dst_port,data_len);
+			if (ret==0)
+			{
+				ret=data_len;
+			}
+		}
+	}
+	if (ret>0)
+	{
+		kfree(socket_addr);
+	}
+	return ret;
 }
 
 close ???
