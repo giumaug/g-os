@@ -19,6 +19,7 @@ typedef struct s_network_desc
 	u32 ip;
 	u32 netmask;
         u32 default_gw_ip;
+	t_socket_desc* socket_desc;
 }
 t_network_desc;
 

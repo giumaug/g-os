@@ -6,7 +6,7 @@ int send_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 src
 {
 	int ret;
 	u16 chk;
-	char* udp_row_packet;
+	unsigned char* udp_row_packet;
 	u16 ip_packet_len;
 
 	udp_row_packet=data_sckt_buf->transport_hdr;
@@ -38,17 +38,37 @@ int send_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 src
 	return ret;
 }
 
+//_recvfrom(int sockfd, void *buf, size_t len, int flags,struct sockaddr *src_addr, socklen_t *addrlen)
+socket_addr=hashtable_get(socket_desc.sd_map,sockfd);
+port=hashtable_get(socket_desc.udp_map,src_port_indx);
 
 void rcv_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len)
 {
 	char* rcv_data=NULL;
 	unsigned char* udp_row_packet;
+	t_socket_addr* socket_addr=NULL;
+	t_socket_desc* socket_desc=NULL;
+	u32 src_port;
+
+	socket_desc=system.network_desc->socket_desc;
+	udp_row_packet=data_sckt_buf->transport_hdr;			 
+	src_port=GET_WORD(udp_row_packet[0],udp_row_packet[1]);
 
 	rcv_data=kmalloc(100);
-	udp_row_packet=data_sckt_buf->transport_hdr;
+
 
 	if (checksum_udp((unsigned short*) udp_row_packet,src_ip,dst_ip,data_len)==0)
 	{
+		
+		socket_addr=hashtable_get(socket_desc.udp_map,src_port);
+		if (socket_addr!=NULL) 
+		{
+			_recvfrom(int sockfd, void *buf, size_t len, int flags,struct sockaddr *src_addr, socklen_t *addrlen)
+                        qui!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		}
+
+
+
 		kmemcpy(rcv_data,udp_row_packet+HEADER_UDP,data_len);
 		rcv_data[data_len-1]='\0';
 		printk("received packet data: %s",rcv_data);
