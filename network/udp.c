@@ -46,7 +46,7 @@ void rcv_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 {
 	char* rcv_data=NULL;
 	unsigned char* udp_row_packet;
-	t_socket_addr* socket_addr=NULL;
+	t_socket* socket=NULL;
 	t_socket_desc* socket_desc=NULL;
 	u32 src_port;
 
@@ -60,11 +60,10 @@ void rcv_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	if (checksum_udp((unsigned short*) udp_row_packet,src_ip,dst_ip,data_len)==0)
 	{
 		
-		socket_addr=hashtable_get(socket_desc.udp_map,src_port);
-		if (socket_addr!=NULL) 
+		socket=hashtable_get(socket_desc.udp_map,src_port);
+		if (socket!=NULL) 
 		{
-			_recvfrom(int sockfd, void *buf, size_t len, int flags,struct sockaddr *src_addr, socklen_t *addrlen)
-                        qui!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			_recvfrom(socket->sd,data_sckt_buf,u32 len);
 		}
 
 

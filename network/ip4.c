@@ -4,7 +4,7 @@ static u16 ipv4_id=0;
 
 int send_packet_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len,u8 protocol)
 {
-	struct t_process_context* current_process_context;
+	//struct t_process_context* current_process_context;
 	u16 packet_len;
 	char* ip_row_packet;
 	u16 chksum_val;
