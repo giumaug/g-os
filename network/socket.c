@@ -15,9 +15,7 @@ t_socket_desc;
 
 typedef struct s_socket
 {
-	#define SPINLOCK_UNLOCK(lock)
-	#define SPINLOCK_UNLOCK(lock)
-	u32 process_lock;
+	u32 lock;
 	struct t_process_context* process_context;
 	u32 ip;
 	u32 port;
@@ -90,6 +88,7 @@ int _socket(t_socket_desc* socket_desc,int type)
 	if (type==2)
 	{
 		socket->udp_rx_queue=new new_queue();
+		SPINLOCK_INIT(socket->lock);
 	}
 	return socket_desc->sd;
 }
@@ -132,10 +131,20 @@ int _recvfrom(t_socket_desc* socket_desc,int sockfd,u32 dst_ip,u16 dst_port,void
 {
 	int ret=0;
 	t_socket* socket=NULL;
+	t_udp_packet udp_packet=NULL;
 
 	socket=hashtable_get(socket_desc.udp_map,src_port);
 	if (socket!=NULL) 
 	{
+		udp_packet=dequeue(socket->udp_rx_queue);
+		if (udp_packet==NULL)
+		{
+			SPINLOCK_LOCK(socket->lock);
+			CURRENT_PROCESS_CONTEXT(socket->process_context);
+			SPINLOCK_UNLOCK(socket->lock);
+			_sleep();
+		}
+		
 		socket->ip=dst_ip;
 		socket->dst_port=dst_port;
 		socket->data=data;
