@@ -20,16 +20,9 @@ void syscall_handler()
 	int* params;
 	char data;
 	unsigned int on_exit_action;
-//	short ds;
 
  	SAVE_PROCESSOR_REG
 	//call can come from kernel mode (sleep)
-//	GET_DS(ds)
-//	if (ds==0x20) 
-//	{
-//		SWITCH_DS_TO_KERNEL_MODE
-//	}
-//
 	SWITCH_DS_TO_KERNEL_MODE
 	on_exit_action=0;
 	current_process_context=system.process_info->current_process->val;
@@ -181,13 +174,34 @@ void syscall_handler()
 	{
 		params[2]=_stat(system.root_fs,(char*) params[0],params[1]); 	
 	}
+
+	else if (syscall_num==28)
+	{
+ 		params[3]=_socket(system.network_desc->socket_desc,params[0],params[1],params[2]); 
+	}
+	else if (syscall_num==29)
+	{
+ 		params[3]=_bind(system.network_desc->socket_desc,params[0],params[1],params[2]);
+	}
+	else if (syscall_num==30)
+	{
+ 		params[3]=_recvfrom(system.network_desc->socket_desc,params[0],params[1],params[2]);
+	}
+	else if (syscall_num==31)
+	{
+ 		params[3]=_sendto(system.network_desc->socket_desc,params[0],params[1],params[2]);
+	}
+	else if (syscall_num==32)
+	{
+ 		params[1]=_close(system.network_desc->socket_desc,params[0]);
+	}
+
 	else if (syscall_num==101) 
 	{
 		on_exit_action=1; 
 	}
 	else if (syscall_num==102) 
 	{
-//		params[0]=_flush_ata_pending_request();
 		_flush_ata_pending_request();
 	}
 	//DEBUG WRAPPER

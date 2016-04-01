@@ -10,8 +10,6 @@ typedef struct s_socket_desc
 	u16 udp_port_indx;
 	u16 tcp_port_indx;
 	u32 fd=0;
-	//tcp wait queue
-	//udp wait queue
 }
 t_socket_desc;
 
@@ -23,6 +21,8 @@ typedef struct s_socket
 	u32 dst_port;
 	u32 prtcl;
 	u32 sd;
+	void* data;
+	u32 data_len;
 }
 t_socket;
 
@@ -112,7 +112,7 @@ int _bind(t_socket_desc* socket_desc,int sockfd,u32 ip,u32 dst_port)
 	return ret;
 }
 
-int _recvfrom(int sockfd, void* data,u32 data_len)
+int _recvfrom(t_socket_desc* socket_desc,int sockfd, void* data,u32 data_len)
 {
 	int ret=0;
 	t_socket* socket=NULL;
@@ -120,18 +120,14 @@ int _recvfrom(int sockfd, void* data,u32 data_len)
 	socket=hashtable_get(socket_desc.udp_map,src_port);
 	if (socket!=NULL) 
 	{
+		socket->data=data;
+		socket->data_len=data_len;
 		_sleep();
-		-------------copia dati!!!!!!!!!!!!!1
+		socket->data=NULL;
+		socket->data_len=0;
+		ret=data_len;
 	}
 	return ret;
-}
-	
-
-
-kmemcpy(rcv_data,udp_row_packet+HEADER_UDP,data_len);
-		rcv_data[data_len-1]='\0';
-		printk("received packet data: %s",rcv_data);
-
 }
 
 int _sendto(t_socket_desc* socket_desc,int sockfd,void* data,u32 data_len)
@@ -164,4 +160,18 @@ int _sendto(t_socket_desc* socket_desc,int sockfd,void* data,u32 data_len)
 	return ret;
 }
 
-close ???
+int _close(t_socket_desc* socket_desc,int int sockfd)
+{
+	t_socket* socket=NULL;
+
+	socket=hashtable_get(socket_desc->sd_map,sockfd);
+	if (socket->prtcl==2)
+	{
+		hashtable_remove(socket_desc.udp_map,socket);
+	}
+	else
+	{
+		hashtable_remove(socket_desc.tcp_map,socket);
+	}
+	kfree(socket);
+}
