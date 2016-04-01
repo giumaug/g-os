@@ -15,20 +15,28 @@ t_socket_desc;
 
 typedef struct s_socket
 {
+	#define SPINLOCK_UNLOCK(lock)
+	#define SPINLOCK_UNLOCK(lock)
+	u32 process_lock;
 	struct t_process_context* process_context;
 	u32 ip;
-	u32 src_port;
-	u32 dst_port;
+	u32 port;
+	t_queue* udp_rx_queue;	
 	u32 type;
 	u32 sd;
-	void* data;
-	u32 data_len;
 }
 t_socket;
 
-static t_socket_desc socket_desc;
-
-
+typedef struct s_udp_packet
+{
+	char* data;
+	u32 data_len;
+	u32 src_ip;
+	u32 dst_ip;
+	u16 src_port;
+	u16 dst_port;
+}
+t_udp_packet;
 
 private int free_port_search(t_hashtable* port_map,u16* port_indx)
 {
@@ -52,7 +60,7 @@ private int free_port_search(t_hashtable* port_map,u16* port_indx)
 	return src_port;
 }
 
-t_socket_desc* socket_init()
+t_socket_desc* socket_desc_init()
 {
 	t_socket_desc socket_desc=kmalloc(sizeof(t_socket_desc));
 	socket_desc.sd_map=hashtable_init(SOCKET_MAP_SIZE);
@@ -61,7 +69,7 @@ t_socket_desc* socket_init()
 	return socket_desc;
 }
 
-void socket_free(t_socket_desc* socket_desc)
+void socket_desc_free(t_socket_desc* socket_desc)
 {
 	hashtable_free(socket_desc.sd_map);
 	hashtable_free(socket_desc.tcp_map);
@@ -79,6 +87,10 @@ int _socket(t_socket_desc* socket_desc,int type)
 	socket->type=type;
 	socket_desc->sd++;
 	hashtable_put(socket_desc->sd_map,socket_desc->fd,socket);
+	if (type==2)
+	{
+		socket->udp_rx_queue=new new_queue();
+	}
 	return socket_desc->sd;
 }
 
@@ -92,18 +104,24 @@ int _bind(t_socket_desc* socket_desc,int sockfd,u32 ip,u32 dst_port)
 	socket=hashtable_get(socket_desc->sd_map,sockfd);
 	if (socket!=NULL)
 	{
-		if (socket->type==2)
+//		if (socket->type==2)
+//		{
+//			src_port=free_port_search(socket_desc->udp_map,&udp_port_indx);
+//		}
+//		else
+//		{
+//			src_port=free_port_search(socket_desc->tcp_map,&tcp_port_indx);
+//		}	
+//		if (port!=NULL)
+//		{
+//			socket->src_port=src_port;
+//			hashtable_put(socket_desc->udp_map,src_port,socket);
+//			ret=0;
+//		}
+		if (hashtable_get(socket_desc.udp_map,dst_port)==NULL)
 		{
-			src_port=free_port_search(socket_desc->udp_map,&udp_port_indx);
-		}
-		else
-		{
-			src_port=free_port_search(socket_desc->tcp_map,&tcp_port_indx);
-		}	
-		if (port!=NULL)
-		{
-			socket->src_port=src_port;
-			hashtable_put(socket_desc->udp_map,src_port,socket);
+			socket->src_port=dst_port;
+			hashtable_put(socket_desc->udp_map,dst_port,socket);
 			ret=0;
 		}
 	}
@@ -126,6 +144,8 @@ int _recvfrom(t_socket_desc* socket_desc,int sockfd,u32 dst_ip,u16 dst_port,void
 		socket->data=NULL;
 		socket->data_len=0;
 		ret=data_len;
+
+		int recvfrom(int sockfd, void* data,u32 data_len,int flags,struct sockaddr* src_addr,socklen_t* addrlen)
 	}
 	return ret;
 }
@@ -168,6 +188,7 @@ int _close(t_socket_desc* socket_desc,int int sockfd)
 	if (socket->type==2)
 	{
 		hashtable_remove(socket_desc.udp_map,socket);
+		free_queue(socket->udp_rx_queue);
 	}
 	else
 	{
