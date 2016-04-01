@@ -189,6 +189,11 @@ void adjust_sched_queue(struct t_process_context *current_process_context)
 
 void _sleep()
 {
+	_sleep_save_ctx(NULL);	
+}
+
+void _sleep_and_unlock(u32* lock)
+{
 	struct t_process_context* current_process;
 	SAVE_IF_STATUS
 	CLI        
@@ -196,7 +201,10 @@ void _sleep()
 	current_process->sleep_time=system.time;
 	t_llist_node* current_node=system.process_info->current_process;
 	current_process->proc_status=SLEEPING;
-//	RESTORE_IF_STATUS
+	if (ctx_dest!=NULL)
+	{
+		SPINLOCK_UNLOCK(*lock);	----------qui!!!!!!!
+	}
 	SUSPEND
 	RESTORE_IF_STATUS
 }

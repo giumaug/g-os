@@ -41,13 +41,13 @@ void schedule(struct t_process_context *current_process_context,struct t_process
 void init_scheduler();
 void sched_debug();
 void adjust_sched_queue(struct t_process_context *current_process_context);
-void _sleep();
 void _awake();
 void _pause();
 void _exit(int status);
 u32 _exec(char* path,char* argv[]);
-//int _fork(struct t_processor_reg processor_reg,unsigned int flags);
 int _fork(struct t_processor_reg processor_reg);
+void _sleep();
 void _sleep_time(unsigned int time);
+void _sleep_save_ctx(void* ctx_dest);
 
 #endif
