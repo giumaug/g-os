@@ -1,13 +1,14 @@
 #include "network/socket.h"
 
-private int free_port_search(t_hashtable* port_map,u16* port_indx)
+static int free_port_search(t_hashtable* port_map,u16* port_indx)
 {
+	int i;
 	u16 src_port_indx;
 	void* port=NULL;
 
 	for (i=0;i<32767;i++)
 	{
-		port_map.udp_indx++;
+		port_map->udp_indx++;
 		src_port_indx=32768+(port_map->udp_map & 0x7FFF);
 		port=hashtable_get(socket_desc.udp_map,src_port_indx);
 		if (port!=NULL)
@@ -52,12 +53,13 @@ int _open_socket(t_socket_desc* socket_desc,int type)
 	if (type==2)
 	{
 		socket->udp_rx_queue=new new_queue();
-		SPINLOCK_INIT(socket->lock);
+		socket->lock=kmalloc(sizeof(t_spinlock_desc));
+		SPINLOCK_INIT(*socket->lock);
 	}
 	return socket_desc->sd;
 }
 
-int _bind(t_socket_desc* socket_desc,int sockfd,u32 ip,u32 dst_port)
+int _bind(t_socket_desc* socket_desc,int sockfd,u32 ip,u32 src_port)
 {
 	void* port;
 	t_socket socket=NULL;
@@ -67,10 +69,10 @@ int _bind(t_socket_desc* socket_desc,int sockfd,u32 ip,u32 dst_port)
 	socket=hashtable_get(socket_desc->sd_map,sockfd);
 	if (socket!=NULL)
 	{
-		if (hashtable_get(socket_desc.udp_map,dst_port)==NULL)
+		if (hashtable_get(socket_desc.udp_map,src_port)==NULL)
 		{
-			socket->src_port=dst_port;
-			hashtable_put(socket_desc->udp_map,dst_port,socket);
+			socket->src_port=src_port;
+			hashtable_put(socket_desc->udp_map,src_port,socket);
 			ret=0;
 		}
 	}
@@ -86,13 +88,11 @@ int _recvfrom(t_socket_desc* socket_desc,int sockfd,u32* src_ip,u16* src_port,vo
 	socket=hashtable_get(socket_desc.udp_map,src_port);
 	if (socket!=NULL) 
 	{
-		SPINLOCK_LOCK(socket->lock);
+		SPINLOCK_LOCK(*socket->lock);
 		data_sckt_buf=dequeue(socket->udp_rx_queue);
 		if (data_sckt_buf==NULL)
 		{
-			CURRENT_PROCESS_CONTEXT(socket->process_context);
-			SPINLOCK_UNLOCK(socket->lock);
-			_sleep();
+			_sleep_and_unlock(socket->lock);
 		}		 
 		*src_port=GET_WORD(data_sckt_buf->transport_hdr[0],data_sckt_buf->transport_hdr[1]);
 		*src_ip=GET_DWORD(data_sckt_buf->network_hdr[12],data_sckt_buf->network_hdr[13],data_sckt_buf->network_hdr[14],data_sckt_buf->network_hdr[15]);
@@ -146,6 +146,7 @@ int _close_socket(t_socket_desc* socket_desc,int int sockfd)
 	{
 		hashtable_remove(socket_desc.udp_map,socket);
 		free_queue(socket->udp_rx_queue);
+		kfree(socket->lock);
 	}
 	else
 	{

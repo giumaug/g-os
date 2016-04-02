@@ -1,9 +1,10 @@
 #ifndef SOCKET_H                
 #define SOCKET_H
 
+#include "system.h"
 #include "data_types/hashtable.h"
+#include "data_types/queue.h"
 #include "data_types/primitive_types.h"
-#include "synchro_types/spin_lock.h"
 
 #define SOCKET_MAP_SIZE 100
 #define TCP_MAP_SIZE 20
@@ -20,9 +21,11 @@ typedef struct s_socket_desc
 }
 t_socket_desc;
 
+struct s_spinlock_desc;
+
 typedef struct s_socket
 {
-	t_spinlock_desc lock;
+	struct s_spinlock_desc* lock;
 	struct t_process_context* process_context;
 	u32 ip;
 	u32 port;

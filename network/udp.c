@@ -56,14 +56,14 @@ void rcv_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		{
 			if (dst_port==system.network_desc->ip)
 			{	
-				SPINLOCK_LOCK(socket->lock);
+				SPINLOCK_LOCK(*socket->lock);
 				enqueue(socket->udp_rx_queue,data_sckt_buf);			
 				if (socket->process_context!=NULL)
 				{
 					socket->process_context=NULL;
 					_awake(socket->process_context);
 				}
-				SPINLOCK_UNLOCK(socket->lock);
+				SPINLOCK_UNLOCK(*socket->lock);
 			}
 		}
 	}

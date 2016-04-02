@@ -204,7 +204,7 @@ void _sleep_and_unlock(t_spinlock_desc* lock)
 	current_process->proc_status=SLEEPING;
 	if (lock!=NULL)
 	{
-		SPINLOCK_UNLOCK( *lock);
+		SPINLOCK_UNLOCK(*lock);
 	}
 	SUSPEND
 	RESTORE_IF_STATUS
