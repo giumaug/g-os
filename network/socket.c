@@ -19,7 +19,7 @@ typedef struct s_socket
 	u32 ip;
 	u32 src_port;
 	u32 dst_port;
-	u32 prtcl;
+	u32 type;
 	u32 sd;
 	void* data;
 	u32 data_len;
@@ -71,12 +71,12 @@ void socket_free(t_socket_desc* socket_desc)
 	socket_desc.tcp_map=NULL;
 	socket_desc.udp_map=NULL;
 
-int _socket(t_socket_desc* socket_desc,u32 ip, u32 port, int protocol) 
+int _socket(t_socket_desc* socket_desc,int type) 
 {
 	t_socket socket=NULL;
 
 	socket=kmalloc(sizeof(t_socket));
-	socket->protocol=protocol;
+	socket->type=type;
 	socket_desc->sd++;
 	hashtable_put(socket_desc->sd_map,socket_desc->fd,socket);
 	return socket_desc->sd;
@@ -92,7 +92,7 @@ int _bind(t_socket_desc* socket_desc,int sockfd,u32 ip,u32 dst_port)
 	socket=hashtable_get(socket_desc->sd_map,sockfd);
 	if (socket!=NULL)
 	{
-		if (socket->prtcl==2)
+		if (socket->type==2)
 		{
 			src_port=free_port_search(socket_desc->udp_map,&udp_port_indx);
 		}
@@ -102,8 +102,6 @@ int _bind(t_socket_desc* socket_desc,int sockfd,u32 ip,u32 dst_port)
 		}	
 		if (port!=NULL)
 		{
-			socket->ip=ip;
-			socket->dst_port=dst_port;
 			socket->src_port=src_port;
 			hashtable_put(socket_desc->udp_map,src_port,socket);
 			ret=0;
@@ -112,7 +110,7 @@ int _bind(t_socket_desc* socket_desc,int sockfd,u32 ip,u32 dst_port)
 	return ret;
 }
 
-int _recvfrom(t_socket_desc* socket_desc,int sockfd, void* data,u32 data_len)
+int _recvfrom(t_socket_desc* socket_desc,int sockfd,u32 dst_ip,u16 dst_port,void* data,u32 data_len)
 {
 	int ret=0;
 	t_socket* socket=NULL;
@@ -120,6 +118,8 @@ int _recvfrom(t_socket_desc* socket_desc,int sockfd, void* data,u32 data_len)
 	socket=hashtable_get(socket_desc.udp_map,src_port);
 	if (socket!=NULL) 
 	{
+		socket->ip=dst_ip;
+		socket->dst_port=dst_port;
 		socket->data=data;
 		socket->data_len=data_len;
 		_sleep();
@@ -140,7 +140,7 @@ int _sendto(t_socket_desc* socket_desc,int sockfd,void* data,u32 data_len)
 	socket=hashtable_get(socket_desc->sd_map,sockfd);
 	if (socket!=NULL)
 	{
-		if (socket->prtcl==2)
+		if (socket->type==2)
 		{
 			data_sckt_buf=alloc_sckt(33+HEADER_ETH+HEADER_IP4+HEADER_UDP);
 			data_sckt_buf->transport_hdr=data_sckt_buf->data+HEADER_ETH+HEADER_IP4;
@@ -165,7 +165,7 @@ int _close(t_socket_desc* socket_desc,int int sockfd)
 	t_socket* socket=NULL;
 
 	socket=hashtable_get(socket_desc->sd_map,sockfd);
-	if (socket->prtcl==2)
+	if (socket->type==2)
 	{
 		hashtable_remove(socket_desc.udp_map,socket);
 	}

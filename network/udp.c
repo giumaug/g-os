@@ -48,19 +48,23 @@ void rcv_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	unsigned char* udp_row_packet;
 	t_socket* socket=NULL;
 	t_socket_desc* socket_desc=NULL;
-	u32 src_port;
+	u32 dst_port;
 
 	socket_desc=system.network_desc->socket_desc;
 	udp_row_packet=data_sckt_buf->transport_hdr;			 
-	src_port=GET_WORD(udp_row_packet[0],udp_row_packet[1]);
+	dst_port=GET_WORD(udp_row_packet[3],udp_row_packet[4]);
 
 	if (checksum_udp((unsigned short*) udp_row_packet,src_ip,dst_ip,data_len)==0)
 	{
-		socket=hashtable_get(socket_desc.udp_map,src_port);
+		socket=hashtable_get(socket_desc.udp_map,dst_port);
 		if (socket!=NULL) 
 		{
-			kmemcpy(socket->data,udp_row_packet+HEADER_UDP,data_len);
-			socket->data_len=data_len;
+			if (socket->ip==src_ip && socket->src_port)
+			{
+				kmemcpy(socket->data,udp_row_packet+HEADER_UDP,data_len);
+				socket->data_len=data_len;
+				_awake(socket->process_context);
+			}
 		}
 		free_sckt(data_sckt_buf);
 	}
