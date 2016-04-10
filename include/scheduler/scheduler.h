@@ -48,6 +48,6 @@ u32 _exec(char* path,char* argv[]);
 int _fork(struct t_processor_reg processor_reg);
 void _sleep();
 void _sleep_time(unsigned int time);
-void _sleep_save_ctx(void* ctx_dest);
+void _sleep_and_unlock(t_spinlock_desc* lock);
 
 #endif

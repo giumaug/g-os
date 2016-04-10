@@ -38,10 +38,6 @@ int send_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 src
 	return ret;
 }
 
-//_recvfrom(int sockfd, void *buf, size_t len, int flags,struct sockaddr *src_addr, socklen_t *addrlen)
-socket_addr=hashtable_get(socket_desc.sd_map,sockfd);
-port=hashtable_get(socket_desc.udp_map,src_port_indx);
-
 void rcv_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len)
 {
 	char* rcv_data=NULL;
@@ -49,36 +45,22 @@ void rcv_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	t_socket* socket=NULL;
 	t_socket_desc* socket_desc=NULL;
 	u16 dst_port;
-	u16 src_port;
-	t_udp_packet udp_packet=NULL;
+	t_udp_packet* udp_packet=NULL;
 
 	socket_desc=system.network_desc->socket_desc;
 	udp_row_packet=data_sckt_buf->transport_hdr;			 
 	dst_port=GET_WORD(udp_row_packet[2],udp_row_packet[3]);
-	src_port=GET_WORD(udp_row_packet[0],udp_row_packet[1]);
 
 	if (checksum_udp((unsigned short*) udp_row_packet,src_ip,dst_ip,data_len)==0)
 	{
-		socket=hashtable_get(socket_desc.udp_map,dst_port);
+		socket=hashtable_get(socket_desc->udp_map,dst_port);
 		if (socket!=NULL) 
 		{
 			if (dst_port==system.network_desc->ip)
-			{
-				udp_packet=kmalloc(sizeof(t_udp_packet));
-				kmemcpy(udp_packet->data,udp_row_packet+HEADER_UDP,data_len);
-				udp_packet->data_len=data_len;
-				udp_packet->src_ip=src_ip;
-				udp_packet->dst_ip=dst_ip;
-				udp_packet->src_port=src_port;
-				udp_packet->dst_port=dst_port;
-				enqueue(socket->udp_rx_queue,udp_packet);
-			
+			{	
 				SPINLOCK_LOCK(socket->lock);
-				if (socket->process_context==NULL)
-				{
-					CURRENT_PROCESS_CONTEXT(socket->process_context);
-				}
-				else
+				enqueue(socket->udp_rx_queue,data_sckt_buf);			
+				if (socket->process_context!=NULL)
 				{
 					socket->process_context=NULL;
 					_awake(socket->process_context);
@@ -86,9 +68,11 @@ void rcv_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 				SPINLOCK_UNLOCK(socket->lock);
 			}
 		}
+	}
+	else 
+	{
 		free_sckt(data_sckt_buf);
 	}
-	free_sckt(data_sckt_buf);
 }
 
 static u16 checksum_udp(char* udp_row_packet,u32 src_ip,u32 dst_ip,u16 data_len)

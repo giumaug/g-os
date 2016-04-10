@@ -177,7 +177,7 @@ void syscall_handler()
 
 	else if (syscall_num==28)
 	{
- 		params[3]=_socket(system.network_desc->socket_desc,params[0],params[1],params[2]); 
+ 		params[1]=_open_socket(system.network_desc->socket_desc,params[0]); 
 	}
 	else if (syscall_num==29)
 	{
@@ -185,7 +185,7 @@ void syscall_handler()
 	}
 	else if (syscall_num==30)
 	{
- 		params[3]=_recvfrom(system.network_desc->socket_desc,params[0],params[1],params[2]);
+ 		params[3]=_recvfrom(system.network_desc->socket_desc,params[0],params[1],params[2],params[3],params[4]);
 	}
 	else if (syscall_num==31)
 	{
@@ -193,7 +193,7 @@ void syscall_handler()
 	}
 	else if (syscall_num==32)
 	{
- 		params[1]=_close(system.network_desc->socket_desc,params[0]);
+ 		params[1]=_close_socket(system.network_desc->socket_desc,params[0]);
 	}
 
 	else if (syscall_num==101) 

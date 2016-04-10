@@ -31,5 +31,8 @@ malloc.o: malloc.c malloc.h
 debug.o: debug.c lib.h
 	$(CC) $(CPPFLAGS) $(CFLAGS) debug.c
 
+socket.o: socket.c socket.h
+	$(CC) $(CPPFLAGS) $(CFLAGS) socket.c
+
 clean:	
-	rm -f math.o stdio.o stdlib.o string.o unistd.o fcntl.o stat.o malloc.o debug.o
+	rm -f math.o stdio.o stdlib.o string.o unistd.o fcntl.o stat.o malloc.o debug.o socket.o
