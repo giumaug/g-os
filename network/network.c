@@ -12,8 +12,8 @@ t_network_desc* network_init()
 	network_desc->ip=LOCAL_IP;
 	network_desc->netmask=LOCAL_NETMASK;
 	network_desc->default_gw_ip=DEFAULT_GW_IP;
+	network_desc->socket_desc=socket_init();
 	arp_init();
-	network->socket_desc=socket_init();
 	return network_desc;
 }
 
@@ -22,7 +22,7 @@ void network_free(t_network_desc* network_desc)
 	sckt_buf_desc_free(network_desc->tx_queue);
 	sckt_buf_desc_free(network_desc->rx_queue);
 	free_8254x(network_desc->dev);
-	free(network->socket_desc);
+	free(network_desc->socket_desc);
 }
 
 void equeue_packet(t_network_desc* network_desc)

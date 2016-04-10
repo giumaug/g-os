@@ -3,6 +3,7 @@
 
 #include "data_types/hashtable.h"
 #include "data_types/primitive_types.h"
+#include "synchro_types/spin_lock.h"
 
 #define SOCKET_MAP_SIZE 100
 #define TCP_MAP_SIZE 20

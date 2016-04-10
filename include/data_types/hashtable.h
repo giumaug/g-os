@@ -1,7 +1,9 @@
 #ifndef HASHTABLE_H                
 #define HASHTABLE_H
 
-#include "dllist.h"
+#include "data_types/dllist.h"
+#include "data_types/primitive_types.h"
+
 
 #define LOAD_FACTOR .75
 

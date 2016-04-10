@@ -10,6 +10,7 @@
 
 struct s_i8254x;
 struct s_sckt_buf_desc;
+struct s_socket_desc;
 
 typedef struct s_network_desc
 {
@@ -20,7 +21,7 @@ typedef struct s_network_desc
 	u32 ip;
 	u32 netmask;
         u32 default_gw_ip;
-	t_socket_desc* socket_desc;
+	struct s_socket_desc* socket_desc;
 }
 t_network_desc;
 

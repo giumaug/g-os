@@ -40,12 +40,10 @@ int send_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 src
 
 void rcv_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len)
 {
-	char* rcv_data=NULL;
 	unsigned char* udp_row_packet;
 	t_socket* socket=NULL;
 	t_socket_desc* socket_desc=NULL;
 	u16 dst_port;
-	t_udp_packet* udp_packet=NULL;
 
 	socket_desc=system.network_desc->socket_desc;
 	udp_row_packet=data_sckt_buf->transport_hdr;			 

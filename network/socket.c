@@ -77,9 +77,9 @@ int _bind(t_socket_desc* socket_desc,int sockfd,u32 ip,u32 dst_port)
 	return ret;
 }
 
-int _recvfrom(t_socket_desc* socket_desc,int sockfd,u32* src_ip,u16* src_port,void* data) len??????????????????????????????
+int _recvfrom(t_socket_desc* socket_desc,int sockfd,u32* src_ip,u16* src_port,void* data,u32 data_len)
 {
-	u32 data_len=0;
+	u32 read_data_=0;
 	t_socket* socket=NULL;
 	t_data_sckt_buf* data_sckt_buf=NULL;
 
@@ -96,41 +96,15 @@ int _recvfrom(t_socket_desc* socket_desc,int sockfd,u32* src_ip,u16* src_port,vo
 		}		 
 		*src_port=GET_WORD(data_sckt_buf->transport_hdr[0],data_sckt_buf->transport_hdr[1]);
 		*src_ip=GET_DWORD(data_sckt_buf->network_hdr[12],data_sckt_buf->network_hdr[13],data_sckt_buf->network_hdr[14],data_sckt_buf->network_hdr[15]);
-
-		
-		kmemcpy(data,data_sckt_buf->transport_hdr+HEADER_UDP,data_len);
-
-		data_sckt_buf->network_hdr;
-		src_ip=ip_row_packet[15]+((u32)ip_row_packet[14]<<8)+((u32)ip_row_packet[13]<<16)+((u32)ip_row_packet[12]<<24);
-		//kmemcpy(udp_packet->data,udp_row_packet+HEADER_UDP,data_len);
-		*src_ip=udp_packet->src_ip;
-		*src_port=udp_packet->src_port;
-		kmemcpy(ip_payload,data,data_len);
-		kmemcpy(data,udp_packet->data,udp_packet->data_len);
-		kfree();
-		
-
-		u32* src_ip,u16* src_port
-
-		char* data;
-	u32 data_len;
-	u32 src_ip;
-	u32 dst_ip;
-	u16 src_port;
-	u16 dst_port;
-		
-		socket->ip=dst_ip;
-		socket->dst_port=dst_port;
-		socket->data=data;
-		socket->data_len=data_len;
-		_sleep();
-		socket->data=NULL;
-		socket->data_len=0;
-		ret=data_len;
-
-		int recvfrom(int sockfd, void* data,u32 data_len,int flags,struct sockaddr* src_addr,socklen_t* addrlen)
+		len=GET_WORD(data_sckt_buf->transport_hdr[4],data_sckt_buf->transport_hdr[5])-HEADER_UDP;
+		if (read_data > data_len) 
+		{
+			len=data_len;
+		}
+		kmemcpy(data,data_sckt_buf->transport_hdr+HEADER_UDP,read_data);
+		kfree(data_sckt_buf);
 	}
-	return ret;
+	return read_data;
 }
 
 int _sendto(t_socket_desc* socket_desc,int sockfd,void* data,u32 data_len)
