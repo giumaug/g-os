@@ -1,4 +1,4 @@
-#include ".h"
+#include "lib.h"
 
 int socket(int socket_family, int socket_type, int protocol) 
 {
@@ -42,7 +42,7 @@ int sendto(int sockfd,void* data,u32  data_len, int flags,const struct sockaddr 
 	params[2]=((struct sockaddr_in*) addr)->sin_port;
 	params[3]=data;
 	params[4]=data_len;
-	params[5]=SYSCALL(30,params);
+	params[5]=SYSCALL(31,params);
 	return  params[5];
 }
 

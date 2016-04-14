@@ -2,7 +2,7 @@ include ../../make.rules
 
 #vpath %.h $(INCLUDE)/lib
 
-all.o: math.o stdio.o stdlib.o string.o unistd.o fcntl.o stat.o malloc.o debug.o
+all.o: math.o stdio.o stdlib.o string.o unistd.o fcntl.o stat.o malloc.o debug.o socket.o
 
 math.o: math.c lib.h
 	$(CC) $(CPPFLAGS) $(CFLAGS) math.c

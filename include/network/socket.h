@@ -39,8 +39,8 @@ t_socket_desc* socket_desc_init();
 void socket_desc_free(t_socket_desc* socket_desc);
 int _open_socket(t_socket_desc* socket_desc,int type);
 int _bind(t_socket_desc* socket_desc,int sockfd,u32 ip,u32 dst_port);
-int _recvfrom(t_socket_desc* socket_desc,int sockfd,u32 dst_ip,u16 dst_port,void* data,u32 data_len);
-int _sendto(t_socket_desc* socket_desc,int sockfd,void* data,u32 data_len);
+int _recvfrom(t_socket_desc* socket_desc,int sockfd,u32* src_ip,u16* src_port,void* data,u32 data_len);
+int _sendto(t_socket_desc* socket_desc,int sockfd,u32 dst_ip,u16 dst_port,void* data,u32 data_len);
 int _close_socket(t_socket_desc* socket_desc,int sockfd);
 
 #endif

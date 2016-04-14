@@ -26,6 +26,42 @@ struct s_stat
 }
 typedef t_stat;
 
+#define AF_INET  2
+
+typedef unsigned short  sa_family_t;
+typedef unsigned int socklen_t;
+typedef int ssize_t;
+typedef unsigned int size_t;
+
+struct sockaddr 
+{
+	sa_family_t     sa_family;
+	char            sa_data[6];
+};
+
+struct in_addr 
+{
+	unsigned int   s_addr;
+};
+
+struct sockaddr_in 
+{
+	sa_family_t           sin_family;
+	unsigned short int    sin_port;
+	struct in_addr        sin_addr; 
+};
+
+enum sock_type 
+{
+	SOCK_STREAM     = 1,
+	SOCK_DGRAM      = 2,
+	SOCK_RAW        = 3,
+	SOCK_RDM        = 4,
+	SOCK_SEQPACKET  = 5,
+	SOCK_DCCP       = 6,
+	SOCK_PACKET     = 10
+};
+
 //fcntl.h
 int open(const char *fullpath, int flags);
 
@@ -72,6 +108,13 @@ void check_free_mem();
 
 //sys/stat.h
 int stat(char* pathname, t_stat* stat);
+
+//socket.h
+int socket(int socket_family, int socket_type, int protocol);
+int bind(int sockfd, const struct sockaddr *addr,socklen_t addrlen);
+int recvfrom(int sockfd, void* data,u32 data_len,int flags,struct sockaddr* src_addr,socklen_t* addrlen);
+int sendto(int sockfd,void* data,u32  data_len, int flags,const struct sockaddr *dest_addr, socklen_t addrlen);
+int close(int sockfd);
 
 #endif
 
