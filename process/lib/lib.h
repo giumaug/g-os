@@ -27,6 +27,7 @@ struct s_stat
 typedef t_stat;
 
 #define AF_INET  2
+#define INADDR_ANY 0
 
 typedef unsigned short  sa_family_t;
 typedef unsigned int socklen_t;
@@ -112,9 +113,9 @@ int stat(char* pathname, t_stat* stat);
 //socket.h
 int socket(int socket_family, int socket_type, int protocol);
 int bind(int sockfd, const struct sockaddr *addr,socklen_t addrlen);
-int recvfrom(int sockfd, void* data,u32 data_len,int flags,struct sockaddr* src_addr,socklen_t* addrlen);
-int sendto(int sockfd,void* data,u32  data_len, int flags,const struct sockaddr *dest_addr, socklen_t addrlen);
-int close(int sockfd);
+int recvfrom(int sockfd, void* data,size_t data_len,int flags,struct sockaddr* src_addr,socklen_t* addrlen);
+int sendto(int sockfd,void* data,size_t  data_len, int flags,const struct sockaddr *dest_addr, socklen_t addrlen);
+int close_socket(int sockfd);
 
 #endif
 

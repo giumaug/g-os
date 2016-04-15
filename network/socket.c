@@ -115,7 +115,7 @@ int _sendto(t_socket_desc* socket_desc,int sockfd,u32 dst_ip,u16 dst_port,void* 
 	t_data_sckt_buf* data_sckt_buf=NULL;
 	char* ip_payload=NULL;
 	int ret=0;
-
+	
 	socket=hashtable_get(socket_desc->sd_map,sockfd);
 	if (socket!=NULL)
 	{
@@ -131,7 +131,7 @@ int _sendto(t_socket_desc* socket_desc,int sockfd,u32 dst_ip,u16 dst_port,void* 
 			data_sckt_buf->transport_hdr=data_sckt_buf->data+HEADER_ETH+HEADER_IP4;
 			ip_payload=data_sckt_buf->transport_hdr+HEADER_UDP;
 			kmemcpy(ip_payload,data,data_len);
-			ret=send_packet_udp(data_sckt_buf,socket->ip,dst_ip,socket->port,dst_port,data_len);
+			ret=send_packet_udp(data_sckt_buf,system.network_desc->ip,dst_ip,socket->port,dst_port,data_len);
 
 			if (ret==0)
 			{

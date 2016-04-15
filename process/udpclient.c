@@ -2,47 +2,34 @@
  * udpclient.c - A simple UDP client
  * usage: udpclient <host> <port>
  */
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h> 
+
+#include "lib/lib.h"
+#include "udpserver.h"
 
 #define BUFSIZE 1024
 
-/* 
- * error - wrapper for perror
- */
-void error(char *msg) {
-    perror(msg);
-    exit(0);
-}
+int main(int argc, char **argv) 
+{
+	int sockfd, portno, n;
+    	int serverlen;
+    	struct sockaddr_in serveraddr;
+    	struct hostent *server;
+    	char *hostname;
+    	char buf[BUFSIZE];
 
-int main(int argc, char **argv) {
-    int sockfd, portno, n;
-    int serverlen;
-    struct sockaddr_in serveraddr;
-    struct hostent *server;
-    char *hostname;
-    char buf[BUFSIZE];
+    	if (argc != 3) 
+	{
+       		printf("usage: %s <hostname> <port>\n", argv[0]);
+       		exit(0);
+    	}
+    	hostname = argv[1];
+    	portno = atoi(argv[2]);
 
-    /* check command line arguments */
-    if (argc != 3) {
-       fprintf(stderr,"usage: %s <hostname> <port>\n", argv[0]);
-       exit(0);
-    }
-    hostname = argv[1];
-    portno = atoi(argv[2]);
+    	sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    	if (sockfd < 0) 
+        	printf("ERROR opening socket");
 
-    /* socket: create the socket */
-    sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-    if (sockfd < 0) 
-        error("ERROR opening socket");
-
-    /* gethostbyname: get the server's DNS entry */
+ 
     server = gethostbyname(hostname);
     if (server == NULL) {
         fprintf(stderr,"ERROR, no such host as %s\n", hostname);
@@ -55,6 +42,12 @@ int main(int argc, char **argv) {
     bcopy((char *)server->h_addr, 
 	  (char *)&serveraddr.sin_addr.s_addr, server->h_length);
     serveraddr.sin_port = htons(portno);
+
+	serveraddr.sin_family = AF_INET;
+  	serveraddr.sin_addr.s_addr = INADDR_ANY; // ------------------qui!!!!
+  	serveraddr.sin_port = portno;
+
+
 
     /* get a message from the user */
     bzero(buf, BUFSIZE);
