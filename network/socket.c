@@ -30,6 +30,9 @@ t_socket_desc* socket_desc_init()
 	socket_desc->sd_map=hashtable_init(SOCKET_MAP_SIZE);
 	socket_desc->tcp_map=hashtable_init(TCP_MAP_SIZE);
 	socket_desc->udp_map=hashtable_init(UDP_MAP_SIZE);
+	socket_desc->fd=0;
+	socket_desc->udp_port_indx=0;
+	socket_desc->tcp_port_indx=0;
 	return socket_desc;
 }
 
@@ -49,9 +52,12 @@ int _open_socket(t_socket_desc* socket_desc,int type)
 	t_socket* socket=NULL;
 
 	socket=kmalloc(sizeof(t_socket));
+	socket->process_context=NULL;
+	socket->ip=NULL;
+	socket->port=NULL;;
 	socket->type=type;
-	socket->sd++;
-	hashtable_put(socket_desc->sd_map,socket_desc->fd,socket);
+	socket->sd=++socket_desc->fd;
+	hashtable_put(socket_desc->sd_map,socket->sd,socket);
 	if (type==2)
 	{
 		socket->udp_rx_queue=new_queue();

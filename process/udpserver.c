@@ -3,38 +3,36 @@
  * usage: udpserver <port>
  */
 
-#include "lib/lib.h"
-#include "udpserver.h"
+//#include "lib/lib.h"
+//#include "udpserver.h"
+
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+#include <netdb.h>
+#include <sys/types.h> 
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 #define BUFSIZE 1024
 
 int main(int argc, char **argv) 
 {
-	int sockfd; 					/* socket */
-  	int portno; 					/* port to listen on */
-  	int clientlen; 					/* byte size of client's address */
-  	struct sockaddr_in serveraddr; 			/* server's addr */
-  	struct sockaddr_in clientaddr; 			/* client addr */
-  	struct hostent *hostp; 				/* client host info */
-  	char buf[BUFSIZE]; 				/* message buf */
-  	char *hostaddrp; 				/* dotted decimal host addr string */
-  	int n; 						/* message byte size */
-
-  	if (argc != 2) 
-	{
-    		printf("usage: %s <port>\n", argv[0]);
-    		exit(1);
-  	}
-  	portno = atoi(argv[1]);
-
-  	sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-  	if (sockfd < 0) 
-    		printf("ERROR opening socket");
+	unsigned int port=21845;//simmetria byte ordering!!!!
+	int sockfd; 				
+  	int clientlen; 					
+  	struct sockaddr_in serveraddr; 			
+  	struct sockaddr_in clientaddr; 						
+  	char buf[BUFSIZE]; 						
+  	int n; 						
 
   	serveraddr.sin_family = AF_INET;
-  	serveraddr.sin_addr.s_addr = INADDR_ANY; // da definire
-  	serveraddr.sin_port = portno;
+  	serveraddr.sin_addr.s_addr = INADDR_ANY; //da definire su lib.h 
+  	serveraddr.sin_port = (unsigned short) port;
 
+	sockfd = socket(AF_INET, SOCK_DGRAM, 0);
   	if (bind(sockfd, (struct sockaddr *) &serveraddr, sizeof(serveraddr)) < 0) 
     		printf("ERROR on binding");
 
@@ -42,13 +40,8 @@ int main(int argc, char **argv)
   	while (1) 
 	{
     		n = recvfrom(sockfd, buf, BUFSIZE, 0,(struct sockaddr *) &clientaddr, &clientlen);
-    		if (n < 0)
-      			printf("ERROR in recvfrom");
-
-    		printf("server received %d/%d bytes: %s\n", strlen(buf), n, buf);
-    
+		buf[n]='\0';
+    		printf("server received: %s \n",buf);
     		n = sendto(sockfd, buf, strlen(buf), 0, (struct sockaddr *) &clientaddr, clientlen);
-    		if (n < 0) 
-      			printf("ERROR in sendto");
 	}
 }

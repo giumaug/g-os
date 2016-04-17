@@ -4,66 +4,53 @@
  */
 
 #include "lib/lib.h"
-#include "udpserver.h"
+#include "udpclient.h"
+
+//#include <stdio.h>
+//#include <unistd.h>
+//#include <stdlib.h>
+//#include <string.h>
+//#include <netdb.h>
+//#include <sys/types.h> 
+//#include <sys/socket.h>
+//#include <netinet/in.h>
+//#include <arpa/inet.h>
 
 #define BUFSIZE 1024
+#define IP(a,b,c,d)	(d | (c<<8) | (b<<16) | (a<<24))
 
 int main(int argc, char **argv) 
 {
-	int sockfd, portno, n;
+	unsigned int ip=IP(172,16,243,100);
+	unsigned int port=21845;
+	int sockfd,n;
     	int serverlen;
     	struct sockaddr_in serveraddr;
-    	struct hostent *server;
-    	char *hostname;
     	char buf[BUFSIZE];
 
-    	if (argc != 3) 
-	{
-       		printf("usage: %s <hostname> <port>\n", argv[0]);
-       		exit(0);
-    	}
-    	hostname = argv[1];
-    	portno = atoi(argv[2]);
-
-    	sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-    	if (sockfd < 0) 
-        	printf("ERROR opening socket");
-
- 
-    server = gethostbyname(hostname);
-    if (server == NULL) {
-        fprintf(stderr,"ERROR, no such host as %s\n", hostname);
-        exit(0);
-    }
-
-    /* build the server's Internet address */
-    bzero((char *) &serveraddr, sizeof(serveraddr));
-    serveraddr.sin_family = AF_INET;
-    bcopy((char *)server->h_addr, 
-	  (char *)&serveraddr.sin_addr.s_addr, server->h_length);
-    serveraddr.sin_port = htons(portno);
-
 	serveraddr.sin_family = AF_INET;
-  	serveraddr.sin_addr.s_addr = INADDR_ANY; // ------------------qui!!!!
-  	serveraddr.sin_port = portno;
+	((unsigned char*) &(serveraddr.sin_addr.s_addr))[0]=172;
+	((unsigned char*) &(serveraddr.sin_addr.s_addr))[1]=16;
+	((unsigned char*) &(serveraddr.sin_addr.s_addr))[2]=243;
+	((unsigned char*) &(serveraddr.sin_addr.s_addr))[3]=100;
+  	serveraddr.sin_port = (unsigned short) port;
 
+//	struct hostent *server;
+//	server = gethostbyname("172.16.243.100");
+//	bcopy((char *)server->h_addr,(char *)&serveraddr.sin_addr.s_addr, server->h_length);
+	
+	while (1)
+	{
+		printf("ip=%ud \n",ip);
+		printf("type packet to send \n");
+		scanf("%s",buf);
 
-
-    /* get a message from the user */
-    bzero(buf, BUFSIZE);
-    printf("Please enter msg: ");
-    fgets(buf, BUFSIZE, stdin);
-
-    /* send the message to the server */
-    serverlen = sizeof(serveraddr);
-    n = sendto(sockfd, buf, strlen(buf), 0, &serveraddr, serverlen);
-    if (n < 0) 
-      error("ERROR in sendto");
-    
-    /* print the server's reply */
-    n = recvfrom(sockfd, buf, strlen(buf), 0, &serveraddr, &serverlen);
-    if (n < 0) 
-      error("ERROR in recvfrom");
-    printf("Echo from server: %s", buf);
-    return 0;
+		serverlen = sizeof(serveraddr);
+		sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    		n = sendto(sockfd, buf, strlen(buf), 0, &serveraddr, serverlen);
+   		n = recvfrom(sockfd, buf, strlen(buf), 0, &serveraddr, &serverlen);
+		buf[n]='\0';
+		printf("echo from server;: %s\n",buf);
+	}   
+    	return 0;
 }
