@@ -3,22 +3,20 @@
 static int free_port_search()
 {
 	int i;
-	u16 src_port_indx=0;
-	u16 port_indx=0;
 	void* port=NULL;
 	t_socket_desc* socket_desc=NULL;
 
 	socket_desc=system.network_desc->socket_desc;
-	src_port_indx=socket_desc->udp_port_indx;
 	for (i=0;i<32767;i++)
 	{
-		port_indx++;
-		src_port_indx=(32768+port_indx & 0x7FFF);
-		port=hashtable_get(socket_desc->udp_map,port_indx);
+		if (++socket_desc->udp_port_indx>32767) {
+			
+			socket_desc->udp_port_indx=32767;
+		}
+		port=hashtable_get(socket_desc->udp_map,socket_desc->udp_port_indx);
 		if (port==NULL)
 		{
-			socket_desc->udp_port_indx=src_port_indx;
-			return src_port_indx;
+			return socket_desc->udp_port_indx;
 		}
 	}
 	return 0;
@@ -114,7 +112,7 @@ int _recvfrom(t_socket_desc* socket_desc,int sockfd,u32* src_ip,u16* src_port,vo
 	return read_data;
 }
 
-
+puntatori!!!
 int _sendto(t_socket_desc* socket_desc,int sockfd,u32 dst_ip,u16 dst_port,void* data,u32 data_len)
 {
 	t_socket* socket=NULL;

@@ -12,10 +12,14 @@ ifconfig eth2 up
 ifconfig tap0 up
 ifconfig virbr0 up
 
-ifconfig virbr0 172.16.1.5/24
+ifconfig virbr0 172.16.6.100/24
 ifconfig eth2 0.0.0.0 promisc
 
+dhclient virbr0
 route add default gw 172.16.6.2 virbr0
+
+add/del roue
+route del -net 172.16.6.0 netmask 255.255.255.0 dev eth2
 
 per monitorare traffico:
 tcpdump host 172.16.1.2

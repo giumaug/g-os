@@ -21,7 +21,7 @@
 
 int main(int argc, char **argv) 
 {
-	unsigned int ip=IP(172,16,243,100);
+	unsigned int ip=IP(172,16,6,1);
 	unsigned int port=21845;
 	int sockfd,n;
     	int serverlen;
@@ -31,8 +31,8 @@ int main(int argc, char **argv)
 	serveraddr.sin_family = AF_INET;
 	((unsigned char*) &(serveraddr.sin_addr.s_addr))[0]=172;
 	((unsigned char*) &(serveraddr.sin_addr.s_addr))[1]=16;
-	((unsigned char*) &(serveraddr.sin_addr.s_addr))[2]=243;
-	((unsigned char*) &(serveraddr.sin_addr.s_addr))[3]=100;
+	((unsigned char*) &(serveraddr.sin_addr.s_addr))[2]=6;
+	((unsigned char*) &(serveraddr.sin_addr.s_addr))[3]=1;
   	serveraddr.sin_port = (unsigned short) port;
 
 //	struct hostent *server;
