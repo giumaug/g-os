@@ -112,7 +112,6 @@ int _recvfrom(t_socket_desc* socket_desc,int sockfd,u32* src_ip,u16* src_port,vo
 	return read_data;
 }
 
-puntatori!!!
 int _sendto(t_socket_desc* socket_desc,int sockfd,u32 dst_ip,u16 dst_port,void* data,u32 data_len)
 {
 	t_socket* socket=NULL;
