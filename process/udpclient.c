@@ -24,16 +24,19 @@ int main(int argc, char **argv)
 	unsigned int ip=IP(172,16,6,1);
 	unsigned int port=21845;
 	int sockfd,n;
-    	int serverlen;
-    	struct sockaddr_in serveraddr;
-    	char buf[BUFSIZE];
+    	int send_len;
+	int rcv_len;
+    	struct sockaddr_in send_addr;
+	struct sockaddr_in rcv_addr;
+    	char send_buf[BUFSIZE];
+	char rcv_buf[BUFSIZE];
 
-	serveraddr.sin_family = AF_INET;
-	((unsigned char*) &(serveraddr.sin_addr.s_addr))[0]=172;
-	((unsigned char*) &(serveraddr.sin_addr.s_addr))[1]=16;
-	((unsigned char*) &(serveraddr.sin_addr.s_addr))[2]=6;
-	((unsigned char*) &(serveraddr.sin_addr.s_addr))[3]=1;
-  	serveraddr.sin_port = (unsigned short) port;
+	send_addr.sin_family = AF_INET;
+	((unsigned char*) &(send_addr.sin_addr.s_addr))[0]=172;
+	((unsigned char*) &(send_addr.sin_addr.s_addr))[1]=16;
+	((unsigned char*) &(send_addr.sin_addr.s_addr))[2]=6;
+	((unsigned char*) &(send_addr.sin_addr.s_addr))[3]=1;
+  	send_addr.sin_port = (unsigned short) port;
 
 //	struct hostent *server;
 //	server = gethostbyname("172.16.243.100");
@@ -43,14 +46,15 @@ int main(int argc, char **argv)
 	{
 		printf("ip=%ud \n",ip);
 		printf("type packet to send \n");
-		scanf("%s",buf);
+		scanf("%s",send_buf);
 
-		serverlen = sizeof(serveraddr);
+		send_len = sizeof(send_addr);
+		rcv_len = sizeof(rcv_addr);
 		sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-    		n = sendto(sockfd, buf, strlen(buf), 0, &serveraddr, serverlen);
-   		n = recvfrom(sockfd, buf, strlen(buf), 0, &serveraddr, &serverlen);
-		buf[n]='\0';
-		printf("echo from server;: %s\n",buf);
+    		n = sendto(sockfd, send_buf, strlen(send_buf), 0, &send_addr, send_len);
+   		n = recvfrom(sockfd, rcv_buf, strlen(rcv_buf), 0, &rcv_addr, &rcv_len);
+		rcv_buf[n]='\0';
+		printf("echo from server;: %s\n",rcv_buf);
 	}   
     	return 0;
 }

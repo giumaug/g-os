@@ -9,11 +9,11 @@ int send_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 src
 	unsigned char* udp_row_packet;
 	u16 ip_packet_len;
 	
-	unsigned char* ip=dst_ip;
-	unsigned int a1=(((unsigned char) ip[0]) <<24);
-	unsigned int a2=(((unsigned char) ip[1])<<16);
-	unsigned int a3=(((unsigned char) ip[2])<<8);
-	unsigned int a4=((unsigned char) ip[3]);
+//	unsigned char* ip=dst_ip;
+//	unsigned int a1=(((unsigned char) ip[0]) <<24);
+//	unsigned int a2=(((unsigned char) ip[1])<<16);
+//	unsigned int a3=(((unsigned char) ip[2])<<8);
+//	unsigned int a4=((unsigned char) ip[3]);
 
 	udp_row_packet=data_sckt_buf->transport_hdr;
 	data_sckt_buf->network_hdr=data_sckt_buf->transport_hdr-HEADER_IP4;

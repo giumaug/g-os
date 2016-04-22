@@ -9,7 +9,7 @@ static int free_port_search()
 	socket_desc=system.network_desc->socket_desc;
 	for (i=0;i<32767;i++)
 	{
-		if (++socket_desc->udp_port_indx>32767) {
+		if (socket_desc->udp_port_indx++>32767) {
 			
 			socket_desc->udp_port_indx=32767;
 		}
@@ -29,7 +29,7 @@ t_socket_desc* socket_desc_init()
 	socket_desc->tcp_map=hashtable_init(TCP_MAP_SIZE);
 	socket_desc->udp_map=hashtable_init(UDP_MAP_SIZE);
 	socket_desc->fd=0;
-	socket_desc->udp_port_indx=0;
+	socket_desc->udp_port_indx=32767;
 	socket_desc->tcp_port_indx=0;
 	return socket_desc;
 }
@@ -90,7 +90,7 @@ int _recvfrom(t_socket_desc* socket_desc,int sockfd,u32* src_ip,u16* src_port,vo
 	t_socket* socket=NULL;
 	t_data_sckt_buf* data_sckt_buf=NULL;
 
-	socket=hashtable_get(socket_desc->udp_map,src_port);
+	socket=hashtable_get(socket_desc->sd_map,sockfd);
 	if (socket!=NULL) 
 	{
 		SPINLOCK_LOCK(*socket->lock);
