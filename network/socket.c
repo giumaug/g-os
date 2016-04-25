@@ -52,7 +52,8 @@ int _open_socket(t_socket_desc* socket_desc,int type)
 	socket=kmalloc(sizeof(t_socket));
 	socket->process_context=NULL;
 	socket->ip=NULL;
-	socket->port=NULL;;
+	socket->port=NULL;
+	CURRENT_PROCESS_CONTEXT(socket->process_context);
 	socket->type=type;
 	socket->sd=++socket_desc->fd;
 	hashtable_put(socket_desc->sd_map,socket->sd,socket);
@@ -98,7 +99,14 @@ int _recvfrom(t_socket_desc* socket_desc,int sockfd,u32* src_ip,u16* src_port,vo
 		if (data_sckt_buf==NULL)
 		{
 			_sleep_and_unlock(socket->lock);
-		}		 
+			SPINLOCK_LOCK(*socket->lock);
+			data_sckt_buf=dequeue(socket->udp_rx_queue);
+			SPINLOCK_UNLOCK(*socket->lock);
+			if (data_sckt_buf==NULL) 
+			{
+				return read_data;
+			}	
+		} 
 		*src_port=GET_WORD(data_sckt_buf->transport_hdr[0],data_sckt_buf->transport_hdr[1]);
 		*src_ip=GET_DWORD(data_sckt_buf->network_hdr[12],data_sckt_buf->network_hdr[13],data_sckt_buf->network_hdr[14],data_sckt_buf->network_hdr[15]);
 		read_data=GET_WORD(data_sckt_buf->transport_hdr[4],data_sckt_buf->transport_hdr[5])-HEADER_UDP;
@@ -141,10 +149,6 @@ int _sendto(t_socket_desc* socket_desc,int sockfd,u32 dst_ip,u16 dst_port,void* 
 				ret=data_len;
 			}
 		}
-	}
-	if (ret>0)
-	{
-		kfree(socket);
 	}
 	return ret;
 }

@@ -19,8 +19,6 @@ int send_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 src
 	data_sckt_buf->network_hdr=data_sckt_buf->transport_hdr-HEADER_IP4;
 	ip_packet_len=HEADER_UDP+data_len;
 
-	src_port=55492;
-
 	if (data_len<=0xFFFF-HEADER_UDP)
 	{
 		udp_row_packet[0]=HI_16(src_port); 		 //HIGH UDP SOURCE PORT NUMBER
@@ -60,17 +58,13 @@ void rcv_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		socket=hashtable_get(socket_desc->udp_map,dst_port);
 		if (socket!=NULL) 
 		{
-			if (dst_port==system.network_desc->ip)
-			{	
-				SPINLOCK_LOCK(*socket->lock);
-				enqueue(socket->udp_rx_queue,data_sckt_buf);			
-				if (socket->process_context!=NULL)
-				{
-					socket->process_context=NULL;
-					_awake(socket->process_context);
-				}
-				SPINLOCK_UNLOCK(*socket->lock);
+			SPINLOCK_LOCK(*socket->lock);
+			enqueue(socket->udp_rx_queue,data_sckt_buf);			
+			if (socket->process_context!=NULL)
+			{
+				_awake(socket->process_context);
 			}
+			SPINLOCK_UNLOCK(*socket->lock);
 		}
 	}
 	else 

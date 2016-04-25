@@ -38,7 +38,7 @@ int recvfrom(int sockfd, void* data,size_t data_len,int flags,struct sockaddr* a
 	return  params[5];
 }
 
-int sendto(int sockfd,void* data,size_t  data_len, int flags,const struct sockaddr* addr, socklen_t addrlen)
+int sendto(int sockfd,void* data,size_t  data_len, int flags,const struct sockaddr* addr, socklen_t* addrlen)
 {
 	unsigned int params[6];
 	unsigned char* ip;
