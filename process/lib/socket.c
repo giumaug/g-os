@@ -31,7 +31,7 @@ int recvfrom(int sockfd, void* data,size_t data_len,int flags,struct sockaddr* a
 
 	params[0]=sockfd;
 	params[1]=ip;
-	params[2]=port;//((port[1]<<8)+(port[0]));
+	params[2]=port;
 	params[3]=data;
 	params[4]=data_len;
 	SYSCALL(30,params);
@@ -49,10 +49,8 @@ int sendto(int sockfd,void* data,size_t  data_len, int flags,const struct sockad
 	port=&((struct sockaddr_in*) addr)->sin_port;
 
 	params[0]=sockfd;
-//	params[1]=&((struct sockaddr_in*) addr)->sin_addr;
-//	params[2]=&((struct sockaddr_in*) addr)->sin_port;
 	params[1]=(((unsigned char) ip[0]) <<24) + (((unsigned char) ip[1])<<16) + (((unsigned char) ip[2]) <<8) + (((unsigned char) ip[3]));
-	params[2]=((port[1])<<8)+port[0];
+	params[2]=((port[0])<<8)+port[1];
 	params[3]=data;
 	params[4]=data_len;
 	SYSCALL(31,params);

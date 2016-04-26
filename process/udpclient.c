@@ -51,8 +51,8 @@ int main(int argc, char **argv)
     		n_to = sendto(sockfd, send_buf, strlen(send_buf),0,&send_addr, &send_len);
    		n_from = recvfrom(sockfd, rcv_buf,n_to, 0, &rcv_addr,rcv_len);
 		rcv_buf[n_to]='\0';
-		printf("\necho from server: %s\n",rcv_buf);
-		printf("\n rcv port is: %d\n",rcv_addr.sin_port);
+		//printf("\necho from server: %s\n",rcv_buf);
+		//printf("n_to=%d \n",n_to);
 	}   
     	return 0;
 }
