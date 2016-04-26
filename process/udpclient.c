@@ -23,7 +23,7 @@ int main(int argc, char **argv)
 {
 	unsigned int ip=IP(172,16,6,1);
 //	unsigned int ip=IP(172,16,243,1);
-	unsigned int port=21845;
+	unsigned int port=21846;
 	int sockfd,n_to,n_from;
     	int send_len;
 	int rcv_len;
@@ -51,7 +51,7 @@ int main(int argc, char **argv)
 		printf("type packet to send \n");
 		scanf("%s",send_buf);
     		n_to = sendto(sockfd, send_buf, strlen(send_buf),0,&send_addr, &send_len);
-   		n_from = recvfrom(sockfd, rcv_buf,n_to, 0, &rcv_addr,&rcv_len);
+   		n_from = recvfrom(sockfd, rcv_buf,n_to, 0, &rcv_addr,rcv_len);
 		rcv_buf[n_to]='\0';
 		printf("\necho from server: %s\n",rcv_buf);
 	}   
