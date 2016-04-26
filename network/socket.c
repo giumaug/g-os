@@ -85,12 +85,13 @@ int _bind(t_socket_desc* socket_desc,int sockfd,u32 ip,u32 src_port)
 	return ret;
 }
 
-int _recvfrom(t_socket_desc* socket_desc,int sockfd,unsigned char* src_ip,u16* src_port,void* data,u32 data_len)
+int _recvfrom(t_socket_desc* socket_desc,int sockfd,unsigned char* src_ip,unsigned char* src_port,void* data,u32 data_len)
 {
 	u32 read_data=0;
 	t_socket* socket=NULL;
 	t_data_sckt_buf* data_sckt_buf=NULL;
 	unsigned int* _src_ip;
+	unsigned int* _src_port;
 
 	socket=hashtable_get(socket_desc->sd_map,sockfd);
 	if (socket!=NULL) 
@@ -108,21 +109,18 @@ int _recvfrom(t_socket_desc* socket_desc,int sockfd,unsigned char* src_ip,u16* s
 				return read_data;
 			}	
 		} 
-		*src_port=GET_WORD(data_sckt_buf->transport_hdr[0],data_sckt_buf->transport_hdr[1]);
+		*_src_port=GET_WORD(data_sckt_buf->transport_hdr[0],data_sckt_buf->transport_hdr[1]);
 		*_src_ip=GET_DWORD(data_sckt_buf->network_hdr[12],data_sckt_buf->network_hdr[13],data_sckt_buf->network_hdr[14],data_sckt_buf->network_hdr[15]);
 		read_data=GET_WORD(data_sckt_buf->transport_hdr[4],data_sckt_buf->transport_hdr[5])-HEADER_UDP;
-
-		unsigned char a1= (*_src_ip & 0xFF000000)>>24;
-		unsigned char a2= (*_src_ip & 0xFF0000)>>16;
-		unsigned char a3= (*_src_ip & 0xFF00)>>8;
-		unsigned char a4= (*_src_ip & 0xFF);
 
 		src_ip[0]=(*_src_ip & 0xFF000000)>>24;
 		src_ip[1]=(*_src_ip & 0xFF0000)>>16;
 		src_ip[2]=(*_src_ip & 0xFF00)>>8;
 		src_ip[3]=(*_src_ip & 0xFF);
-		
 
+		src_port[0]=(*_src_port & 0xFF00)>>8;
+		src_port[1]=(*_src_port & 0xFF);
+		
 		if (read_data > data_len) 
 		{
 			read_data=data_len;

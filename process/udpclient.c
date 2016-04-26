@@ -54,6 +54,7 @@ int main(int argc, char **argv)
    		n_from = recvfrom(sockfd, rcv_buf,n_to, 0, &rcv_addr,rcv_len);
 		rcv_buf[n_to]='\0';
 		printf("\necho from server: %s\n",rcv_buf);
+		printf("\n rcv port is: %d\n",rcv_addr.sin_port);
 	}   
     	return 0;
 }
