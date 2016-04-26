@@ -21,8 +21,8 @@
 
 int main(int argc, char **argv) 
 {
-//	unsigned int ip=IP(172,16,6,1);
-	unsigned int ip=IP(172,16,243,1);
+	unsigned int ip=IP(172,16,6,1);
+//	unsigned int ip=IP(172,16,243,1);
 	unsigned int port=21845;
 	int sockfd,n_to,n_from;
     	int send_len;
@@ -35,7 +35,7 @@ int main(int argc, char **argv)
 	send_addr.sin_family = AF_INET;
 	((unsigned char*) &(send_addr.sin_addr.s_addr))[0]=172;
 	((unsigned char*) &(send_addr.sin_addr.s_addr))[1]=16;
-	((unsigned char*) &(send_addr.sin_addr.s_addr))[2]=243;
+	((unsigned char*) &(send_addr.sin_addr.s_addr))[2]=6;
 	((unsigned char*) &(send_addr.sin_addr.s_addr))[3]=1;
   	send_addr.sin_port = (unsigned short) port;
 
