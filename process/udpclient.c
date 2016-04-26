@@ -37,11 +37,9 @@ int main(int argc, char **argv)
 	((unsigned char*) &(send_addr.sin_addr.s_addr))[1]=16;
 	((unsigned char*) &(send_addr.sin_addr.s_addr))[2]=6;
 	((unsigned char*) &(send_addr.sin_addr.s_addr))[3]=1;
-  	send_addr.sin_port = (unsigned short) port;
-
-//	struct hostent *server;
-//	server = gethostbyname("172.16.243.100");
-//	bcopy((char *)server->h_addr,(char *)&serveraddr.sin_addr.s_addr, server->h_length);
+//  	send_addr.sin_port = (unsigned short) port;
+	((unsigned char*) &(send_addr.sin_port))[0]=((unsigned char*) &(port))[1];
+	((unsigned char*) &(send_addr.sin_port))[1]=((unsigned char*) &(port))[0];
 	
 	send_len = sizeof(send_addr);
 	rcv_len = sizeof(rcv_addr);
