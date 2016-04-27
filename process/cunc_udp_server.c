@@ -4,7 +4,6 @@
  */
 
 #include "lib/lib.h"
-#include "udpserver.h"
 
 //#include <stdio.h>
 //#include <unistd.h>
@@ -17,20 +16,26 @@
 //#include <arpa/inet.h>
 
 #define BUFSIZE 1024
+#define SERVER_PORT 80
 
-int main(int argc, char **argv) 
+int main(int _argc, char **_argv) 
 {
-	unsigned int port=21846;//simmetria byte ordering!!!!
+	char* argv;
+	char* writer="/udp_writer";
+	unsigned int port=SERVER_PORT;
 	int sockfd; 				
   	int clientlen; 					
   	struct sockaddr_in serveraddr; 			
   	struct sockaddr_in clientaddr; 						
-  	char buf[BUFSIZE]; 						
+  	char buf[BUFSIZE];
+	char client_port[2]; 						
   	int n; 						
 
+	argv=malloc(sizeof(char*)*4);
+	argv[0]=writer;
+
   	serveraddr.sin_family = AF_INET;
-  	serveraddr.sin_addr.s_addr = INADDR_ANY; //da definire su lib.h 
-//  	serveraddr.sin_port = (unsigned short) port;
+  	serveraddr.sin_addr.s_addr = INADDR_ANY;
 	((unsigned char*) &(serveraddr.sin_port))[0]=((unsigned char*) &(port))[1];
 	((unsigned char*) &(serveraddr.sin_port))[1]=((unsigned char*) &(port))[0];
 
@@ -43,14 +48,13 @@ int main(int argc, char **argv)
 	{
     		n = recvfrom(sockfd, buf, BUFSIZE, 0,(struct sockaddr *) &clientaddr, &clientlen);
 		buf[n]='\0';
-		proc_num=atoi(buf);
+		
+		argv[1]=buf;
+		argv[2]=client_port;
+		argv[3]=0;
 
-
-
-
-
-
-    		printf("server received: %s \n",buf);
-    		n = sendto(sockfd, buf, strlen(buf), 0, (struct sockaddr *) &clientaddr, clientlen);
+		client_port[0]=((unsigned char*) &(clientaddr.sin_port))[1];
+		client_port[1]=((unsigned char*) &(clientaddr.sin_port))[0];
+		ret=exec(argv[0],argv);
 	}
 }

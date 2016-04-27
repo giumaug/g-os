@@ -1,7 +1,3 @@
-/* 
- * udpclient.c - A simple UDP client
- * usage: udpclient <host> <port>
- */
 
 #include "lib/lib.h"
 #include "udpclient.h"
@@ -16,7 +12,6 @@
 //#include <netinet/in.h>
 //#include <arpa/inet.h>
 
-#define FIXED_PORT 21846
 #define PACKET_SIZE 100
 #define BUFSIZE 1024
 #define IP(a,b,c,d)	(d | (c<<8) | (b<<16) | (a<<24))
@@ -41,7 +36,7 @@ int main(int argc, char **argv)
 	u32 offset;
 	u32 sent;
 
-	port=atoi(argv[0]);
+	port=atoi(argv[2]);
 	send_addr.sin_family = AF_INET;
 	((unsigned char*) &(send_addr.sin_addr.s_addr))[0]=172;
 	((unsigned char*) &(send_addr.sin_addr.s_addr))[1]=16;
@@ -50,15 +45,6 @@ int main(int argc, char **argv)
 	((unsigned char*) &(send_addr.sin_port))[0]=((unsigned char*) &(port))[1];
 	((unsigned char*) &(send_addr.sin_port))[1]=((unsigned char*) &(port))[0];
 
-	fixed_port=FIXED_PORT;
-	send_addr.sin_family = AF_INET;
-	((unsigned char*) &(send_addr_1.sin_addr.s_addr))[0]=172;
-	((unsigned char*) &(send_addr_1.sin_addr.s_addr))[1]=16;
-	((unsigned char*) &(send_addr_1.sin_addr.s_addr))[2]=243;
-	((unsigned char*) &(send_addr_1.sin_addr.s_addr))[3]=1;
-	((unsigned char*) &(send_addr_1.sin_port))[0]=((unsigned char*) &(fixed_port))[1];
-	((unsigned char*) &(send_addr_!.sin_port))[1]=((unsigned char*) &(fixed_port))[0];
-	
 	stat(argv[1],&stat_data);
 	data_len=stat_data.st_size+1;
 	io_buffer=malloc(data_len);
@@ -70,11 +56,9 @@ int main(int argc, char **argv)
 	free(io_buffer);
 
 	send_len = sizeof(send_addr);
-	send_len_1 = sizeof(send_addr_1);
-	
 	sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-
 	sent=0;
+
 	while (!sent)
 	{
 		if (data_len-(offset+PACKET_SIZE)>=0)
@@ -88,12 +72,8 @@ int main(int argc, char **argv)
 			sent=1;
 		}
     		n_to = sendto(sockfd, send_buf, strlen(send_buf),0,&send_addr, send_len);
-	
-		sockfd_1 = socket(AF_INET, SOCK_DGRAM, 0);
-		n_to = sendto(sockfd_1, send_buf_1, strlen(send_buf_1),0,&send_addr_1, send_len_1);
-		close(sockfd_1);
 	}
 	close(sockfd);
-	kfree???	   
+	kfree???------------------qui!!!!!!!!!   
     	exit(0);
 }
