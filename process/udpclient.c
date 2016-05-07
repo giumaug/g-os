@@ -37,16 +37,11 @@ int main(int argc, char **argv)
 	((unsigned char*) &(send_addr.sin_addr.s_addr))[1]=16;
 	((unsigned char*) &(send_addr.sin_addr.s_addr))[2]=243;
 	((unsigned char*) &(send_addr.sin_addr.s_addr))[3]=1;
-  	send_addr.sin_port = (unsigned short) port;
-	
-	printf("..........\n");
-	long i=0;
-	for (i=0;i<1000000000;i++);
-	printf("..........\n");
 
-//	struct hostent *server;
-//	server = gethostbyname("172.16.243.100");
-//	bcopy((char *)server->h_addr,(char *)&serveraddr.sin_addr.s_addr, server->h_length);
+//  	send_addr.sin_port = (unsigned short) port;
+	((unsigned char*) &(send_addr.sin_port))[0]=((unsigned char*) &(port))[1];
+	((unsigned char*) &(send_addr.sin_port))[1]=((unsigned char*) &(port))[0];
+
 	
 	send_len = sizeof(send_addr);
 	rcv_len = sizeof(rcv_addr);
@@ -58,8 +53,8 @@ int main(int argc, char **argv)
     		n_to = sendto(sockfd, send_buf, strlen(send_buf),0,&send_addr, &send_len);
    		n_from = recvfrom(sockfd, rcv_buf,n_to, 0, &rcv_addr,rcv_len);
 		rcv_buf[n_to]='\0';
-		printf("\necho from server: %s\n",rcv_buf);
-		printf("\n rcv port is: %d\n",rcv_addr.sin_port);
+		//printf("\necho from server: %s\n",rcv_buf);
+		//printf("n_to=%d \n",n_to);
 	}   
     	return 0;
 }
