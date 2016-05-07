@@ -35,9 +35,14 @@ int main(int argc, char **argv)
 	send_addr.sin_family = AF_INET;
 	((unsigned char*) &(send_addr.sin_addr.s_addr))[0]=172;
 	((unsigned char*) &(send_addr.sin_addr.s_addr))[1]=16;
-	((unsigned char*) &(send_addr.sin_addr.s_addr))[2]=6;
+	((unsigned char*) &(send_addr.sin_addr.s_addr))[2]=243;
 	((unsigned char*) &(send_addr.sin_addr.s_addr))[3]=1;
   	send_addr.sin_port = (unsigned short) port;
+	
+	printf("..........\n");
+	long i=0;
+	for (i=0;i<1000000000;i++);
+	printf("..........\n");
 
 //	struct hostent *server;
 //	server = gethostbyname("172.16.243.100");
