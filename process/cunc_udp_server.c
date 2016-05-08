@@ -43,6 +43,13 @@ int main(int argc, char **argv)
 	{
     		n = recvfrom(sockfd, buf, BUFSIZE, 0,(struct sockaddr *) &clientaddr, &clientlen);
 		buf[n]='\0';
+		proc_num=atoi(buf);
+
+
+
+
+
+
     		printf("server received: %s \n",buf);
     		n = sendto(sockfd, buf, strlen(buf), 0, (struct sockaddr *) &clientaddr, clientlen);
 	}

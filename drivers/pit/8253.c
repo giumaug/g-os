@@ -28,7 +28,6 @@ void int_handler_pit()
 {	
 	int x;
 	int is_schedule=0;
-//	short ds;
 	struct t_process_context* process_context;
 	struct t_process_context* sleeping_process;
 	struct t_processor_reg processor_reg;
@@ -121,30 +120,9 @@ void int_handler_pit()
 		}
 	}
 	
-//	if (xxx==1)
-//	{	
-//		xxx=0;
-//		char* ip_payload;
-//              t_data_sckt_buf* data_sckt_buf=alloc_sckt(33+HEADER_ETH+HEADER_IP4+HEADER_UDP);
-//		data_sckt_buf->transport_hdr=data_sckt_buf->data+HEADER_ETH+HEADER_IP4;
-//		enqueue_sckt(system.network_desc->tx_queue,data_sckt_buf);
-//	
-//		char data[]="This.is.a.fake.udp.packet!!!!!!!!";
-//		ip_payload=data_sckt_buf->transport_hdr+HEADER_UDP;
-//		//u32 src_ip=GET_DWORD(172,16,6,101);
-//		//u32 dst_ip=GET_DWORD(172,16,6,1);
-//		u32 src_ip=GET_DWORD(172,16,243,101);
-//		u32 dst_ip=GET_DWORD(172,16,243,1);
-//
-//		kmemcpy(ip_payload,data,33);
-//
-//		send_packet_udp(data_sckt_buf,src_ip,dst_ip,9999,9999,33);
-//		equeue_packet(system.network_desc);
-//	}
-
 	//FLUSH NETWORK QUEUES BEFORE EXITING
-//	equeue_packet(system.network_desc);
-//	dequeue_packet(system.network_desc);
+	equeue_packet(system.network_desc);
+	dequeue_packet(system.network_desc);
 exit_handler:;
 //	EXIT_INT_HANDLER(is_schedule,processor_reg);
 

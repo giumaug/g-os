@@ -113,7 +113,6 @@ int _recvfrom(t_socket_desc* socket_desc,int sockfd,unsigned char* src_ip,unsign
 		_src_ip=GET_DWORD(data_sckt_buf->network_hdr[12],data_sckt_buf->network_hdr[13],data_sckt_buf->network_hdr[14],data_sckt_buf->network_hdr[15]);
 		read_data=GET_WORD(data_sckt_buf->transport_hdr[4],data_sckt_buf->transport_hdr[5])-HEADER_UDP;
 
-                commit ok!!!!
 		src_ip[0]=(_src_ip & 0xFF000000)>>24;
 		src_ip[1]=(_src_ip & 0xFF0000)>>16;
 		src_ip[2]=(_src_ip & 0xFF00)>>8;

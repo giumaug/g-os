@@ -1,6 +1,6 @@
-#include "lib.h"ddd
+#include "lib.h"
 
-int socket(int socket_family, int socket_type, int protocol) 
+int socket(int socket_family, int socket_type, int protocol)
 {
 	unsigned int params[2];
 
@@ -11,11 +11,13 @@ int socket(int socket_family, int socket_type, int protocol)
 
 int bind(int sockfd, const struct sockaddr *addr,socklen_t addrlen)
 {
+	unsigned char* port;
 	unsigned int params[4];
 
+	port=&((struct sockaddr_in*) addr)->sin_port;
 	params[0]=sockfd;
 	params[1]=0;
-	params[2]=((struct sockaddr_in*) addr)->sin_port;
+	params[2]=((port[0])<<8)+port[1];
 	SYSCALL(29,params);
 	return  params[3];
 }
