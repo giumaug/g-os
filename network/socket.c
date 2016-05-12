@@ -121,6 +121,8 @@ int _recvfrom(t_socket_desc* socket_desc,int sockfd,unsigned char* src_ip,unsign
 		src_port[0]=(_src_port & 0xFF00)>>8;
 		src_port[1]=(_src_port & 0xFF);
 
+		printk("----------src_port[0] %d \n",src_port[0]);
+		printk("----------src_port[1] %d \n",src_port[1]);
 		
 		if (read_data > data_len) 
 		{
