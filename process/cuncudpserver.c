@@ -1,8 +1,3 @@
-/* 
- * udpserver.c - A simple UDP echo server 
- * usage: udpserver <port>
- */
-
 #include "lib/lib.h"
 
 //#include <stdio.h>
@@ -16,20 +11,18 @@
 //#include <arpa/inet.h>
 
 #define BUFSIZE 1024
-#define SERVER_PORT 80
+#define SERVER_PORT 20000
 
 int main(int _argc, char **_argv) 
 {
-	char* argv;
-	char* writer="/udp_writer";
+	char** argv;
+	char* writer="./udpwriter";
 	unsigned int port=SERVER_PORT;
-	int sockfd; 				
-  	int clientlen; 					
+	int sockfd,clientlen,n,ret,pid; 									
   	struct sockaddr_in serveraddr; 			
   	struct sockaddr_in clientaddr; 						
   	char buf[BUFSIZE];
-	char client_port[2]; 						
-  	int n; 						
+	char client_port[2]; 												
 
 	argv=malloc(sizeof(char*)*4);
 	argv[0]=writer;
@@ -40,13 +33,15 @@ int main(int _argc, char **_argv)
 	((unsigned char*) &(serveraddr.sin_port))[1]=((unsigned char*) &(port))[0];
 
 	sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-  	if (bind(sockfd, (struct sockaddr *) &serveraddr, sizeof(serveraddr)) < 0) 
+  	if (bind(sockfd, (struct sockaddr *) &serveraddr, sizeof(serveraddr)) < 0) {
     		printf("ERROR on binding");
+	}
 
   	clientlen = sizeof(clientaddr);
   	while (1) 
 	{
     		n = recvfrom(sockfd, buf, BUFSIZE, 0,(struct sockaddr *) &clientaddr, &clientlen);
+		printf("ciao ricevo dati!!! \n");
 		buf[n]='\0';
 		
 		argv[1]=buf;
@@ -55,6 +50,12 @@ int main(int _argc, char **_argv)
 
 		client_port[0]=((unsigned char*) &(clientaddr.sin_port))[1];
 		client_port[1]=((unsigned char*) &(clientaddr.sin_port))[0];
-		ret=exec(argv[0],argv);
+		printf("file is %s \n",argv[1]);
+
+		pid=fork();
+		if (pid==0)
+		{
+			ret=exec(argv[0],argv);	
+		}
 	}
 }
