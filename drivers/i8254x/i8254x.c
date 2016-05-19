@@ -280,6 +280,9 @@ void send_packet_i8254x(t_i8254x* i8254x,void* frame_addr,u16 frame_len)
 	tx_desc[cur].status=0;
 	tx_desc[cur].css=0;
 	tx_desc[cur].special=0;
+	if (cur==2) {
+		printk("breakpoint!!! \n");
+	}
 
 	i8254x->tx_cur = (cur + 1) % NUM_TX_DESC;	
 	write_i8254x(i8254x,TDT_REG,i8254x->tx_cur);
