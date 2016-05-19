@@ -152,7 +152,7 @@ int _sendto(t_socket_desc* socket_desc,int sockfd,u32 dst_ip,u16 dst_port,void* 
 				socket_desc=system.network_desc->socket_desc;
 				hashtable_put(socket_desc->udp_map,socket->port,socket);
 			}
-			data_sckt_buf=alloc_sckt(33+HEADER_ETH+HEADER_IP4+HEADER_UDP);
+			data_sckt_buf=alloc_sckt(data_len+HEADER_ETH+HEADER_IP4+HEADER_UDP);
 			data_sckt_buf->transport_hdr=data_sckt_buf->data+HEADER_ETH+HEADER_IP4;
 			ip_payload=data_sckt_buf->transport_hdr+HEADER_UDP;
 			kmemcpy(ip_payload,data,data_len);

@@ -117,7 +117,7 @@ static tx_init_i8254x(t_i8254x* i8254x)
 	i8254x->tx_desc=tx_desc;
 	write_i8254x(i8254x,TDBAL_REG,FROM_VIRT_TO_PHY((u32)tx_desc)); //first 4 bit zero
 	write_i8254x(i8254x,TDBAH_REG,0);
-	write_i8254x(i8254x,TDLEN_REG,NUM_RX_DESC*16);
+	write_i8254x(i8254x,TDLEN_REG,NUM_TX_DESC*16);
 	i8254x->tx_cur=0;
 
 	write_i8254x(i8254x,THD_REG,0);
@@ -283,6 +283,10 @@ void send_packet_i8254x(t_i8254x* i8254x,void* frame_addr,u16 frame_len)
 
 	i8254x->tx_cur = (cur + 1) % NUM_TX_DESC;	
 	write_i8254x(i8254x,TDT_REG,i8254x->tx_cur);
+	printk("tx_desc is:%d \n",tx_desc);
+	printk("cur is: %d \n",cur);
+	printk("phy_frame_addr %d \n",phy_frame_addr);
+	printk("frame len %d \n",frame_len);
 	while(!(tx_desc[cur].status & 0xff));
 }
 

@@ -52,6 +52,7 @@ int main(int argc, char **argv)
 	stat(argv[1],&stat_data);
 	data_len=stat_data.st_size+1;
 	io_buffer=malloc(data_len);
+	printf("data len is %d \n",data_len);
 	f=open(argv[1], O_RDWR | O_APPEND);
 	//f=open(chicco, O_RDWR | O_APPEND);
 	read(f,io_buffer,data_len);
@@ -79,10 +80,9 @@ int main(int argc, char **argv)
 			sent=0;
 		}
 		printf("sending data: %d \n",len);
-    		n_to = sendto(sockfd,(io_buffer+offset),10,0,&send_addr, send_len);
+    		n_to = sendto(sockfd,(io_buffer+offset),len,0,&send_addr, send_len);
 		//n_to = sendto(sockfd,(pippo),10,0,&send_addr, send_len);
 		printf("sent data \n");
-		sent=0;
 		//printf("offset=%d\n",offset);
 		//printf("data_len=%d \n",data_len);
 		//printf("ff=%d \n",ff);
