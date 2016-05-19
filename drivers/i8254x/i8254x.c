@@ -18,6 +18,18 @@ static void write_i8254x(t_i8254x* i8254x,u32 address,u32 value)
 	}
 }
 
+static start_link_i8254x(t_i8254x* i8254x);
+static u32 read_i8254x(t_i8254x* i8254x,u32 address);
+dump_status()
+{
+	int status=read_i8254x(system.network_desc->dev,8);
+	if (status==0) {
+		
+		printk("ERROR!!!! \n");
+		start_link_i8254x(system.network_desc->dev);
+	}
+}
+
 static u32 read_i8254x(t_i8254x* i8254x,u32 address)
 {
 	u32 val=0;
@@ -217,6 +229,7 @@ void int_handler_i8254x()
 	EOI_TO_MASTER_PIC
 //	STI occhio!!!!
 
+	printk("inside  int_handler_i8254x \n");
 	status=read_i8254x(i8254x,REG_ICR);
 	if (status & ICR_LSC)
 	{
@@ -257,6 +270,7 @@ void int_handler_i8254x()
 	}
 	i8254x->rx_cur=cur;
 	write_i8254x(i8254x,RDT_REG,old_cur);
+	dump_status();
 	enable_irq_line(i8254x->irq_line);
 	ENABLE_PREEMPTION
 	EXIT_INT_HANDLER(0,processor_reg)
@@ -281,28 +295,25 @@ void send_packet_i8254x(t_i8254x* i8254x,void* frame_addr,u16 frame_len)
 	tx_desc[cur].status=0;
 	tx_desc[cur].css=0;
 	tx_desc[cur].special=0;
-	if (cur==2) {
-		printk("breakpoint!!! \n");
-		
-	}
+	
 	int head=read_i8254x(i8254x,THD_REG);
 	int tail=read_i8254x(i8254x,TDT_REG);
 	int status=read_i8254x(i8254x,8);
-	printk("before head is: \%d \n",head);
-	printk("before tail is: \%d \n",tail);
-	printk("status is: \%d \n",status);
+	//printk("before head is: \%d \n",head);
+	//printk("before tail is: \%d \n",tail);
+	//printk("status is: \%d \n",status);
 	i8254x->tx_cur = (cur + 1) % NUM_TX_DESC;	
 	write_i8254x(i8254x,TDT_REG,i8254x->tx_cur);
 	//printk("tx_desc is:%d \n",tx_desc);
-	printk("cur is: %d \n",cur);
+	//printk("cur is: %d \n",cur);
 	//printk("phy_frame_addr %d \n",phy_frame_addr);
 	//printk("frame len %d \n",frame_len);
 	head=read_i8254x(i8254x,THD_REG);
 	tail=read_i8254x(i8254x,TDT_REG);
 	status=read_i8254x(i8254x,8);
-	printk("head is: \%d \n",head);
-	printk("tail is: \%d \n",tail);
-	printk("status is: \%d \n",status);
+	//printk("head is: \%d \n",head);
+	//printk("tail is: \%d \n",tail);
+	//printk("status is: \%d \n",status);
 	while(!(tx_desc[cur].status & 0xff));
 }
 

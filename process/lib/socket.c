@@ -64,6 +64,7 @@ int close_socket(int sockfd)
 {
 	unsigned int params[1];
 
+	params[0]=sockfd;
 	SYSCALL(32,params);
 	return  params[0];
 }

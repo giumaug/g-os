@@ -119,7 +119,8 @@ void int_handler_pit()
 			}
 		}
 	}
-	
+	dump_status();	
+
 	//FLUSH NETWORK QUEUES BEFORE EXITING
 	equeue_packet(system.network_desc);
 	dequeue_packet(system.network_desc);
