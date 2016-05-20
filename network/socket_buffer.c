@@ -56,7 +56,7 @@ t_data_sckt_buf* alloc_sckt(u16 data_len)
 	printk("allocating %d \n",data_sckt_buf);
 	data=kmalloc(data_len);
 	collect_mem_alloc(data);
-	printk("allocating %d \n",data);
+	printk("allocating d %d \n",data);
 	data_sckt_buf->data=data;
 	data_sckt_buf->data_len=data_len;
 	return data_sckt_buf;
