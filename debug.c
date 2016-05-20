@@ -122,6 +122,7 @@ void collect_mem_alloc(unsigned int page_addr)
 
 void collect_mem_free(unsigned int page_addr)
 {
+	int found=0;
 	unsigned int i=0;
 	struct t_process_context* current_process;
 
@@ -138,8 +139,13 @@ void collect_mem_free(unsigned int page_addr)
 		{
 			allocated_block--;
 			collected_mem[i]=0;
+			found=1;
 			break;
 		}
+	}
+	if (found==0) 
+	{
+		found=1;
 	}
 }
 
