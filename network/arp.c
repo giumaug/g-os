@@ -174,7 +174,7 @@ void rcv_packet_arp(t_data_sckt_buf* data_sckt_buf)
 	}
 	else if (optype==2)
 	{
-		mac_to_cache=hashtable_get(arp_cache,src_ip);--qui
+		mac_to_cache=hashtable_get(arp_cache,src_ip);
 		if (mac_to_cache==NULL)
 		{
 			mac_to_cache=kmalloc(sizeof(t_mac_addr));

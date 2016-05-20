@@ -1,9 +1,11 @@
 #include "network/socket_buffer.h"
+#include "debug.h"
 
 //FROM NOW EVERY INIT MUST FOLLOW THIS PATTERN!!!!!!!!!!!!!!!!!!!!!!!!!!
 t_sckt_buf_desc* sckt_buf_desc_init()
 {
 	t_sckt_buf_desc* sckt_buf_desc=kmalloc(sizeof(t_sckt_buf_desc));
+	collect_mem_alloc(sckt_buf_desc);
 	sckt_buf_desc->buf=new_queue();
 	sckt_buf_desc->buf_size=SOCKET_BUFFER_SIZE;
 	sckt_buf_desc->buf_index=0;
@@ -49,7 +51,9 @@ t_data_sckt_buf* alloc_sckt(u16 data_len)
 {
 	char* data;
 	t_data_sckt_buf* data_sckt_buf=kmalloc(sizeof(t_data_sckt_buf));
+	collect_mem_alloc(data_sckt_buf);
 	data=kmalloc(data_len);
+	collect_mem_alloc(data);
 	data_sckt_buf->data=data;
 	data_sckt_buf->data_len=data_len;
 	return data_sckt_buf;
@@ -58,6 +62,7 @@ t_data_sckt_buf* alloc_sckt(u16 data_len)
 t_data_sckt_buf* alloc_void_sckt()
 {
 	t_data_sckt_buf* data_sckt_buf=kmalloc(sizeof(t_data_sckt_buf));
+	collect_mem_alloc(data_sckt_buf);
 	data_sckt_buf->data=NULL;
 	data_sckt_buf->data_len=0;
 	return data_sckt_buf;

@@ -70,10 +70,10 @@ void* kmalloc(unsigned int mem_size)
 
 	if (collect_mem==1) 
 	{
-		collect_mem_alloc(mem_add);
-		if (mem_add==0xc181b42b || mem_add==0xc181b41b || mem_add==0xc193816e || mem_add==0xc1a51a41 || mem_add==0xc20f54db) 
+		//collect_mem_alloc(mem_add);
+		if (mem_add==0xc1936cfe) 
 		{
-			printk("ss \n");
+			//printk("ss \n");
 		}
 	}	
 
@@ -89,7 +89,7 @@ void kfree(void *address)
 	SAVE_IF_STATUS
 	CLI	
 	
-	if (collect_mem==1) 
+	//if (collect_mem==1) 
 	{
 		collect_mem_free(address);
 	}

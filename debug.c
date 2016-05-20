@@ -14,6 +14,7 @@ unsigned int allocated_block=0;
 
 void check_free_mem()
 {
+	int last_block;
 	int i=0;
 	unsigned int buddy_mem;
 	unsigned int pool_mem;
@@ -27,9 +28,9 @@ void check_free_mem()
 	{
 		if (collected_mem[i]!=0)
 		{	kk++;
-			if (kk>10)
+			if (kk==10)
 			{
-				panic();
+				last_block=i;
 			}
 		}
 	}
