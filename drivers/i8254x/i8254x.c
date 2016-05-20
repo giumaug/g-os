@@ -25,9 +25,7 @@ dump_status()
 	int status=read_i8254x(system.network_desc->dev,8);
 	if (status==0) {
 		
-		printk("ERROR!!!! \n");
-		write_i8254x(system.network_desc->dev,REG_IMS,IMS_RXT0);
-		read_i8254x(system.network_desc->dev,REG_ICR);
+		//printk("ERROR!!!! \n");
 	}
 }
 

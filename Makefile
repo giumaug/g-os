@@ -23,7 +23,7 @@ all:	kmain.o                       \
 	network.o	              \
 	pci.o
 
-	ld -melf_i386 -T linker.ld -o kernel.bin \
+	ld -T linker.ld -o kernel.bin \
 	*.o                           \
 	scheduler/*.o                 \
 	memory_manager/*.o            \
@@ -114,9 +114,9 @@ install_remote:all
 	scp ./kernel.bin root@192.168.1.215:/boot/
 
 bochs:all
-	mount /dev/loop7 /mnt
-	cp /home/peppe/Scrivania/g-os/kernel.bin /mnt/boot/kernel.bin
-	#cp /home/peppe/Desktop/g-os/kernel.bin  /opt/virtutech/simics-3.0.31/workspace/kernel.bin
+	mount /dev/loop6 /mnt
+	cp /home/peppe/Desktop/g-os/kernel.bin /mnt/boot/kernel.bin
+	cp /home/peppe/Desktop/g-os/kernel.bin  /opt/virtutech/simics-3.0.31/workspace/kernel.bin
 	umount /mnt
 clean:	
 	rm -f kmain.o idt.o syscall_handler.o asm.o loader.o kernel_init.o debug.o process_0.o

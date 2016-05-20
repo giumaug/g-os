@@ -174,9 +174,13 @@ void rcv_packet_arp(t_data_sckt_buf* data_sckt_buf)
 	}
 	else if (optype==2)
 	{
-		mac_to_cache=kmalloc(sizeof(t_mac_addr));
-		*mac_to_cache=src_mac;
-		hashtable_put(arp_cache,src_ip,mac_to_cache);
+		mac_to_cache=hashtable_get(arp_cache,src_ip);--qui
+		if (mac_to_cache==NULL)
+		{
+			mac_to_cache=kmalloc(sizeof(t_mac_addr));
+			*mac_to_cache=src_mac;
+			hashtable_put(arp_cache,src_ip,mac_to_cache);
+		}
 	}
 
 	free_sckt(data_sckt_buf);

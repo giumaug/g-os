@@ -71,6 +71,10 @@ void* kmalloc(unsigned int mem_size)
 	if (collect_mem==1) 
 	{
 		collect_mem_alloc(mem_add);
+		if (mem_add==0xc181b42b || mem_add==0xc181b41b || mem_add==0xc193816e || mem_add==0xc1a51a41 || mem_add==0xc20f54db) 
+		{
+			printk("ss \n");
+		}
 	}	
 
 	RESTORE_IF_STATUS
