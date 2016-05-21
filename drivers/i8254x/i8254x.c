@@ -216,7 +216,7 @@ void int_handler_i8254x()
 	EOI_TO_SLAVE_PIC
 	EOI_TO_MASTER_PIC
 //	STI occhio!!!!
-	
+
 	status=read_i8254x(i8254x,REG_ICR);
 	if (status & ICR_LSC)
 	{
@@ -228,6 +228,7 @@ void int_handler_i8254x()
 		rx_desc=i8254x->rx_desc;
 		while(rx_desc[cur].status & 0x1)
 		{
+			printk("reading something \n");
 			//I use 32 bit addressing
 			low_addr=rx_desc[cur].low_addr;
 			hi_addr=rx_desc[cur].hi_addr;
@@ -282,14 +283,26 @@ void send_packet_i8254x(t_i8254x* i8254x,void* frame_addr,u16 frame_len)
 	tx_desc[cur].special=0;
 	if (cur==2) {
 		printk("breakpoint!!! \n");
+		
 	}
-
+	int head=read_i8254x(i8254x,THD_REG);
+	int tail=read_i8254x(i8254x,TDT_REG);
+	int status=read_i8254x(i8254x,8);
+	printk("before head is: \%d \n",head);
+	printk("before tail is: \%d \n",tail);
+	printk("status is: \%d \n",status);
 	i8254x->tx_cur = (cur + 1) % NUM_TX_DESC;	
 	write_i8254x(i8254x,TDT_REG,i8254x->tx_cur);
-	printk("tx_desc is:%d \n",tx_desc);
+	//printk("tx_desc is:%d \n",tx_desc);
 	printk("cur is: %d \n",cur);
-	printk("phy_frame_addr %d \n",phy_frame_addr);
-	printk("frame len %d \n",frame_len);
+	//printk("phy_frame_addr %d \n",phy_frame_addr);
+	//printk("frame len %d \n",frame_len);
+	head=read_i8254x(i8254x,THD_REG);
+	tail=read_i8254x(i8254x,TDT_REG);
+	status=read_i8254x(i8254x,8);
+	printk("head is: \%d \n",head);
+	printk("tail is: \%d \n",tail);
+	printk("status is: \%d \n",status);
 	while(!(tx_desc[cur].status & 0xff));
 }
 
