@@ -65,7 +65,7 @@
 #define	RCTL_BSIZE_8192        	((2 << 16) | (1 << 25))
 
 #define NUM_RX_DESC             0x20   				//Receive payload buffer size
-#define NUM_TX_DESC             0x20   				//Transmit payload buffer size
+#define NUM_TX_DESC             0x08   				//Transmit payload buffer size
 
 #define TSTA_DD                 (1 << 0)    			//Descriptor Done
 #define REG_EERD		0x14				//EEPROM Read 

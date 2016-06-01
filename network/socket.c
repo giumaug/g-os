@@ -90,8 +90,8 @@ int _recvfrom(t_socket_desc* socket_desc,int sockfd,unsigned char* src_ip,unsign
 	u32 read_data=0;
 	t_socket* socket=NULL;
 	t_data_sckt_buf* data_sckt_buf=NULL;
-	unsigned int* _src_ip;
-	unsigned int* _src_port;
+	unsigned int _src_ip;
+	unsigned int _src_port;
 
 	socket=hashtable_get(socket_desc->sd_map,sockfd);
 	if (socket!=NULL) 
@@ -109,17 +109,20 @@ int _recvfrom(t_socket_desc* socket_desc,int sockfd,unsigned char* src_ip,unsign
 				return read_data;
 			}	
 		} 
-		*_src_port=GET_WORD(data_sckt_buf->transport_hdr[0],data_sckt_buf->transport_hdr[1]);
-		*_src_ip=GET_DWORD(data_sckt_buf->network_hdr[12],data_sckt_buf->network_hdr[13],data_sckt_buf->network_hdr[14],data_sckt_buf->network_hdr[15]);
+		_src_port=GET_WORD(data_sckt_buf->transport_hdr[0],data_sckt_buf->transport_hdr[1]);
+		_src_ip=GET_DWORD(data_sckt_buf->network_hdr[12],data_sckt_buf->network_hdr[13],data_sckt_buf->network_hdr[14],data_sckt_buf->network_hdr[15]);
 		read_data=GET_WORD(data_sckt_buf->transport_hdr[4],data_sckt_buf->transport_hdr[5])-HEADER_UDP;
 
-		src_ip[0]=(*_src_ip & 0xFF000000)>>24;
-		src_ip[1]=(*_src_ip & 0xFF0000)>>16;
-		src_ip[2]=(*_src_ip & 0xFF00)>>8;
-		src_ip[3]=(*_src_ip & 0xFF);
+		src_ip[0]=(_src_ip & 0xFF000000)>>24;
+		src_ip[1]=(_src_ip & 0xFF0000)>>16;
+		src_ip[2]=(_src_ip & 0xFF00)>>8;
+		src_ip[3]=(_src_ip & 0xFF);
 
-		src_port[0]=(*_src_port & 0xFF00)>>8;
-		src_port[1]=(*_src_port & 0xFF);
+		src_port[0]=(_src_port & 0xFF00)>>8;
+		src_port[1]=(_src_port & 0xFF);
+
+		printk("----------src_port[0] %d \n",src_port[0]);
+		printk("----------src_port[1] %d \n",src_port[1]);
 		
 		if (read_data > data_len) 
 		{
@@ -149,7 +152,7 @@ int _sendto(t_socket_desc* socket_desc,int sockfd,u32 dst_ip,u16 dst_port,void* 
 				socket_desc=system.network_desc->socket_desc;
 				hashtable_put(socket_desc->udp_map,socket->port,socket);
 			}
-			data_sckt_buf=alloc_sckt(33+HEADER_ETH+HEADER_IP4+HEADER_UDP);
+			data_sckt_buf=alloc_sckt(data_len+HEADER_ETH+HEADER_IP4+HEADER_UDP);
 			data_sckt_buf->transport_hdr=data_sckt_buf->data+HEADER_ETH+HEADER_IP4;
 			ip_payload=data_sckt_buf->transport_hdr+HEADER_UDP;
 			kmemcpy(ip_payload,data,data_len);

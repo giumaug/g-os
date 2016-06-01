@@ -20,7 +20,7 @@
 
 int main(int argc, char **argv) 
 {
-	unsigned int port=21845;//simmetria byte ordering!!!!
+	unsigned int port=21846;//simmetria byte ordering!!!!
 	int sockfd; 				
   	int clientlen; 					
   	struct sockaddr_in serveraddr; 			
@@ -30,7 +30,9 @@ int main(int argc, char **argv)
 
   	serveraddr.sin_family = AF_INET;
   	serveraddr.sin_addr.s_addr = INADDR_ANY; //da definire su lib.h 
-  	serveraddr.sin_port = (unsigned short) port;
+//  	serveraddr.sin_port = (unsigned short) port;
+	((unsigned char*) &(serveraddr.sin_port))[0]=((unsigned char*) &(port))[1];
+	((unsigned char*) &(serveraddr.sin_port))[1]=((unsigned char*) &(port))[0];
 
 	sockfd = socket(AF_INET, SOCK_DGRAM, 0);
   	if (bind(sockfd, (struct sockaddr *) &serveraddr, sizeof(serveraddr)) < 0) 

@@ -1,6 +1,6 @@
 #include "lib.h"
 
-int socket(int socket_family, int socket_type, int protocol) 
+int socket(int socket_family, int socket_type, int protocol)
 {
 	unsigned int params[2];
 
@@ -11,11 +11,13 @@ int socket(int socket_family, int socket_type, int protocol)
 
 int bind(int sockfd, const struct sockaddr *addr,socklen_t addrlen)
 {
+	unsigned char* port;
 	unsigned int params[4];
 
+	port=&((struct sockaddr_in*) addr)->sin_port;
 	params[0]=sockfd;
 	params[1]=0;
-	params[2]=((struct sockaddr_in*) addr)->sin_port;
+	params[2]=((port[0])<<8)+port[1];
 	SYSCALL(29,params);
 	return  params[3];
 }
@@ -49,10 +51,8 @@ int sendto(int sockfd,void* data,size_t  data_len, int flags,const struct sockad
 	port=&((struct sockaddr_in*) addr)->sin_port;
 
 	params[0]=sockfd;
-//	params[1]=&((struct sockaddr_in*) addr)->sin_addr;
-//	params[2]=&((struct sockaddr_in*) addr)->sin_port;
 	params[1]=(((unsigned char) ip[0]) <<24) + (((unsigned char) ip[1])<<16) + (((unsigned char) ip[2]) <<8) + (((unsigned char) ip[3]));
-	params[2]=((port[1]<<8)+(port[0]));
+	params[2]=((port[0])<<8)+port[1];
 	params[3]=data;
 	params[4]=data_len;
 	SYSCALL(31,params);
@@ -64,6 +64,7 @@ int close_socket(int sockfd)
 {
 	unsigned int params[1];
 
+	params[0]=sockfd;
 	SYSCALL(32,params);
 	return  params[0];
 }

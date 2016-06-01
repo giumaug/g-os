@@ -138,6 +138,7 @@ void send_packet_arp(t_mac_addr src_mac,t_mac_addr dst_mac,u32 src_ip,u32 dst_ip
 	data_sckt_buf->mac_hdr=arp_req;
 	data_sckt_buf->data=arp_req;
 	data_sckt_buf->data_len=MTU_ARP;
+	printk("sending arp rely \n");
 	enqueue_sckt(system.network_desc->tx_queue,data_sckt_buf);	
 }
 
