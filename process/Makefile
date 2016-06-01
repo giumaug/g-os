@@ -9,8 +9,8 @@ all:	user_space_process.o                      \
 	lib/*.o
 
 install:
-	mount /dev/loop6 /mnt
-	cp /home/peppe/Desktop/g-os/process/$(process) /mnt/$(path)
+	mount /dev/loop7 /mnt
+	cp /home/peppe/Scrivania/g-os/process/$(process) /mnt/$(path)
 	umount /mnt   
 
 user_space_process.o: $(process).c $(process).h

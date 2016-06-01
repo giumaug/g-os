@@ -1,8 +1,8 @@
-BASE_DIR	=/home/peppe/Desktop/g-os
+BASE_DIR	=/home/peppe/Scrivania/g-os
 INCLUDE		=$(BASE_DIR)/include
 MAKE 		= make
 CC		= gcc 
 LD		= ld
-CFLAGS		= -gstabs+ -c -fno-builtin
+CFLAGS		= -gstabs+ -c -fno-builtin -m32
 #CFLAGS		= -ggdb -c -fno-builtin
 CPPFLAGS	=-I $(INCLUDE) 

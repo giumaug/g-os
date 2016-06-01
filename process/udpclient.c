@@ -32,6 +32,11 @@ int main(int argc, char **argv)
     	char send_buf[BUFSIZE];
 	char rcv_buf[BUFSIZE];
 
+	long i=0;
+	printf("---------------\n");
+	for (i=0;i<1000000000;i++);
+	printf("----------------\n");
+
 	send_addr.sin_family = AF_INET;
 	((unsigned char*) &(send_addr.sin_addr.s_addr))[0]=172;
 	((unsigned char*) &(send_addr.sin_addr.s_addr))[1]=16;
