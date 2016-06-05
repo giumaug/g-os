@@ -65,11 +65,11 @@ t_data_sckt_buf* alloc_void_sckt()
 
 void free_sckt(t_data_sckt_buf* data_sckt_buf)
 {
-	kfree(data_sckt_buf->data);
 	if (data_sckt_buf->data!=NULL)
 	{
-		kfree(data_sckt_buf);
+		kfree(data_sckt_buf->data);
 	}
+	kfree(data_sckt_buf);
 }
 
 unsigned short checksum(unsigned short* ip, int len)

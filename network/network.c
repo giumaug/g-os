@@ -22,7 +22,7 @@ void network_free(t_network_desc* network_desc)
 	sckt_buf_desc_free(network_desc->tx_queue);
 	sckt_buf_desc_free(network_desc->rx_queue);
 	free_8254x(network_desc->dev);
-	kfree(network_desc->socket_desc);
+	socket_desc_free(network_desc->socket_desc);
 	kfree(network_desc);
 }
 
@@ -36,12 +36,10 @@ void equeue_packet(t_network_desc* network_desc)
 	sckt_buf_desc=network_desc->tx_queue;
 	while ((data_sckt_buf=dequeue_sckt(sckt_buf_desc))!=NULL)
 	{
-		printk("in equeue_packet \n");
 		frame=data_sckt_buf->mac_hdr;
 		frame_len=data_sckt_buf->data_len;
 		send_packet_i8254x(network_desc->dev,frame,frame_len);
-		sckt_buf_desc_free(sckt_buf_desc);
-		printk("out equeue_packet \n");
+		free_sckt(data_sckt_buf);
 	}
 }
 
@@ -52,9 +50,7 @@ void dequeue_packet(t_network_desc* network_desc)
 
 	while ((data_sckt_buf=dequeue_sckt(network_desc->rx_queue))!=NULL)
 	{	
-		printk("in dequeue_packet \n");
 		rcv_packet_mac(data_sckt_buf);
-		printk("out dequeue_packet \n");
 	}
 }
 

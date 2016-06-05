@@ -9,7 +9,7 @@ static int free_port_search()
 	socket_desc=system.network_desc->socket_desc;
 	for (i=0;i<32767;i++)
 	{
-		if (socket_desc->udp_port_indx++>32767) {
+		if (socket_desc->udp_port_indx++>65535) {
 			
 			socket_desc->udp_port_indx=32767;
 		}
@@ -129,7 +129,7 @@ int _recvfrom(t_socket_desc* socket_desc,int sockfd,unsigned char* src_ip,unsign
 			read_data=data_len;
 		}
 		kmemcpy(data,data_sckt_buf->transport_hdr+HEADER_UDP,read_data);
-		kfree(data_sckt_buf);
+		free_sckt(data_sckt_buf);
 	}
 	return read_data;
 }
@@ -171,7 +171,7 @@ int _close_socket(t_socket_desc* socket_desc,int sockfd)
 {
 	t_socket* socket=NULL;
 
-	socket=hashtable_get(socket_desc->sd_map,sockfd);
+	socket=hashtable_remove(socket_desc->sd_map,sockfd);
 	if (socket->type==2)
 	{
 		hashtable_remove(socket_desc->udp_map,socket);

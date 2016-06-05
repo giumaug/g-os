@@ -26,7 +26,8 @@ dump_status()
 	if (status==0) {
 		
 		printk("ERROR!!!! \n");
-		start_link_i8254x(system.network_desc->dev);
+		write_i8254x(system.network_desc->dev,REG_IMS,IMS_RXT0);
+		read_i8254x(system.network_desc->dev,REG_ICR);
 	}
 }
 
@@ -203,6 +204,7 @@ t_i8254x* init_8254x()
 
 void free_8254x(t_i8254x* i8254x)
 {
+    //need to release all buffers
 	kfree(i8254x);
 }
 
@@ -229,7 +231,6 @@ void int_handler_i8254x()
 	EOI_TO_MASTER_PIC
 //	STI occhio!!!!
 
-	printk("inside  int_handler_i8254x \n");
 	status=read_i8254x(i8254x,REG_ICR);
 	if (status & ICR_LSC)
 	{
@@ -241,7 +242,6 @@ void int_handler_i8254x()
 		rx_desc=i8254x->rx_desc;
 		while(rx_desc[cur].status & 0x1)
 		{
-			printk("reading something \n");
 			//I use 32 bit addressing
 			low_addr=rx_desc[cur].low_addr;
 			hi_addr=rx_desc[cur].hi_addr;
@@ -270,7 +270,6 @@ void int_handler_i8254x()
 	}
 	i8254x->rx_cur=cur;
 	write_i8254x(i8254x,RDT_REG,old_cur);
-	printk("exit  int_handler_i8254x \n");
 	dump_status();
 	enable_irq_line(i8254x->irq_line);
 	ENABLE_PREEMPTION
@@ -282,7 +281,7 @@ void send_packet_i8254x(t_i8254x* i8254x,void* frame_addr,u16 frame_len)
 	u32 phy_frame_addr;
 	u16 cur;
 	t_tx_desc_i8254x* tx_desc;
-
+	
 	cur=i8254x->tx_cur;
 	tx_desc=i8254x->tx_desc;
 	phy_frame_addr=FROM_VIRT_TO_PHY(frame_addr);

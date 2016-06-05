@@ -8,7 +8,7 @@ static int malloc_initialized=-1;
 
 static void a_usr_space_init(t_a_usr_space_desc *a_fixed_size_desc,unsigned int block_size,void* mem_addr,int size) 
 {
-        int index;
+    int index;
 	unsigned int num_block;
 	t_us_block_desc *first_block_desc;	
 	t_us_block_desc *current_block_desc;
@@ -25,14 +25,13 @@ static void a_usr_space_init(t_a_usr_space_desc *a_fixed_size_desc,unsigned int 
 	previous_block_desc=NULL;
 	current_block_desc=a_fixed_size_desc->first_block;
 	for (index=1;index<num_block;index++)
-        {	
-                next_block_desc=((char *)current_block_desc)+sizeof(t_us_block_desc)+a_fixed_size_desc->block_size;
+    {	
+        next_block_desc=((char *)current_block_desc)+sizeof(t_us_block_desc)+a_fixed_size_desc->block_size;
 		current_block_desc->next_block=next_block_desc;
 		current_block_desc->previous_block=previous_block_desc;
-                previous_block_desc=current_block_desc;
-                current_block_desc=next_block_desc;
-		//printf("--block=%d \n",current_block_desc);
-        }
+        previous_block_desc=current_block_desc;
+        current_block_desc=next_block_desc;
+    }
 	current_block_desc->next_block=first_block_desc;
 	current_block_desc->previous_block=previous_block_desc;
 	first_block_desc->previous_block=current_block_desc;
@@ -40,18 +39,19 @@ static void a_usr_space_init(t_a_usr_space_desc *a_fixed_size_desc,unsigned int 
 
 static void *a_usr_space_alloc(t_a_usr_space_desc *a_fixed_size_desc) 
 {
-        t_us_block_desc *block_add;
-        t_us_page_desc *page_desc;
+	t_us_block_desc *block_add;
+    t_us_page_desc *page_desc;
 	t_us_block_desc *current_block_desc;
-        t_us_block_desc *next_block_desc;
-        t_us_block_desc *previous_block_desc;
-        current_block_desc=a_fixed_size_desc->first_block;
-        next_block_desc=current_block_desc->next_block;
+    t_us_block_desc *next_block_desc;
+    t_us_block_desc *previous_block_desc;
+    
+    current_block_desc=a_fixed_size_desc->first_block;
+    next_block_desc=current_block_desc->next_block;
 	if (next_block_desc!=NULL) next_block_desc->previous_block=NULL;
-        a_fixed_size_desc->first_block=next_block_desc;
-        block_add=current_block_desc+1;
-        (a_fixed_size_desc->current_free_block)--;
-        return block_add;
+    a_fixed_size_desc->first_block=next_block_desc;
+    block_add=current_block_desc+1;
+    (a_fixed_size_desc->current_free_block)--;
+    return block_add;
 }
 
 static void a_usr_space_free(t_a_usr_space_desc *a_fixed_size_desc,void *address) 
@@ -60,7 +60,7 @@ static void a_usr_space_free(t_a_usr_space_desc *a_fixed_size_desc,void *address
 	t_us_block_desc *block_desc;
 	t_us_block_desc *first_block_desc;
 	t_us_block_desc *current_block_desc;
-        t_us_block_desc *next_block_desc;
+    t_us_block_desc *next_block_desc;
 	t_us_block_desc *previous_block_desc;
 
 	block_desc=(char *)address-sizeof(t_us_block_desc);
