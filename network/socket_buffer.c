@@ -24,7 +24,7 @@ void enqueue_sckt(t_sckt_buf_desc* sckt_buf_desc,t_data_sckt_buf* data_sckt_buf)
 	SPINLOCK_LOCK(sckt_buf_desc->lock);			
 	if (sckt_buf_desc->buf_index+1<=sckt_buf_desc->buf_size)
 	{	
-		printk("--qne %d \n",data_sckt_buf);						
+		//printk("--qne %d \n",data_sckt_buf);						
 		enqueue(sckt_buf_desc->buf,data_sckt_buf);	
 		sckt_buf_desc->buf_index++;			
 	}							
@@ -66,7 +66,7 @@ t_data_sckt_buf* alloc_void_sckt()
 {
 	t_data_sckt_buf* data_sckt_buf=kmalloc(sizeof(t_data_sckt_buf));
 	collect_mem_alloc(data_sckt_buf);
-	printk("allocating %d \n",data_sckt_buf);
+	printk("allocating v %d \n",data_sckt_buf);
 	data_sckt_buf->data=NULL;
 	data_sckt_buf->data_len=0;
 	return data_sckt_buf;
@@ -77,9 +77,11 @@ void free_sckt(t_data_sckt_buf* data_sckt_buf)
 	if (data_sckt_buf->data!=NULL)
 	{
 		kfree(data_sckt_buf->data);
+		printk("free d %d \n",data_sckt_buf->data);
 		collect_mem_free(data_sckt_buf->data);
 	}
 	kfree(data_sckt_buf);
+	printk("free %d \n",data_sckt_buf);
 	collect_mem_free(data_sckt_buf);
 }
 

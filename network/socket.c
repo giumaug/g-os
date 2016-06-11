@@ -170,17 +170,18 @@ int _sendto(t_socket_desc* socket_desc,int sockfd,u32 dst_ip,u16 dst_port,void* 
 int _close_socket(t_socket_desc* socket_desc,int sockfd)
 {
 	t_socket* socket=NULL;
+	t_socket* xxx;
 
 	socket=hashtable_remove(socket_desc->sd_map,sockfd);
 	if (socket->type==2)
 	{
-		hashtable_remove(socket_desc->udp_map,socket);
+		xxx=hashtable_remove(socket_desc->udp_map,socket->port);
 		free_queue(socket->udp_rx_queue);
 		kfree(socket->lock);
 	}
 	else
 	{
-		hashtable_remove(socket_desc->tcp_map,socket);
+		hashtable_remove(socket_desc->tcp_map,socket->port);
 	}
 	kfree(socket);
 }

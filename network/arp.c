@@ -65,6 +65,8 @@ void send_packet_arp(t_mac_addr src_mac,t_mac_addr dst_mac,u32 src_ip,u32 dst_ip
 	t_data_sckt_buf* data_sckt_buf=NULL;
 
 	arp_req=kmalloc(MTU_ARP);
+	collect_mem_alloc(arp_req);
+	printk("allocating dv %d \n",arp_req);
 
 	arp_req[0]=HI_16(dst_mac.hi);		//BYTE 1 BROADCAST/DST MAC ADDRESS
 	arp_req[1]=LOW_16(dst_mac.hi);		//BYTE 2 BROADCAST/DST MAC ADDRESS
@@ -178,6 +180,7 @@ void rcv_packet_arp(t_data_sckt_buf* data_sckt_buf)
 		if (mac_to_cache==NULL)
 		{
 			mac_to_cache=kmalloc(sizeof(t_mac_addr));
+			printk("caching.... \n");
 			*mac_to_cache=src_mac;
 			hashtable_put(arp_cache,src_ip,mac_to_cache);
 		}

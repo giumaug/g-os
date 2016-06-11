@@ -26,7 +26,7 @@ int main(int argc, char **argv)
     	struct sockaddr_in send_addr;
 	char* pippo="sssssssssssssssssssssssssssssss";
 
-	printf("starting udp_writer... \n");
+	printf("starting udp_writer.+.. \n");
 	port=20000;
 
 	send_addr.sin_family = AF_INET;
@@ -47,7 +47,7 @@ int main(int argc, char **argv)
 		n_to = sendto(sockfd,(pippo),10,0,&send_addr, send_len);
 		//printf("sent data \n");
 	}
-	close(sockfd);
-	printf("ending udp_writer... \n");
+	close_socket(sockfd);
+	printf("ending udp_writer..++. \n");
     	exit(0);
 }
