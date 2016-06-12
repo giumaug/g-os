@@ -32,18 +32,18 @@ int main(int argc, char **argv)
 	send_addr.sin_family = AF_INET;
 	((unsigned char*) &(send_addr.sin_addr.s_addr))[0]=172;
 	((unsigned char*) &(send_addr.sin_addr.s_addr))[1]=16;
-	((unsigned char*) &(send_addr.sin_addr.s_addr))[2]=6;
+	((unsigned char*) &(send_addr.sin_addr.s_addr))[2]=243;
 	((unsigned char*) &(send_addr.sin_addr.s_addr))[3]=1;
 	((unsigned char*) &(send_addr.sin_port))[0]=((unsigned char*) &(port))[1];
 	((unsigned char*) &(send_addr.sin_port))[1]=((unsigned char*) &(port))[0];
 
 	send_len = sizeof(send_addr);
 	sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-//	
-//	for (i=0;i<2;i++)
-//	{
-//		n_to = sendto(sockfd,(pippo),10,0,&send_addr, send_len);
-//	}
+	
+	for (i=0;i<2;i++)
+	{
+		n_to = sendto(sockfd,(pippo),10,0,&send_addr, send_len);
+	}
 	close_socket(sockfd);
 	printf("ending udp_writer..++. \n");
     	exit(0);

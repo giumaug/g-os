@@ -21,6 +21,7 @@ static void* hashtable_search(t_hashtable* hashtable,u32 key,int remove)
 			if (remove)
 			{
 				ll_delete_node(next);
+				kfree(bucket_data);
 			}	
 			return value;
 		}
@@ -29,6 +30,7 @@ static void* hashtable_search(t_hashtable* hashtable,u32 key,int remove)
 	return NULL;
 }
 
+//NON VA BENE TOGO SOLO DATA_BUCKET MA NON CONTENUTO!!!!!
 static void hashtable_free_bucket(t_llist** bucket,u32 size)
 {
 	u32 i;
