@@ -178,12 +178,6 @@ int _close_socket(t_socket_desc* socket_desc,int sockfd)
 	if (socket->type==2)
 	{
 		xxx=hashtable_remove(socket_desc->udp_map,socket->port);
-
-		while (data_sckt_buf=dequeue(socket->udp_rx_queue)!=NULL)
-		{
-			free_sckt(data_sckt_buf);
-			printk("found data------------------------ \n");
-		}
 		free_queue(socket->udp_rx_queue);
 		kfree(socket->lock);
 	}

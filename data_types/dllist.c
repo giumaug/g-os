@@ -1,11 +1,19 @@
 #include "data_types/dllist.h"
 
+#define NULL 0
+
 t_llist* new_dllist()
+{
+	dc_new_dllist(NULL);
+}
+
+t_llist* dc_new_dllist(void (*data_destructor)(void*))
 {
  	t_llist *d;
   	t_llist_node *node;
   
  	d = (t_llist *) kmalloc (sizeof(t_llist));
+	d->data_destructor=data_destructor;
  	node = (t_llist_node *)kmalloc(sizeof(t_llist_node));
  	d->sentinel_node = node;
  	node->next = node;
@@ -60,30 +68,25 @@ int ll_empty(t_llist *l)
 }
 
 //IN THIS CASE REMOVE THE LIST'S CONTENT TOO
-//void free_llist(t_llist *l)
-//{
-//	t_llist_node* node;
-//
-//  	while (!ll_empty(l)) 
-//	{
-//		node=ll_first(l);
-//		kfree(node->val);
-//    		ll_delete_node(node);
-//  	}
-//  	kfree(l->sentinel_node);
-//  	kfree(l);
-//}
-
-//NEW VERSION OKKIO POSSIBILI REGRESSIONI
 void free_llist(t_llist *l)
 {
 	t_llist_node* node;
 
-  	if (ll_empty(l)) 
+  	while (!ll_empty(l)) 
 	{
-		kfree(l->sentinel_node);
-  		kfree(l);
+		node=ll_first(l);
+		if (l->data_destructor!=NULL)
+		{
+			(*l->data_destructor)(node->val);
+		}
+		else 
+		{
+			kfree(node->val);
+		}
+    		ll_delete_node(node);
   	}
+  	kfree(l->sentinel_node);
+  	kfree(l);
 }
 
 void *ll_val(t_llist_node *n)
