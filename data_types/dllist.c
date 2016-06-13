@@ -60,18 +60,30 @@ int ll_empty(t_llist *l)
 }
 
 //IN THIS CASE REMOVE THE LIST'S CONTENT TOO
+//void free_llist(t_llist *l)
+//{
+//	t_llist_node* node;
+//
+//  	while (!ll_empty(l)) 
+//	{
+//		node=ll_first(l);
+//		kfree(node->val);
+//    		ll_delete_node(node);
+//  	}
+//  	kfree(l->sentinel_node);
+//  	kfree(l);
+//}
+
+//NEW VERSION OKKIO POSSIBILI REGRESSIONI
 void free_llist(t_llist *l)
 {
 	t_llist_node* node;
 
-  	while (!ll_empty(l)) 
+  	if (ll_empty(l)) 
 	{
-		node=ll_first(l);
-		kfree(node->val);
-    		ll_delete_node(node);
+		kfree(l->sentinel_node);
+  		kfree(l);
   	}
-  	kfree(l->sentinel_node);
-  	kfree(l);
 }
 
 void *ll_val(t_llist_node *n)

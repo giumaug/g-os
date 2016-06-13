@@ -45,6 +45,26 @@ static void hashtable_free_bucket(t_llist** bucket,u32 size)
 	kfree(bucket);
 }
 
+static void hashtable_free_bucket(t_llist** bucket,u32 size)
+{
+	u32 i;
+
+	for (i=0;i<size;i++)
+	{
+		if ((bucket[i])!=NULL)
+		{
+			free_llist(bucket[i]);
+			while (!ll_empty(l)) 
+			{
+				node=ll_first(l);
+				kfree(node->val);
+    				ll_delete_node(node);
+  			}
+		}
+	}
+	kfree(bucket);
+}
+
 static void rehash(t_hashtable* hashtable)
 {
 	u32 i;	

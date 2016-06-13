@@ -14,6 +14,12 @@ t_sckt_buf_desc* sckt_buf_desc_init()
 
 void sckt_buf_desc_free(t_sckt_buf_desc* sckt_buf_desc)
 {
+	t_data_sckt_buf* data_sckt_buf;
+
+	while (data_sckt_buf=dequeue(sckt_buf_desc->buf)!=NULL)
+	{
+		free_sckt(data_sckt_buf);
+	}
 	free_queue(sckt_buf_desc->buf);	
 }
 

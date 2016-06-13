@@ -10,6 +10,7 @@ void enqueue(t_queue* queue,void* data)
 	ll_prepend(queue,data);
 }
 
+//USE ONLY AFTER DEQUEUE,QUEUE MUST BE EMPTY!!!!
 void free_queue(t_queue* queue)
 {
 	free_llist(queue);
