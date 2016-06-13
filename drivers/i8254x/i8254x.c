@@ -240,11 +240,6 @@ void int_handler_i8254x()
 		rx_desc=i8254x->rx_desc;
 		while(rx_desc[cur].status & 0x1)
 		{
-			if (cur==0) 
-			{
-				printk("cur is zero \n");
-			}
-			printk("cur is %d \n",cur);
 			//I use 32 bit addressing
 			low_addr=rx_desc[cur].low_addr;
 			hi_addr=rx_desc[cur].hi_addr;
@@ -257,8 +252,6 @@ void int_handler_i8254x()
 			data_sckt_buf->data_len=frame_len;
 
 			data_buffer=kmalloc(MTU_ETH);
-                        printk("allocating dintv %d \n",data_buffer);
-			collect_mem_alloc(data_buffer);
 			rx_desc[cur].hi_addr=0;
 			rx_desc[cur].low_addr=FROM_VIRT_TO_PHY((u32)data_buffer);
 			rx_desc[cur].status=0;

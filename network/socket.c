@@ -167,8 +167,10 @@ int _sendto(t_socket_desc* socket_desc,int sockfd,u32 dst_ip,u16 dst_port,void* 
 	return ret;
 }
 
+//servono dei lock pure qui!!!!
 int _close_socket(t_socket_desc* socket_desc,int sockfd)
 {
+	t_data_sckt_buf* data_sckt_buf=NULL;
 	t_socket* socket=NULL;
 	t_socket* xxx;
 
@@ -176,6 +178,12 @@ int _close_socket(t_socket_desc* socket_desc,int sockfd)
 	if (socket->type==2)
 	{
 		xxx=hashtable_remove(socket_desc->udp_map,socket->port);
+
+		while (data_sckt_buf=dequeue(socket->udp_rx_queue)!=NULL)
+		{
+			free_sckt(data_sckt_buf);
+			printk("found data------------------------ \n");
+		}
 		free_queue(socket->udp_rx_queue);
 		kfree(socket->lock);
 	}

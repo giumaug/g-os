@@ -39,14 +39,11 @@ int main(int argc, char **argv)
 
 	send_len = sizeof(send_addr);
 	sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-	
-	for (i=0;i<2;i++)
-	{
-		//printf("sending data: %d \n",len);
-  
-		n_to = sendto(sockfd,(pippo),10,0,&send_addr, send_len);
-		//printf("sent data \n");
-	}
+//	
+//	for (i=0;i<2;i++)
+//	{
+//		n_to = sendto(sockfd,(pippo),10,0,&send_addr, send_len);
+//	}
 	close_socket(sockfd);
 	printf("ending udp_writer..++. \n");
     	exit(0);

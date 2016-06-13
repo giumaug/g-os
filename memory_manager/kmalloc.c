@@ -70,10 +70,10 @@ void* kmalloc(unsigned int mem_size)
 
 	if (collect_mem==1) 
 	{
-		//collect_mem_alloc(mem_add);
-		if (mem_add==0xc1936cfe) 
+		collect_mem_alloc(mem_add);
+		if (mem_add==0xc181b3fb) 
 		{
-			//printk("ss \n");
+			printk("ss \n");
 		}
 	}	
 
@@ -92,6 +92,10 @@ void kfree(void *address)
 	if (collect_mem==1) 
 	{
 		collect_mem_free(address);
+		if (address==0xc181b3fb) 
+		{
+			printk("ssr \n");
+		}
 	}
 
 	pool_index=0;
