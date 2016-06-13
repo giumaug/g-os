@@ -24,25 +24,25 @@ int send_packet_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		data_sckt_buf->mac_hdr=data_sckt_buf->network_hdr-HEADER_ETH;
 	
 		//PACKET TAKES BIG ENDIAN/NETWORK BYTE ORDER
-		ip_row_packet[0]= 64+5;  						//VERSION(4) IHL(4)
-		ip_row_packet[1]=0;	 							//DSFIELD(6) ECN(2)
-		ip_row_packet[2]=HI_16(packet_len);     		//HIGH TOTAL LENGHT(8)
-		ip_row_packet[3]=LOW_16(packet_len);      		//LOW TOTAL LENGHT(8)
+		ip_row_packet[0]= 64+5;  			//VERSION(4) IHL(4)
+		ip_row_packet[1]=0;	 			//DSFIELD(6) ECN(2)
+		ip_row_packet[2]=HI_16(packet_len);     	//HIGH TOTAL LENGHT(8)
+		ip_row_packet[3]=LOW_16(packet_len);      	//LOW TOTAL LENGHT(8)
 	
-		ip_row_packet[4]=HI_16(ipv4_id++);	    		//HIGH PACKET ID(8)     
+		ip_row_packet[4]=HI_16(ipv4_id++);	        //HIGH PACKET ID(8)     
 		ip_row_packet[5]=LOW_16(ipv4_id++);             //LOW PACKET ID(8)	
-		ip_row_packet[6]=0;								//HIGH FLAG AND FRAG OFFSET
-		ip_row_packet[7]=0;								//LOW FLAG AND FRAG OFFSET
+		ip_row_packet[6]=0;			        //HIGH FLAG AND FRAG OFFSET
+		ip_row_packet[7]=0;				//LOW FLAG AND FRAG OFFSET
 	
-		ip_row_packet[8]=64;							//TTL(8)
-		ip_row_packet[9]=protocol;   					//PROTOCOL(8)
-		ip_row_packet[10]=0;             				//HIGH HEADER CRC(8)
-		ip_row_packet[11]=0;             				//LOW HEADER CRC(8)
+		ip_row_packet[8]=64;				//TTL(8)
+		ip_row_packet[9]=protocol;   		        //PROTOCOL(8)
+		ip_row_packet[10]=0;             		//HIGH HEADER CRC(8)
+		ip_row_packet[11]=0;             		//LOW HEADER CRC(8)
 	
 		ip_row_packet[12]=IP_HI_OCT(src_ip);          	//HIGH SRC IP(8)
-		ip_row_packet[13]=IP_MID_LFT_OCT(src_ip);		//MID LEFT SRC IP(8)
-		ip_row_packet[14]=IP_MID_RGT_OCT(src_ip); 		//MID RIGHY SRC IP(8)
-		ip_row_packet[15]=IP_LOW_OCT(src_ip);			//LOW SRC IP(8)
+		ip_row_packet[13]=IP_MID_LFT_OCT(src_ip);       //MID LEFT SRC IP(8)
+		ip_row_packet[14]=IP_MID_RGT_OCT(src_ip); 	//MID RIGHY SRC IP(8)
+		ip_row_packet[15]=IP_LOW_OCT(src_ip);		//LOW SRC IP(8)
 
 		ip_row_packet[16]=IP_HI_OCT(dst_ip);            //HI DST IP(8)
 		ip_row_packet[17]=IP_MID_LFT_OCT(dst_ip);       //MID LEFT DST IP(8)
@@ -102,6 +102,7 @@ void rcv_packet_ip4(t_data_sckt_buf* data_sckt_buf)
 		else if(ip_row_packet[9]==ICMP_PROTOCOL)
 		{
 			printk("icmp received.... \n");
+			free_sckt(data_sckt_buf);
 		}
 	}
 	else 
