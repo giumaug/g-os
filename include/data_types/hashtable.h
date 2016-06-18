@@ -12,6 +12,7 @@ struct s_hashtable
 	int size;
 	int elements;
 	t_llist** bucket;
+	void (*data_destructor)(void*);
 }
 typedef t_hashtable;
 
@@ -29,6 +30,7 @@ void* hashtable_remove(t_hashtable* hashtable,u32 key);
 void hashtable_put(t_hashtable* hashtable,u32 key,void* value);
 void hashtable_put_str(t_hashtable* hashtable,unsigned char* key,char* value);
 t_hashtable* hashtable_clone_map(t_hashtable* map);
+t_hashtable* dc_hashtable_init(u32 init_size,void (*data_destructor)(void*));
 
 #endif
 

@@ -3,6 +3,13 @@
 
 #include "data_types/dllist.h"
 
+struct s_queue
+{
+	t_llist* t_queue;
+	void (*data_destructor)(void*);
+}
+typedef t_queue;
+
 typedef t_llist t_queue;
 
 t_queue* new_queue();
