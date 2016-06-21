@@ -28,7 +28,7 @@ void check_free_mem()
 	{
 		if (collected_mem[i]!=0)
 		{	kk++;
-			if (kk==10)
+			if (kk==20)
 			{
 				last_block=i;
 			}
@@ -146,6 +146,7 @@ void collect_mem_free(unsigned int page_addr)
 	if (found==0) 
 	{
 		found=1;
+		printk("no!! \n");
 	}
 }
 

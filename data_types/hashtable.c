@@ -30,63 +30,64 @@ static void* hashtable_search(t_hashtable* hashtable,u32 key,int remove)
 	return NULL;
 }
 
-static void free_bucket_data(t_bucket_data* bucket_data,)
-{
-	if (hashtable->data_destructor!=NULL)
-	{
-		(*hashtable->data_destructor)(bucket_data->value);
-	}
-	else 
-	{
-		kfree(bucket_data->value);
-	}
-	kfree(bucket_data);
-}
+//static void free_bucket_data(t_bucket_data* bucket_data,)
+//{
+//	if (hashtable->data_destructor!=NULL)
+//	{
+//		(*hashtable->data_destructor)(bucket_data->value);
+//	}
+//	else 
+//	{
+//		kfree(bucket_data->value);
+//	}
+//	kfree(bucket_data);
+//}
 
-static void hashtable_free_bucket(t_llist** bucket,u32 size)
-{
-	u32 i;
-
-	for (i=0;i<size;i++)
-	{
-		if ((bucket[i])!=NULL)
-		{
-			free_llist(bucket[i]);
-		}
-	}
-	kfree(bucket);
-}
-
-//static void hashtable_free_bucket(t_llist** bucket,u32 size,void (*data_destructor)(void*))
+//static void hashtable_free_bucket(t_llist** bucket,u32 size)
 //{
 //	u32 i;
-//	t_bucket_data* bucket_data;
-//	t_llist_node* next;
 //
 //	for (i=0;i<size;i++)
 //	{
 //		if ((bucket[i])!=NULL)
 //		{
-//			while (!ll_empty(bucket[i])) 
-//			{
-//				next=ll_first(bucket[i]);
-//				bucket_data=next->val;
-//				if (data_destructor!=NULL)
-//				{
-//					(*data_destructor)(bucket_data->value);
-//				}
-//				else 
-//				{
-//					kfree(bucket_data->value);
-//				}
-//				kfree(bucket_data);
-//    				ll_delete_node(next);
-//  			}
-//			kfree(bucket[i]);
+//			free_llist(bucket[i]);
 //		}
 //	}
 //	kfree(bucket);
 //}
+
+static void hashtable_free_bucket(t_llist** bucket,u32 size,void (*data_destructor)(void*))
+{
+	u32 i;
+	t_bucket_data* bucket_data;
+	t_llist_node* next;
+
+	for (i=0;i<size;i++)
+	{
+		if ((bucket[i])!=NULL)
+		{
+			while (!ll_empty(bucket[i])) 
+			{
+				next=ll_first(bucket[i]);
+				bucket_data=next->val;
+				if (data_destructor!=NULL)
+				{
+					(*data_destructor)(bucket_data->value);
+				}
+				else 
+				{
+					kfree(bucket_data->value);
+				}
+				kfree(bucket_data);
+    				ll_delete_node(next);
+  			}
+			//kfree(bucket[i]);
+		}
+		free_llist(bucket[i]);
+	}
+	kfree(bucket);
+}
 
 static void rehash(t_hashtable* hashtable)
 {
@@ -113,7 +114,7 @@ static void rehash(t_hashtable* hashtable)
 			}
 		}
 	}
-	hashtable_free_bucket(hashtable->bucket,hashtable->size);
+	hashtable_free_bucket(hashtable->bucket,hashtable->size,hashtable->data_destructor);
 	hashtable->bucket=new_hashtable->bucket;
 	hashtable->size=new_hashtable->size;
 	hashtable->elements=new_hashtable->elements;	
@@ -144,7 +145,7 @@ t_hashtable* dc_hashtable_init(u32 init_size,void (*data_destructor)(void*))
 
 void hashtable_free(t_hashtable* hashtable)
 {
-	hashtable_free_bucket(hashtable->bucket,hashtable->size);
+	hashtable_free_bucket(hashtable->bucket,hashtable->size,hashtable->data_destructor);
 	kfree(hashtable);
 }
 
