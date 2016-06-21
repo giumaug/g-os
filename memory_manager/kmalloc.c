@@ -71,7 +71,7 @@ void* kmalloc(unsigned int mem_size)
 	if (collect_mem==1) 
 	{
 		collect_mem_alloc(mem_add);
-		if (mem_add==0xc181b3fb) 
+		if (mem_add==0xc181c39b) 
 		{
 			printk("ss \n");
 		}
@@ -92,7 +92,7 @@ void kfree(void *address)
 	if (collect_mem==1) 
 	{
 		collect_mem_free(address);
-		if (address==0xc181b3fb) 
+		if (address==0xc181c39b) 
 		{
 			printk("ssr \n");
 		}

@@ -70,6 +70,7 @@ static void hashtable_free_bucket(t_llist** bucket,u32 size,void (*data_destruct
 				kfree(bucket_data);
     				ll_delete_node(next);
   			}
+			//kfree qui!!!!!
 		}
 	}
 	kfree(bucket);
