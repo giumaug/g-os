@@ -5,7 +5,7 @@
 t_sckt_buf_desc* sckt_buf_desc_init()
 {
 	t_sckt_buf_desc* sckt_buf_desc=kmalloc(sizeof(t_sckt_buf_desc));
-	sckt_buf_desc->buf=new_queue();
+	sckt_buf_desc->buf=dc_new_queue(&free_sckt);
 	sckt_buf_desc->buf_size=SOCKET_BUFFER_SIZE;
 	sckt_buf_desc->buf_index=0;
 	SPINLOCK_INIT(sckt_buf_desc->lock);

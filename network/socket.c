@@ -25,7 +25,7 @@ static int free_port_search()
 t_socket_desc* socket_desc_init()
 {
 	t_socket_desc* socket_desc=kmalloc(sizeof(t_socket_desc));
-	socket_desc->sd_map=hashtable_init(SOCKET_MAP_SIZE);
+	socket_desc->sd_map=dc_hashtable_init(SOCKET_MAP_SIZE,&socket_free);
 	socket_desc->tcp_map=hashtable_init(TCP_MAP_SIZE);
 	socket_desc->udp_map=hashtable_init(UDP_MAP_SIZE);
 	socket_desc->fd=0;
@@ -45,11 +45,36 @@ void socket_desc_free(t_socket_desc* socket_desc)
 	socket_desc->udp_map=NULL;
 }
 
-int _open_socket(t_socket_desc* socket_desc,int type) 
+t_socket* socket_init(int type)
 {
 	t_socket* socket=NULL;
 
 	socket=kmalloc(sizeof(t_socket));
+	if (type==2)
+	{
+		socket->udp_rx_queue=dc_new_queue(&free_sckt);
+		socket->lock=kmalloc(sizeof(t_spinlock_desc));
+		SPINLOCK_INIT(*socket->lock);
+	}
+	return 	socket;
+}
+
+void socket_free(t_socket* socket)
+{
+	if (socket->type==2)
+	{
+		free_queue(socket->udp_rx_queue);
+		kfree(socket->lock);
+	}
+	kfree(socket);
+} 
+
+int _open_socket(t_socket_desc* socket_desc,int type) 
+{
+	t_socket* socket=NULL;
+
+	socket=socket_init(type);
+//	socket=kmalloc(sizeof(t_socket));
 	socket->process_context=NULL;
 	socket->ip=NULL;
 	socket->port=NULL;
@@ -57,12 +82,12 @@ int _open_socket(t_socket_desc* socket_desc,int type)
 	socket->type=type;
 	socket->sd=++socket_desc->fd;
 	hashtable_put(socket_desc->sd_map,socket->sd,socket);
-	if (type==2)
-	{
-		socket->udp_rx_queue=new_queue();
-		socket->lock=kmalloc(sizeof(t_spinlock_desc));
-		SPINLOCK_INIT(*socket->lock);
-	}
+//	if (type==2)
+//	{
+//		socket->udp_rx_queue=dc_new_queue(&free_sckt);
+//		socket->lock=kmalloc(sizeof(t_spinlock_desc));
+//		SPINLOCK_INIT(*socket->lock);
+//	}
 	return socket->sd;
 }
 
@@ -172,19 +197,18 @@ int _close_socket(t_socket_desc* socket_desc,int sockfd)
 {
 	t_data_sckt_buf* data_sckt_buf=NULL;
 	t_socket* socket=NULL;
-	t_socket* xxx;
 
 	socket=hashtable_remove(socket_desc->sd_map,sockfd);
 	if (socket->type==2)
 	{
-		xxx=hashtable_remove(socket_desc->udp_map,socket->port);
-		free_queue(socket->udp_rx_queue);
-		kfree(socket->lock);
+		hashtable_remove(socket_desc->udp_map,socket->port);
+		//free_queue(socket->udp_rx_queue);
+		//kfree(socket->lock);
 	}
 	else
 	{
 		hashtable_remove(socket_desc->tcp_map,socket->port);
 	}
-	kfree(socket);
+	socket_free(socket);
 }
 

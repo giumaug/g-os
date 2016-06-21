@@ -13,7 +13,6 @@ typedef struct s_data_sckt_buf
 	unsigned char* mac_hdr;
 	unsigned char* data;
 	u16 data_len;
-	//---------qui distruttore
 }
 t_data_sckt_buf;
 

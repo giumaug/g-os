@@ -37,6 +37,8 @@ t_socket;
 
 t_socket_desc* socket_desc_init();
 void socket_desc_free(t_socket_desc* socket_desc);
+t_socket* socket_init(int type);
+void socket_free(t_socket* socket);
 int _open_socket(t_socket_desc* socket_desc,int type);
 int _bind(t_socket_desc* socket_desc,int sockfd,u32 ip,u32 dst_port);
 int _recvfrom(t_socket_desc* socket_desc,int sockfd,unsigned char* src_ip,unsigned char* src_port,void* data,u32 data_len);
