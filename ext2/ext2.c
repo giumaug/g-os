@@ -77,7 +77,7 @@ int _close(t_ext2* ext2,int fd)
 	t_inode* inode;
 
 	CURRENT_PROCESS_CONTEXT(current_process_context)
-	inode=hashtable_get(current_process_context->file_desc,fd);
+	inode=hashtable_remove(current_process_context->file_desc,fd);??????????????
 	if (inode!=NULL)
 	{
 		ret=0;

@@ -5,7 +5,7 @@ int main (int argc, char* argv[])
 	int age;
 	int pid;
 
-	char* reader="/flood";
+	char* reader="/void";
 	argv=malloc(sizeof(char*)*2);
 	argv[0]=reader;
 	age=0;
