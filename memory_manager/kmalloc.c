@@ -6,7 +6,7 @@
 #include "debug.h"
 
 extern unsigned int collect_mem;
-extern unsigned int collected_mem[1500];
+extern unsigned int collected_mem[15000];
 extern unsigned int collected_mem_index;
 extern unsigned int allocated_block;
 
@@ -68,10 +68,11 @@ void* kmalloc(unsigned int mem_size)
 		panic();
 	}
 
-	if (collect_mem==1) 
+	if (1)
+	//if (collect_mem==1) 
 	{
 		collect_mem_alloc(mem_add);
-		if (mem_add==0xc1938096) 
+		if (mem_add==0xc20f8d13) 
 		{
 			printk("ss \n");
 		}
@@ -89,10 +90,11 @@ void kfree(void *address)
 	SAVE_IF_STATUS
 	CLI	
 	
-	if (collect_mem==1) 
+	if (1) 
+	//if (collect_mem==1) 
 	{
 		collect_mem_free(address);
-		if (address==0xc1938096) 
+		if (address==0xc20f8d13) 
 		{
 			printk("ssr \n");
 		}

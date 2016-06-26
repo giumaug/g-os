@@ -71,7 +71,7 @@ int ll_empty(t_llist *l)
 void free_llist(t_llist *l)
 {
 	t_llist_node* node;
-
+	
   	while (!ll_empty(l)) 
 	{
 		node=ll_first(l);

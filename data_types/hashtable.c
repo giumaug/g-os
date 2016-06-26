@@ -62,7 +62,7 @@ static void hashtable_free_bucket(t_llist** bucket,u32 size,void (*data_destruct
 	u32 i;
 	t_bucket_data* bucket_data;
 	t_llist_node* next;
-
+	
 	for (i=0;i<size;i++)
 	{
 		if ((bucket[i])!=NULL)
@@ -198,7 +198,7 @@ t_hashtable* hashtable_clone_map(t_hashtable* map)
 	cloned_map=hashtable_init(map->size);
 	for (i=0;i<map->size;i++)
 	{
-		value=hashtable_get(map,i);
+		value=hashtable_get(map,i);//?????????????????????
 		if (value!=NULL)
 		{
 			hashtable_put(cloned_map,i,value);

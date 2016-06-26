@@ -8,7 +8,7 @@ unsigned int proc[100];
 //int t_sched_debug[10][10];
 int index_2=0;
 unsigned int collect_mem=0;
-unsigned int collected_mem[1500];
+unsigned int collected_mem[15000];
 unsigned int collected_mem_index=0;
 unsigned int allocated_block=0;
 
@@ -113,7 +113,7 @@ void collect_mem_alloc(unsigned int page_addr)
 //		printk("aa\n");
 //	}
 	collected_mem[collected_mem_index++]=page_addr;
-	if (collected_mem_index>1499)
+	if (collected_mem_index>14999)
 	{
 		panic();
 	}
