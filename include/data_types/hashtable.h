@@ -30,7 +30,7 @@ void* hashtable_get(t_hashtable* hashtable,u32 key);
 void* hashtable_remove(t_hashtable* hashtable,u32 key);
 void hashtable_put(t_hashtable* hashtable,u32 key,void* value);
 void hashtable_put_str(t_hashtable* hashtable,unsigned char* key,char* value);
-t_hashtable* hashtable_clone_map(t_hashtable* map);
+t_hashtable* hashtable_clone_map(t_hashtable* map,u32 data_size);
 
 #endif
 

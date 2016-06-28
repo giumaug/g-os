@@ -376,7 +376,7 @@ int _fork(struct t_processor_reg processor_reg)
 
 	child_process_context->pid=system.process_info->next_pid++;
 	child_process_context->parent=parent_process_context;
-	child_process_context->file_desc=hashtable_clone_map(parent_process_context->file_desc);
+	child_process_context->file_desc=hashtable_clone_map(parent_process_context->file_desc,sizeof(t_inode));
 
 	if (parent_process_context->process_type==USERSPACE_PROCESS)
 	{	

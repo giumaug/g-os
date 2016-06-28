@@ -189,19 +189,22 @@ void hashtable_put_str(t_hashtable* hashtable,unsigned char* key,char* value)
 	hashtable_put(hashtable,long_key,value);
 }
 
-t_hashtable* hashtable_clone_map(t_hashtable* map)
+t_hashtable* hashtable_clone_map(t_hashtable* map,u32 data_size)
 {
 	t_hashtable* cloned_map=NULL;
 	void* value=NULL;
+	void* cloned_value=NULL;
 	u32 i=0;
 
 	cloned_map=hashtable_init(map->size);
 	for (i=0;i<map->size;i++)
 	{
-		value=hashtable_get(map,i);?????????????????????
+		value=hashtable_get(map,i);
 		if (value!=NULL)
 		{
-			//hashtable_put(cloned_map,i,value);
+			cloned_value=kmalloc(data_size);
+			kmemcpy(cloned_value,value,data_size);
+			hashtable_put(cloned_map,i,cloned_value);
 		}
 	}
 	return cloned_map;
