@@ -19,15 +19,6 @@ static void write_i8254x(t_i8254x* i8254x,u32 address,u32 value)
 }
 
 static start_link_i8254x(t_i8254x* i8254x);
-static u32 read_i8254x(t_i8254x* i8254x,u32 address);
-dump_status()
-{
-	int status=read_i8254x(system.network_desc->dev,8);
-	if (status==0) {
-		
-		//printk("ERROR!!!! \n");
-	}
-}
 
 static u32 read_i8254x(t_i8254x* i8254x,u32 address)
 {
@@ -268,7 +259,6 @@ void int_handler_i8254x()
 	}
 	i8254x->rx_cur=cur;
 	write_i8254x(i8254x,RDT_REG,old_cur);
-	dump_status();
 	enable_irq_line(i8254x->irq_line);
 	ENABLE_PREEMPTION
 	EXIT_INT_HANDLER(0,processor_reg)
@@ -279,7 +269,7 @@ void send_packet_i8254x(t_i8254x* i8254x,void* frame_addr,u16 frame_len)
 	u32 phy_frame_addr;
 	u16 cur;
 	t_tx_desc_i8254x* tx_desc;
-	
+
 	cur=i8254x->tx_cur;
 	tx_desc=i8254x->tx_desc;
 	phy_frame_addr=FROM_VIRT_TO_PHY(frame_addr);
@@ -294,24 +284,19 @@ void send_packet_i8254x(t_i8254x* i8254x,void* frame_addr,u16 frame_len)
 	tx_desc[cur].css=0;
 	tx_desc[cur].special=0;
 	
-	int head=read_i8254x(i8254x,THD_REG);
-	int tail=read_i8254x(i8254x,TDT_REG);
-	int status=read_i8254x(i8254x,8);
-	//printk("before head is: \%d \n",head);
-	//printk("before tail is: \%d \n",tail);
-	//printk("status is: \%d \n",status);
 	i8254x->tx_cur = (cur + 1) % NUM_TX_DESC;	
 	write_i8254x(i8254x,TDT_REG,i8254x->tx_cur);
-	//printk("tx_desc is:%d \n",tx_desc);
-	//printk("----cur is: %d \n",cur);
-	//printk("phy_frame_addr %d \n",phy_frame_addr);
-	//printk("frame len %d \n",frame_len);
-	head=read_i8254x(i8254x,THD_REG);
-	tail=read_i8254x(i8254x,TDT_REG);
-	status=read_i8254x(i8254x,8);
-	//printk("head is: \%d \n",head);
-	//printk("tail is: \%d \n",tail);
-	//printk("status is: \%d \n",status);
+	//DON'T WAIT TO AVOID RACE WITH INTERRUPT HANDLER
+	long i=0;
+	printk("in... \n");
+	for (i=0;i<=1000000000;i++)
+	{
+		if (i==99) 
+		{
+			printk("tt \n");
+		}
+	}
+	printk("out... \n");
 	while(!(tx_desc[cur].status & 0xff));
 }
 

@@ -68,7 +68,6 @@ void* kmalloc(unsigned int mem_size)
 		panic();
 	}
 
-	if (1)
 	if (collect_mem==1) 
 	{
 		collect_mem_alloc(mem_add);
@@ -90,7 +89,6 @@ void kfree(void *address)
 	SAVE_IF_STATUS
 	CLI	
 	
-	if (1) 
 	if (collect_mem==1) 
 	{
 		collect_mem_free(address);
