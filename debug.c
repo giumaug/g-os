@@ -14,6 +14,7 @@ unsigned int allocated_block=0;
 
 void check_free_mem()
 {
+	static int age=0;
 	int last_block;
 	int i=0;
 	unsigned int buddy_mem;
@@ -28,7 +29,7 @@ void check_free_mem()
 	{
 		if (collected_mem[i]!=0)
 		{	kk++;
-			if (kk==20)
+			if (kk==10)
 			{
 				last_block=i;
 			}
@@ -48,6 +49,7 @@ void check_free_mem()
 	}
 	printk("BUDDY MEMORY=%d \n",buddy_mem);
 	printk("POOL MEMORY=%d \n",pool_mem);
+	printk("AGE=%d \n",age++);
 	//collected_mem_index=0;
 	//allocated_block=0;
 }
@@ -146,7 +148,7 @@ void collect_mem_free(unsigned int page_addr)
 	if (found==0) 
 	{
 		found=1;
-		printk("no!! \n");
+		//printk("no!! \n");
 	}
 }
 

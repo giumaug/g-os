@@ -69,7 +69,7 @@ void* kmalloc(unsigned int mem_size)
 	}
 
 	if (1)
-	//if (collect_mem==1) 
+	if (collect_mem==1) 
 	{
 		collect_mem_alloc(mem_add);
 		if (mem_add==0xc1da375a) 
@@ -91,7 +91,7 @@ void kfree(void *address)
 	CLI	
 	
 	if (1) 
-	//if (collect_mem==1) 
+	if (collect_mem==1) 
 	{
 		collect_mem_free(address);
 		if (address==0xc1da375a) 

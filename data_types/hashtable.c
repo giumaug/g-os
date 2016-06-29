@@ -22,6 +22,7 @@ static void* hashtable_search(t_hashtable* hashtable,u32 key,int remove)
 			{
 				ll_delete_node(next);
 				kfree(bucket_data);
+				hashtable->elements--;
 			}	
 			return value;
 		}
