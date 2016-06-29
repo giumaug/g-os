@@ -4,6 +4,8 @@ int main (int argc, char* argv[])
 {	
 	int age;
 	int pid;
+	int proc_num;
+	int i;
 
 	char* reader="/flood";
 	argv=malloc(sizeof(char*)*2);
@@ -12,10 +14,14 @@ int main (int argc, char* argv[])
 
 	while(1)
 	{
-		pid=fork();
-		if (pid==0)
+		proc_num=(rand() % 5 + 1);
+		for (i=0;i<proc_num;i++)
 		{
-			exec(argv[0],argv);
+			pid=fork();
+			if (pid==0)
+			{
+				exec(argv[0],argv);
+			}
 		}
 		age++;
 		sleep(30000);

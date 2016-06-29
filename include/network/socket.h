@@ -18,6 +18,7 @@ typedef struct s_socket_desc
 	u16 udp_port_indx;
 	u16 tcp_port_indx;
 	u32 fd;
+	t_spinlock_desc lock;
 }
 t_socket_desc;
 

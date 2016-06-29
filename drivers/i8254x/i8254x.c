@@ -286,17 +286,17 @@ void send_packet_i8254x(t_i8254x* i8254x,void* frame_addr,u16 frame_len)
 	
 	i8254x->tx_cur = (cur + 1) % NUM_TX_DESC;	
 	write_i8254x(i8254x,TDT_REG,i8254x->tx_cur);
-	//DON'T WAIT TO AVOID RACE WITH INTERRUPT HANDLER
+	//DON'T WAIT TO AVOID RACE WITH INTERRUPT HANDLER?????
 	long i=0;
-	printk("in... \n");
-	for (i=0;i<=1000000000;i++)
-	{
-		if (i==99) 
-		{
-			printk("tt \n");
-		}
-	}
-	printk("out... \n");
+//	printk("in... \n");
+//	for (i=0;i<=1000000000;i++)
+//	{
+//		if (i==99) 
+//		{
+//			printk("tt \n");
+//		}
+//	}
+//	printk("out... \n");
 	while(!(tx_desc[cur].status & 0xff));
 }
 

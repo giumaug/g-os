@@ -22,10 +22,18 @@ typedef unsigned short u16;
 
 int main(int argc, char **argv) 
 {
+	int i=0;
+	int packet_size=0;
 	int sockfd,send_len,i,n_to,port;
     	struct sockaddr_in send_addr;
-	char* pippo="sssssssssssssssssssssssssssssss";
+	char* packet=NULL; 
 
+	packet_size=(rand() % 200 + 1);
+	packet=malloc(packet_size);
+	for (i=0;i<packet_size;i++)
+	{
+		packet[i]='s';
+	}
 	printf("starting udp_writer.+.. \n");
 	port=20000;
 
@@ -42,7 +50,7 @@ int main(int argc, char **argv)
 	
 	for (i=0;i<2;i++)
 	{
-		n_to = sendto(sockfd,(pippo),10,0,&send_addr, send_len);
+		n_to = sendto(sockfd,(packet),packet_size,0,&send_addr, send_len);
 	}
 	close_socket(sockfd);
 	printf("ending udp_writer..++. \n");

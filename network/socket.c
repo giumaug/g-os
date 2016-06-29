@@ -31,6 +31,7 @@ t_socket_desc* socket_desc_init()
 	socket_desc->fd=0;
 	socket_desc->udp_port_indx=32767;
 	socket_desc->tcp_port_indx=0;
+	SPINLOCK_INIT(socket_desc->lock);
 	return socket_desc;
 }
 
@@ -80,14 +81,10 @@ int _open_socket(t_socket_desc* socket_desc,int type)
 	socket->port=NULL;
 	CURRENT_PROCESS_CONTEXT(socket->process_context);
 	socket->type=type;
+	SPINLOCK_LOCK(socket_desc->lock);
 	socket->sd=++socket_desc->fd;
 	hashtable_put(socket_desc->sd_map,socket->sd,socket);
-//	if (type==2)
-//	{
-//		socket->udp_rx_queue=dc_new_queue(&free_sckt);
-//		socket->lock=kmalloc(sizeof(t_spinlock_desc));
-//		SPINLOCK_INIT(*socket->lock);
-//	}
+	SPINLOCK_UNLOCK(socket_desc->lock);
 	return socket->sd;
 }
 
@@ -97,6 +94,7 @@ int _bind(t_socket_desc* socket_desc,int sockfd,u32 ip,u32 src_port)
 	t_socket* socket=NULL;
 	int ret=-1;
 	
+	SPINLOCK_LOCK(socket_desc->lock);
 	socket=hashtable_get(socket_desc->sd_map,sockfd);
 	if (socket!=NULL)
 	{
@@ -107,6 +105,7 @@ int _bind(t_socket_desc* socket_desc,int sockfd,u32 ip,u32 src_port)
 			ret=0;
 		}
 	}
+	SPINLOCK_LOCK(socket_desc->lock);
 	return ret;
 }
 
@@ -118,7 +117,9 @@ int _recvfrom(t_socket_desc* socket_desc,int sockfd,unsigned char* src_ip,unsign
 	unsigned int _src_ip;
 	unsigned int _src_port;
 
+	SPINLOCK_LOCK(socket_desc->lock);
 	socket=hashtable_get(socket_desc->sd_map,sockfd);
+	SPINLOCK_UNLOCK(socket_desc->lock);
 	if (socket!=NULL) 
 	{
 		SPINLOCK_LOCK(*socket->lock);
@@ -166,7 +167,9 @@ int _sendto(t_socket_desc* socket_desc,int sockfd,u32 dst_ip,u16 dst_port,void* 
 	char* ip_payload=NULL;
 	int ret=0;
 	
+	SPINLOCK_LOCK(socket_desc->lock);
 	socket=hashtable_get(socket_desc->sd_map,sockfd);
+	SPINLOCK_UNLOCK(socket_desc->lock);
 	if (socket!=NULL)
 	{
 		if (socket->type==2)
@@ -175,7 +178,9 @@ int _sendto(t_socket_desc* socket_desc,int sockfd,u32 dst_ip,u16 dst_port,void* 
 			{
 				socket->port=free_port_search();
 				socket_desc=system.network_desc->socket_desc;
+				SPINLOCK_LOCK(socket_desc->lock);
 				hashtable_put(socket_desc->udp_map,socket->port,socket);
+				SPINLOCK_UNLOCK(socket_desc->lock);
 			}
 			data_sckt_buf=alloc_sckt(data_len+HEADER_ETH+HEADER_IP4+HEADER_UDP);
 			data_sckt_buf->transport_hdr=data_sckt_buf->data+HEADER_ETH+HEADER_IP4;
@@ -198,17 +203,17 @@ int _close_socket(t_socket_desc* socket_desc,int sockfd)
 	t_data_sckt_buf* data_sckt_buf=NULL;
 	t_socket* socket=NULL;
 
+	SPINLOCK_LOCK(socket_desc->lock);
 	socket=hashtable_remove(socket_desc->sd_map,sockfd);
 	if (socket->type==2)
 	{
 		hashtable_remove(socket_desc->udp_map,socket->port);
-		//free_queue(socket->udp_rx_queue);
-		//kfree(socket->lock);
 	}
 	else
 	{
 		hashtable_remove(socket_desc->tcp_map,socket->port);
 	}
+	SPINLOCK_UNLOCK(socket_desc->lock);
 	socket_free(socket);
 }
 
