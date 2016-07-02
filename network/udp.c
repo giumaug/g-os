@@ -60,6 +60,10 @@ void rcv_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			}
 			SPINLOCK_UNLOCK(*socket->lock);
 		}
+		else
+		{
+			free_sckt(data_sckt_buf);
+		}
 	}
 	else 
 	{

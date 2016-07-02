@@ -25,7 +25,8 @@ void init_pit()
 }
 
 void int_handler_pit()
-{	
+{
+	int static iter=0;	
 	int x;
 	int is_schedule=0;
 	struct t_process_context* process_context;
@@ -123,6 +124,10 @@ void int_handler_pit()
 	//FLUSH NETWORK QUEUES BEFORE EXITING
 	equeue_packet(system.network_desc);
 	dequeue_packet(system.network_desc);
+	if ((iter++ % 50)==0)
+	{
+		check_free_mem();
+	}
 exit_handler:;
 //	EXIT_INT_HANDLER(is_schedule,processor_reg);
 

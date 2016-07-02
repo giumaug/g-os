@@ -39,5 +39,6 @@ void _echo_char(t_console_desc *console_desc,char data);
 void _enable_cursor(t_console_desc *console_desc);
 void _disable_cursor(t_console_desc *console_desc);
 void _update_cursor(t_console_desc *console_desc);
+void _write_char_no_irq(t_console_desc *console_desc,char data);
 
 #endif

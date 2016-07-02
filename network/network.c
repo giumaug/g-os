@@ -56,7 +56,7 @@ void dequeue_packet(t_network_desc* network_desc)
 	}
 	if (i>0)
 	{
-		printk("dequeue p=%d \n",i);
+		//printk("dequeue p=%d \n",i);
 	}
 }
 

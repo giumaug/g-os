@@ -36,11 +36,12 @@ void static printk_num(int val)
 void static printk_char(char* text)
 {
 	int index=-1;
-	int params[1];
+	struct t_process_context *current_process_context=system.process_info->current_process->val;
+	t_console_desc *console_desc=current_process_context->console_desc;
+	
 	while (text[++index]!='\0')
 	{
-		params[0]=text[index];
-		SYSCALL(4,params);
+		_write_char_no_irq(console_desc,text[index]);
 	}
 }
 
@@ -72,6 +73,6 @@ void printk(char *text,...)
 			printk_char(*param_val);
 		}
 
-		_write_char(console_desc,text[index]);
+		_write_char_no_irq(console_desc,text[index]);
 	}
 }
