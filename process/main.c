@@ -15,6 +15,8 @@ int main (int argc, char* argv[])
 	while(1)
 	{
 		proc_num=(rand() % 5 + 1);
+		//proc_num=50;
+		printf("proc_num=%d \n",proc_num);
 		for (i=0;i<proc_num;i++)
 		{
 			pid=fork();

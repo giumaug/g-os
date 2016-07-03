@@ -74,9 +74,11 @@
 #define ICR_LSC			0x4				//Link Status Change
 #define ICR_RXDMT0 		0x10				//Receive Descriptor Minimum Threshold Reached
 #define ICR_RXT0 		0x80				//Receiver Timer Interrupt
+#define ICR_RXO 		0x40                            //Receiver Overrun Interrupt
 
 #define REG_IMS			0xD0				//Interrupt Mask Set/Read Register
-#define IMS_RXT0	        0x080         
+#define IMS_RXT0	        0x080
+#define IMS_RXO                 0x40
 
 #define CMD_EOP	   		(1<<0)		
 #define CMD_RS     		(1<<3)

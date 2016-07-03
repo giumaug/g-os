@@ -186,7 +186,7 @@ t_i8254x* init_8254x()
 	rx_init_i8254x(i8254x);
 	tx_init_i8254x(i8254x);
 
-	write_i8254x(i8254x,REG_IMS,IMS_RXT0);
+	write_i8254x(i8254x,REG_IMS,(IMS_RXT0 || IMS_RXO));
 	read_i8254x(i8254x,REG_ICR);
 	return i8254x;
 }
@@ -224,6 +224,10 @@ void int_handler_i8254x()
 	if (status & ICR_LSC)
 	{
 		start_link_i8254x(i8254x);
+	}
+	else if(status & ICR_RXO)
+	{
+		printk("overrun!!!! \n");
 	}
 	else if (status & ICR_RXT0)
 	{
@@ -297,7 +301,7 @@ void send_packet_i8254x(t_i8254x* i8254x,void* frame_addr,u16 frame_len)
 //		}
 //	}
 //	printk("out... \n");
-	while(!(tx_desc[cur].status & 0xff));
+	//while(!(tx_desc[cur].status & 0xff));
 }
 
 

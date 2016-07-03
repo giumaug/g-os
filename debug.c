@@ -40,12 +40,12 @@ void check_free_mem()
 	if (buddy_mem<160700560)
 	{
 		PRINTK("BUDDY MEMEMORY LEAK!!!");
-		panic();
+		//panic();
 	}
 	if (pool_mem<279000)
 	{
 		PRINTK("POOL MEMEMORY LEAK!!!");
-		panic();
+		//panic();
 	}
 	printk("BUDDY MEMORY=%d \n",buddy_mem);
 	printk("POOL MEMORY=%d \n",pool_mem);
