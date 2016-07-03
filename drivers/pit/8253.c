@@ -124,10 +124,10 @@ void int_handler_pit()
 	//FLUSH NETWORK QUEUES BEFORE EXITING
 	equeue_packet(system.network_desc);
 	dequeue_packet(system.network_desc);
-	if ((iter++ % 50)==0)
-	{
-		check_free_mem();
-	}
+//	if ((iter++ % 50)==0)
+//	{
+//		check_free_mem();
+//	}
 exit_handler:;
 //	EXIT_INT_HANDLER(is_schedule,processor_reg);
 
