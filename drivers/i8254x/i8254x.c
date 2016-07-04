@@ -71,7 +71,7 @@ static rx_init_i8254x(t_i8254x* i8254x)
 	int i;
 	t_rx_desc_i8254x* rx_desc;
 	char* data_buffer;
-
+	
 	rx_desc=kmalloc(16 + sizeof(t_rx_desc_i8254x) * NUM_RX_DESC);
 	rx_desc = ((u32)rx_desc + 16) - ((u32)rx_desc % 16);
 	for (i=0;i<NUM_RX_DESC;i++)
@@ -221,7 +221,11 @@ void int_handler_i8254x()
 	EOI_TO_MASTER_PIC
 //	STI occhio!!!!
 
-	printk("in ... \n");
+	static int int_count=0;
+	int_count++;
+
+	//printk("in ... \n");
+	printk("int num=%d \n",int_count);
 	status=read_i8254x(i8254x,REG_ICR);
 	if (status & ICR_LSC)
 	{
@@ -264,8 +268,8 @@ void int_handler_i8254x()
 		}
 	}
 	i8254x->rx_cur=cur;
-	write_i8254x(i8254x,RDT_REG,old_cur);
-	printk("out ... \n");
+	//write_i8254x(i8254x,RDT_REG,old_cur);
+	//printk("out ... \n");
 	enable_irq_line(i8254x->irq_line);
 	ENABLE_PREEMPTION
 	EXIT_INT_HANDLER(0,processor_reg)
