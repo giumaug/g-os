@@ -229,7 +229,7 @@ void int_handler_i8254x()
 	static int int_count=0;
 	int_count++;
 
-	//printk("in ... \n");
+	printk("in ... \n");
 	//printk("int num=%d \n",int_count);
 
 //	old_cur=7;//i8254x->rx_cur;
@@ -254,6 +254,8 @@ void int_handler_i8254x()
 	if (status==0) 
 	{
 		printk("alert!!!!! \n");
+		rx_desc=i8254x->rx_desc;
+		testx();
 	}
 
 	if (status & ICR_LSC)
@@ -263,6 +265,7 @@ void int_handler_i8254x()
 	else if(status & ICR_RXO)
 	{
 		printk("overrun!!!! \n");
+		testx();
 	}
 	else if (status & ICR_RXT0)
 	{
@@ -296,10 +299,12 @@ void int_handler_i8254x()
 			old_cur=cur;
 			cur =(cur + 1) % NUM_RX_DESC;
 		}
+		i8254x->rx_cur=cur;
+		write_i8254x(i8254x,RDT_REG,old_cur);
 	}
-	i8254x->rx_cur=cur;
+	//i8254x->rx_cur=cur;
 	//write_i8254x(i8254x,RDT_REG,old_cur);
-	//printk("out ... \n");
+	printk("out ... \n");
 exit:
 	enable_irq_line(i8254x->irq_line);
 	ENABLE_PREEMPTION
@@ -370,8 +375,9 @@ void testx()
 		{
 			printk("detected overrun!!!\n");
 		}
-		i8254x->rx_cur=cur;
-		write_i8254x(i8254x,RDT_REG,0);
+		i8254x->rx_cur=0;
+		write_i8254x(i8254x,RHD_REG,0);
+		write_i8254x(i8254x,RDT_REG,NUM_RX_DESC-1);
 	}
 }
 
