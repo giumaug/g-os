@@ -229,8 +229,8 @@ void int_handler_i8254x()
 	static int int_count=0;
 	int_count++;
 
-	printk("in ... \n");
-	printk("int num=%d \n",int_count);
+	//printk("in ... \n");
+	//printk("int num=%d \n",int_count);
 
 //	old_cur=7;//i8254x->rx_cur;
 //	//tail.val=old_cur+NUM_RX_DESC-1;
@@ -249,6 +249,13 @@ void int_handler_i8254x()
 //	}
 
 	status=read_i8254x(i8254x,REG_ICR);
+
+
+	if (status==0) 
+	{
+		printk("alert!!!!! \n");
+	}
+
 	if (status & ICR_LSC)
 	{
 		start_link_i8254x(i8254x);
@@ -263,6 +270,7 @@ void int_handler_i8254x()
 		rx_desc=i8254x->rx_desc;
 		while(rx_desc[cur].status & 0x1)
 		{
+			printk("flush from int \n");
 			//I use 32 bit addressing
 			low_addr=rx_desc[cur].low_addr;
 			hi_addr=rx_desc[cur].hi_addr;
@@ -290,8 +298,8 @@ void int_handler_i8254x()
 		}
 	}
 	i8254x->rx_cur=cur;
-	write_i8254x(i8254x,RDT_REG,old_cur);
-	printk("out ... \n");
+	//write_i8254x(i8254x,RDT_REG,old_cur);
+	//printk("out ... \n");
 exit:
 	enable_irq_line(i8254x->irq_line);
 	ENABLE_PREEMPTION
@@ -302,6 +310,9 @@ exit:
 
 void testx()
 {
+	int index=0;
+	int found=0;
+	int i;
 	t_i8254x* i8254x;
 	struct t_processor_reg processor_reg;
 	u16 cur;
@@ -316,16 +327,22 @@ void testx()
 	t_data_sckt_buf* data_sckt_buf;
 	char* data_buffer;
 
-		i8254x=system.network_desc->dev;
-		cur=i8254x->rx_cur;
-		rx_desc=i8254x->rx_desc;
-		while(rx_desc[cur].status & 0x1)
+	i8254x=system.network_desc->dev;
+	cur=i8254x->rx_cur;
+	rx_desc=i8254x->rx_desc;
+	//while(rx_desc[cur].status & 0x1)
+	for (i=0;i<NUM_RX_DESC;i++)
+	{
+		if (rx_desc[i].status & 0x1)
 		{
+			found=1;
+			index++;
+			printk("flush \n");
 			//I use 32 bit addressing
 			low_addr=rx_desc[cur].low_addr;
 			hi_addr=rx_desc[cur].hi_addr;
 			frame_addr=FROM_PHY_TO_VIRT(low_addr);
-			frame_len=rx_desc[cur].length;
+			frame_len=rx_desc[i].length;
 
 			data_sckt_buf=alloc_void_sckt();
 			data_sckt_buf->mac_hdr=frame_addr;
@@ -333,21 +350,29 @@ void testx()
 			data_sckt_buf->data_len=frame_len;
 
 			data_buffer=kmalloc(MTU_ETH);
-			rx_desc[cur].hi_addr=0;
-			rx_desc[cur].low_addr=FROM_VIRT_TO_PHY((u32)data_buffer);
-			rx_desc[cur].status=0;
-			rx_desc[cur].length=0;
-			rx_desc[cur].checksum=0;
-			rx_desc[cur].errors=0;
-			rx_desc[cur].special=0;
+			rx_desc[i].hi_addr=0;
+			rx_desc[i].low_addr=FROM_VIRT_TO_PHY((u32)data_buffer);
+			rx_desc[i].status=0;
+			rx_desc[i].length=0;
+			rx_desc[i].checksum=0;
+			rx_desc[i].errors=0;
+			rx_desc[i].special=0;
 
 			enqueue_sckt(system.network_desc->rx_queue,data_sckt_buf);
-			rx_desc[cur].status=0;
-			old_cur=cur;
-			cur =(cur + 1) % NUM_RX_DESC;
+			rx_desc[i].status=0;
+			//old_cur=i;
+			//cur =(cur + 1) % NUM_RX_DESC;
 		}
-	i8254x->rx_cur=cur;
-	write_i8254x(i8254x,RDT_REG,old_cur);
+	}
+	if (found==1)
+	{
+		if (index==5)
+		{
+			printk("detected overrun!!!\n");
+		}
+		i8254x->rx_cur=cur;
+		write_i8254x(i8254x,RDT_REG,0);
+	}
 }
 
 void send_packet_i8254x(t_i8254x* i8254x,void* frame_addr,u16 frame_len)
