@@ -256,7 +256,7 @@ void int_handler_i8254x()
 		printk("alert!!!!! \n");
 		//rx_desc=i8254x->rx_desc;
 		//testx();
-		rx_init_i8254x(i8254x);
+		//rx_init_i8254x(i8254x);
 	}
 
 	if (status & ICR_LSC)
@@ -301,7 +301,7 @@ void int_handler_i8254x()
 			cur =(cur + 1) % NUM_RX_DESC;
 		}
 		i8254x->rx_cur=cur;
-		write_i8254x(i8254x,RDT_REG,old_cur);
+		write_i8254x(i8254x,RDT_REG,old_cur);//????
 	}
 	//i8254x->rx_cur=cur;
 	//write_i8254x(i8254x,RDT_REG,old_cur);
