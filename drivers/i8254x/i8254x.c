@@ -186,7 +186,8 @@ t_i8254x* init_8254x()
 	rx_init_i8254x(i8254x);
 	tx_init_i8254x(i8254x);
 
-	write_i8254x(i8254x,REG_IMS,(IMS_RXT0 || IMS_RXO));
+	write_i8254x(i8254x,REG_IMS,(IMS_RXT0 | IMS_RXO));
+	//write_i8254x(i8254x,REG_IMS,(IMS_RXT0));
 	read_i8254x(i8254x,REG_ICR);
 	return i8254x;
 }
@@ -220,6 +221,7 @@ void int_handler_i8254x()
 	EOI_TO_MASTER_PIC
 //	STI occhio!!!!
 
+	printk("in ... \n");
 	status=read_i8254x(i8254x,REG_ICR);
 	if (status & ICR_LSC)
 	{
@@ -263,6 +265,7 @@ void int_handler_i8254x()
 	}
 	i8254x->rx_cur=cur;
 	write_i8254x(i8254x,RDT_REG,old_cur);
+	printk("out ... \n");
 	enable_irq_line(i8254x->irq_line);
 	ENABLE_PREEMPTION
 	EXIT_INT_HANDLER(0,processor_reg)

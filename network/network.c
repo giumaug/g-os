@@ -45,12 +45,18 @@ void equeue_packet(t_network_desc* network_desc)
 
 void dequeue_packet(t_network_desc* network_desc)
 {
+	int i=0;
 	//t_sckt_buf_desc* sckt_buf_desc;
 	t_data_sckt_buf* data_sckt_buf;
 
 	while ((data_sckt_buf=dequeue_sckt(network_desc->rx_queue))!=NULL)
 	{	
 		rcv_packet_mac(data_sckt_buf);
+		i++;
+	}
+	if (i>0)
+	{
+		printk("dequeue p=%d \n",i);
 	}
 }
 
