@@ -258,13 +258,15 @@ void int_handler_i8254x()
 		rx_desc=i8254x->rx_desc;
 		int head1=read_i8254x(i8254x,RHD_REG);
 		int tail1=read_i8254x(i8254x,RDT_REG);
+		int tmp=read_eeprom_i8254x(i8254x,2);
 		int s=0;
 		for (s=0;s<NUM_RX_DESC;s++)
 		{
-			printk("val=%d \n",rx_desc[s].status);
+			//printk("val=%d \n",rx_desc[s].status);
 		}
 		printk("head=%d \n",head1);
 		printk("tail=%d \n",tail1);
+		while(1);
 		if (head1==tail1)
 		{
 			printk("!!!\n");
@@ -285,10 +287,11 @@ void int_handler_i8254x()
 		int s=0;
 		for (s=0;s<NUM_RX_DESC;s++)
 		{
-			printk("-----------val=%d \n",rx_desc[s].status);
+			//printk("-----------val=%d \n",rx_desc[s].status);
 		}
 		printk("head=%d \n",head1);
 		printk("tail=%d \n",tail1);
+		while(1);
 		if (head1==tail1)
 		{
 			printk("!!!\n");
