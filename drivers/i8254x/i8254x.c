@@ -251,14 +251,13 @@ void int_handler_i8254x()
 	status=read_i8254x(i8254x,REG_ICR);
 	printk("status= %d \n",status);
 
-
 	if (status==0) 
 	{
 		printk("alert!!!!! \n");
 		rx_desc=i8254x->rx_desc;
 		int head1=read_i8254x(i8254x,RHD_REG);
 		int tail1=read_i8254x(i8254x,RDT_REG);
-		int tmp=read_eeprom_i8254x(i8254x,2);
+		//int tmp=read_eeprom_i8254x(i8254x,2);
 		int s=0;
 		for (s=0;s<NUM_RX_DESC;s++)
 		{
@@ -266,7 +265,7 @@ void int_handler_i8254x()
 		}
 		printk("head=%d \n",head1);
 		printk("tail=%d \n",tail1);
-		while(1);
+		//while(1);
 		if (head1==tail1)
 		{
 			printk("!!!\n");
@@ -291,19 +290,21 @@ void int_handler_i8254x()
 		}
 		printk("head=%d \n",head1);
 		printk("tail=%d \n",tail1);
-		while(1);
+		//while(1);
 		if (head1==tail1)
 		{
 			printk("!!!\n");
 		}
 		//testx();
 	}
-	else if (status & ICR_RXT0)
+	else if ((status & ICR_RXT0))
 	{
 		cur=i8254x->rx_cur;
 		rx_desc=i8254x->rx_desc;
+		printk("sta=%d \n",rx_desc[cur].status);
 		while(rx_desc[cur].status & 0x1)
 		{
+			printk("sta1=%d \n",rx_desc[cur].status);
 			printk("flush from int \n");
 			//I use 32 bit addressing
 			low_addr=rx_desc[cur].low_addr;
@@ -329,12 +330,12 @@ void int_handler_i8254x()
 			rx_desc[cur].status=0;
 			old_cur=cur;
 			cur =(cur + 1) % NUM_RX_DESC;
+			//i8254x->rx_cur=cur;
+			//write_i8254x(i8254x,RDT_REG,old_cur);//????
 		}
 		i8254x->rx_cur=cur;
-		write_i8254x(i8254x,RDT_REG,old_cur);//????
+		write_i8254x(i8254x,RDT_REG,old_cur);
 	}
-	//i8254x->rx_cur=cur;
-	//write_i8254x(i8254x,RDT_REG,old_cur);
 	printk("out ... \n");
 exit:
 	enable_irq_line(i8254x->irq_line);
