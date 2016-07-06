@@ -251,6 +251,11 @@ void int_handler_i8254x()
 	status=read_i8254x(i8254x,REG_ICR);
 	printk("status= %d \n",status);
 
+	if (status>128)
+	{
+		printk("stranfe---\n");
+	}
+
 	if (status==0) 
 	{
 		printk("alert!!!!! \n");
@@ -301,10 +306,15 @@ void int_handler_i8254x()
 	{
 		cur=i8254x->rx_cur;
 		rx_desc=i8254x->rx_desc;
-		printk("sta=%d \n",rx_desc[cur].status);
+		if (rx_desc[cur].status==0)
+		{
+			printk("sta=%d \n",rx_desc[cur].status);
+		}
+		old_cur=cur;
 		while(rx_desc[cur].status & 0x1)
 		{
-			printk("sta1=%d \n",rx_desc[cur].status);
+			printk("cur is:%d \n",cur);
+			//printk("sta1=%d \n",rx_desc[cur].status);
 			printk("flush from int \n");
 			//I use 32 bit addressing
 			low_addr=rx_desc[cur].low_addr;

@@ -123,6 +123,8 @@ void int_handler_pit()
 
 	//FLUSH NETWORK QUEUES BEFORE EXITING
 	//testx();
+	int i=0;
+	for (i=0;i<=100000;i++);
 	equeue_packet(system.network_desc);
 	dequeue_packet(system.network_desc);
 //	if ((iter++ % 50)==0)
