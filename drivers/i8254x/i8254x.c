@@ -1,6 +1,8 @@
 #include "drivers/i8254x/i8254x.h"
 #include "virtual_memory/vm.h"
 
+static int counter=0;
+
 static void write_i8254x(t_i8254x* i8254x,u32 address,u32 value)
 {
 	u32 virt_addr;
@@ -258,6 +260,7 @@ void int_handler_i8254x()
 
 	if (status==0) 
 	{
+		counter++;
 		printk("alert!!!!! \n");
 		rx_desc=i8254x->rx_desc;
 		int head1=read_i8254x(i8254x,RHD_REG);
@@ -311,8 +314,11 @@ void int_handler_i8254x()
 			printk("sta=%d \n",rx_desc[cur].status);
 		}
 		old_cur=cur;
+		int ii=0;
+		for (ii=0;ii<=1000000;ii++);
 		while(rx_desc[cur].status & 0x1)
 		{
+			for (ii=0;ii<=1000000;ii++);
 			printk("cur is:%d \n",cur);
 			//printk("sta1=%d \n",rx_desc[cur].status);
 			printk("flush from int \n");
@@ -340,11 +346,11 @@ void int_handler_i8254x()
 			rx_desc[cur].status=0;
 			old_cur=cur;
 			cur =(cur + 1) % NUM_RX_DESC;
-			//i8254x->rx_cur=cur;
-			//write_i8254x(i8254x,RDT_REG,old_cur);//????
+			i8254x->rx_cur=cur;
+			write_i8254x(i8254x,RDT_REG,old_cur);//????
 		}
-		i8254x->rx_cur=cur;
-		write_i8254x(i8254x,RDT_REG,old_cur);
+		//i8254x->rx_cur=cur;
+		//write_i8254x(i8254x,RDT_REG,old_cur);
 	}
 	printk("out ... \n");
 exit:
