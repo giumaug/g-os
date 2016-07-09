@@ -5,8 +5,56 @@
 #define RCV_ACK_PORT_MAP_SIZE 	20
 #define SND_PORT_MAP_SIZE 	20
 
+#define INC_WND(cur,wnd_size,offset)  (cur + offset) % wnd_size
+
 typedef t_data_sckt_buf t_tcp_rcv_buf;
 typedef t_data_sckt_buf s_tcp_snd_buf;
+
+
+typedef struct s_tcp_queue
+{
+	u32 min;
+	u32 max;
+	u32 cur;
+	u32 size;
+	t_tcp_rcv_buf* buf;
+}
+t_tcp_queue
+
+t_tcp_queue tcp_queue_init(u32 size)
+{
+	int i;
+	t_tcp_queue* tcp_queue;
+
+	tcp_queue->buf=kmalloc(sizeof(t_data_sckt_buf*)*size);
+	for (i=0;i<size;i++)
+	{
+		tcp_queue->buf[i]=NULL;
+	}
+	tcp_queue->min=0;
+	tcp_queue->max=0;
+	tcp_queue->cur=0;
+	tcp_queue->size=size;
+	return tcp_queue;
+}
+
+int tcp_queue_add(t_tcp_queue* tcp_queue,t_data_sckt_buf* data_sckt_buf)
+{
+	if (INC_WND(tcp_queue->cur,tcp_queue->size,1))
+	{
+		return -1;
+	}
+	tcp_queue->cur=INC_WND(tcp_queue->cur,tcp_queue->size,1);
+	tcp_queue->buf[tcp_queue->cur]=data_sckt_buf;
+	return 0;
+}
+
+tcp_queue_del(t_tcp_queue* tcp_queue,t_data_sckt_buf* data_sckt_buf)
+{
+-----
+}
+
+
 
 typedef struct s_tcp_conn_desc
 {
