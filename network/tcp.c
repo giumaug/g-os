@@ -1,8 +1,8 @@
-#define TCP_RCV_SIZE -----------------qui
-#define TCP_SND_SIZE
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!IMPORTANTE VERIFICARE CHE LA STRUTTURA DATI COMPLESSIVA SIA SENSATA!!!!!!!!!!!!!!!!!!
 
-#define RCV_PORT_MAP_SIZE 	20
-#define SND_PORT_MAP_SIZE 	20
+#define TCP_RCV_SIZE 
+#define TCP_SND_SIZE
+#define TCP_CONN_MAP_SIZE 	20
 
 #define INC_WND(cur,wnd_size,offset)  (cur + offset) % wnd_size
 
@@ -55,6 +55,44 @@ t_tcp_queue tcp_queue_init(u32 size)
 	return tcp_queue;
 }
 
+void tcp_queue_free(tcp_queue* tcp_queue)
+{
+	kfree(tcp_queue);
+}
+
+t_tcp_conn_desc* tcp_conn_desc_int(u16 rcv_src_port,u16 rcv_dst_port,u16 snd_src_port,u16 snd_dst_port)
+{
+	t_tcp_conn_desc* tcp_conn_desc;
+
+	tcp_conn_desc=kmalloc(sizeof(t_tcp_conn_desc));
+	tcp_conn_desc->rcv_buf=tcp_queue_init(TCP_SND_SIZE);
+	tcp_conn_desc->rcv_buf=tcp_queue_init(TCP_RCV_SIZE);
+	tcp_conn_desc->conn_id=rcv_src_port | (rcv_src_port<<8) | (snd_src_port<<16) | (snd_src_port<<24));
+	return tcp_conn_desc;
+}
+
+void tcp_conn_desc_free(t_tcp_conn_desc* tcp_conn_desc)
+{
+	tcp_queue_free(tcp_conn_desc->rcv_buf);
+	tcp_queue_free(tcp_conn_desc->snd_buf);
+	kfree(tcp_conn_desc);
+}
+
+t_tcp_desc* tcp_init()
+{
+	t_tcp_desc* tcp_desc;
+	
+	tcp_desc=kmalloc(sizeof(t_tcp_desc));
+	tcp_desc->conn_map=dc_hashtable_init(TCP_CONN_MAP_SIZE,tcp_conn_desc_free);
+	return tcp_desc;
+}
+
+void tcp_free(t_tcp_desc* tcp_desc)
+{
+	hashtable_free(tcp_desc->conn_map);
+	kfree(tcp_desc);
+}
+
 int tcp_queue_add(t_tcp_queue* tcp_queue,t_data_sckt_buf* data_sckt_buf,u8 status)
 {
 	if (INC_WND(tcp_queue->cur,tcp_queue->size,1))
@@ -70,33 +108,11 @@ int tcp_queue_add(t_tcp_queue* tcp_queue,t_data_sckt_buf* data_sckt_buf,u8 statu
 	return 0;
 }
 
+
+
 tcp_queue_del(t_tcp_queue* tcp_queue,t_data_sckt_buf* data_sckt_buf)
 {
 -----
-}
-
-void tcp_conn_desc_int(u16 src_port,u16 dst_port)
-{
-	t_tcp_conn_desc tcp_conn_desc;
-
-	tcp_conn_desc=kmalloc(sizeof(t_tcp_conn_desc));
-	tcp_conn_desc->rcv_buf=kmalloc(sizeof(t_data_sckt_buf*)*TCP_RCV_SIZE); //attenzione array di puntatori
-	tcp_conn_desc->snd_buf=kmalloc(sizeof(t_data_sckt_buf*)*TCP_SND_SIZE); //attenzione array di puntatori
-	tcp_conn_desc->src_port=src_port;
-	tcp_conn_desc->dst_port=dst_port;
-}
-
-
-
-//IMPORTANTE VERIFICARE CHE LA STRUTTURA DATI COMPLESSIVA SIA SENSATA!!!!!!!!!!!!!!!!!!
-
-void tcp_init()
-{
-	t_tcp_desc tcp_desc;
-	
-	tcp_desc=kmalloc(sizeof(t_tcp_desc));
-	tcp_desc->rcv_port_map=hashtable_init(RCV_PORT_MAP_SIZE);
-	tcp_desc->snd_port_map=hashtable_init(SND_PORT_MAP_SIZE);
 }
 
 void process_rcv_packet()
