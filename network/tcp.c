@@ -10,10 +10,29 @@ typedef t_data_sckt_buf s_tcp_snd_buf;
 
 typedef struct s_tcp_conn_desc
 {
-	t_tcp_rcv_buf* tcp_rcv_buf;
-	t_tcp_snd_buf* tcp_snd_buf;
+	u16 src_port;
+	u16 dst_port;
+	t_tcp_rcv_buf* rcv_buf;
+	t_tcp_snd_buf* snd_buf;
 }
 t_tcp_conn_desc;
+
+void tcp_conn_desc_int(u16 src_port,u16 dst_port)
+{
+	t_tcp_conn_desc tcp_conn_desc;
+
+	tcp_conn_desc=kmalloc(sizeof(t_tcp_conn_desc));
+	tcp_conn_desc->rcv_buf=kmalloc(sizeof(t_data_sckt_buf*)*TCP_RCV_SIZE); //attenzione array di puntatori
+	tcp_conn_desc->snd_buf=kmalloc(sizeof(t_data_sckt_buf*)*TCP_SND_SIZE); //attenzione array di puntatori
+	tcp_conn_desc->src_port=src_port;
+	tcp_conn_desc->dst_port=dst_port;
+}
+
+
+
+//IMPORTANTE VERIFICARE CHE LA STRUTTURA DATI COMPLESSIVA SIA SENSATA!!!!!!!!!!!!!!!!!!
+
+
 
 typedef struct s_tcp_desc
 {
