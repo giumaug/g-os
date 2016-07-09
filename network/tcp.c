@@ -1,14 +1,17 @@
-#define TCP_RCV_SIZE 
+#define TCP_RCV_SIZE -----------------qui
 #define TCP_SND_SIZE
 
 #define RCV_PORT_MAP_SIZE 	20
-#define RCV_ACK_PORT_MAP_SIZE 	20
 #define SND_PORT_MAP_SIZE 	20
 
 #define INC_WND(cur,wnd_size,offset)  (cur + offset) % wnd_size
 
-typedef t_data_sckt_buf t_tcp_rcv_buf;
-typedef t_data_sckt_buf s_tcp_snd_buf;
+typedef struct s_packet
+{
+	void* val;
+	u8 status;
+}
+t_packet;
 
 
 typedef struct s_tcp_queue
@@ -17,16 +20,30 @@ typedef struct s_tcp_queue
 	u32 max;
 	u32 cur;
 	u32 size;
-	t_tcp_rcv_buf* buf;
+	t_packet* buf;
 }
-t_tcp_queue
+t_tcp_queue;
+
+typedef struct s_tcp_conn_desc
+{
+	u64 conn_id;
+	t_tcp_queue* rcv_buf;
+	t_tcp_queue* snd_buf;
+}
+t_tcp_conn_desc;
+
+typedef struct s_tcp_desc
+{
+	t_hashtable* conn_map;
+}
+t_tcp_desc;
 
 t_tcp_queue tcp_queue_init(u32 size)
 {
 	int i;
 	t_tcp_queue* tcp_queue;
 
-	tcp_queue->buf=kmalloc(sizeof(t_data_sckt_buf*)*size);
+	tcp_queue->buf=kmalloc(sizeof(t_packet*)*size);
 	for (i=0;i<size;i++)
 	{
 		tcp_queue->buf[i]=NULL;
@@ -38,13 +55,17 @@ t_tcp_queue tcp_queue_init(u32 size)
 	return tcp_queue;
 }
 
-int tcp_queue_add(t_tcp_queue* tcp_queue,t_data_sckt_buf* data_sckt_buf)
+int tcp_queue_add(t_tcp_queue* tcp_queue,t_data_sckt_buf* data_sckt_buf,u8 status)
 {
 	if (INC_WND(tcp_queue->cur,tcp_queue->size,1))
 	{
 		return -1;
 	}
 	tcp_queue->cur=INC_WND(tcp_queue->cur,tcp_queue->size,1);
+	
+	t_packet packet=kmalloc(sizeof(t_packet));
+	packet->status=status;
+	packet->val=data_sckt_buf;
 	tcp_queue->buf[tcp_queue->cur]=data_sckt_buf;
 	return 0;
 }
@@ -53,17 +74,6 @@ tcp_queue_del(t_tcp_queue* tcp_queue,t_data_sckt_buf* data_sckt_buf)
 {
 -----
 }
-
-
-
-typedef struct s_tcp_conn_desc
-{
-	u16 src_port;
-	u16 dst_port;
-	t_tcp_rcv_buf* rcv_buf;
-	t_tcp_snd_buf* snd_buf;
-}
-t_tcp_conn_desc;
 
 void tcp_conn_desc_int(u16 src_port,u16 dst_port)
 {
@@ -80,14 +90,6 @@ void tcp_conn_desc_int(u16 src_port,u16 dst_port)
 
 //IMPORTANTE VERIFICARE CHE LA STRUTTURA DATI COMPLESSIVA SIA SENSATA!!!!!!!!!!!!!!!!!!
 
-
-
-typedef struct s_tcp_desc
-{
-	t_hashtable* rcv_port_map;
-}
-t_tcp_desc
-
 void tcp_init()
 {
 	t_tcp_desc tcp_desc;
@@ -95,7 +97,6 @@ void tcp_init()
 	tcp_desc=kmalloc(sizeof(t_tcp_desc));
 	tcp_desc->rcv_port_map=hashtable_init(RCV_PORT_MAP_SIZE);
 	tcp_desc->snd_port_map=hashtable_init(SND_PORT_MAP_SIZE);
-	tcp_desc->rcv_ack_port_map=hashtable_init(RCV_ACK_PORT_MAP_SIZE);
 }
 
 void process_rcv_packet()
@@ -111,6 +112,20 @@ void process_snd_packet()
 
 void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf)
 {
+	char* tcp_row_packet=NULL;
+
+	u32 ack_num=GET_DWORD(tcp_row_packet[8],tcp_row_packet[9],tcp_row_packet[10],tcp_row_packet[11]);
+	is_ack=tcp_row_packet[8] & 0x10;
+
+
+	tcp_queue_add(t_tcp_queue* tcp_queue,t_data_sckt_buf* data_sckt_buf,u8 status)
+
+	----
+
+
+
+	tcp_row_packet=data_sckt_buf->transport_hdr;
+
 	if (ack) 
 	{
 		add ack queue
