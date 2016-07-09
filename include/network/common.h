@@ -17,24 +17,29 @@
 #define TCP_PROTOCOL 	0x6
 #define UDP_PROTOCOL 	0x11
 #define ICMP_PROTOCOL	1
-#define LOCAL_IP	0xAC10F365
-//#define LOCAL_IP        0xAC100665
+//#define LOCAL_IP	0xAC10F365
+#define LOCAL_IP        0xAC100665
 #define LOCAL_NETMASK   0xFFFFFF00
-#define DEFAULT_GW_IP 0xAC10F364
-//#define DEFAULT_GW_IP   0xAC100664
+//#define DEFAULT_GW_IP 0xAC10F364
+#define DEFAULT_GW_IP   0xAC100664
    
 #define LOW_32(data)			(data & 0xFFFF)
 #define HI_32(data)			((data>>16) & 0xFFFF)
 #define LOW_16(data) 			(data & 0xFF)
 #define HI_16(data)  			((data>>8) & 0xFF)
-#define IP_LOW_OCT(data)		(data & 0xFF)
-#define IP_MID_RGT_OCT(data)		(data>>8 & 0xFF)
-#define IP_MID_LFT_OCT(data)		(data>>16 & 0xFF)
-#define IP_HI_OCT(data)			(data>>24 & 0xFF)
-//#define IP_FROM_OCT_TO_LONG(a,b,c,d) 	(d | (c<<8) | (b<<16) | (a<<24))
+//#define IP_LOW_OCT(data)		(data & 0xFF)
+//#define IP_MID_RGT_OCT(data)		(data>>8 & 0xFF)
+//#define IP_MID_LFT_OCT(data)		(data>>16 & 0xFF)
+//#define IP_HI_OCT(data)		(data>>24 & 0xFF)
 #define SWAP_WORD(data)           	(data>>8) | (data<<8)
 #define GET_WORD(a,b)			(b | (a<<8))
 #define GET_DWORD(a,b,c,d)		(d | (c<<8) | (b<<16) | (a<<24))
+#define LOW_OCT_32(data)		(data & 0xFF)
+#define MID_RGT_OCT_32(data)		(data>>8 & 0xFF)
+#define MID_LFT_OCT_32(data)		(data>>16 & 0xFF)
+#define HI_OCT_32(data)			(data>>24 & 0xFF)
+
+
 
 typedef struct s_mac_addr
 {

@@ -137,7 +137,7 @@ int main(int argc, char **argv)
 	send_addr.sin_family = AF_INET;
 	((unsigned char*) &(send_addr.sin_addr.s_addr))[0]=172;
 	((unsigned char*) &(send_addr.sin_addr.s_addr))[1]=16;
-	((unsigned char*) &(send_addr.sin_addr.s_addr))[2]=243;
+	((unsigned char*) &(send_addr.sin_addr.s_addr))[2]=6;
 	((unsigned char*) &(send_addr.sin_addr.s_addr))[3]=1;
 	((unsigned char*) &(send_addr.sin_port))[0]=((unsigned char*) &(port))[1];
 	((unsigned char*) &(send_addr.sin_port))[1]=((unsigned char*) &(port))[0];
