@@ -200,11 +200,16 @@ void free_8254x(t_i8254x* i8254x)
 
 void int_handler_i8254x()
 {
+	U_N_INT(3) u_3;
+	u_3 tail;
+	u32 rx_buf_size;
+	int diff;
 	t_i8254x* i8254x;
 	struct t_processor_reg processor_reg;
 	u16 cur;
 	u16 old_cur;
 	u32 status;
+	u32 head;
 	t_rx_desc_i8254x* rx_desc;
 	char* frame_addr;
 	u32 low_addr;
@@ -226,6 +231,23 @@ void int_handler_i8254x()
 
 	//printk("in ... \n");
 	printk("int num=%d \n",int_count);
+
+	old_cur=7;//i8254x->rx_cur;
+//	tail.val=old_cur+NUM_RX_DESC-1;
+	head=read_i8254x(i8254x,RHD_REG);
+//	u32 tmp=read_i8254x(i8254x,RHD_REG);
+	printk("head is:%d \n",head);
+	printk("tail is:%d \n",old_cur);
+
+	diff=head-old_cur;
+	//abs
+	rx_buf_size=diff * ((diff>0) - (diff<0));
+	if(rx_buf_size<2)
+	{
+		write_i8254x(i8254x,RDT_REG,1);
+		goto exit;
+	}
+
 	status=read_i8254x(i8254x,REG_ICR);
 	if (status & ICR_LSC)
 	{
@@ -267,9 +289,10 @@ void int_handler_i8254x()
 			cur =(cur + 1) % NUM_RX_DESC;
 		}
 	}
-	i8254x->rx_cur=cur;
-	//write_i8254x(i8254x,RDT_REG,old_cur);
-	//printk("out ... \n");
+	//i8254x->rx_cur=cur;
+	//write_i8254x(i8254x,RDT_REG,cur);
+	printk("out ... \n");
+exit:
 	enable_irq_line(i8254x->irq_line);
 	ENABLE_PREEMPTION
 	EXIT_INT_HANDLER(0,processor_reg)
