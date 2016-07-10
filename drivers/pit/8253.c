@@ -122,6 +122,7 @@ void int_handler_pit()
 	}
 
 	//FLUSH NETWORK QUEUES BEFORE EXITING
+	testx();
 	equeue_packet(system.network_desc);
 	dequeue_packet(system.network_desc);
 //	if ((iter++ % 50)==0)

@@ -229,24 +229,24 @@ void int_handler_i8254x()
 	static int int_count=0;
 	int_count++;
 
-	//printk("in ... \n");
+	printk("in ... \n");
 	printk("int num=%d \n",int_count);
 
-	old_cur=7;//i8254x->rx_cur;
-//	tail.val=old_cur+NUM_RX_DESC-1;
-	head=read_i8254x(i8254x,RHD_REG);
-//	u32 tmp=read_i8254x(i8254x,RHD_REG);
-	printk("head is:%d \n",head);
-	printk("tail is:%d \n",old_cur);
-
-	diff=head-old_cur;
-	//abs
-	rx_buf_size=diff * ((diff>0) - (diff<0));
-	if(rx_buf_size<2)
-	{
-		write_i8254x(i8254x,RDT_REG,1);
-		goto exit;
-	}
+//	old_cur=7;//i8254x->rx_cur;
+//	//tail.val=old_cur+NUM_RX_DESC-1;
+//	head=read_i8254x(i8254x,RHD_REG);
+//	//u32 tmp=read_i8254x(i8254x,RHD_REG);
+//	printk("head is:%d \n",head);
+//	printk("tail is:%d \n",old_cur);
+//
+//	diff=head-old_cur;
+//	//abs
+//	rx_buf_size=diff * ((diff>0) - (diff<0));
+//	if(rx_buf_size<2)
+//	{
+//		write_i8254x(i8254x,RDT_REG,1);
+//		goto exit;
+//	}
 
 	status=read_i8254x(i8254x,REG_ICR);
 	if (status & ICR_LSC)
@@ -289,13 +289,65 @@ void int_handler_i8254x()
 			cur =(cur + 1) % NUM_RX_DESC;
 		}
 	}
-	//i8254x->rx_cur=cur;
-	//write_i8254x(i8254x,RDT_REG,cur);
+	i8254x->rx_cur=cur;
+	write_i8254x(i8254x,RDT_REG,old_cur);
 	printk("out ... \n");
 exit:
 	enable_irq_line(i8254x->irq_line);
 	ENABLE_PREEMPTION
 	EXIT_INT_HANDLER(0,processor_reg)
+}
+
+
+
+void testx()
+{
+	t_i8254x* i8254x;
+	struct t_processor_reg processor_reg;
+	u16 cur;
+	u16 old_cur;
+	u32 status;
+	u32 head;
+	t_rx_desc_i8254x* rx_desc;
+	char* frame_addr;
+	u32 low_addr;
+	u32 hi_addr;
+	u16 frame_len;
+	t_data_sckt_buf* data_sckt_buf;
+	char* data_buffer;
+
+		i8254x=system.network_desc->dev;
+		cur=i8254x->rx_cur;
+		rx_desc=i8254x->rx_desc;
+		while(rx_desc[cur].status & 0x1)
+		{
+			//I use 32 bit addressing
+			low_addr=rx_desc[cur].low_addr;
+			hi_addr=rx_desc[cur].hi_addr;
+			frame_addr=FROM_PHY_TO_VIRT(low_addr);
+			frame_len=rx_desc[cur].length;
+
+			data_sckt_buf=alloc_void_sckt();
+			data_sckt_buf->mac_hdr=frame_addr;
+			data_sckt_buf->data=frame_addr;
+			data_sckt_buf->data_len=frame_len;
+
+			data_buffer=kmalloc(MTU_ETH);
+			rx_desc[cur].hi_addr=0;
+			rx_desc[cur].low_addr=FROM_VIRT_TO_PHY((u32)data_buffer);
+			rx_desc[cur].status=0;
+			rx_desc[cur].length=0;
+			rx_desc[cur].checksum=0;
+			rx_desc[cur].errors=0;
+			rx_desc[cur].special=0;
+
+			enqueue_sckt(system.network_desc->rx_queue,data_sckt_buf);
+			rx_desc[cur].status=0;
+			old_cur=cur;
+			cur =(cur + 1) % NUM_RX_DESC;
+		}
+	i8254x->rx_cur=cur;
+	write_i8254x(i8254x,RDT_REG,old_cur);
 }
 
 void send_packet_i8254x(t_i8254x* i8254x,void* frame_addr,u16 frame_len)

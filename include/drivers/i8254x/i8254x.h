@@ -135,5 +135,6 @@ t_i8254x* init_8254x();
 void free_8254x(t_i8254x* i8254x);
 void int_handler_i8254x();
 void send_packet_i8254x(t_i8254x* i8254x,void* frame_addr,u16 frame_len);
+void testx();
 
 #endif
