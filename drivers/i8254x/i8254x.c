@@ -254,9 +254,22 @@ void int_handler_i8254x()
 	if (status==0) 
 	{
 		printk("alert!!!!! \n");
-		//rx_desc=i8254x->rx_desc;
-		//testx();
-		rx_init_i8254x(i8254x);
+		rx_desc=i8254x->rx_desc;
+		int head1=read_i8254x(i8254x,RHD_REG);
+		int tail1=read_i8254x(i8254x,RDT_REG);
+		int s=0;
+		for (s=0;s<NUM_RX_DESC;s++)
+		{
+			printk("val=%d \n",rx_desc[s].status);
+		}
+		printk("head=%d \n",head1);
+		printk("tail=%d \n",tail1);
+		if (head1==tail1)
+		{
+			printk("!!!\n");
+		}
+		testx();
+		//rx_init_i8254x(i8254x);
 	}
 
 	if (status & ICR_LSC)
@@ -266,6 +279,19 @@ void int_handler_i8254x()
 	else if(status & ICR_RXO)
 	{
 		printk("overrun!!!! \n");
+		int head1=read_i8254x(i8254x,RHD_REG);
+		int tail1=read_i8254x(i8254x,RDT_REG);
+		int s=0;
+		for (s=0;s<NUM_RX_DESC;s++)
+		{
+			printk("val=%d \n",rx_desc[s].status);
+		}
+		printk("head=%d \n",head1);
+		printk("tail=%d \n",tail1);
+		if (head1==tail1)
+		{
+			printk("!!!\n");
+		}
 		//testx();
 	}
 	else if (status & ICR_RXT0)
