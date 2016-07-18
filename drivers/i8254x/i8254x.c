@@ -254,8 +254,9 @@ void int_handler_i8254x()
 	if (status==0) 
 	{
 		printk("alert!!!!! \n");
-		rx_desc=i8254x->rx_desc;
-		testx();
+		//rx_desc=i8254x->rx_desc;
+		//testx();
+		rx_init_i8254x(i8254x);
 	}
 
 	if (status & ICR_LSC)
@@ -265,7 +266,7 @@ void int_handler_i8254x()
 	else if(status & ICR_RXO)
 	{
 		printk("overrun!!!! \n");
-		testx();
+		//testx();
 	}
 	else if (status & ICR_RXT0)
 	{
@@ -369,15 +370,14 @@ void testx()
 			//cur =(cur + 1) % NUM_RX_DESC;
 		}
 	}
-	if (found==1)
+	i8254x->rx_cur=0;
+	write_i8254x(i8254x,RHD_REG,0);
+	write_i8254x(i8254x,RDT_REG,NUM_RX_DESC-1);
+	int head1=read_i8254x(i8254x,RHD_REG);
+	int tail1=read_i8254x(i8254x,RDT_REG);
+	if (head1==tail1)
 	{
-		if (index==5)
-		{
-			printk("detected overrun!!!\n");
-		}
-		i8254x->rx_cur=0;
-		write_i8254x(i8254x,RHD_REG,0);
-		write_i8254x(i8254x,RDT_REG,NUM_RX_DESC-1);
+		printk("!!!\n");
 	}
 }
 
