@@ -249,6 +249,7 @@ void int_handler_i8254x()
 //	}
 
 	status=read_i8254x(i8254x,REG_ICR);
+	printk("status= %d \n",status);
 
 
 	if (status==0) 
@@ -268,7 +269,7 @@ void int_handler_i8254x()
 		{
 			printk("!!!\n");
 		}
-		testx();
+		//testx();
 		//rx_init_i8254x(i8254x);
 	}
 
@@ -284,7 +285,7 @@ void int_handler_i8254x()
 		int s=0;
 		for (s=0;s<NUM_RX_DESC;s++)
 		{
-			printk("val=%d \n",rx_desc[s].status);
+			printk("-----------val=%d \n",rx_desc[s].status);
 		}
 		printk("head=%d \n",head1);
 		printk("tail=%d \n",tail1);
