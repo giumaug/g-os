@@ -101,13 +101,11 @@ void rcv_packet_ip4(t_data_sckt_buf* data_sckt_buf)
 		}
 		else if(ip_row_packet[9]==ICMP_PROTOCOL)
 		{
-			printk("icmp received.... \n");
 			free_sckt(data_sckt_buf);
 		}
 	}
 	else 
 	{
-		printk("strange packet received... \n");
 		free_sckt(data_sckt_buf);
 	}
 }

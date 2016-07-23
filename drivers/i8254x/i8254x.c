@@ -24,7 +24,7 @@ static start_link_i8254x(t_i8254x* i8254x);
 
 static u32 read_i8254x(t_i8254x* i8254x,u32 address)
 {
-	u32 val=0;
+	u32 val=22;
 	u32 virt_addr;
 
 	if (i8254x->bar_type==0)
@@ -53,8 +53,6 @@ static u16 read_eeprom_i8254x(t_i8254x* i8254x,u8 addr)
 static void read_mac_i8254x(t_i8254x* i8254x)
 {
 	u16 tmp;
-
-	//tmp=read_i8254x(i8254x,0x5400);
 
 	tmp=read_eeprom_i8254x(i8254x,2);	
 	i8254x->mac_addr.lo=(tmp>>8) | (tmp<<8);
@@ -170,8 +168,6 @@ t_i8254x* init_8254x()
 		CURRENT_PROCESS_CONTEXT(current_process_context);
 		map_vm_mem(current_process_context->page_dir,I8254X_VIRT_BAR0_MEM,(((u32) (bar0)) & 0xFFFFFFF0),I8254X_VIRT_BAR0_MEM_SIZE,3);
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 
-//		map_vm_mem(system.master_page_dir,I8254X_VIRT_BAR0_MEM,(((u32) (bar0)) & 0xFFFFFFF0),I8254X_VIRT_BAR0_MEM_SIZE,3);
-//		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) system.master_page_dir))) 
 	}
 
 	i8254x->irq_line=read_pci_config_word(I8254X_BUS,I8254X_SLOT,I8254X_FUNC,I8254X_IRQ_LINE-3) & 0xFF;
@@ -189,29 +185,22 @@ t_i8254x* init_8254x()
 	tx_init_i8254x(i8254x);
 
 	write_i8254x(i8254x,REG_IMS,(IMS_RXT0 | IMS_RXO));
-	//write_i8254x(i8254x,REG_IMS,(IMS_RXT0));
 	read_i8254x(i8254x,REG_ICR);
 	return i8254x;
 }
 
 void free_8254x(t_i8254x* i8254x)
 {
-    //need to release all buffers
+	//need to release all buffers
 	kfree(i8254x);
 }
 
 void int_handler_i8254x()
 {
-	U_N_INT(3) u_3;
-	u_3 tail;
-	u32 rx_buf_size;
-	int diff;
 	t_i8254x* i8254x;
-	struct t_processor_reg processor_reg;
 	u16 cur;
 	u16 old_cur;
 	u32 status;
-	u32 head;
 	t_rx_desc_i8254x* rx_desc;
 	char* frame_addr;
 	u32 low_addr;
@@ -219,6 +208,7 @@ void int_handler_i8254x()
 	u16 frame_len;
 	t_data_sckt_buf* data_sckt_buf;
 	char* data_buffer;
+	struct t_processor_reg processor_reg;
 
 	SAVE_PROCESSOR_REG
 	i8254x=system.network_desc->dev;
@@ -226,62 +216,9 @@ void int_handler_i8254x()
 	DISABLE_PREEMPTION
 	EOI_TO_SLAVE_PIC
 	EOI_TO_MASTER_PIC
-//	STI occhio!!!!
-
-	static int int_count=0;
-	int_count++;
-
-	printk("in ... \n");
-	//printk("int num=%d \n",int_count);
-
-//	old_cur=7;//i8254x->rx_cur;
-//	//tail.val=old_cur+NUM_RX_DESC-1;
-//	head=read_i8254x(i8254x,RHD_REG);
-//	//u32 tmp=read_i8254x(i8254x,RHD_REG);
-//	printk("head is:%d \n",head);
-//	printk("tail is:%d \n",old_cur);
-//
-//	diff=head-old_cur;
-//	//abs
-//	rx_buf_size=diff * ((diff>0) - (diff<0));
-//	if(rx_buf_size<2)
-//	{
-//		write_i8254x(i8254x,RDT_REG,1);
-//		goto exit;
-//	}
+	STI
 
 	status=read_i8254x(i8254x,REG_ICR);
-	printk("status= %d \n",status);
-
-	if (status>128)
-	{
-		printk("stranfe---\n");
-	}
-
-	if (status==0) 
-	{
-		counter++;
-		printk("alert!!!!! \n");
-		rx_desc=i8254x->rx_desc;
-		int head1=read_i8254x(i8254x,RHD_REG);
-		int tail1=read_i8254x(i8254x,RDT_REG);
-		//int tmp=read_eeprom_i8254x(i8254x,2);
-		int s=0;
-		for (s=0;s<NUM_RX_DESC;s++)
-		{
-			//printk("val=%d \n",rx_desc[s].status);
-		}
-		printk("head=%d \n",head1);
-		printk("tail=%d \n",tail1);
-		//while(1);
-		if (head1==tail1)
-		{
-			printk("!!!\n");
-		}
-		//testx();
-		//rx_init_i8254x(i8254x);
-	}
-
 	if (status & ICR_LSC)
 	{
 		start_link_i8254x(i8254x);
@@ -289,39 +226,14 @@ void int_handler_i8254x()
 	else if(status & ICR_RXO)
 	{
 		printk("overrun!!!! \n");
-		int head1=read_i8254x(i8254x,RHD_REG);
-		int tail1=read_i8254x(i8254x,RDT_REG);
-		int s=0;
-		for (s=0;s<NUM_RX_DESC;s++)
-		{
-			//printk("-----------val=%d \n",rx_desc[s].status);
-		}
-		printk("head=%d \n",head1);
-		printk("tail=%d \n",tail1);
-		//while(1);
-		if (head1==tail1)
-		{
-			printk("!!!\n");
-		}
-		//testx();
 	}
 	else if ((status & ICR_RXT0))
 	{
 		cur=i8254x->rx_cur;
 		rx_desc=i8254x->rx_desc;
-		if (rx_desc[cur].status==0)
-		{
-			printk("sta=%d \n",rx_desc[cur].status);
-		}
 		old_cur=cur;
-		int ii=0;
-		for (ii=0;ii<=1000000;ii++);
 		while(rx_desc[cur].status & 0x1)
 		{
-			for (ii=0;ii<=1000000;ii++);
-			printk("cur is:%d \n",cur);
-			//printk("sta1=%d \n",rx_desc[cur].status);
-			printk("flush from int \n");
 			//I use 32 bit addressing
 			low_addr=rx_desc[cur].low_addr;
 			hi_addr=rx_desc[cur].hi_addr;
@@ -347,85 +259,13 @@ void int_handler_i8254x()
 			old_cur=cur;
 			cur =(cur + 1) % NUM_RX_DESC;
 			i8254x->rx_cur=cur;
-			write_i8254x(i8254x,RDT_REG,old_cur);//????
+			write_i8254x(i8254x,RDT_REG,old_cur);
 		}
-		//i8254x->rx_cur=cur;
-		//write_i8254x(i8254x,RDT_REG,old_cur);
 	}
-	printk("out ... \n");
 exit:
 	enable_irq_line(i8254x->irq_line);
 	ENABLE_PREEMPTION
 	EXIT_INT_HANDLER(0,processor_reg)
-}
-
-
-
-void testx()
-{
-	int index=0;
-	int found=0;
-	int i;
-	t_i8254x* i8254x;
-	struct t_processor_reg processor_reg;
-	u16 cur;
-	u16 old_cur;
-	u32 status;
-	u32 head;
-	t_rx_desc_i8254x* rx_desc;
-	char* frame_addr;
-	u32 low_addr;
-	u32 hi_addr;
-	u16 frame_len;
-	t_data_sckt_buf* data_sckt_buf;
-	char* data_buffer;
-
-	i8254x=system.network_desc->dev;
-	cur=i8254x->rx_cur;
-	rx_desc=i8254x->rx_desc;
-	//while(rx_desc[cur].status & 0x1)
-	for (i=0;i<NUM_RX_DESC;i++)
-	{
-		if (rx_desc[i].status & 0x1)
-		{
-			found=1;
-			index++;
-			printk("flush \n");
-			//I use 32 bit addressing
-			low_addr=rx_desc[cur].low_addr;
-			hi_addr=rx_desc[cur].hi_addr;
-			frame_addr=FROM_PHY_TO_VIRT(low_addr);
-			frame_len=rx_desc[i].length;
-
-			data_sckt_buf=alloc_void_sckt();
-			data_sckt_buf->mac_hdr=frame_addr;
-			data_sckt_buf->data=frame_addr;
-			data_sckt_buf->data_len=frame_len;
-
-			data_buffer=kmalloc(MTU_ETH);
-			rx_desc[i].hi_addr=0;
-			rx_desc[i].low_addr=FROM_VIRT_TO_PHY((u32)data_buffer);
-			rx_desc[i].status=0;
-			rx_desc[i].length=0;
-			rx_desc[i].checksum=0;
-			rx_desc[i].errors=0;
-			rx_desc[i].special=0;
-
-			enqueue_sckt(system.network_desc->rx_queue,data_sckt_buf);
-			rx_desc[i].status=0;
-			//old_cur=i;
-			//cur =(cur + 1) % NUM_RX_DESC;
-		}
-	}
-	i8254x->rx_cur=0;
-	write_i8254x(i8254x,RHD_REG,0);
-	write_i8254x(i8254x,RDT_REG,NUM_RX_DESC-1);
-	int head1=read_i8254x(i8254x,RHD_REG);
-	int tail1=read_i8254x(i8254x,RDT_REG);
-	if (head1==tail1)
-	{
-		printk("!!!\n");
-	}
 }
 
 void send_packet_i8254x(t_i8254x* i8254x,void* frame_addr,u16 frame_len)
@@ -451,30 +291,4 @@ void send_packet_i8254x(t_i8254x* i8254x,void* frame_addr,u16 frame_len)
 	i8254x->tx_cur = (cur + 1) % NUM_TX_DESC;	
 	write_i8254x(i8254x,TDT_REG,i8254x->tx_cur);
 	//DON'T WAIT TO AVOID RACE WITH INTERRUPT HANDLER?????
-	long i=0;
-//	printk("in... \n");
-//	for (i=0;i<=1000000000;i++)
-//	{
-//		if (i==99) 
-//		{
-//			printk("tt \n");
-//		}
-//	}
-//	printk("out... \n");
-	//while(!(tx_desc[cur].status & 0xff));
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

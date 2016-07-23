@@ -31,8 +31,7 @@ int main(int _argc, char **_argv)
   	serveraddr.sin_family = AF_INET;
   	serveraddr.sin_addr.s_addr = INADDR_ANY;
 	((unsigned char*) &(serveraddr.sin_port))[0]=((unsigned char*) &(port))[1];
-	((unsigned char*) &(
-serveraddr.sin_port))[1]=((unsigned char*) &(port))[0];
+	((unsigned char*) &(serveraddr.sin_port))[1]=((unsigned char*) &(port))[0];
 
 	sockfd = socket(AF_INET, SOCK_DGRAM, 0);
   	if (bind(sockfd, (struct sockaddr *) &serveraddr, sizeof(serveraddr)) < 0) {

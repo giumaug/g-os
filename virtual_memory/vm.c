@@ -78,11 +78,20 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 	SAVE_IF_STATUS
 	CLI
 	child_page_dir=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
-	
 	buddy_clean_mem(child_page_dir);
-	map_vm_mem(child_page_dir,0,0,0x100000,3); 
-	map_vm_mem(child_page_dir,(KERNEL_STACK-KERNEL_STACK_SIZE),kernel_stack_addr,KERNEL_STACK_SIZE,3);
+	//map_vm_mem(child_page_dir,0,0,0x100000,3);
+	child_page_table=buddy_alloc_page(system.buddy_desc,0x1000);
+	buddy_clean_mem(child_page_table);
+	//ENABLE TO ALL PAGE DIR TO MANAGE PAGE DIR WITH PAGE TABLE WITH DIFFERENT PRIVILEGES
+	((unsigned int*)child_page_dir)[0]=FROM_VIRT_TO_PHY((unsigned int)child_page_table) | 7;
 
+	parent_page_table=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*)parent_page_dir)[0]));	
+	for (j=0;j<256;j++)
+	{	
+		child_page_table[j] = parent_page_table[j];
+	}
+
+	map_vm_mem(child_page_dir,(KERNEL_STACK-KERNEL_STACK_SIZE),kernel_stack_addr,KERNEL_STACK_SIZE,3);
 	if (process_type==USERSPACE_PROCESS)
 	{
 		parent_page_table=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*)parent_page_dir)[0]));
