@@ -14,6 +14,7 @@ t_network_desc* network_init()
 	network_desc->default_gw_ip=DEFAULT_GW_IP;
 	network_desc->socket_desc=socket_desc_init();
 	arp_init();
+	network_desc->tcp_desc=tcp_init();
 	return network_desc;
 }
 
@@ -23,6 +24,7 @@ void network_free(t_network_desc* network_desc)
 	sckt_buf_desc_free(network_desc->rx_queue);
 	free_8254x(network_desc->dev);
 	socket_desc_free(network_desc->socket_desc);
+	tcp_free(network_desc->tcp_desc);
 	kfree(network_desc);
 }
 

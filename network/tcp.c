@@ -5,6 +5,7 @@
 #define TCP_CONN_MAP_SIZE 	20
 
 #define INC_WND(cur,wnd_size,offset)  (cur + offset) % wnd_size
+#define SLOT_WND (cur) (cur) % wnd_size
 
 typedef struct s_packet
 {
@@ -26,9 +27,10 @@ t_tcp_queue;
 
 typedef struct s_tcp_conn_desc
 {
-	u64 conn_id;
+	u32 conn_id;
 	t_tcp_queue* rcv_buf;
 	t_tcp_queue* snd_buf;
+	u32 ack_seq_num;
 }
 t_tcp_conn_desc;
 
@@ -60,14 +62,14 @@ void tcp_queue_free(tcp_queue* tcp_queue)
 	kfree(tcp_queue);
 }
 
-t_tcp_conn_desc* tcp_conn_desc_int(u16 rcv_src_port,u16 rcv_dst_port,u16 snd_src_port,u16 snd_dst_port)
+t_tcp_conn_desc* tcp_conn_desc_int(u16 src_port,u16 dst_port)
 {
 	t_tcp_conn_desc* tcp_conn_desc;
 
 	tcp_conn_desc=kmalloc(sizeof(t_tcp_conn_desc));
-	tcp_conn_desc->rcv_buf=tcp_queue_init(TCP_SND_SIZE);
 	tcp_conn_desc->rcv_buf=tcp_queue_init(TCP_RCV_SIZE);
-	tcp_conn_desc->conn_id=rcv_src_port | (rcv_src_port<<8) | (snd_src_port<<16) | (snd_src_port<<24));
+	tcp_conn_desc->snd_buf=tcp_queue_init(TCP_SND_SIZE);
+	tcp_conn_desc->conn_id=src_port | (dst_port<<16);
 	return tcp_conn_desc;
 }
 
@@ -93,18 +95,19 @@ void tcp_free(t_tcp_desc* tcp_desc)
 	kfree(tcp_desc);
 }
 
-int tcp_queue_add(t_tcp_queue* tcp_queue,t_data_sckt_buf* data_sckt_buf,u8 status)
+int tcp_queue_add(t_tcp_queue* tcp_queue,u32 seq_num,t_data_sckt_buf* data_sckt_buf,u8 status)
 {
-	if (INC_WND(tcp_queue->cur,tcp_queue->size,1))
+	u32 cur;
+
+	cur=SLOT_WND(seq_num);
+	if (cur<tcp_queue->min || cur>tcp_queue->max)
 	{
 		return -1;
 	}
-	tcp_queue->cur=INC_WND(tcp_queue->cur,tcp_queue->size,1);
-	
 	t_packet packet=kmalloc(sizeof(t_packet));
 	packet->status=status;
 	packet->val=data_sckt_buf;
-	tcp_queue->buf[tcp_queue->cur]=data_sckt_buf;
+	tcp_queue->buf[cur]=data_sckt_buf;
 	return 0;
 }
 
@@ -128,27 +131,67 @@ void process_snd_packet()
 
 void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf)
 {
+	t_tcp_desc* tcp_desc=NULL;;
+	t_tcp_conn_desc* tcp_conn_desc=NULL;
 	char* tcp_row_packet=NULL;
+	u16 src_port;
+	u16 sdst_port;
+	u32 conn_id;
+	u32 seq_num;
 
-	u32 ack_num=GET_DWORD(tcp_row_packet[8],tcp_row_packet[9],tcp_row_packet[10],tcp_row_packet[11]);
-	is_ack=tcp_row_packet[8] & 0x10;
-
-
-	tcp_queue_add(t_tcp_queue* tcp_queue,t_data_sckt_buf* data_sckt_buf,u8 status)
-
-	----
-
-
-
+	tcp_desc=system.network_desc->tcp_desc;
 	tcp_row_packet=data_sckt_buf->transport_hdr;
-
-	if (ack) 
+	src_port=GET_WORD(tcp_row_packet[0],tcp_row_packet[1]);
+	dst_port=GET_WORD(tcp_row_packet[2],tcp_row_packet[3]);
+	conn_id=dst_port | (src_port<<16);
+	tcp_conn_desc=hashtable_get(tcp_desc->conn_map,conn_id);
+	if (tcp_conn_desc==NULL) 
 	{
-		add ack queue
+		return NULL;
 	}
-	else if (packet data)
+	seq_num=GET_DWORD(tcp_row_packet[4],tcp_row_packet[5],tcp_row_packet[6],tcp_row_packet[7]);		
+	tcp_queue_add(tcp_conn_desc->rcv_buf,seq_num,data_sckt_buf,0);???
+	
+	t_tcp_queue* tcp_queue=tcp_conn_desc->rcv_buf;
+	u8 check_queue=1;
+	prv_seq_num=seq_num-1;
+	nxt_seq_num=0;
+	while(1)
 	{
-		add rcv queue
+		index=SLOT_WND(prv_seq_num);
+		if (index<tcp_queue->min)
+		{
+			break;
+		}
+		packet=tcp_queue->buf[index];
+		if (packet==NULL || packet->status!=1)
+		{
+			break;
+		}
+		prv_seq_num--;
+	}
+	if (SLOT_WND(prv_seq_num+1)==tcp_queue->min)
+	{
+		nxt_seq_num=seq_num+1;
+		while (1)
+		{
+			index=SLOT_WND(nxt_seq_num);
+			if (index<tcp_queue->min)
+			{
+				break;
+			}
+			packet=tcp_queue->buf[index];
+			if (packet==NULL || packet->status!=1)
+			{
+				break;
+			}
+			nxt_seq_num++;
+		}
+	}
+	if (nxt_seq_num!=0)
+	{
+		tcp_conn_desc->ack_seq_num=nxt_seq_num;//next to ack
+		tcp_conn_desc->min=
 	}
 }
 
