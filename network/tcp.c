@@ -95,24 +95,6 @@ void tcp_free(t_tcp_desc* tcp_desc)
 	kfree(tcp_desc);
 }
 
-int tcp_queue_add(t_tcp_queue* tcp_queue,u32 seq_num,t_data_sckt_buf* data_sckt_buf,u8 status)
-{
-	u32 cur;
-
-	cur=SLOT_WND(seq_num);
-	if (cur<tcp_queue->min || cur>tcp_queue->max)
-	{
-		return -1;
-	}
-	t_packet packet=kmalloc(sizeof(t_packet));
-	packet->status=status;
-	packet->val=data_sckt_buf;
-	tcp_queue->buf[cur]=data_sckt_buf;
-	return 0;
-}
-
-
-
 tcp_queue_del(t_tcp_queue* tcp_queue,t_data_sckt_buf* data_sckt_buf)
 {
 -----
@@ -147,12 +129,15 @@ static int paket_in_window(min,max,index)
 	return 0;
 }
 
-static void update_window_and_ack(t_tcp_queue* tcp_queue)
+static void update_rcv_window_and_ack(t_tcp_queue* tcp_queue)
 {
 	u32 ack_seq_num;
+	u32 min;
+	u32 offset;
 
-	index=tcp_queue->max;
-	while(index!=tcp_queue->max)
+	offset=0;
+	index=tcp_queue->min;
+	while(index!=((tcp_queue->max+1) % TCP_RCV_SIZE))
 	{	
 		packet=tcp_queue->buf[index];
 		if (packet==NULL || packet->status!=1)
@@ -160,15 +145,15 @@ static void update_window_and_ack(t_tcp_queue* tcp_queue)
 			break;
 		}
 		seq_num=GET_DWORD(tcp_row_packet[4],tcp_row_packet[5],tcp_row_packet[6],tcp_row_packet[7]);
-		index=(index+1) % TCP_RCV_SIZE;
+		offset++;
+		index=(tcp_queue->min+offset) % TCP_RCV_SIZE;
 	}
-	if (index > tcp_queue->max) 
+	if (index != tcp_queue->min) 
 	{
 		tcp_conn_desc->ack_seq_num=seq_num+1;//next to ack
-		tcp_conn_desc->min=ack_seq_num=seq_num+1;
-		tcp_conn_desc->max=------------qui okkio approssimazione ==
+		tcp_conn_desc->min=(tcp_queue->min+offset) % TCP_RCV_SIZE;
+		tcp_conn_desc->max=(tcp_queue->max+offset) % TCP_RCV_SIZE;
 	}
-
 }
 
 
@@ -177,13 +162,16 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf)
 	t_tcp_desc* tcp_desc=NULL;;
 	t_tcp_conn_desc* tcp_conn_desc=NULL;
 	char* tcp_row_packet=NULL;
+	char* ip_row_packet=NULL;
 	u16 src_port;
-	u16 sdst_port;
+	u16 dst_port;
 	u32 conn_id;
 	u32 seq_num;
+	u32 data_len;
 
 	tcp_desc=system.network_desc->tcp_desc;
 	tcp_row_packet=data_sckt_buf->transport_hdr;
+	ip_row_packet=data_sckt_buf->network_hdr;
 	src_port=GET_WORD(tcp_row_packet[0],tcp_row_packet[1]);
 	dst_port=GET_WORD(tcp_row_packet[2],tcp_row_packet[3]);
 	conn_id=dst_port | (src_port<<16);
@@ -193,61 +181,21 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf)
 		return NULL;
 	}
 	seq_num=GET_DWORD(tcp_row_packet[4],tcp_row_packet[5],tcp_row_packet[6],tcp_row_packet[7]);
+	t_tcp_queue* tcp_queue=tcp_conn_desc->rcv_buf;
 	index=SLOT_WND(seq_num);
-	t_tcp_queue* tcp_queue=tcp_conn_desc->rcv_buf;
-	
-	if paket_in_window(tcp_queue->min,tcp_queue->max,index)
+
+	ip_len=GET_WORD(ip_row_packet[2],ip_row_packet[3]);
+	data_len=ip_len-HEADER_TCP;
+
+	if paket_in_window(tcp_queue->min,tcp_queue->max,index) && data_len>0)
 	{
-		update_window_and_ack();
+		t_packet packet=kmalloc(sizeof(t_packet));
+		packet->status=status;
+		packet->val=data_sckt_buf;
+		tcp_queue->buf[index]=data_sckt_buf;
+		update_rcv_window_and_ack();
 	}
 
-
-
-
-	
-	tcp_queue_add(tcp_conn_desc->rcv_buf,seq_num,data_sckt_buf,0);???
-	
-	t_tcp_queue* tcp_queue=tcp_conn_desc->rcv_buf;
-	u8 check_queue=1;
-	prv_seq_num=seq_num-1;
-	nxt_seq_num=0;
-	while(1)
-	{
-		index=SLOT_WND(prv_seq_num);
-		if (index<tcp_queue->min)
-		{
-			break;
-		}
-		packet=tcp_queue->buf[index];
-		if (packet==NULL || packet->status!=1)
-		{
-			break;
-		}
-		prv_seq_num--;
-	}
-	if (SLOT_WND(prv_seq_num+1)==tcp_queue->min)
-	{
-		nxt_seq_num=seq_num+1;
-		while (1)
-		{
-			index=SLOT_WND(nxt_seq_num);
-			if (index<tcp_queue->min)
-			{
-				break;
-			}
-			packet=tcp_queue->buf[index];
-			if (packet==NULL || packet->status!=1)
-			{
-				break;
-			}
-			nxt_seq_num++;
-		}
-	}
-	if (nxt_seq_num!=0)
-	{
-		tcp_conn_desc->ack_seq_num=nxt_seq_num;//next to ack
-		tcp_conn_desc->min=
-	}
 }
 
 void snd_packet_tcp(char* data,int data_len........)
