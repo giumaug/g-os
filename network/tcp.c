@@ -198,6 +198,33 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf)
 
 }
 
+
+void rcv_ack()
+{
+	- se terzo ack fuori ordine start fast retrasmission
+        - aggiorno trasmission windows1
+}
+
+void ack_time_out()
+{
+	- start slow start
+	- aggiorno trasmission windows2
+}
+
+void snd_packet()
+{
+	- posso inviare un nuovo pachetto?
+	- aggiorno trasmission window3
+}
+
+void flush_trasmission_window()
+{
+	-e' possibile trasmettere un pacchetto
+		-trasmetti pacchetto
+		-aggiorna tramsission windows4
+}
+
+
 void snd_packet_tcp(char* data,int data_len........)
 {
 	char* tcp_payload;
