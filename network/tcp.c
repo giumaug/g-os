@@ -201,14 +201,34 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf)
 
 void rcv_ack()
 {
-	- se terzo ack fuori ordine start fast retrasmission
-        - aggiorno trasmission windows1
+	if good ack
+	{
+        	if cwnd<ssthresh cwnd+=SMSS                    //slow start SMSS sender maximum segment size (13.8) usiamo valore
+							       // costante 1454=MTU_ETH-HEADER_TCP-HEADER_IP-HEADER_ETH
+		
+		if cwnd>ssthresh cwnd+=SMSS*(SMSS/cwnd)        //congestion avoidance
+	}
+
+	else if third duplicate ack                            //start fast retrasmit
+	{
+
+		while (!good ack received)
+		{
+			ssthresh=max(flight_size/2,2*SMSS)            //flight size=min(cwnd,awnd)
+
+			retrasmit packet whose expecting ack
+
+			cwnd+=SMSS for each ack duplicated ack received
+		}
+		cwnd=ssthresh
+	}
+	update window edges
 }
 
 void ack_time_out()
 {
-	- start slow start
-	- aggiorno trasmission windows2
+	cwnd=SMSS
+	update window edges	
 }
 
 void snd_packet()

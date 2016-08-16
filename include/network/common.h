@@ -12,7 +12,7 @@
 #define HEADER_IP4 20
 #define HEADER_ETH 14
 #define HEADER_UDP 8
-#define HEADER_TCP
+#define HEADER_TCP 20
 #define SOCKET_BUFFER_SIZE 2000
 #define TCP_PROTOCOL 	0x6
 #define UDP_PROTOCOL 	0x11
