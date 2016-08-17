@@ -157,6 +157,25 @@ static void update_rcv_window_and_ack(t_tcp_queue* tcp_queue)
 	}
 }
 
+------------qui tutto copia incolla....
+static void update_snd_window(t_tcp_queue* tcp_queue)
+{
+	index=tcp_queue->min;
+	while(index!=((tcp_queue->max+1) % TCP_RCV_SIZE))
+	{	
+		packet=tcp_queue->buf[index];
+		if (packet==NULL || packet->status!=1)
+		{
+			break;
+		}
+		seq_num=GET_DWORD(tcp_row_packet[4],tcp_row_packet[5],tcp_row_packet[6],tcp_row_packet[7]);
+		offset++;
+		index=(tcp_queue->min+offset) % TCP_RCV_SIZE;
+	}
+	
+}
+
+
 
 void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf)
 {
@@ -207,6 +226,11 @@ void rcv_ack(t_tcp_desc* tcp_desc,u32 ack_seq_num)
 {
 	if (tcp_conn_desc->expected_ack==ack_seq_num)
 	{
+		if (tcp_conn_desc->duplicated_ack>0)
+		{
+			tcp_conn_desc->duplicated_ack=0;
+			tcp_conn_desc->cwnd=tcp_conn_desc->ssthresh;
+		}
 		if (tcp_conn_desc->cwnd<=tcp_conn_desc->ssthresh)
 		{
 			tcp_conn_desc->cwnd+=SMSS;
@@ -215,10 +239,12 @@ void rcv_ack(t_tcp_desc* tcp_desc,u32 ack_seq_num)
 		{
 			tcp_conn_desc->cwnd+=SMSS*(SMSS/tcp_conn_desc->cwnd->cwnd);
 		}
+		update_snd_window(tcp_conn_desc->snd_buf);
 	}
 	else if (++tcp_conn_desc->duplicated_ack==3)
 	{
-		tcp_conn_desc->ssthresh=
+		tcp_conn_desc->ssthresh=max(tcp_conn_desc->flight_size/2,2*SMSS);
+		tcp_conn_desc->cwnd+=SMSS;
 	}
 
 

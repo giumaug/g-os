@@ -1,14 +1,22 @@
-unsigned int pow2(unsigned int x)
+inline unsigned int pow2(unsigned int x)
 {
 	unsigned int ret=1;
 	return ret<<x;
 }
 
-unsigned int log2(unsigned int x)
+inline unsigned int log2(unsigned int x)
 {
 	unsigned int ret;
 	asm ("bsf %1,%0;":"=r"(ret):"r"(x));
 	return ret;
 }
 
-#define MIN(a,b) (((a)<(b))?(a):(b))
+inline u32 min(u32 x,u32 y)
+{
+	return (((x) < (y)) ? (x) : (y));
+}
+
+inline u32 max(u32 x,u32 y)
+{
+	return (((x) > (y)) ? (x) : (y));
+}
