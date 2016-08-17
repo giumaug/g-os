@@ -150,7 +150,8 @@ static void update_rcv_window_and_ack(t_tcp_queue* tcp_queue)
 	}
 	if (index != tcp_queue->min) 
 	{
-		tcp_conn_desc->ack_seq_num=seq_num+1;//next to ack
+		tcp_conn_desc->offered_ack=seq_num+1;//next to ack
+		tcp_conn_desc->expected_ack=
 		tcp_conn_desc->min=(tcp_queue->min+offset) % TCP_RCV_SIZE;
 		tcp_conn_desc->max=(tcp_queue->max+offset) % TCP_RCV_SIZE;
 	}
@@ -167,6 +168,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf)
 	u16 dst_port;
 	u32 conn_id;
 	u32 seq_num;
+	u32 ack_seq_num;
 	u32 data_len;
 
 	tcp_desc=system.network_desc->tcp_desc;
@@ -174,6 +176,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf)
 	ip_row_packet=data_sckt_buf->network_hdr;
 	src_port=GET_WORD(tcp_row_packet[0],tcp_row_packet[1]);
 	dst_port=GET_WORD(tcp_row_packet[2],tcp_row_packet[3]);
+	ack_seq_num=GET_DWORD(tcp_row_packet[8],tcp_row_packet[9],tcp_row_packet[10]tcp_row_packet[11]);
 	conn_id=dst_port | (src_port<<16);
 	tcp_conn_desc=hashtable_get(tcp_desc->conn_map,conn_id);
 	if (tcp_conn_desc==NULL) 
@@ -195,33 +198,51 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf)
 		tcp_queue->buf[index]=data_sckt_buf;
 		update_rcv_window_and_ack();
 	}
+	rcv_ack(ack_seq_num);
 
 }
 
 
-void rcv_ack()
+void rcv_ack(t_tcp_desc* tcp_desc,u32 ack_seq_num)
 {
-	if good ack
+	if (tcp_conn_desc->expected_ack==ack_seq_num)
 	{
-        	if cwnd<ssthresh cwnd+=SMSS                    //slow start SMSS sender maximum segment size (13.8) usiamo valore
-							       // costante 1454=MTU_ETH-HEADER_TCP-HEADER_IP-HEADER_ETH
-		
-		if cwnd>ssthresh cwnd+=SMSS*(SMSS/cwnd)        //congestion avoidance
-	}
-
-	else if third duplicate ack                            //start fast retrasmit
-	{
-
-		while (!good ack received)
+		if (tcp_conn_desc->cwnd<=tcp_conn_desc->ssthresh)
 		{
-			ssthresh=max(flight_size/2,2*SMSS)            //flight size=min(cwnd,awnd)
-
-			retrasmit packet whose expecting ack
-
-			cwnd+=SMSS for each ack duplicated ack received
+			tcp_conn_desc->cwnd+=SMSS;
 		}
-		cwnd=ssthresh
+		else 
+		{
+			tcp_conn_desc->cwnd+=SMSS*(SMSS/tcp_conn_desc->cwnd->cwnd);
+		}
 	}
+	else if (++tcp_conn_desc->duplicated_ack==3)
+	{
+		tcp_conn_desc->ssthresh=
+	}
+
+
+//	if good ack
+//	{
+//        	if cwnd<ssthresh cwnd+=SMSS                    //slow start SMSS sender maximum segment size (13.8) usiamo valore
+//							       // costante 1454=MTU_ETH-HEADER_TCP-HEADER_IP-HEADER_ETH
+//		
+//		if cwnd>ssthresh cwnd+=SMSS*(SMSS/cwnd)        //congestion avoidance
+//	}
+//
+//	else if third duplicate ack                            //start fast retrasmit
+//	{
+//
+//		while (!good ack received)
+//		{
+//			ssthresh=max(flight_size/2,2*SMSS)            //flight size=min(cwnd,awnd)
+//
+//			retrasmit packet signaled by duplicated ack
+//
+//			cwnd+=SMSS for each ack duplicated ack received
+//		}
+//		cwnd=ssthresh
+//	}
 	update window edges
 }
 
