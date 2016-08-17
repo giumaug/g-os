@@ -17,12 +17,13 @@ t_packet;
 
 typedef struct s_tcp_queue
 {
-	u32 rcv_rdy;
-	u32 rcv_min;
-	u32 rcv_max;
+	u32 rdy;
+	u32 min;
+	u32 max;
 	u32 cur;
 	u32 size;
 	char* buf;
+	char* wnd_mask;
 }
 t_tcp_queue;
 
@@ -43,16 +44,22 @@ typedef struct s_tcp_desc
 }
 t_tcp_desc;
 
-t_tcp_queue tcp_queue_init(u32 size)
+t_tcp_queue tcp_queue_init(u32 size,u32 mask_size)
 {
 	int i;
 	t_tcp_queue* tcp_queue;
 
-	tcp_queue->buf=kmalloc(sizeof(t_packet*)*size);
+	tcp_queue->buf=kmalloc(size);
 	for (i=0;i<size;i++)
 	{
 		tcp_queue->buf[i]=NULL;
 	}
+	tcp_queue->wnd_mask=kmalloc(mask_size);
+	for (i=0;i<mask_size;i++)
+	{
+		tcp_queue->wnd_mask[i]=NULL;
+	}
+
 	tcp_queue->rcv_rdy=0;
 	tcp_queue->rcv_min=0;
 	tcp_queue->rcv_max=0;
@@ -267,22 +274,17 @@ void rcv_ack(t_tcp_desc* tcp_desc,u32 ack_seq_num)
 	update_snd_window(tcp_conn_desc->snd_buf);
 }
 
-------------qui tutto copia incolla....
 static void update_snd_window(t_tcp_queue* tcp_queue)
 {
-	index=tcp_queue->min;
-	while(index!=((tcp_queue->max+1) % TCP_RCV_SIZE))
-	{	
-		packet=tcp_queue->buf[index];
-		if (packet==NULL || packet->status!=1)
-		{
-			break;
-		}
-		seq_num=GET_DWORD(tcp_row_packet[4],tcp_row_packet[5],tcp_row_packet[6],tcp_row_packet[7]);
-		offset++;
-		index=(tcp_queue->min+offset) % TCP_RCV_SIZE;
+	while (tcp_queue->wnd_mask[i]!=0 && i<=max)
+	{
+		i++;
 	}
-	
+	if (i>tcp_queue->min)
+	{
+		preparo socket buffer compattando su SMSS
+		
+	}	
 }
 
 void ack_time_out()
