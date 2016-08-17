@@ -17,8 +17,9 @@ t_packet;
 
 typedef struct s_tcp_queue
 {
-	u32 min;
-	u32 max;
+	u32 rcv_rdy;
+	u32 rcv_min;
+	u32 rcv_max;
 	u32 cur;
 	u32 size;
 	char* buf;
@@ -31,6 +32,8 @@ typedef struct s_tcp_conn_desc
 	t_tcp_queue* rcv_buf;
 	t_tcp_queue* snd_buf;
 	u32 ack_seq_num;
+	u32 offered_ack; //ack relativo finestra di ricezione
+	u32 expected_ack; // ack relativo finestra trasmissione
 }
 t_tcp_conn_desc;
 
@@ -50,8 +53,9 @@ t_tcp_queue tcp_queue_init(u32 size)
 	{
 		tcp_queue->buf[i]=NULL;
 	}
-	tcp_queue->min=0;
-	tcp_queue->max=0;
+	tcp_queue->rcv_rdy=0;
+	tcp_queue->rcv_min=0;
+	tcp_queue->rcv_max=0;
 	tcp_queue->cur=0;
 	tcp_queue->size=size;
 	return tcp_queue;
@@ -129,31 +133,32 @@ static int paket_in_window(min,max,index)
 	return 0;
 }
 
+pacc
 static void update_rcv_window_and_ack(t_tcp_queue* tcp_queue)
 {
-	u32 ack_seq_num;-------------qui
+	u32 ack_seq_num;
 	u32 min;
 	u32 offset;
 
 	offset=0;
-	index=tcp_queue->min;
-	while(index!=((tcp_queue->max+1) % TCP_RCV_SIZE))
+	index=tcp_queue->rcv_min;
+	while(index!=((tcp_queue->rcv_max+1) % TCP_RCV_SIZE))
 	{	
 		packet=tcp_queue->buf[index];
-		if (packet==NULL || packet->status!=1)
+		if (tcp_queue->buf[index]==0)
 		{
 			break;
 		}
-		seq_num=GET_DWORD(tcp_row_packet[4],tcp_row_packet[5],tcp_row_packet[6],tcp_row_packet[7]);
+		tcp_queue->rcv_rdy++;
 		offset++;
-		index=(tcp_queue->min+offset) % TCP_RCV_SIZE;
+		index=(tcp_queue->rcv_min+offset) % TCP_RCV_SIZE;
 	}
 	if (index != tcp_queue->min) 
 	{
-		tcp_conn_desc->offered_ack=seq_num+1;//next to ack
-		tcp_conn_desc->expected_ack=
-		tcp_conn_desc->min=(tcp_queue->min+offset) % TCP_RCV_SIZE;
-		tcp_conn_desc->max=(tcp_queue->max+offset) % TCP_RCV_SIZE;
+		tcp_queue->offered_ack=index;
+		tcp_queue->min=(tcp_queue->min+offset) % TCP_RCV_SIZE;
+		tcp_queue->max=(tcp_queue->max+offset) % TCP_RCV_SIZE;
+		tcp_queue->offered_wnd=(tcp_queue->max-tcp_queue->min >=0 ? (tcp_queue->max-tcp_queue->min) : (tcp_queue->min-tcp_queue->max));
 	}
 }
 
@@ -176,7 +181,7 @@ static void update_snd_window(t_tcp_queue* tcp_queue)
 }
 
 
-
+pacchetto duplicato ricopio???????????????
 void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf)
 {
 	t_tcp_desc* tcp_desc=NULL;;
@@ -209,9 +214,9 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf)
 	ip_len=GET_WORD(ip_row_packet[2],ip_row_packet[3]);
 	data_len=ip_len-HEADER_TCP;
 
-	if paket_in_window(tcp_queue->min,tcp_queue->max,index) && data_len>0)
+	if paket_in_window(tcp_queue->rcv_min,tcp_queue->rcv_max,index) && data_len>0)
 	{
-		kmemcpy(tcp_queue->buf,data_sckt_buf->data,data_len);-------qui
+		kmemcpy(tcp_queue->buf,data_sckt_buf->data,data_len);-------sbagliato offset!!!
 		update_rcv_window_and_ack();
 	}
 	rcv_ack(ack_seq_num);
@@ -221,7 +226,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf)
 
 void rcv_ack(t_tcp_desc* tcp_desc,u32 ack_seq_num)
 {
-	if (tcp_conn_desc->expected_ack==ack_seq_num)
+	if (tcp_conn_desc->expected_ack<=ack_seq_num)
 	{
 		if (tcp_conn_desc->duplicated_ack>0)
 		{
