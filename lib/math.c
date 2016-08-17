@@ -11,3 +11,4 @@ unsigned int log2(unsigned int x)
 	return ret;
 }
 
+#define MIN(a,b) (((a)<(b))?(a):(b))
