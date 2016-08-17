@@ -21,7 +21,7 @@ typedef struct s_tcp_queue
 	u32 max;
 	u32 cur;
 	u32 size;
-	t_packet* buf;
+	char* buf;
 }
 t_tcp_queue;
 
@@ -131,7 +131,7 @@ static int paket_in_window(min,max,index)
 
 static void update_rcv_window_and_ack(t_tcp_queue* tcp_queue)
 {
-	u32 ack_seq_num;
+	u32 ack_seq_num;-------------qui
 	u32 min;
 	u32 offset;
 
@@ -211,10 +211,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf)
 
 	if paket_in_window(tcp_queue->min,tcp_queue->max,index) && data_len>0)
 	{
-		t_packet packet=kmalloc(sizeof(t_packet));
-		packet->status=status;
-		packet->val=data_sckt_buf;
-		tcp_queue->buf[index]=data_sckt_buf;
+		kmemcpy(tcp_queue->buf,data_sckt_buf->data,data_len);-------qui
 		update_rcv_window_and_ack();
 	}
 	rcv_ack(ack_seq_num);
