@@ -5,7 +5,7 @@
 #define TCP_CONN_MAP_SIZE 	20
 
 #define INC_WND(cur,wnd_size,offset)  (cur + offset) % wnd_size
-#define SLOT_WND (cur) (cur) % wnd_size
+#define SLOT_WND (cur,wnd_size) (cur % wnd_size
 
 typedef struct s_packet
 {
@@ -22,6 +22,7 @@ typedef struct s_tcp_queue
 	u32 max;
 	u32 cur;
 	u32 size;
+	u32 mask_size;
 	char* buf;
 	char* wnd_mask;
 }
@@ -169,6 +170,7 @@ static void update_rcv_window_and_ack(t_tcp_queue* tcp_queue)
 	}
 }
 
+crc???
 void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf)
 {
 	t_tcp_desc* tcp_desc=NULL;;
@@ -274,16 +276,97 @@ void rcv_ack(t_tcp_desc* tcp_desc,u32 ack_seq_num)
 	update_snd_window(tcp_conn_desc->snd_buf);
 }
 
-static void update_snd_window(t_tcp_queue* tcp_queue)
+static void update_snd_window(t_tcp_queue* tcp_queue,u32 good_ack)
 {
-	while (tcp_queue->wnd_mask[i]!=0 && i<=max)
+	u8 bit_to_ack;
+	u32 word_to_ack;
+	u32 indx;
+
+	if (good_ack!=0)
 	{
-		i++;
+		word_to_ack=(good_ack - tcp_queue->min) / 8;
+		bit_to_ack=(good_ack - tcp_queue->min) / 8;
+		for (i=0;<=word_to_ack;i++)
+		{
+			mask_index=SLOT_WND(tcp_queue->min+i,tcp_queue->mask_size);
+			tcp_queue->wnd_mask[mask_index]=0;	
+		}
+		if (bit_to_ack!=0)
+		{
+			mask_index = SLOT_WND(tcp_queue->min+word_to_ack+1,tcp_queue->mask_size);
+			//bits are not reversed
+			tcp_queue->wnd_mask[mask_index]=~bit_mask_ack;
+		}
+		to_shift = good_ack - tcp_queue->min;
+		tcp_queue->min = tcp_queue->min + to_shift;
+		tcp_queue->max = tcp_queue->min + tcp_conn_desc->cwnd;
 	}
+
+	wnd_r_limit=SLOT_WND(tcp_queue->max+1,tcp_queue->mask_size);
+	indx=SLOT_WND(tcp_queue->min,tcp_queue->mask_size);
+	min_indx=indx=indx;
+
+	while (tcp_queue->wnd_mask[indx] == 0xff && indx != wnd_r_limit)
+	{
+		INC_WND(indx,tcp_queue->mask_size,1);
+	}
+	if (tcp_queue->wnd_mask[indx] != 0)
+	{
+		if (tcp_queue->wnd_mask[indx]==1)
+		{
+			offset=1;
+		}
+		else if (tcp_queue->wnd_mask[indx]==11)
+		{
+			offset=2;
+		}
+		else if (tcp_queue->wnd_mask[indx]==111)
+		{
+			offset=3;
+		}
+		else if (tcp_queue->wnd_mask[indx]==1111)
+		{
+			offset=4;
+		}
+		else if (tcp_queue->wnd_mask[indx]==11111)
+		{
+			offset=5;
+		}
+		else if (tcp_queue->wnd_mask[indx]==111111)
+		{
+			offset=6;
+		}
+		else if (tcp_queue->wnd_mask[indx]==1111111)
+		{
+			offset=7;
+		}
+		INC_WND(indx,tcp_queue->size,offset);
+	}
+
+	if (indx == wnd_r_limit)
+	{
+		return;
+	}
+
+	min=
+
+	if (tcp_queue->cur<indx)
+	{
+		return;
+	}
+	else if (index=<tcp_queue->cur<=)
+	
+	
+
+
+
+
+	
 	if (i>tcp_queue->min)
 	{
 		preparo socket buffer compattando su SMSS
-		
+		marco nuovo stato slot
+		aggiorno timer
 	}	
 }
 
