@@ -6,6 +6,20 @@
 
 #define INC_WND(cur,wnd_size,offset)  (cur + offset) % wnd_size
 #define SLOT_WND (cur,wnd_size) (cur % wnd_size
+#define DATA_IN_WND(min,max,index)				\
+(								\
+	(min <= max) ?						\
+	(							\
+		(index >= min && index <= max) ? 1 : 0		\
+	)							\
+	:							\
+	(							\
+		(index >= max && index <= min) ? 1 : 0		\
+	)							\
+)								\
+
+#define DATA_LF_OUT_WND(min,max,index) ((index < min) ? 1 : 0)
+#define DATA_RH_OUT_WND(min,max,index) ((index > min) ? 1 : 0)
 
 typedef struct s_tcp_snd_queue
 {
@@ -137,25 +151,6 @@ void process_snd_packet()
 
 }
 
-static int data_in_window(min,max,index)
-{
-	if (min <= max)
-	{
-		if (index >= min && index <= max)
-		{
-			return 1;
-		}
-	}
-	else if ( min > max)
-	{
-		if (index >= max && index <= min)
-		{
-			return 1;
-		}
-	}
-	return 0;
-}
-
 static void update_rcv_window_and_ack(t_tcp_queue* tcp_queue)
 {
 	u32 ack_seq_num;
@@ -219,7 +214,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf)
 	ip_len=GET_WORD(ip_row_packet[2],ip_row_packet[3]);
 	data_len=ip_len-HEADER_TCP;
 
-	if (data_in_window(tcp_queue->rcv_min,tcp_queue->rcv_max,index) && data_len>0)
+	if (DATA_IN_WND(tcp_queue->rcv_min,tcp_queue->rcv_max,index) && data_len>0)
 	{
 		low_index=seq_num;
 		hi_index=seq_num+data_len;
@@ -305,10 +300,26 @@ static void update_snd_window(t_tcp_snd_queue* tcp_queue,u32 good_ack)
 		wnd_r_limit=SLOT_WND(tcp_queue->max+1,tcp_queue->mask_size);
 		wnd_l_limit=SLOT_WND(tcp_snd_queue->nxt_snd,tcp_queue->mask_size);
 
-	 	if (tcp_queue->cur <  wnd_l_limit) no data
+	 	if (DATA_LF_OUT_WND(wnd_l_limit,wnd_r_limit,tcp_queue->cur))
+		{
+		 	//no data to send
+			return;
+		}
+		if (DATA_IN_WND(wnd_l_limit,wnd_r_limit,tcp_queue->cur))
+		{	
+			//in window
+			wnd_r_limit=tcp_queue->cur:
+		}
+		//more data than window nothing to do
 
-		if -------qui
-
+		if (tcp_conn_desc->offered_ack==0)
+		{
+			data_to_send=WND_SIZE(wnd_l_limit,wnd_r_limit);
+		}
+		else if (WND_SIZE(wnd_l_limit,wnd_r_limit)>=SMSS)
+		{
+			data_to_send=----------------------------------qui!!!!!!!!!!!!!!!!!11
+		}
 	}
 
 	wnd_r_limit=SLOT_WND(tcp_queue->max+1,tcp_queue->mask_size);
