@@ -15,24 +15,36 @@ typedef struct s_packet
 t_packet;
 
 
-typedef struct s_tcp_queue
+typedef struct s_sldw_buf
 {
-	u32 rdy;
 	u32 min;
 	u32 max;
-	u32 cur;
+	u32 cur; //first slow inside trassmission window free (no packet waiting ack)
 	u32 size;
-	u32 mask_size;
 	char* buf;
-	char* wnd_mask;
 }
-t_tcp_queue;
+t_sldw_buf;
+
+typedef struct s_tcp_snd_queue
+{
+	t_sldw_buf data;
+	u32 nxt_snd;
+}
+t_tcp_snd_queue;
+
+typedef struct s_tcp_rcv_queue
+{
+	t_sldw_buf in_order_data;
+	t_sldw_buf out_order_data;
+	u32 nxt_rcv;
+}
+t_tcp_snd_queue;
 
 typedef struct s_tcp_conn_desc
 {
 	u32 conn_id;
-	t_tcp_queue* rcv_buf;
-	t_tcp_queue* snd_buf;
+	t_tcp_rcv_queue* rcv_queue;
+	t_tcp_snd_queue* snd_queue;
 	u32 ack_seq_num;
 	u32 offered_ack; //ack relativo finestra di ricezione
 	u32 expected_ack; // ack relativo finestra trasmissione
@@ -45,33 +57,58 @@ typedef struct s_tcp_desc
 }
 t_tcp_desc;
 
-t_tcp_queue tcp_queue_init(u32 size,u32 mask_size)
+t_sldw_buf* sldw_buf_init(u32 size,u32 mask_size)
 {
 	int i;
-	t_tcp_queue* tcp_queue;
+	t_sldw_buf* sldw_buf;
 
-	tcp_queue->buf=kmalloc(size);
-	for (i=0;i<size;i++)
-	{
-		tcp_queue->buf[i]=NULL;
-	}
-	tcp_queue->wnd_mask=kmalloc(mask_size);
-	for (i=0;i<mask_size;i++)
-	{
-		tcp_queue->wnd_mask[i]=NULL;
-	}
-
-	tcp_queue->rcv_rdy=0;
-	tcp_queue->rcv_min=0;
-	tcp_queue->rcv_max=0;
-	tcp_queue->cur=0;
-	tcp_queue->size=size;
-	return tcp_queue;
+	sldw_buf=kmalloc(sizeof(t_sldw_buf));
+	sldw_buf->buf=kmalloc(size);
+	sldw_buf->rcv_min=0;
+	sldw_buf->rcv_max=0;
+	sldw_buf->cur=0;
+	sldw_buf->size=size;
+	return sldw_buf;
 }
 
-void tcp_queue_free(tcp_queue* tcp_queue)
+void sldw_buf_free(tcp_queue* tcp_queue)
 {
-	kfree(tcp_queue);
+	kfree(sldw_buf->buf);
+	kfree(sldw_buf);
+}
+
+t_tcp_snd_queue* tcp_snd_queue_init(u32 size)
+{
+	t_tcp_snd_queue* tcp_snd_queue;
+
+	tcp_snd_queue=kmalloc(sizeof(t_tcp_snd_queue));
+	tcp_snd_queue->data=sldw_buf_init(size);
+	tcp_snd_queue->nxt_snd=0;
+	return tcp_snd_queue;
+}
+
+void tcp_snd_queue_free(t_tcp_snd_queue* tcp_snd_queue)
+{
+	sldw_buf_init(tcp_snd_queue->data);
+	kfree(tcp_snd_queue);
+}
+
+t_tcp_rcv_queue* tcp_rcv_queue_init(u32 size)
+{
+	t_tcp_rcv_queue* tcp_rcv_queue;
+
+	tcp_rcv_queue=kmalloc(sizeof(t_tcp_rcv_queue));
+	tcp_rcv_queue->in_order_data=sldw_buf_init(size);
+	tcp_rcv_queue->out_order_data=sldw_buf_init(size);
+	tcp_rcv_queue->nxt_rcv=0;
+	return tcp_rcv_queue;
+}
+
+void tcp_rcv_queue_free(t_tcp_rcv_queue* tcp_rcv_queue)
+{
+	sldw_buf_init(tcp_rcv_queue->in_order_data);
+	sldw_buf_init(tcp_rcv_queue->out_order_data);
+	kfree(tcp_rcv_queue);
 }
 
 t_tcp_conn_desc* tcp_conn_desc_int(u16 src_port,u16 dst_port)
@@ -79,16 +116,16 @@ t_tcp_conn_desc* tcp_conn_desc_int(u16 src_port,u16 dst_port)
 	t_tcp_conn_desc* tcp_conn_desc;
 
 	tcp_conn_desc=kmalloc(sizeof(t_tcp_conn_desc));
-	tcp_conn_desc->rcv_buf=tcp_queue_init(TCP_RCV_SIZE);
-	tcp_conn_desc->snd_buf=tcp_queue_init(TCP_SND_SIZE);
+	tcp_conn_desc->rcv_buf=tcp_rcv_queue_init(TCP_RCV_SIZE);
+	tcp_conn_desc->snd_buf=tcp_snd_queue_init(TCP_SND_SIZE);
 	tcp_conn_desc->conn_id=src_port | (dst_port<<16);
 	return tcp_conn_desc;
 }
 
 void tcp_conn_desc_free(t_tcp_conn_desc* tcp_conn_desc)
 {
-	tcp_queue_free(tcp_conn_desc->rcv_buf);
-	tcp_queue_free(tcp_conn_desc->snd_buf);
+	tcp_rcv_queue_free(tcp_conn_desc->rcv_buf);
+	tcp_snd_queue_free(tcp_conn_desc->snd_buf);
 	kfree(tcp_conn_desc);
 }
 
@@ -122,7 +159,7 @@ void process_snd_packet()
 
 }
 
-static int paket_in_window(min,max,index)
+static int data_in_window(min,max,index)
 {
 	if (min <= max)
 	{
@@ -141,7 +178,6 @@ static int paket_in_window(min,max,index)
 	return 0;
 }
 
-pacc
 static void update_rcv_window_and_ack(t_tcp_queue* tcp_queue)
 {
 	u32 ack_seq_num;
@@ -205,7 +241,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf)
 	ip_len=GET_WORD(ip_row_packet[2],ip_row_packet[3]);
 	data_len=ip_len-HEADER_TCP;
 
-	if paket_in_window(tcp_queue->rcv_min,tcp_queue->rcv_max,index) && data_len>0)
+	if (data_in_window(tcp_queue->rcv_min,tcp_queue->rcv_max,index) && data_len>0)-------------------------------------------------------------------------qui!!!!!!!!!!!1
 	{
 		low_index=seq_num;
 		hi_index=seq_num+data_len;
@@ -278,27 +314,17 @@ void rcv_ack(t_tcp_desc* tcp_desc,u32 ack_seq_num)
 
 static void update_snd_window(t_tcp_queue* tcp_queue,u32 good_ack)
 {
-	u8 bit_to_ack;
 	u32 word_to_ack;
 	u32 indx;
 
 	if (good_ack!=0)
 	{
-		word_to_ack=(good_ack - tcp_queue->min) / 8;
-		bit_to_ack=(good_ack - tcp_queue->min) / 8;
-		for (i=0;<=word_to_ack;i++)
+		word_to_ack = good_ack - tcp_queue->min;
+		if (tcp_queue->cur = good_ack)
 		{
-			mask_index=SLOT_WND(tcp_queue->min+i,tcp_queue->mask_size);
-			tcp_queue->wnd_mask[mask_index]=0;	
+			tcp_queue->cur = 0;
 		}
-		if (bit_to_ack!=0)
-		{
-			mask_index = SLOT_WND(tcp_queue->min+word_to_ack+1,tcp_queue->mask_size);
-			//bits are not reversed
-			tcp_queue->wnd_mask[mask_index]=~bit_mask_ack;
-		}
-		to_shift = good_ack - tcp_queue->min;
-		tcp_queue->min = tcp_queue->min + to_shift;
+		tcp_queue->min = tcp_queue->min + word_to_ack;
 		tcp_queue->max = tcp_queue->min + tcp_conn_desc->cwnd;
 	}
 
