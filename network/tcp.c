@@ -7,35 +7,25 @@
 #define INC_WND(cur,wnd_size,offset)  (cur + offset) % wnd_size
 #define SLOT_WND (cur,wnd_size) (cur % wnd_size
 
-typedef struct s_packet
-{
-	void* val;
-	u8 status;
-}
-t_packet;
-
-
-typedef struct s_sldw_buf
+typedef struct s_tcp_snd_queue
 {
 	u32 min;
 	u32 max;
-	u32 cur; //first slow inside trassmission window free (no packet waiting ack)
+	u32 cur;
 	u32 size;
 	char* buf;
-}
-t_sldw_buf;
-
-typedef struct s_tcp_snd_queue
-{
-	t_sldw_buf data;
 	u32 nxt_snd;
 }
 t_tcp_snd_queue;
 
 typedef struct s_tcp_rcv_queue
 {
-	t_sldw_buf in_order_data;
-	t_sldw_buf out_order_data;
+	u32 min;
+	u32 max;
+	u32 cur;
+	u32 size;
+	char* in_order_buf;
+	char* out_order_buf;
 	u32 nxt_rcv;
 }
 t_tcp_snd_queue;
@@ -57,39 +47,23 @@ typedef struct s_tcp_desc
 }
 t_tcp_desc;
 
-t_sldw_buf* sldw_buf_init(u32 size,u32 mask_size)
-{
-	int i;
-	t_sldw_buf* sldw_buf;
-
-	sldw_buf=kmalloc(sizeof(t_sldw_buf));
-	sldw_buf->buf=kmalloc(size);
-	sldw_buf->rcv_min=0;
-	sldw_buf->rcv_max=0;
-	sldw_buf->cur=0;
-	sldw_buf->size=size;
-	return sldw_buf;
-}
-
-void sldw_buf_free(tcp_queue* tcp_queue)
-{
-	kfree(sldw_buf->buf);
-	kfree(sldw_buf);
-}
-
 t_tcp_snd_queue* tcp_snd_queue_init(u32 size)
 {
 	t_tcp_snd_queue* tcp_snd_queue;
 
 	tcp_snd_queue=kmalloc(sizeof(t_tcp_snd_queue));
-	tcp_snd_queue->data=sldw_buf_init(size);
+	tcp_snd_queue->buf=kmalloc(size);
+	tcp_snd_queue->min=0;
+	tcp_snd_queue->max=0;
+	tcp_snd_queue->cur=0;
+	tcp_snd_queue->size=size;
 	tcp_snd_queue->nxt_snd=0;
 	return tcp_snd_queue;
 }
 
 void tcp_snd_queue_free(t_tcp_snd_queue* tcp_snd_queue)
 {
-	sldw_buf_init(tcp_snd_queue->data);
+	kfree(tcp_snd_queue->buf);
 	kfree(tcp_snd_queue);
 }
 
@@ -98,16 +72,20 @@ t_tcp_rcv_queue* tcp_rcv_queue_init(u32 size)
 	t_tcp_rcv_queue* tcp_rcv_queue;
 
 	tcp_rcv_queue=kmalloc(sizeof(t_tcp_rcv_queue));
-	tcp_rcv_queue->in_order_data=sldw_buf_init(size);
-	tcp_rcv_queue->out_order_data=sldw_buf_init(size);
+	tcp_rcv_queue->in_order_buf=kmalloc(size);
+	tcp_rcv_queue->out_order_buf=kmalloc(size/8);
+	tcp_rcv_queue->min=0;
+	tcp_rcv_queue->max=0;
+	tcp_rcv_queue->cur=0;
+	tcp_rcv_queue->size=size;
 	tcp_rcv_queue->nxt_rcv=0;
 	return tcp_rcv_queue;
 }
 
 void tcp_rcv_queue_free(t_tcp_rcv_queue* tcp_rcv_queue)
 {
-	sldw_buf_init(tcp_rcv_queue->in_order_data);
-	sldw_buf_init(tcp_rcv_queue->out_order_data);
+	kfree(tcp_rcv_queue->in_order_buf);
+	kfree(tcp_rcv_queue->out_order_buf);
 	kfree(tcp_rcv_queue);
 }
 
@@ -241,7 +219,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf)
 	ip_len=GET_WORD(ip_row_packet[2],ip_row_packet[3]);
 	data_len=ip_len-HEADER_TCP;
 
-	if (data_in_window(tcp_queue->rcv_min,tcp_queue->rcv_max,index) && data_len>0)-------------------------------------------------------------------------qui!!!!!!!!!!!1
+	if (data_in_window(tcp_queue->rcv_min,tcp_queue->rcv_max,index) && data_len>0)
 	{
 		low_index=seq_num;
 		hi_index=seq_num+data_len;
@@ -308,11 +286,11 @@ void rcv_ack(t_tcp_desc* tcp_desc,u32 ack_seq_num)
 		tcp_conn_desc->ssthresh=max(tcp_conn_desc->flight_size/2,2*SMSS);
 		tcp_conn_desc->cwnd+=SMSS;
 	}
-	tcp_conn_desc->snd_buf->rcv_max=tcp_conn_desc->snd_buf->rcv_min+tcp_conn_desc->cwnd;
+	tcp_conn_desc->snd_buf->max=tcp_conn_desc->snd_buf->min+tcp_conn_desc->cwnd;
 	update_snd_window(tcp_conn_desc->snd_buf);
 }
 
-static void update_snd_window(t_tcp_queue* tcp_queue,u32 good_ack)
+static void update_snd_window(t_tcp_snd_queue* tcp_queue,u32 good_ack)
 {
 	u32 word_to_ack;
 	u32 indx;
@@ -320,12 +298,17 @@ static void update_snd_window(t_tcp_queue* tcp_queue,u32 good_ack)
 	if (good_ack!=0)
 	{
 		word_to_ack = good_ack - tcp_queue->min;
-		if (tcp_queue->cur = good_ack)
-		{
-			tcp_queue->cur = 0;
-		}
-		tcp_queue->min = tcp_queue->min + word_to_ack;
-		tcp_queue->max = tcp_queue->min + tcp_conn_desc->cwnd;
+		tcp_queue->data->min = tcp_queue->data->min + word_to_ack;
+		tcp_queue->data->max = tcp_queue->data->min + tcp_conn_desc->cwnd;
+		data_to_send=tcp_queue->tcp_queue->data->max-tcp_queue->nxt_snd;
+
+		wnd_r_limit=SLOT_WND(tcp_queue->max+1,tcp_queue->mask_size);
+		wnd_l_limit=SLOT_WND(tcp_snd_queue->nxt_snd,tcp_queue->mask_size);
+
+	 	if (tcp_queue->cur <  wnd_l_limit) no data
+
+		if -------qui
+
 	}
 
 	wnd_r_limit=SLOT_WND(tcp_queue->max+1,tcp_queue->mask_size);
