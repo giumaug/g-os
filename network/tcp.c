@@ -52,6 +52,10 @@ typedef struct s_tcp_conn_desc
 	u32 ack_seq_num;
 	u32 offered_ack; //ack relativo finestra di ricezione
 	u32 expected_ack; // ack relativo finestra trasmissione
+	u32 src_ip;
+	u32 dst_ip;
+	u16 src_port;
+	u16 dst_port;
 }
 t_tcp_conn_desc;
 
@@ -285,11 +289,14 @@ void rcv_ack(t_tcp_desc* tcp_desc,u32 ack_seq_num)
 	update_snd_window(tcp_conn_desc->snd_buf);
 }
 
-static void update_snd_window(t_tcp_snd_queue* tcp_queue,u32 good_ack)
+static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 good_ack)
 {
 	u32 word_to_ack;
 	u32 indx;
+	t_tcp_snd_queue* tcp_queue = NULL;
 
+	tcp_queue = tcp_conn_desc->snd_queue;
+	//trasmission with good ack
 	if (good_ack!=0)
 	{
 		word_to_ack = good_ack - tcp_queue->min;
@@ -312,82 +319,45 @@ static void update_snd_window(t_tcp_snd_queue* tcp_queue,u32 good_ack)
 		}
 		//more data than window nothing to do
 
-		if (tcp_conn_desc->offered_ack==0)
+		//sender silly window avoidance		
+		w_size=WND_SIZE(wnd_l_limit,wnd_r_limit);
+		if (tcp_conn_desc->offered_ack == 0 || w_size >= SMSS || w_size >= tcp_conn_desc->max_adv_wnd/2)
 		{
-			data_to_send=WND_SIZE(wnd_l_limit,wnd_r_limit);
+			data_to_send=w_size;
 		}
-		else if (WND_SIZE(wnd_l_limit,wnd_r_limit)>=SMSS)
+		else if (w_size >= SMSS)
 		{
-			data_to_send=----------------------------------qui!!!!!!!!!!!!!!!!!11
+			data_to_send = w_size - (w_size % SMSS);
 		}
+		else if (w_size >= tcp_conn_desc->max_adv_wnd/2)
+		{
+			data_to_send=w_size;
+		}
+		indx=wnd_l_limit;
+		tcp_queue->nxt_snd += data_to_send;
+		while (data_to_send >= SMSS)
+		{
+			send_packet_tcp(indx,SMSS,?????);
+			data_to_send -= SMSS;
+			indx += SMSS;
+		}
+		if (data_to_send > 0 )
+		{	
+			send_packet_tcp(tcp_queue->buf[indx],
+					data_to_send,
+					tcp_conn_desc->src_ip,
+					tcp_conn_desc->dst_ip,
+					tcp_conn_desc->src_port,
+					tcp_conn_desc->dst_port);
+		}
+		//timer RFC6298
 	}
+}
 
-	wnd_r_limit=SLOT_WND(tcp_queue->max+1,tcp_queue->mask_size);
-	indx=SLOT_WND(tcp_queue->min,tcp_queue->mask_size);
-	min_indx=indx=indx;
-
-	while (tcp_queue->wnd_mask[indx] == 0xff && indx != wnd_r_limit)
-	{
-		INC_WND(indx,tcp_queue->mask_size,1);
-	}
-	if (tcp_queue->wnd_mask[indx] != 0)
-	{
-		if (tcp_queue->wnd_mask[indx]==1)
-		{
-			offset=1;
-		}
-		else if (tcp_queue->wnd_mask[indx]==11)
-		{
-			offset=2;
-		}
-		else if (tcp_queue->wnd_mask[indx]==111)
-		{
-			offset=3;
-		}
-		else if (tcp_queue->wnd_mask[indx]==1111)
-		{
-			offset=4;
-		}
-		else if (tcp_queue->wnd_mask[indx]==11111)
-		{
-			offset=5;
-		}
-		else if (tcp_queue->wnd_mask[indx]==111111)
-		{
-			offset=6;
-		}
-		else if (tcp_queue->wnd_mask[indx]==1111111)
-		{
-			offset=7;
-		}
-		INC_WND(indx,tcp_queue->size,offset);
-	}
-
-	if (indx == wnd_r_limit)
-	{
-		return;
-	}
-
-	min=
-
-	if (tcp_queue->cur<indx)
-	{
-		return;
-	}
-	else if (index=<tcp_queue->cur<=)
-	
-	
-
-
-
-
-	
-	if (i>tcp_queue->min)
-	{
-		preparo socket buffer compattando su SMSS
-		marco nuovo stato slot
-		aggiorno timer
-	}	
+//void send_packet_tcp(indx,data_to_send,?????);
+void send_packet_tcp(u32 indx,u32 data_to_send)
+{
+	x
 }
 
 void ack_time_out()
@@ -410,10 +380,11 @@ void flush_trasmission_window()
 }
 
 
-void snd_packet_tcp(char* data,int data_len........)
+int snd_packet_tcp(char* data,u32 data_len,u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port)
 {
-	char* tcp_payload;
-	t_data_sckt_buf* data_sckt_buf;
+	char* tcp_payload = NULL;
+	t_data_sckt_buf* data_sckt_buf = NULL;
+	int ret = NULL;
 	
 	data_sckt_buf=alloc_sckt(data_len+HEADER_ETH+HEADER_IP4+HEADER_TCP);
 	data_sckt_buf->transport_hdr=data_sckt_buf->data+HEADER_ETH+HEADER_IP4;
@@ -445,6 +416,9 @@ void snd_packet_tcp(char* data,int data_len........)
 	tcp_header[17]=LOW_16(checksum);		//LOW TCP CHECKSUM
 	tcp_header[18]=0;				//HI URGENT POINTER (NOT USED)
 	tcp_header[19]=0;				//LOW URGENT POINTER (NOT USED)
+
+	ret=send_packet_ip4(data_sckt_buf,src_ip,dst_ip,ip_packet_len,TCP_PROTOCOL);
+	return ret;
 }
 
 
