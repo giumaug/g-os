@@ -21,6 +21,11 @@
 #define DATA_LF_OUT_WND(min,max,index) ((index < min) ? 1 : 0)
 #define DATA_RH_OUT_WND(min,max,index) ((index > min) ? 1 : 0)
 
+#define GOOD_ACK 1
+#define DPLCT_1_2_ACK 2
+#define DPLCT_3_ACK
+
+
 typedef struct s_tcp_snd_queue
 {
 	u32 min;
@@ -47,6 +52,8 @@ t_tcp_snd_queue;
 typedef struct s_tcp_conn_desc
 {
 	u32 conn_id;
+	u32 rto;
+	u32 timer;
 	t_tcp_rcv_queue* rcv_queue;
 	t_tcp_snd_queue* snd_queue;
 	u32 ack_seq_num;
@@ -62,6 +69,8 @@ t_tcp_conn_desc;
 typedef struct s_tcp_desc
 {
 	t_hashtable* conn_map;
+	t_llist* conn_list;
+	new_dllist tcp_conn_desc_free(t_tcp_conn_desc* tcp_conn_desc)
 }
 t_tcp_desc;
 
@@ -115,6 +124,7 @@ t_tcp_conn_desc* tcp_conn_desc_int(u16 src_port,u16 dst_port)
 	tcp_conn_desc->rcv_buf=tcp_rcv_queue_init(TCP_RCV_SIZE);
 	tcp_conn_desc->snd_buf=tcp_snd_queue_init(TCP_SND_SIZE);
 	tcp_conn_desc->conn_id=src_port | (dst_port<<16);
+	tcp_conn_desc_timer=0xFFFFFFFF;
 	return tcp_conn_desc;
 }
 
@@ -130,13 +140,15 @@ t_tcp_desc* tcp_init()
 	t_tcp_desc* tcp_desc;
 	
 	tcp_desc=kmalloc(sizeof(t_tcp_desc));
-	tcp_desc->conn_map=dc_hashtable_init(TCP_CONN_MAP_SIZE,tcp_conn_desc_free);
+	tcp_desc->conn_map=dc_hashtable_init(TCP_CONN_MAP_SIZE,&tcp_conn_desc_free);
+	tcp_desc->conn_map=dc_new_dllist(tcp_conn_desc_free);
 	return tcp_desc;
 }
 
 void tcp_free(t_tcp_desc* tcp_desc)
 {
 	hashtable_free(tcp_desc->conn_map);
+	free_llist(tcp_desc->conn_list);
 	kfree(tcp_desc);
 }
 
@@ -289,7 +301,7 @@ void rcv_ack(t_tcp_desc* tcp_desc,u32 ack_seq_num)
 	update_snd_window(tcp_conn_desc->snd_buf);
 }
 
-static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 good_ack)
+static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u8 ack_type)
 {
 	u32 word_to_ack;
 	u32 indx;
@@ -297,15 +309,15 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 good_ack)
 
 	tcp_queue = tcp_conn_desc->snd_queue;
 	//trasmission with good ack
-	if (good_ack!=0)
+	if (ack_type == GOOD_ACK)
 	{
 		word_to_ack = good_ack - tcp_queue->min;
 		tcp_queue->data->min = tcp_queue->data->min + word_to_ack;
 		tcp_queue->data->max = tcp_queue->data->min + tcp_conn_desc->cwnd;
 		data_to_send=tcp_queue->tcp_queue->data->max-tcp_queue->nxt_snd;
 
-		wnd_r_limit=SLOT_WND(tcp_queue->max+1,tcp_queue->mask_size);
-		wnd_l_limit=SLOT_WND(tcp_snd_queue->nxt_snd,tcp_queue->mask_size);
+		wnd_l_limit = SLOT_WND(tcp_snd_queue->nxt_snd,tcp_queue->size);
+		wnd_r_limit = SLOT_WND(tcp_queue->max,tcp_queue->size);
 
 	 	if (DATA_LF_OUT_WND(wnd_l_limit,wnd_r_limit,tcp_queue->cur))
 		{
@@ -337,7 +349,13 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 good_ack)
 		tcp_queue->nxt_snd += data_to_send;
 		while (data_to_send >= SMSS)
 		{
-			send_packet_tcp(indx,SMSS,?????);
+			send_packet_tcp(tcp_queue->buf[indx],
+					SMSS,
+					tcp_conn_desc->src_ip,
+					tcp_conn_desc->dst_ip,
+					tcp_conn_desc->src_port,
+					tcp_conn_desc->dst_port);
+
 			data_to_send -= SMSS;
 			indx += SMSS;
 		}
@@ -351,6 +369,36 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 good_ack)
 					tcp_conn_desc->dst_port);
 		}
 		//timer RFC6298
+		if (tcp_conn_desc->timer == 0xFFFFFFFF)
+		{
+			tcp_conn_desc->timer = tcp_conn_desc->rto;
+		}
+	}
+	else if (ack_type == DPLCT_1_2_ACK)
+	{
+		wnd_l_limit = SLOT_WND(tcp_snd_queue->nxt_snd,tcp_queue->size);
+		wnd_r_limit = SLOT_WND(tcp_queue->max,tcp_queue->size);
+		w_size=WND_SIZE(wnd_l_limit,wnd_r_limit);
+		flight_size = WND_SIZE(tcp_snd_queue->min,tcp_snd_queue->nxt_snd);
+		flight_size_limit = tcp_conn_desc->cwnd + 2*SMSS;
+		
+		if (w_size > 0 && (flight_size + SMSS <= flight_size_limit))
+		{
+			indx = SLOT_WND(tcp_snd_queue->nxt_snd,tcp_queue->size);
+			tcp_snd_queue->nxt_snd += SMSS;
+
+			send_packet_tcp(tcp_queue->buf[indx],
+					SMSS,
+					tcp_conn_desc->src_ip,
+					tcp_conn_desc->dst_ip,
+					tcp_conn_desc->src_port,
+					tcp_conn_desc->dst_port);
+			//timer???
+		}
+	}
+	else if (ack_type == DPLCT_3_ACK)
+	{
+		//
 	}
 }
 

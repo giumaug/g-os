@@ -121,16 +121,11 @@ void int_handler_pit()
 		}
 	}
 
+	//Qui non va bene servono interrupt attivi e softirq
 	//FLUSH NETWORK QUEUES BEFORE EXITING
 	//testx();
-	long i=0;
-	//for (i=0;i<=1000000;i++);
 	equeue_packet(system.network_desc);
 	dequeue_packet(system.network_desc);
-//	if ((iter++ % 50)==0)
-//	{
-//		check_free_mem();
-//	}
 exit_handler:;
 //	EXIT_INT_HANDLER(is_schedule,processor_reg);
 
