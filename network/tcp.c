@@ -21,11 +21,6 @@
 #define DATA_LF_OUT_WND(min,max,index) ((index < min) ? 1 : 0)
 #define DATA_RH_OUT_WND(min,max,index) ((index > min) ? 1 : 0)
 
-#define GOOD_ACK 1
-#define DPLCT_1_2_ACK 2
-#define DPLCT_3_ACK
-
-
 typedef struct s_tcp_snd_queue
 {
 	u32 min;
@@ -224,7 +219,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf)
 		return NULL;
 	}
 	seq_num=GET_DWORD(tcp_row_packet[4],tcp_row_packet[5],tcp_row_packet[6],tcp_row_packet[7]);
-	t_tcp_queue* tcp_queue=tcp_conn_desc->rcv_buf;
+	t_tcp_rcv_queue* tcp_queue=tcp_conn_desc->rcv_buf;
 	index=SLOT_WND(seq_num);
 
 	ip_len=GET_WORD(ip_row_packet[2],ip_row_packet[3]);
@@ -247,7 +242,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf)
 		}
 		update_rcv_window_and_ack();
 	}
-	rcv_ack(ack_seq_num);
+	rcv_ack(tcp_conn_desc,ack_seq_num);
 
 }
 
@@ -274,7 +269,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf)
 //	}
 //	update window edges
 
-void rcv_ack(t_tcp_desc* tcp_desc,u32 ack_seq_num)
+void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 {
 	if (tcp_conn_desc->min<=ack_seq_num)
 	{
@@ -298,10 +293,11 @@ void rcv_ack(t_tcp_desc* tcp_desc,u32 ack_seq_num)
 		tcp_conn_desc->cwnd+=SMSS;
 	}
 	tcp_conn_desc->snd_buf->max=tcp_conn_desc->snd_buf->min+tcp_conn_desc->cwnd;
-	update_snd_window(tcp_conn_desc->snd_buf);
+	update_snd_window(tcp_conn_desc->snd_buf,ack_seq_num);
 }
 
-static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u8 ack_type)
+offered_ack su send????------------------------qui
+static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 {
 	u32 word_to_ack;
 	u32 indx;
@@ -309,14 +305,14 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u8 ack_type)
 
 	tcp_queue = tcp_conn_desc->snd_queue;
 	//trasmission with good ack
-	if (ack_type == GOOD_ACK)
+	if (tcp_conn_desc->duplicated_ack == 0)
 	{
 		word_to_ack = good_ack - tcp_queue->min;
 		tcp_queue->data->min = tcp_queue->data->min + word_to_ack;
 		tcp_queue->data->max = tcp_queue->data->min + tcp_conn_desc->cwnd;
-		data_to_send=tcp_queue->tcp_queue->data->max-tcp_queue->nxt_snd;
+		data_to_send=tcp_queue->tcp_queue->data->max-tcp_queue->nxt_snd-1;
 
-		wnd_l_limit = SLOT_WND(tcp_snd_queue->nxt_snd,tcp_queue->size);
+		wnd_l_limit = SLOT_WND(tcp_snd_queue->nxt_snd-1,tcp_queue->size);
 		wnd_r_limit = SLOT_WND(tcp_queue->max,tcp_queue->size);
 
 	 	if (DATA_LF_OUT_WND(wnd_l_limit,wnd_r_limit,tcp_queue->cur))
@@ -347,6 +343,44 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u8 ack_type)
 		}
 		indx=wnd_l_limit;
 		tcp_queue->nxt_snd += data_to_send;
+	}
+	else if (tcp_conn_desc->duplicated_ack == 1 || tcp_conn_desc->duplicated_ack == 2)
+	{
+		wnd_l_limit = SLOT_WND(tcp_snd_queue->nxt_snd-1,tcp_queue->size);
+		wnd_r_limit = SLOT_WND(tcp_queue->max,tcp_queue->size);
+		w_size=WND_SIZE(wnd_l_limit,wnd_r_limit);
+		flight_size = WND_SIZE(tcp_snd_queue->min,tcp_snd_queue->nxt_snd-1);
+		flight_size_limit = tcp_conn_desc->cwnd + 2*SMSS;
+		
+		if (w_size >= SMSS && (flight_size + SMSS <= flight_size_limit))
+		{
+			indx = SLOT_WND(tcp_snd_queue->nxt_snd,tcp_queue->size);
+			tcp_snd_queue->nxt_snd += SMSS;
+			data_to_send = SMSS;
+		}
+	}
+	else if (tcp_conn_desc->duplicated_ack == 3)
+	{
+		indx = SLOT_WND(ack_seq_num,tcp_queue->size);
+		tcp_snd_queue->nxt_snd += SMSS;
+		data_to_send = SMSS;
+	}
+	else if (tcp_conn_desc->duplicated_ack > 3)
+	{
+		indx = SLOT_WND(tcp_snd_queue->nxt_snd,tcp_queue->size);
+		wnd_l_limit = SLOT_WND(tcp_snd_queue->nxt_snd-1,tcp_queue->size);
+		wnd_r_limit = SLOT_WND(tcp_queue->max,tcp_queue->size);
+		w_size=WND_SIZE(wnd_l_limit,wnd_r_limit);
+
+		if (w_size >= SMSS)
+		{
+			tcp_snd_queue->nxt_snd += SMSS;
+			data_to_send = SMSS;
+		}
+	}
+
+	if (data_to_send > 0)
+	{
 		while (data_to_send >= SMSS)
 		{
 			send_packet_tcp(tcp_queue->buf[indx],
@@ -373,32 +407,6 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u8 ack_type)
 		{
 			tcp_conn_desc->timer = tcp_conn_desc->rto;
 		}
-	}
-	else if (ack_type == DPLCT_1_2_ACK)
-	{
-		wnd_l_limit = SLOT_WND(tcp_snd_queue->nxt_snd,tcp_queue->size);
-		wnd_r_limit = SLOT_WND(tcp_queue->max,tcp_queue->size);
-		w_size=WND_SIZE(wnd_l_limit,wnd_r_limit);
-		flight_size = WND_SIZE(tcp_snd_queue->min,tcp_snd_queue->nxt_snd);
-		flight_size_limit = tcp_conn_desc->cwnd + 2*SMSS;
-		
-		if (w_size > 0 && (flight_size + SMSS <= flight_size_limit))
-		{
-			indx = SLOT_WND(tcp_snd_queue->nxt_snd,tcp_queue->size);
-			tcp_snd_queue->nxt_snd += SMSS;
-
-			send_packet_tcp(tcp_queue->buf[indx],
-					SMSS,
-					tcp_conn_desc->src_ip,
-					tcp_conn_desc->dst_ip,
-					tcp_conn_desc->src_port,
-					tcp_conn_desc->dst_port);
-			//timer???
-		}
-	}
-	else if (ack_type == DPLCT_3_ACK)
-	{
-		//
 	}
 }
 
