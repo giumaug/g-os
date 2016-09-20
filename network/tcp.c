@@ -40,7 +40,7 @@ typedef struct s_tcp_rcv_queue
 	u32 size;
 	char* in_order_buf;
 	char* out_order_buf;
-	u32 nxt_rcv;
+	u32 nxt_rcv; //ack relativo finestra di ricezione e usato in trasmissione
 }
 t_tcp_snd_queue;
 
@@ -52,8 +52,8 @@ typedef struct s_tcp_conn_desc
 	t_tcp_rcv_queue* rcv_queue;
 	t_tcp_snd_queue* snd_queue;
 	u32 ack_seq_num;
-	u32 offered_ack; //ack relativo finestra di ricezione
-	u32 expected_ack; // ack relativo finestra trasmissione
+//	u32 offered_ack; //va usato nxt_rcv
+//	u32 expected_ack; // va usato nxt_snd
 	u32 src_ip;
 	u32 dst_ip;
 	u16 src_port;
@@ -183,7 +183,7 @@ static void update_rcv_window_and_ack(t_tcp_queue* tcp_queue)
 	}
 	if (index != tcp_queue->min) 
 	{
-		tcp_queue->offered_ack=index;
+		tcp_queue->offered_ack=index;//no!!!
 		tcp_queue->min=(tcp_queue->min+offset) % TCP_RCV_SIZE;
 		tcp_queue->max=(tcp_queue->max+offset) % TCP_RCV_SIZE;
 		tcp_queue->offered_wnd=(tcp_queue->max-tcp_queue->min >=0 ? (tcp_queue->max-tcp_queue->min) : (tcp_queue->min-tcp_queue->max));
@@ -329,7 +329,7 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 
 		//sender silly window avoidance		
 		w_size=WND_SIZE(wnd_l_limit,wnd_r_limit);
-		if (tcp_conn_desc->offered_ack == 0 || w_size >= SMSS || w_size >= tcp_conn_desc->max_adv_wnd/2)
+		if (tcp_conn_desc->rcv_queue->nxt_rcv == 0 || w_size >= SMSS || w_size >= tcp_conn_desc->max_adv_wnd/2)
 		{
 			data_to_send=w_size;
 		}
