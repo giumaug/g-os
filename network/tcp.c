@@ -23,10 +23,10 @@
 
 typedef struct s_tcp_snd_queue
 {
-	u32 min;
-	u32 max;
-	u32 cur;
-	u32 size;
+	u32 wnd_min;
+	u32 wnd_max;
+	u32 buf_cur;
+	u32 buf_size;
 	char* buf;
 	u32 nxt_snd;
 }
@@ -75,10 +75,10 @@ t_tcp_snd_queue* tcp_snd_queue_init(u32 size)
 
 	tcp_snd_queue=kmalloc(sizeof(t_tcp_snd_queue));
 	tcp_snd_queue->buf=kmalloc(size);
-	tcp_snd_queue->min=0;
-	tcp_snd_queue->max=0;
-	tcp_snd_queue->cur=0;
-	tcp_snd_queue->size=size;
+	tcp_snd_queue->wnd_min=0;
+	tcp_snd_queue->wnd_max=0;
+	tcp_snd_queue->buf_cur=0;
+	tcp_snd_queue->buf_size=size;
 	tcp_snd_queue->nxt_snd=0;
 	return tcp_snd_queue;
 }
@@ -296,10 +296,10 @@ void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 	update_snd_window(tcp_conn_desc->snd_buf,ack_seq_num);
 }
 
-offered_ack su send????------------------------qui
 static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 {
 	u32 word_to_ack;
+	u32 expected_ack;
 	u32 indx;
 	t_tcp_snd_queue* tcp_queue = NULL;
 
@@ -308,28 +308,29 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 	if (tcp_conn_desc->duplicated_ack == 0)
 	{
 		word_to_ack = good_ack - tcp_queue->min;
-		tcp_queue->data->min = tcp_queue->data->min + word_to_ack;
-		tcp_queue->data->max = tcp_queue->data->min + tcp_conn_desc->cwnd;
-		data_to_send=tcp_queue->tcp_queue->data->max-tcp_queue->nxt_snd-1;
+		tcp_queue->data->wnd_min = tcp_queue->data->wnd_min + word_to_ack;
+		tcp_queue->data->wnd_max = tcp_queue->data->wnd_min + tcp_conn_desc->cwnd;
+		data_to_send=tcp_queue->tcp_queue->data->wnd_max-tcp_queue->nxt_snd-1;
 
 		wnd_l_limit = SLOT_WND(tcp_snd_queue->nxt_snd-1,tcp_queue->size);
-		wnd_r_limit = SLOT_WND(tcp_queue->max,tcp_queue->size);
+		wnd_r_limit = SLOT_WND(tcp_queue->wnd_max,tcp_queue->size);
 
-	 	if (DATA_LF_OUT_WND(wnd_l_limit,wnd_r_limit,tcp_queue->cur))
+	 	if (DATA_LF_OUT_WND(wnd_l_limit,wnd_r_limit,tcp_queue->buf_cur))
 		{
 		 	//no data to send
 			return;
 		}
-		if (DATA_IN_WND(wnd_l_limit,wnd_r_limit,tcp_queue->cur))
+		if (DATA_IN_WND(wnd_l_limit,wnd_r_limit,tcp_queue->buf_cur))
 		{	
 			//in window
-			wnd_r_limit=tcp_queue->cur:
+			wnd_r_limit=tcp_queue->buf_cur:
 		}
 		//more data than window nothing to do
 
 		//sender silly window avoidance		
 		w_size=WND_SIZE(wnd_l_limit,wnd_r_limit);
-		if (tcp_conn_desc->rcv_queue->nxt_rcv == 0 || w_size >= SMSS || w_size >= tcp_conn_desc->max_adv_wnd/2)
+		expected_ack = tcp_queue->nxt_snd - tcp_queue->data->wnd_min;
+		if (expected_ack == 0 || w_size >= SMSS || w_size >= tcp_conn_desc->max_adv_wnd/2)
 		{
 			data_to_send=w_size;
 		}
@@ -347,14 +348,14 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 	else if (tcp_conn_desc->duplicated_ack == 1 || tcp_conn_desc->duplicated_ack == 2)
 	{
 		wnd_l_limit = SLOT_WND(tcp_snd_queue->nxt_snd-1,tcp_queue->size);
-		wnd_r_limit = SLOT_WND(tcp_queue->max,tcp_queue->size);
+		wnd_r_limit = SLOT_WND(tcp_queue->wnd_max,tcp_queue->size);
 		w_size=WND_SIZE(wnd_l_limit,wnd_r_limit);
-		flight_size = WND_SIZE(tcp_snd_queue->min,tcp_snd_queue->nxt_snd-1);
+		flight_size = WND_SIZE(tcp_snd_queue->wnd_min,tcp_snd_queue->nxt_snd-1);
 		flight_size_limit = tcp_conn_desc->cwnd + 2*SMSS;
 		
 		if (w_size >= SMSS && (flight_size + SMSS <= flight_size_limit))
 		{
-			indx = SLOT_WND(tcp_snd_queue->nxt_snd,tcp_queue->size);
+			indx = SLOT_WND(tcp_snd_queue->nxt_snd,tcp_queue->buf_size);----------------------------------------qui---------------------
 			tcp_snd_queue->nxt_snd += SMSS;
 			data_to_send = SMSS;
 		}
@@ -410,12 +411,6 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 	}
 }
 
-//void send_packet_tcp(indx,data_to_send,?????);
-void send_packet_tcp(u32 indx,u32 data_to_send)
-{
-	x
-}
-
 void ack_time_out()
 {
 	cwnd=SMSS
@@ -435,9 +430,24 @@ void flush_trasmission_window()
 		-aggiorna tramsission windows4
 }
 
+int buffer_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
+{
+	t_tcp_snd_queue* tcp_queue = tcp_conn_desc->snd_queue;
+
+	b_free_size=WND_SIZE(tcp_queue->,tcp_queue->);
+	if tcp_queue->
+}
+
 
 int snd_packet_tcp(char* data,u32 data_len,u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port)
 {
+	ack_num   ???
+	seq_num   ???
+	head_len  ???
+	flags     ???
+	win_size  ???
+	checksum  ???
+
 	char* tcp_payload = NULL;
 	t_data_sckt_buf* data_sckt_buf = NULL;
 	int ret = NULL;
