@@ -298,7 +298,7 @@ void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 	update_snd_window(tcp_conn_desc->snd_buf,ack_seq_num);
 }
 
-static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
+static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u8 flush)
 {
 	u32 word_to_ack;
 	u32 expected_ack;
@@ -307,14 +307,17 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 
 	tcp_queue = tcp_conn_desc->snd_queue;
 	//trasmission with good ack
-	if (tcp_conn_desc->duplicated_ack == 0)
+	if (tcp_conn_desc->duplicated_ack == 0 || flush)
 	{
-		word_to_ack = good_ack - tcp_queue->min;
-		tcp_queue->wnd_min = tcp_queue->wnd_min + word_to_ack;
-		tcp_queue->wnd_max = tcp_queue->wnd_min + tcp_conn_desc->cwnd;
-		data_to_send=tcp_queue->tcp_queue->data->wnd_max-tcp_queue->nxt_snd-1;
-		tcp_queue->buf_min = tcp_queue->wnd_min;
-		INC_WND(tcp_queue->buf_max,tcp_queue->buf_size,word_to_ack);
+		if (!flush)
+		{
+			word_to_ack = ack_seq_num - tcp_queue->min;
+			tcp_queue->wnd_min = tcp_queue->wnd_min + word_to_ack;
+			tcp_queue->wnd_max = tcp_queue->wnd_min + tcp_conn_desc->cwnd;
+			data_to_send=tcp_queue->tcp_queue->data->wnd_max-tcp_queue->nxt_snd-1;
+			tcp_queue->buf_min = tcp_queue->wnd_min;
+			INC_WND(tcp_queue->buf_max,tcp_queue->buf_size,word_to_ack);
+		}
 		
 		wnd_l_limit = SLOT_WND(tcp_snd_queue->nxt_snd-1,tcp_queue->size);
 		wnd_r_limit = SLOT_WND(tcp_queue->wnd_max,tcp_queue->size);
@@ -463,17 +466,18 @@ int buffer_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 			INC_WND(tcp_snd_queue->cur,tcp_snd_queue->buf_size,data_len);
 		}
 	}
+	update_snd_window(tcp_conn_desc,0,1);
 }
 
 
 int snd_packet_tcp(char* data,u32 data_len,u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port)
 {
-	ack_num   ???
-	seq_num   ???
-	head_len  ???
-	flags     ???
-	win_size  ???
-	checksum  ???
+	ack_num   head
+	seq_num   head
+	head_len= 5 const
+	flags     input
+	win_size  head
+	checksum  computed here
 
 	char* tcp_payload = NULL;
 	t_data_sckt_buf* data_sckt_buf = NULL;
