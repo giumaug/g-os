@@ -23,6 +23,8 @@
 
 typedef struct s_tcp_snd_queue
 {
+	u32 buf_min; //equal to wnd_min
+	u32 buf_max;
 	u32 wnd_min;
 	u32 wnd_max;
 	u32 buf_cur;
@@ -308,10 +310,12 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 	if (tcp_conn_desc->duplicated_ack == 0)
 	{
 		word_to_ack = good_ack - tcp_queue->min;
-		tcp_queue->data->wnd_min = tcp_queue->data->wnd_min + word_to_ack;
-		tcp_queue->data->wnd_max = tcp_queue->data->wnd_min + tcp_conn_desc->cwnd;
+		tcp_queue->wnd_min = tcp_queue->wnd_min + word_to_ack;
+		tcp_queue->wnd_max = tcp_queue->wnd_min + tcp_conn_desc->cwnd;
 		data_to_send=tcp_queue->tcp_queue->data->wnd_max-tcp_queue->nxt_snd-1;
-
+		tcp_queue->buf_min = tcp_queue->wnd_min;
+		INC_WND(tcp_queue->buf_max,tcp_queue->buf_size,word_to_ack);
+		
 		wnd_l_limit = SLOT_WND(tcp_snd_queue->nxt_snd-1,tcp_queue->size);
 		wnd_r_limit = SLOT_WND(tcp_queue->wnd_max,tcp_queue->size);
 
@@ -355,7 +359,7 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 		
 		if (w_size >= SMSS && (flight_size + SMSS <= flight_size_limit))
 		{
-			indx = SLOT_WND(tcp_snd_queue->nxt_snd,tcp_queue->buf_size);----------------------------------------qui---------------------
+			indx = SLOT_WND(tcp_snd_queue->nxt_snd,tcp_queue->buf_size);
 			tcp_snd_queue->nxt_snd += SMSS;
 			data_to_send = SMSS;
 		}
@@ -434,8 +438,31 @@ int buffer_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 {
 	t_tcp_snd_queue* tcp_queue = tcp_conn_desc->snd_queue;
 
-	b_free_size=WND_SIZE(tcp_queue->,tcp_queue->);
-	if tcp_queue->
+	b_free_size=WND_SIZE(tcp_queue->tcp_snd_queue->nxt_snd,tcp_queue->buf_max);
+	if (b_free_size < data_len)
+	{
+		return -1;
+	}
+	if (tcp_snd_queue->cur < tcp_queue->buf_max) 
+	{
+		kmemcpy(tcp_queue->buf[tcp_snd_queue->cur],data,data_len);
+		INC_WND(tcp_snd_queue->cur,tcp_snd_queue->buf_size,data_len);
+	}
+	else
+	{
+		if ((tcp_queue->buf_size - tcp_queue->buf_cur) > data_len)
+		{
+			kmemcpy(tcp_queue->buf[tcp_snd_queue->cur],data,data_len);
+			INC_WND(tcp_snd_queue->cur,tcp_snd_queue->buf_size,data_len);
+		}
+		else
+		{
+			offset = data_len - (tcp_queue->buf_size - tcp_queue->buf_cur);
+			kmemcpy(tcp_queue->buf[tcp_snd_queue->cur],data,data_len);
+			kmemcpy(tcp_queue->buf[0],data,offset);
+			INC_WND(tcp_snd_queue->cur,tcp_snd_queue->buf_size,data_len);
+		}
+	}
 }
 
 
