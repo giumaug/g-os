@@ -22,6 +22,14 @@
 #define DATA_LF_OUT_WND(min,max,index) ((index < min) ? 1 : 0)
 #define DATA_RH_OUT_WND(min,max,index) ((index > min) ? 1 : 0)
 
+#define FLG_CWR 0b1000000
+#define FLG_ECE 0b0100000
+#define FLG_URG 0b0010000
+#define FLG_ACK 0b0001000
+#define FLG_PSH 0b0000100
+#define FLG_RST 0b0000010
+#define FLG_SYN 0b0000001
+
 typedef struct s_tcp_snd_queue
 {
 	u32 buf_min; //equal to wnd_min
@@ -306,6 +314,7 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u8 
 	u32 expected_ack;
 	u32 indx;
 	t_tcp_snd_queue* tcp_queue = NULL;
+	u8 flags=0;
 
 	tcp_queue = tcp_conn_desc->snd_queue;
 	//trasmission with good ack
@@ -327,6 +336,7 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u8 
 	 	if (DATA_LF_OUT_WND(wnd_l_limit,wnd_r_limit,tcp_queue->buf_cur))
 		{
 		 	//no data to send
+			//start piggybacking timeout
 			return;
 		}
 		if (DATA_IN_WND(wnd_l_limit,wnd_r_limit,tcp_queue->buf_cur))
@@ -393,6 +403,7 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u8 
 	{
 		while (data_to_send >= SMSS)
 		{
+			.......???????????????qui------------
 			send_packet_tcp(tcp_conn_desc,tcp_queue->buf[indx],SMSS,flags);
 			data_to_send -= SMSS;
 			indx += SMSS;
@@ -461,7 +472,7 @@ int buffer_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 }
 
 
-int snd_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u8 flags)
+int send_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u8 flags)
 {
 	ack_num   head
 	seq_num   head
@@ -473,7 +484,9 @@ int snd_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u8 fla
 	char* tcp_payload = NULL;
 	t_data_sckt_buf* data_sckt_buf = NULL;
 	int ret = NULL;
+	u32 ack_num;
 	
+	ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;
 	data_sckt_buf=alloc_sckt(data_len+HEADER_ETH+HEADER_IP4+HEADER_TCP);
 	data_sckt_buf->transport_hdr=data_sckt_buf->data+HEADER_ETH+HEADER_IP4;
 	tcp_payload=data_sckt_buf->transport_hdr+HEADER_TCP;
