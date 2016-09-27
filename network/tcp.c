@@ -1,99 +1,5 @@
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!IMPORTANTE VERIFICARE CHE LA STRUTTURA DATI COMPLESSIVA SIA SENSATA!!!!!!!!!!!!!!!!!!
-
-#define SMSS 1454
-#define TCP_RCV_SIZE 
-#define TCP_SND_SIZE
-#define TCP_CONN_MAP_SIZE 	20
-
-#define INC_WND(cur,wnd_size,offset)  (cur + offset) % wnd_size
-#define SLOT_WND (cur,wnd_size) (cur % wnd_size
-#define DATA_IN_WND(min,max,index)				\
-(								\
-	(min <= max) ?						\
-	(							\
-		(index >= min && index <= max) ? 1 : 0		\
-	)							\
-	:							\
-	(							\
-		(index >= max && index <= min) ? 1 : 0		\
-	)							\
-)								\
-
-#define DATA_LF_OUT_WND(min,max,index) ((index < min) ? 1 : 0)
-#define DATA_RH_OUT_WND(min,max,index) ((index > min) ? 1 : 0)
-
-#define FLG_CWR 0b1000000
-#define FLG_ECE 0b0100000
-#define FLG_URG 0b0010000
-#define FLG_ACK 0b0001000
-#define FLG_PSH 0b0000100
-#define FLG_RST 0b0000010
-#define FLG_SYN 0b0000001
-
-typedef struct s_tcp_snd_queue
-{
-	u32 buf_min; //equal to wnd_min
-	u32 buf_max;
-	u32 wnd_min;
-	u32 wnd_max;
-	u32 buf_cur;
-	u32 buf_size;
-	char* buf;
-	u32 nxt_snd;
-}
-t_tcp_snd_queue;
-
-typedef struct s_tcp_rcv_queue
-{
-	u32 min;
-	u32 max;
-	u32 cur;
-	u32 size;
-	char* in_order_buf;
-	char* out_order_buf;
-	u32 nxt_rcv; //ack relativo finestra di ricezione e usato in trasmissione
-}
-t_tcp_snd_queue;
-
-typedef struct s_tcp_conn_desc
-{
-	u32 conn_id;
-	u32 rto;
-	u32 timer;
-	t_tcp_rcv_queue* rcv_queue;
-	t_tcp_snd_queue* snd_queue;
-	u32 seq_num;
-	u32 ack_seq_num;
-//	u32 offered_ack; //va usato nxt_rcv
-//	u32 expected_ack; // va usato nxt_snd
-	u32 src_ip;
-	u32 dst_ip;
-	u16 src_port;
-	u16 dst_port;
-}
-t_tcp_conn_desc;
-
-typedef struct s_tcp_desc
-{
-	t_hashtable* conn_map;
-	t_llist* conn_list;
-	new_dllist tcp_conn_desc_free(t_tcp_conn_desc* tcp_conn_desc)
-}
-t_tcp_desc;
-
-t_tcp_snd_queue* tcp_snd_queue_init(u32 size)
-{
-	t_tcp_snd_queue* tcp_snd_queue;
-
-	tcp_snd_queue=kmalloc(sizeof(t_tcp_snd_queue));
-	tcp_snd_queue->buf=kmalloc(size);
-	tcp_snd_queue->wnd_min=0;
-	tcp_snd_queue->wnd_max=0;
-	tcp_snd_queue->buf_cur=0;
-	tcp_snd_queue->buf_size=size;
-	tcp_snd_queue->nxt_snd=0;
-	return tcp_snd_queue;
-}
+#include "network/tcp.h"
 
 void tcp_snd_queue_free(t_tcp_snd_queue* tcp_snd_queue)
 {
@@ -131,7 +37,8 @@ t_tcp_conn_desc* tcp_conn_desc_int(u16 src_port,u16 dst_port)
 	tcp_conn_desc->rcv_buf=tcp_rcv_queue_init(TCP_RCV_SIZE);
 	tcp_conn_desc->snd_buf=tcp_snd_queue_init(TCP_SND_SIZE);
 	tcp_conn_desc->conn_id=src_port | (dst_port<<16);
-	tcp_conn_desc_timer=0xFFFFFFFF;
+	tcp_conn_desc->rtrsn_timer=0xFFFFFFFF;
+	tcp_conn_desc->pgybg_timer=0xFFFFFFFF;
 	return tcp_conn_desc;
 }
 
@@ -336,7 +243,11 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u8 
 	 	if (DATA_LF_OUT_WND(wnd_l_limit,wnd_r_limit,tcp_queue->buf_cur))
 		{
 		 	//no data to send
-			//start piggybacking timeout
+			tcp_conn_desc->pgybg_timer = PIGGYBACKING_TIMEOUT;
+			if (tcp_conn_desc->rtrsn_timer == 0xFFFFFFFF)
+			{
+				tcp_conn_desc->pgybg_timer = PIGGYBACKING_TIMEOUT;
+			}
 			return;
 		}
 		if (DATA_IN_WND(wnd_l_limit,wnd_r_limit,tcp_queue->buf_cur))
@@ -408,9 +319,10 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u8 
 			if (ack_num > 0)
 			{
 				flags = FLG_ACK;
-				tcp_conn_desc->rcv_queue->nxt_rcv = 0;	
+				tcp_conn_desc->rcv_queue->nxt_rcv = 0; ????????
+				//disable timer!!!!! 
 			}
-			send_packet_tcp(tcp_conn_desc,tcp_queue->buf[indx],SMSS,ack_num,flags);------------qui
+			send_packet_tcp(tcp_conn_desc,tcp_queue->buf[indx],SMSS,ack_num,flags);
 			data_to_send -= SMSS;
 			indx += SMSS;
 			ack_num = 0;
@@ -421,9 +333,9 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u8 
 			send_packet_tcp(tcp_conn_desc,tcp_queue->buf[indx],data_to_send,0,flags);
 		}
 		//timer RFC6298
-		if (tcp_conn_desc->timer == 0xFFFFFFFF)
+		if (tcp_conn_desc->rtrsn_timer == 0xFFFFFFFF)
 		{
-			tcp_conn_desc->timer = tcp_conn_desc->rto;
+			tcp_conn_desc->rtrsn_timer = tcp_conn_desc->rto;
 		}
 	}
 }
@@ -479,6 +391,17 @@ int buffer_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	update_snd_window(tcp_conn_desc,0,1);
 }
 
+void static pgybg_timer_handler()
+{
+	u8 flags = 0;
+	u32 ack_num = 0;
+
+	flags = FLG_ACK;
+	ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;	
+	tcp_conn_desc->rcv_queue->nxt_rcv = 0;			
+	send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,flags);
+}
+
 
 int send_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u32 ack_num,u8 flags)
 {
@@ -492,9 +415,7 @@ int send_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u32 a
 	char* tcp_payload = NULL;
 	t_data_sckt_buf* data_sckt_buf = NULL;
 	int ret = NULL;
-	u32 ack_num;
 	
-	ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;
 	data_sckt_buf=alloc_sckt(data_len+HEADER_ETH+HEADER_IP4+HEADER_TCP);
 	data_sckt_buf->transport_hdr=data_sckt_buf->data+HEADER_ETH+HEADER_IP4;
 	tcp_payload=data_sckt_buf->transport_hdr+HEADER_TCP;
