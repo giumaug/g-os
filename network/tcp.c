@@ -401,16 +401,24 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u8 
 
 	if (data_to_send > 0)
 	{
+		ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;
 		while (data_to_send >= SMSS)
 		{
-			.......???????????????qui------------
-			send_packet_tcp(tcp_conn_desc,tcp_queue->buf[indx],SMSS,flags);
+			// da gestire sincronizzazione col timer
+			if (ack_num > 0)
+			{
+				flags = FLG_ACK;
+				tcp_conn_desc->rcv_queue->nxt_rcv = 0;	
+			}
+			send_packet_tcp(tcp_conn_desc,tcp_queue->buf[indx],SMSS,ack_num,flags);------------qui
 			data_to_send -= SMSS;
 			indx += SMSS;
+			ack_num = 0;
+			flags = 0;
 		}
 		if (data_to_send > 0 )
 		{	
-			send_packet_tcp(tcp_conn_desc,tcp_queue->buf[indx],data_to_send,flags);
+			send_packet_tcp(tcp_conn_desc,tcp_queue->buf[indx],data_to_send,0,flags);
 		}
 		//timer RFC6298
 		if (tcp_conn_desc->timer == 0xFFFFFFFF)
@@ -472,7 +480,7 @@ int buffer_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 }
 
 
-int send_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u8 flags)
+int send_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u32 ack_num,u8 flags)
 {
 	ack_num   head
 	seq_num   head
