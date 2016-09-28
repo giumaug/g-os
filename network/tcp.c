@@ -237,14 +237,13 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u8 
 			INC_WND(tcp_queue->buf_max,tcp_queue->buf_size,word_to_ack);
 		}
 		
-		wnd_l_limit = SLOT_WND(tcp_snd_queue->nxt_snd-1,tcp_queue->size);
+		wnd_l_limit = SLOT_WND(tcp_snd_queue->nxt_snd,tcp_queue->size);
 		wnd_r_limit = SLOT_WND(tcp_queue->wnd_max,tcp_queue->size);
 
 	 	if (DATA_LF_OUT_WND(wnd_l_limit,wnd_r_limit,tcp_queue->buf_cur))
 		{
 		 	//no data to send
-			tcp_conn_desc->pgybg_timer = PIGGYBACKING_TIMEOUT;
-			if (tcp_conn_desc->rtrsn_timer == 0xFFFFFFFF)
+			if (tcp_conn_desc->pgybg_timer == 0xFFFFFFFF)
 			{
 				tcp_conn_desc->pgybg_timer = PIGGYBACKING_TIMEOUT;
 			}
@@ -313,22 +312,28 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u8 
 	if (data_to_send > 0)
 	{
 		ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;
+		if (if (ack_num > 0)
+		{
+			data_len =  data_to_send >= SMSS ? SMSS : data_to_send;
+			flags = FLG_ACK;
+			tcp_conn_desc->rcv_queue->nxt_rcv = 0;
+			send_packet_tcp(tcp_conn_desc,tcp_queue->buf[indx],data_len,ack_num,flags);
+			data_to_send -= data_len;
+			indx += data_len;
+			
+			if (tcp_conn_desc->pgybg_timer != 0xFFFFFFFF)
+			{
+				tcp_conn_desc->pgybg_timer = 0xFFFFFFFF;
+			}
+		}
+
 		while (data_to_send >= SMSS)
 		{
-			// da gestire sincronizzazione col timer
-			if (ack_num > 0)
-			{
-				flags = FLG_ACK;
-				tcp_conn_desc->rcv_queue->nxt_rcv = 0; ????????
-				//disable timer!!!!! 
-			}
 			send_packet_tcp(tcp_conn_desc,tcp_queue->buf[indx],SMSS,ack_num,flags);
 			data_to_send -= SMSS;
 			indx += SMSS;
-			ack_num = 0;
-			flags = 0;
 		}
-		if (data_to_send > 0 )
+		if (data_to_send > 0)
 		{	
 			send_packet_tcp(tcp_conn_desc,tcp_queue->buf[indx],data_to_send,0,flags);
 		}
@@ -391,6 +396,7 @@ int buffer_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	update_snd_window(tcp_conn_desc,0,1);
 }
 
+//Non occorre sincronizzazione sto dentro stessa deferred queue????????????qui!!!!! buffer_packet????
 void static pgybg_timer_handler()
 {
 	u8 flags = 0;
@@ -400,6 +406,7 @@ void static pgybg_timer_handler()
 	ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;	
 	tcp_conn_desc->rcv_queue->nxt_rcv = 0;			
 	send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,flags);
+	tcp_conn_desc->pgybg_timer = 0xFFFFFFFF;		
 }
 
 
