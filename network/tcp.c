@@ -215,7 +215,7 @@ void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 	update_snd_window(tcp_conn_desc->snd_buf,ack_seq_num);
 }
 
-static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u8 flush)
+static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 {
 	u32 word_to_ack;
 	u32 expected_ack;
@@ -345,25 +345,9 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u8 
 	}
 }
 
-void ack_time_out()
-{
-	cwnd=SMSS
-	update window edges	
-}
-
-void snd_packet()
-{
-	- posso inviare un nuovo pachetto?
-	- aggiorno trasmission window3
-}
-
-void flush_trasmission_window()
-{
-	-e' possibile trasmettere un pacchetto
-		-trasmetti pacchetto
-		-aggiorna tramsission windows4
-}
-
+//meglio scodare solo dentro la deferred queue,serve pure un meccanisco che
+//avvia lo scodamentom solo se non e' stato lanciato in precedenza dal
+//processamento dell'ack
 int buffer_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 {
 	t_tcp_snd_queue* tcp_queue = tcp_conn_desc->snd_queue;
@@ -393,10 +377,11 @@ int buffer_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 			INC_WND(tcp_snd_queue->cur,tcp_snd_queue->buf_size,data_len);
 		}
 	}
-	update_snd_window(tcp_conn_desc,0,1);
+	//vedi commento sopra
+	//update_snd_window(tcp_conn_desc,0,1);
 }
 
-//Non occorre sincronizzazione sto dentro stessa deferred queue????????????qui!!!!! buffer_packet????
+//Non occorre sincronizzazione sto dentro stessa deferred queue
 void static pgybg_timer_handler()
 {
 	u8 flags = 0;
@@ -409,14 +394,8 @@ void static pgybg_timer_handler()
 	tcp_conn_desc->pgybg_timer = 0xFFFFFFFF;		
 }
 
-
 int send_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u32 ack_num,u8 flags)
 {
-	ack_num   head
-	seq_num   head
-	head_len= 5 const
-	flags     input
-	win_size  head
 	checksum  computed here
 
 	char* tcp_payload = NULL;
@@ -431,18 +410,18 @@ int send_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u32 a
 	
 	tcp_header[0]=HI_16(tcp_conn_desc->src_port);   		//HI SRC PORT
 	tcp_header[1]=LOW_16(tcp_conn_desc->src_port);  		//LOW SRC PORT
-	tcp_header[2]=HI_16(tcp_conn_descsrc_port);   			//HI DST PORT
-	tcp_header[3]=LOW_16(tcp_conn_descsrc_port);  			//LOW DST PORT
+	tcp_header[2]=HI_16(tcp_conn_desc->dst_port);   		//HI DST PORT
+	tcp_header[3]=LOW_16(tcp_conn_desc->dst_port);  		//LOW DST PORT
 
 	tcp_header[4]=HI_OCT_32(tcp_conn_desc->seq_num);         	//HIGH SEQ NUM
 	tcp_header[5]=MID_LFT_OCT_32(tcp_conn_desc->seq_num);    	//MID LEFT SEQ NUM
 	tcp_header[6]=MID_RGT_OCT_32(tcp_conn_desc->seq_num);    	//MID RIGHT SEQ NUM
 	tcp_header[7]=LOW_OCT_32(tcp_conn_desc->seq_num);        	//LOW SEQ NUM
 
-	tcp_header[8]=HI_OCT_32(tcp_conn_desc->ack_num);		//HIGH ACK NUM
-	tcp_header[9]=MID_LFT_OCT_32(tcp_conn_desc->ack_num);		//MID LEFT ACK NUM
-	tcp_header[10]=MID_RGT_OCT_32(tcp_conn_desc->ack_num); 		//MID RIGHT ACK NUM
-	tcp_header[11]=LOW_OCT_32(tcp_conn_desc->ack_num);		//LOW ACK NUM
+	tcp_header[8]=HI_OCT_32(ack_num);				//HIGH ACK NUM
+	tcp_header[9]=MID_LFT_OCT_32(ack_num);				//MID LEFT ACK NUM
+	tcp_header[10]=MID_RGT_OCT_32(ack_num); 			//MID RIGHT ACK NUM
+	tcp_header[11]=LOW_OCT_32(ack_num);				//LOW ACK NUM
 
 	tcp_header[12]=0x50;	                   			//HEADER LEN + 4 RESERVED BIT (5 << 4)
 	tcp_header[13]=flags;                           		//FLAGS
@@ -454,12 +433,48 @@ int send_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u32 a
 	tcp_header[18]=0;						//HI URGENT POINTER (NOT USED)
 	tcp_header[19]=0;						//LOW URGENT POINTER (NOT USED)
 
+	udp_row_packet=data_sckt_buf->transport_hdr;---qui
+
 	ret=send_packet_ip4(data_sckt_buf,
 			    tcp_conn_desc->src_ip,
 			    tcp_conn_desc->dst_ip,
 			    tcp_conn_desc->ip_packet_len,
 			    TCP_PROTOCOL);
 	return ret;
+}
+
+static u16 checksum_tcp(char* udp_row_packet,u32 src_ip,u32 dst_ip,u16 data_len)
+{
+	u16 packet_len;
+	u16 chk;
+	u16 chk_virt;
+	unsigned char header_virt[16];
+	unsigned char chk_final[4];
+	
+	header_virt[0]=IP_HI_OCT(src_ip);          	
+	header_virt[1]=IP_MID_LFT_OCT(src_ip);
+	header_virt[2]=IP_MID_RGT_OCT(src_ip);
+	header_virt[3]=IP_LOW_OCT(src_ip);
+	header_virt[4]=IP_HI_OCT(dst_ip);          	
+	header_virt[5]=IP_MID_LFT_OCT(dst_ip);
+	header_virt[6]=IP_MID_RGT_OCT(dst_ip);
+	header_virt[7]=IP_LOW_OCT(dst_ip);		
+	header_virt[8]=0;
+	header_virt[9]=17;
+	header_virt[10]=udp_row_packet[4];
+	header_virt[11]=udp_row_packet[5];
+
+	packet_len=HEADER_UDP+data_len;	
+	chk=checksum((unsigned short*) udp_row_packet,packet_len);
+	chk_virt=checksum((unsigned short*) header_virt,12);
+
+	chk_final[0]=LOW_16(~chk_virt);
+	chk_final[1]=HI_16(~chk_virt);
+	chk_final[2]=LOW_16(~chk);
+	chk_final[3]=HI_16(~chk);
+	u16 xxx=checksum(chk_final,4);
+	//return ~checksum(chk_final,4);
+	return checksum(chk_final,4);
 }
 
 
