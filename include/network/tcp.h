@@ -46,10 +46,12 @@ t_tcp_snd_queue;
 
 typedef struct s_tcp_rcv_queue
 {
-	u32 min;
-	u32 max;
-	u32 cur;
-	u32 size;
+	u32 buf_min;
+	u32 buf_max; // equal to wnd_max
+	u32 wnd_min;
+	u32 wnd_max;
+	//u32 cur; non serve???
+	u32 buf_size;
 	char* in_order_buf;
 	char* out_order_buf;
 	u32 nxt_rcv; //ack relativo finestra di ricezione e usato in trasmissione

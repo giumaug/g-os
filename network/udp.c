@@ -88,7 +88,7 @@ static u16 checksum_udp(char* udp_row_packet,u32 src_ip,u32 dst_ip,u16 data_len)
 	header_virt[6]=IP_MID_RGT_OCT(dst_ip);
 	header_virt[7]=IP_LOW_OCT(dst_ip);		
 	header_virt[8]=0;
-	header_virt[9]=17;
+	header_virt[9]=UDP_PROTOCOL;
 	header_virt[10]=udp_row_packet[4];
 	header_virt[11]=udp_row_packet[5];
 

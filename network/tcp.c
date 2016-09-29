@@ -109,8 +109,7 @@ static void update_rcv_window_and_ack(t_tcp_queue* tcp_queue)
 	}
 }
 
-crc???
-void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf)
+rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len)
 {
 	t_tcp_desc* tcp_desc=NULL;
 	t_tcp_conn_desc* tcp_conn_desc=NULL;
@@ -144,24 +143,31 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf)
 	ip_len=GET_WORD(ip_row_packet[2],ip_row_packet[3]);
 	data_len=ip_len-HEADER_TCP;
 
-	if (DATA_IN_WND(tcp_queue->rcv_min,tcp_queue->rcv_max,index) && data_len>0)
+	if (checksum_udp((unsigned short*) tcp_row_packet,src_ip,dst_ip,data_len)==0)
 	{
-		low_index=seq_num;
-		hi_index=seq_num+data_len;
-		if (SLOT_WND(low_index)<SLOT_WND(hi_index)) 
+		if (DATA_IN_WND(tcp_queue->wnd_min,tcp_queue->wnd_max,index) && data_len>0)
 		{
-			kmemcpy(tcp_queue->buf,data_sckt_buf->data,data_len);
+			low_index=seq_num;
+			hi_index=seq_num+data_len;
+			if (SLOT_WND(low_index)<SLOT_WND(hi_index)) 
+			{
+				kmemcpy(tcp_queue->buf,data_sckt_buf->data,data_len);
+			}
+			else 
+			{
+				len_1=tcp_queue->size-index;
+				len_2=data_len-len_1;
+				kmemcpy(tcp_queue->buf+index,data_sckt_buf->data,len_1);
+				kmemcpy(tcp_queue->buf,data_sckt_buf->data+len_1,len_2);
+			}
+			update_rcv_window_and_ack();
 		}
-		else 
-		{
-			len_1=tcp_queue->size-index;
-			len_2=data_len-len_1;
-			kmemcpy(tcp_queue->buf+index,data_sckt_buf->data,len_1);
-			kmemcpy(tcp_queue->buf,data_sckt_buf->data+len_1,len_2);
-		}
-		update_rcv_window_and_ack();
+		rcv_ack(tcp_conn_desc,ack_seq_num);
 	}
-	rcv_ack(tcp_conn_desc,ack_seq_num);
+	else
+	{
+		free_sckt(data_sckt_buf);
+	}
 
 }
 
@@ -225,17 +231,14 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 
 	tcp_queue = tcp_conn_desc->snd_queue;
 	//trasmission with good ack
-	if (tcp_conn_desc->duplicated_ack == 0 || flush)
+	if (tcp_conn_desc->duplicated_ack == 0)----------------------------------qui valore seq_num
 	{
-		if (!flush)
-		{
-			word_to_ack = ack_seq_num - tcp_queue->min;
-			tcp_queue->wnd_min = tcp_queue->wnd_min + word_to_ack;
-			tcp_queue->wnd_max = tcp_queue->wnd_min + tcp_conn_desc->cwnd;
-			data_to_send=tcp_queue->tcp_queue->data->wnd_max-tcp_queue->nxt_snd-1;
-			tcp_queue->buf_min = tcp_queue->wnd_min;
-			INC_WND(tcp_queue->buf_max,tcp_queue->buf_size,word_to_ack);
-		}
+		word_to_ack = ack_seq_num - tcp_queue->min;
+		tcp_queue->wnd_min = tcp_queue->wnd_min + word_to_ack;
+		tcp_queue->wnd_max = tcp_queue->wnd_min + tcp_conn_desc->cwnd;
+		data_to_send=tcp_queue->tcp_queue->data->wnd_max-tcp_queue->nxt_snd-1;
+		tcp_queue->buf_min = tcp_queue->wnd_min;
+		INC_WND(tcp_queue->buf_max,tcp_queue->buf_size,word_to_ack);
 		
 		wnd_l_limit = SLOT_WND(tcp_snd_queue->nxt_snd,tcp_queue->size);
 		wnd_r_limit = SLOT_WND(tcp_queue->wnd_max,tcp_queue->size);
@@ -345,7 +348,7 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 	}
 }
 
-//meglio scodare solo dentro la deferred queue,serve pure un meccanisco che
+//Meglio scodare solo dentro la deferred queue,serve pure un meccanismo che
 //avvia lo scodamentom solo se non e' stato lanciato in precedenza dal
 //processamento dell'ack
 int buffer_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
@@ -394,13 +397,15 @@ void static pgybg_timer_handler()
 	tcp_conn_desc->pgybg_timer = 0xFFFFFFFF;		
 }
 
+//tcp_conn_desc->win_size ???
+//tcp_conn_desc->seq_num  ???
 int send_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u32 ack_num,u8 flags)
 {
-	checksum  computed here
-
+	u16 chk;
 	char* tcp_payload = NULL;
 	t_data_sckt_buf* data_sckt_buf = NULL;
 	int ret = NULL;
+	char* tcp_header = NULL;
 	
 	data_sckt_buf=alloc_sckt(data_len+HEADER_ETH+HEADER_IP4+HEADER_TCP);
 	data_sckt_buf->transport_hdr=data_sckt_buf->data+HEADER_ETH+HEADER_IP4;
@@ -433,7 +438,9 @@ int send_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u32 a
 	tcp_header[18]=0;						//HI URGENT POINTER (NOT USED)
 	tcp_header[19]=0;						//LOW URGENT POINTER (NOT USED)
 
-	udp_row_packet=data_sckt_buf->transport_hdr;---qui
+	chk=SWAP_WORD(checksum_tcp((unsigned short*) tcp_header,tcp_conn_desc->src_ip,tcp_conn_desc->dst_ip,data_len));
+	tcp_header[18]=HI_16(chk);
+	tcp_header[19]=LOW_16(chk);
 
 	ret=send_packet_ip4(data_sckt_buf,
 			    tcp_conn_desc->src_ip,
@@ -443,7 +450,7 @@ int send_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u32 a
 	return ret;
 }
 
-static u16 checksum_tcp(char* udp_row_packet,u32 src_ip,u32 dst_ip,u16 data_len)
+static u16 checksum_tcp(char* tcp_row_packet,u32 src_ip,u32 dst_ip,u16 data_len)
 {
 	u16 packet_len;
 	u16 chk;
@@ -460,11 +467,11 @@ static u16 checksum_tcp(char* udp_row_packet,u32 src_ip,u32 dst_ip,u16 data_len)
 	header_virt[6]=IP_MID_RGT_OCT(dst_ip);
 	header_virt[7]=IP_LOW_OCT(dst_ip);		
 	header_virt[8]=0;
-	header_virt[9]=17;
-	header_virt[10]=udp_row_packet[4];
-	header_virt[11]=udp_row_packet[5];
+	header_virt[9]=TCP_PROTOCOL;
+	header_virt[10]=tcp_row_packet[4];
+	header_virt[11]=tcp_row_packet[5];
 
-	packet_len=HEADER_UDP+data_len;	
+	packet_len=HEADER_TCP+data_len;	
 	chk=checksum((unsigned short*) udp_row_packet,packet_len);
 	chk_virt=checksum((unsigned short*) header_virt,12);
 
@@ -472,8 +479,6 @@ static u16 checksum_tcp(char* udp_row_packet,u32 src_ip,u32 dst_ip,u16 data_len)
 	chk_final[1]=HI_16(~chk_virt);
 	chk_final[2]=LOW_16(~chk);
 	chk_final[3]=HI_16(~chk);
-	u16 xxx=checksum(chk_final,4);
-	//return ~checksum(chk_final,4);
 	return checksum(chk_final,4);
 }
 
