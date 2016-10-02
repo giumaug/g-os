@@ -55,8 +55,9 @@ typedef struct s_tcp_rcv_queue
 	char* in_order_buf;
 	char* out_order_buf;
 	u32 nxt_rcv; //ack relativo finestra di ricezione e usato in trasmissione
+	u32 wnd_size;
 }
-t_tcp_snd_queue;
+t_tcp_rcv_queue;
 
 typedef struct s_tcp_conn_desc
 {
