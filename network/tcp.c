@@ -163,7 +163,7 @@ static void _update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue,u32 rcv_seq_nu
 			{
 				tcp_queue->buf_state[i/8]=0;
 			}
-			tcp_queue->buf_state[index/8] = (tcp_queue->buf_state[index/8] << 1) | 1;
+			tcp_queue->buf_state[index/8] = (tcp_queue->buf_state[index/8] << offset);
 			-------qui
 			
 		}

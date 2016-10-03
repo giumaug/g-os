@@ -96,3 +96,141 @@ t_tcp_snd_queue* tcp_snd_queue_init(u32 size)
 	tcp_snd_queue->nxt_snd=0;
 	return tcp_snd_queue;
 }
+
+u8 lookup_reserved_slot[126];
+lookup_reserved_slot[0] =  1;  	// 10000000
+lookup_reserved_slot[1] =  1;  	// 10000001
+lookup_reserved_slot[2] =  1;  	// 10000010
+lookup_reserved_slot[3] =  1;  	// 10000011
+lookup_reserved_slot[4] =  1;  	// 10000100
+lookup_reserved_slot[5] =  1;  	// 10000101
+lookup_reserved_slot[6] =  1;  	// 10000110
+lookup_reserved_slot[7] =  1;  	// 10000111
+lookup_reserved_slot[8] =  1;  	// 10001000
+lookup_reserved_slot[9] =  1;  	// 10001001
+lookup_reserved_slot[10] =  1;
+lookup_reserved_slot[11] =  1;
+lookup_reserved_slot[12] =  1;
+lookup_reserved_slot[13] =  1;
+lookup_reserved_slot[14] =  1;
+lookup_reserved_slot[15] =  1;
+lookup_reserved_slot[16] =  1;
+lookup_reserved_slot[17] =  1;
+lookup_reserved_slot[18] =  1;
+lookup_reserved_slot[19] =  1;
+lookup_reserved_slot[20] =  1;
+lookup_reserved_slot[21] =  1;
+lookup_reserved_slot[22] =  1;
+lookup_reserved_slot[23] =  1;
+lookup_reserved_slot[24] =  1;
+lookup_reserved_slot[25] =  1;
+lookup_reserved_slot[26] =  1;
+lookup_reserved_slot[27] =  1;
+lookup_reserved_slot[28] =  1;
+lookup_reserved_slot[29] =  1;
+
+lookup_reserved_slot[30] =  1;
+lookup_reserved_slot[31] =  1;
+lookup_reserved_slot[32] =  1;
+lookup_reserved_slot[33] =  1;
+lookup_reserved_slot[34] =  1;
+lookup_reserved_slot[35] =  1;
+lookup_reserved_slot[36] =  1;
+lookup_reserved_slot[37] =  1;
+lookup_reserved_slot[38] =  1;
+lookup_reserved_slot[39] =  1;
+lookup_reserved_slot[40] =  1;
+lookup_reserved_slot[41] =  1;
+lookup_reserved_slot[42] =  1;
+lookup_reserved_slot[43] =  1;
+lookup_reserved_slot[44] =  1;
+lookup_reserved_slot[45] =  1;
+lookup_reserved_slot[46] =  1;
+lookup_reserved_slot[47] =  1;
+lookup_reserved_slot[48] =  1;
+lookup_reserved_slot[49] =  1;
+lookup_reserved_slot[50] =  1;
+lookup_reserved_slot[51] =  1;
+lookup_reserved_slot[52] =  1;
+lookup_reserved_slot[53] =  1;
+lookup_reserved_slot[54] =  1;
+lookup_reserved_slot[55] =  1;
+lookup_reserved_slot[56] =  1;
+lookup_reserved_slot[57] =  1;
+lookup_reserved_slot[58] =  1;
+lookup_reserved_slot[59] =  1;
+
+lookup_reserved_slot[60] =  1;
+lookup_reserved_slot[61] =  1;
+lookup_reserved_slot[62] =  1;
+lookup_reserved_slot[63] =  1;
+lookup_reserved_slot[64] =  1;
+lookup_reserved_slot[65] =  1;
+lookup_reserved_slot[66] =  1;
+lookup_reserved_slot[67] =  1;
+lookup_reserved_slot[68] =  1;
+lookup_reserved_slot[69] =  1;
+lookup_reserved_slot[70] =  1;
+lookup_reserved_slot[71] =  1;
+lookup_reserved_slot[72] =  1;
+lookup_reserved_slot[73] =  1;
+lookup_reserved_slot[74] =  1;
+lookup_reserved_slot[75] =  1;
+lookup_reserved_slot[76] =  1;
+lookup_reserved_slot[77] =  1;
+lookup_reserved_slot[78] =  1;
+lookup_reserved_slot[79] =  1;
+lookup_reserved_slot[80] =  1;
+lookup_reserved_slot[81] =  1;
+lookup_reserved_slot[82] =  1;
+lookup_reserved_slot[83] =  1;
+lookup_reserved_slot[84] =  1;
+lookup_reserved_slot[85] =  1;
+lookup_reserved_slot[86] =  1;
+lookup_reserved_slot[87] =  1;
+lookup_reserved_slot[88] =  1;
+lookup_reserved_slot[89] =  1;
+
+lookup_reserved_slot[90] =  1;
+lookup_reserved_slot[91] =  1;
+lookup_reserved_slot[92] =  1;
+lookup_reserved_slot[93] =  1;
+lookup_reserved_slot[94] =  1;
+lookup_reserved_slot[95] =  1;
+lookup_reserved_slot[96] =  1;
+lookup_reserved_slot[97] =  1;
+lookup_reserved_slot[98] =  1;
+lookup_reserved_slot[99] =  1;
+lookup_reserved_slot[100] =  1;
+lookup_reserved_slot[101] =  1;
+lookup_reserved_slot[102] =  1;
+lookup_reserved_slot[103] =  1;
+lookup_reserved_slot[104] =  1;
+lookup_reserved_slot[105] =  1;
+lookup_reserved_slot[106] =  1;
+lookup_reserved_slot[107] =  1;
+lookup_reserved_slot[108] =  1;
+lookup_reserved_slot[109] =  1;
+lookup_reserved_slot[110] =  1;
+lookup_reserved_slot[111] =  1;
+lookup_reserved_slot[112] =  1;
+lookup_reserved_slot[113] =  1;
+lookup_reserved_slot[114] =  1;
+lookup_reserved_slot[115] =  1;
+lookup_reserved_slot[116] =  1;
+lookup_reserved_slot[117] =  1;
+lookup_reserved_slot[118] =  1;
+lookup_reserved_slot[119] =  1;
+
+
+
+ { 
+				0,.. 1  //10000000
+				1,
+
+
+}
+
+lookup_free_slot
+
+  
