@@ -91,6 +91,40 @@ static void update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue,rcv_seq_num,u32
 	}
 }
 
+static int count_offset(u32 val)
+{
+	u8 offset;
+
+	if (slot_state & b10000000)
+	{
+		offset = 1;
+	}
+	else if (slot_state & b11000000)
+	{
+		offset = 2;
+	}
+	else if (slot_state & b11100000)
+	{
+		offset = 3;
+	}
+	else if (slot_state & b11110000)
+	{
+		offset = 4;
+	}
+	else if (slot_state & b11111000)
+	{
+		offset = 5;
+	}
+	else if (slot_state & b11111100)
+	{
+		offset = 6;
+	}
+	else if (slot_state & b11111110)
+	{
+		offset = 7;
+	}
+}
+
 
 
 static void _update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue,u32 rcv_seq_num)
@@ -103,8 +137,8 @@ static void _update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue,u32 rcv_seq_nu
 	index=tcp_queue->wnd_min;
 	while(index <= tcp_queue->wnd_max)
 	{
-		slot_state = tcp_queue->out_order_buf[index/8];
-		if (slot_state == 0)
+		slot_state = tcp_queue->buf_state[index/8];
+		if (slot_state != 0)
 		{
 			break;
 		}
@@ -114,15 +148,25 @@ static void _update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue,u32 rcv_seq_nu
 	{
 		if (slot_state == 0xFF)
 		{
+			for (i = tcp_queue->min;i<=index;i++)
+			{
+				tcp_queue->buf_state[i/8]=0;
+			}
 			tcp_queue->min += index;
 			tcp_queue->man += index;
-			tcp_queue->wnd_size = tcp_queue->wnd_max - tcp_queue->wnd_min;
-			for (i = 0;i <= 
+			tcp_queue->wnd_size -= index;	
 		}
-		tcp_queue->offered_ack=index;//no!!!
-		tcp_queue->min=(tcp_queue->min+offset) % TCP_RCV_SIZE;
-		tcp_queue->max=(tcp_queue->max+offset) % TCP_RCV_SIZE;
-		tcp_queue->offered_wnd=(tcp_queue->max-tcp_queue->min >=0 ? (tcp_queue->max-tcp_queue->min) : (tcp_queue->min-tcp_queue->max));
+		else if (slot_state != 0xFF && slot_state != 0x0)
+		{
+			offset = count_offset(tcp_queue->buf_state[index/8]);
+			for (i = tcp_queue->min;i<=index-1;i++)
+			{
+				tcp_queue->buf_state[i/8]=0;
+			}
+			tcp_queue->buf_state[index/8] = (tcp_queue->buf_state[index/8] << 1) | 1;
+			-------qui
+			
+		}
 	}
 }
 
@@ -177,7 +221,7 @@ rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len
 				kmemcpy(tcp_queue->buf+index,data_sckt_buf->data,len_1);
 				kmemcpy(tcp_queue->buf,data_sckt_buf->data+len_1,len_2);
 			}
-			update_rcv_window_and_ack();
+			//update_rcv_window_and_ack(); la chimata va fatta sulla lettura sel socket
 		}
 		rcv_ack(tcp_conn_desc,ack_seq_num);
 	}
