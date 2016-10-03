@@ -91,42 +91,6 @@ static void update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue,rcv_seq_num,u32
 	}
 }
 
-static int count_offset(u32 val)
-{
-	u8 offset;
-
-	if (slot_state & b10000000)
-	{
-		offset = 1;
-	}
-	else if (slot_state & b11000000)
-	{
-		offset = 2;
-	}
-	else if (slot_state & b11100000)
-	{
-		offset = 3;
-	}
-	else if (slot_state & b11110000)
-	{
-		offset = 4;
-	}
-	else if (slot_state & b11111000)
-	{
-		offset = 5;
-	}
-	else if (slot_state & b11111100)
-	{
-		offset = 6;
-	}
-	else if (slot_state & b11111110)
-	{
-		offset = 7;
-	}
-}
-
-
-
 static void _update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue,u32 rcv_seq_num)
 {
 	u32 ack_seq_num;
@@ -154,18 +118,19 @@ static void _update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue,u32 rcv_seq_nu
 			}
 			tcp_queue->min += index;
 			tcp_queue->man += index;
-			tcp_queue->wnd_size -= index;	
+			tcp_queue->wnd_size += index + offset;	
 		}
-		else if (slot_state != 0xFF && slot_state != 0x0)
+		else if (slot_state > 0x7F)
 		{
-			offset = count_offset(tcp_queue->buf_state[index/8]);
+			offset = lookup_reserved_slot[(tcp_queue->buf_state[index/8]-128);
 			for (i = tcp_queue->min;i<=index-1;i++)
 			{
 				tcp_queue->buf_state[i/8]=0;
 			}
-			tcp_queue->buf_state[index/8] = (tcp_queue->buf_state[index/8] << offset);
-			-------qui
-			
+			tcp_queue->buf_state[index/8] = lookup_free_slot[offset];
+			tcp_queue->min += index + offset;
+			tcp_queue->man += index + offset;
+			tcp_queue->wnd_size += index + offset;	
 		}
 	}
 }
