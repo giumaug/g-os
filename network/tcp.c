@@ -66,32 +66,82 @@ void tcp_free(t_tcp_desc* tcp_desc)
 	kfree(tcp_desc);
 }
 
-tcp_queue_del(t_tcp_queue* tcp_queue,t_data_sckt_buf* data_sckt_buf)
+//only a little slower than a lookup table
+static int lookup_reserved_slot(int slot_state)
 {
------
-}
+	int offset;
 
-void process_rcv_packet()
-{
-
-}
-
-void process_snd_packet()
-{
-
-}
-
-static void update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue,rcv_seq_num,u32 data_len)
-{
-	if (tcp_queue->wnd_min == rcv_seq_num)
+	if (slot_state == 254) 
 	{
-		tcp_queue->wnd_min += data_len;
-		tcp_queue->wnd_max += data_len;
-
+		offset = 7;
 	}
+	else if (slot_state & 11111100 == 252)
+	{
+		offset = 6;
+	}
+	else if (slot_state & 11111100 == 252)
+	{
+		
+	}
+	else if (slot_state & 11111000 == 248)
+	{
+		offset = 5;
+	}
+	else if (slot_state & 11110000 == 240)
+	{
+		offset = 4;
+	}
+	else if (slot_state & 11100000 == 224)
+	{
+		offset = 3;
+	}
+	else if (slot_state & 11000000 == 192)
+	{
+		offset = 2;
+	}
+	else if (slot_state & 10000000 == 128)
+	{
+		offset = 1;
+	}
+	return offset;
 }
 
-static void _update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue,u32 rcv_seq_num)
+static u8 lookup_free_slot(offset)
+{
+	u8 slot_state;
+
+	if (offset == 1)
+	{
+		slot_state = 128;
+	}
+	else if (offset == 2)
+	{
+		slot_state = 192;
+	}
+	else if (offset == 3)
+	{
+		slot_state = 224;
+	}
+	else if (offset == 4)
+	{
+		slot_state = 240;
+	}
+	else if (offset == 5)
+	{
+		slot_state = 248;
+	}
+	else if (offset == 6)
+	{
+		slot_state = 252;
+	}
+	else if (offset == 7)
+	{
+		slot_state = 254;
+	}
+	return slot_state;
+}
+
+static void update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue,u32 rcv_seq_num)
 {
 	u32 ack_seq_num;
 	u32 min;
@@ -106,28 +156,21 @@ static void _update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue,u32 rcv_seq_nu
 		{
 			break;
 		}
+		tcp_queue->buf_state[i/8]=0;
 		index++;
 	}
 	if (index != tcp_queue->min) 
 	{
 		if (slot_state == 0xFF)
 		{
-			for (i = tcp_queue->min;i<=index;i++)
-			{
-				tcp_queue->buf_state[i/8]=0;
-			}
 			tcp_queue->min += index;
 			tcp_queue->man += index;
-			tcp_queue->wnd_size += index + offset;	
+			tcp_queue->wnd_size += index;
 		}
-		else if (slot_state > 0x7F)
+		else 
 		{
-			offset = lookup_reserved_slot[(tcp_queue->buf_state[index/8]-128);
-			for (i = tcp_queue->min;i<=index-1;i++)
-			{
-				tcp_queue->buf_state[i/8]=0;
-			}
-			tcp_queue->buf_state[index/8] = lookup_free_slot[offset];
+			offset = lookup_reserved_slot[(tcp_queue->buf_state[index/8]);
+			tcp_queue->buf_state[index/8] = lookup_free_slot(offset);
 			tcp_queue->min += index + offset;
 			tcp_queue->man += index + offset;
 			tcp_queue->wnd_size += index + offset;	
@@ -169,9 +212,9 @@ rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len
 	ip_len=GET_WORD(ip_row_packet[2],ip_row_packet[3]);
 	data_len=ip_len-HEADER_TCP;
 
-	if (checksum_udp((unsigned short*) tcp_row_packet,src_ip,dst_ip,data_len)==0)-----------qui
+	if (checksum_udp((unsigned short*) tcp_row_packet,src_ip,dst_ip,data_len)==0)
 	{
-		if (seq_num >= tcp_queue->wnd_min && seq_num +data_len <= tcp_queue->wnd_max)
+		if (seq_num >= tcp_queue->wnd_min && seq_num + data_len <= tcp_queue->wnd_max)
 		{
 			low_index=seq_num;
 			hi_index=seq_num+data_len;
