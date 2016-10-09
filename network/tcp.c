@@ -216,6 +216,7 @@ rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len
 	{
 		if (seq_num >= tcp_queue->wnd_min && seq_num + data_len <= tcp_queue->wnd_max)
 		{
+			//occorre logica che controlla dati duplicati o parzialmente duplicati
 			low_index=seq_num;
 			hi_index=seq_num+data_len;
 			if (SLOT_WND(low_index)<SLOT_WND(hi_index)) 
@@ -299,6 +300,7 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 	u8 flags=0;
 
 	tcp_queue = tcp_conn_desc->snd_queue;
+	ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;
 	//trasmission with good ack
 	if (tcp_conn_desc->duplicated_ack == 0)
 	{
@@ -307,7 +309,7 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 		tcp_queue->wnd_max = tcp_queue->wnd_min + tcp_conn_desc->cwnd;
 		data_to_send=tcp_queue->tcp_queue->data->wnd_max-tcp_queue->nxt_snd-1;
 		tcp_queue->buf_min = tcp_queue->wnd_min;
-		INC_WND(tcp_queue->buf_max,tcp_queue->buf_size,word_to_ack);
+		//INC_WND(tcp_queue->buf_max,tcp_queue->buf_size,word_to_ack);
 		
 		wnd_l_limit = SLOT_WND(tcp_snd_queue->nxt_snd,tcp_queue->size);
 		wnd_r_limit = SLOT_WND(tcp_queue->wnd_max,tcp_queue->size);
@@ -315,7 +317,7 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 	 	if (DATA_LF_OUT_WND(wnd_l_limit,wnd_r_limit,tcp_queue->buf_cur))
 		{
 		 	//no data to send
-			if (tcp_conn_desc->pgybg_timer == 0xFFFFFFFF)
+			if (tcp_conn_desc->pgybg_timer == 0xFFFFFFFF && ack_num > 0)
 			{
 				tcp_conn_desc->pgybg_timer = PIGGYBACKING_TIMEOUT;
 			}
@@ -324,7 +326,7 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 		if (DATA_IN_WND(wnd_l_limit,wnd_r_limit,tcp_queue->buf_cur))
 		{	
 			//in window
-			wnd_r_limit=tcp_queue->buf_cur:
+			wnd_r_limit=tcp_queue->buf_cur://occorre inizializzare seq_num!!!!!!!!!!!!!!!!!!
 		}
 		//more data than window nothing to do
 
@@ -387,7 +389,6 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 
 	if (data_to_send > 0)
 	{
-		ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;
 		if (if (ack_num > 0)
 		{
 			data_len =  data_to_send >= SMSS ? SMSS : data_to_send;
