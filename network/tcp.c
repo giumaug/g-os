@@ -147,8 +147,8 @@ static void update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue,u32 rcv_seq_num
 	u32 min;
 	u32 offset;
 
-	offset=0;
-	index=tcp_queue->wnd_min;
+	offset = 0;
+	index = tcp_queue->wnd_min;
 	while(index <= tcp_queue->wnd_max)
 	{
 		slot_state = tcp_queue->buf_state[index/8];
@@ -228,6 +228,8 @@ rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len
 				kmemcpy(tcp_queue->buf+buf_index,data_sckt_buf->data,len_1);
 				kmemcpy(tcp_queue->buf,data_sckt_buf->data+len_1,len_2);
 			}
+			//gestione duplicati????????
+			tcp_queue->wnd_size -= data_len;--------------------da qui--------------------
 		}
 		rcv_ack(tcp_conn_desc,ack_seq_num);
 		update_snd_window(tcp_conn_desc,ack_seq_num,data_len);
@@ -423,15 +425,15 @@ int buffer_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 {
 	t_tcp_snd_queue* tcp_queue = tcp_conn_desc->snd_queue;
 
-	b_free_size=WND_SIZE(tcp_queue->tcp_snd_queue->nxt_snd,tcp_queue->buf_max);
+	b_free_size=WND_SIZE(tcp_queue->tcp_snd_queue->buf_cur,tcp_queue->buf_max);
 	if (b_free_size < data_len)
 	{
 		return -1;
 	}
 	if (tcp_snd_queue->cur < tcp_queue->buf_max) 
 	{
-		kmemcpy(tcp_queue->buf[tcp_snd_queue->cur],data,data_len);
-		INC_WND(tcp_snd_queue->cur,tcp_snd_queue->buf_size,data_len);
+		kmemcpy(tcp_queue->buf[tcp_snd_queue->buf_cur],data,data_len);
+		INC_WND(tcp_snd_queue->buf_cur,tcp_snd_queue->buf_size,data_len);
 	}
 	else
 	{
@@ -465,7 +467,6 @@ void static pgybg_timer_handler()
 	tcp_conn_desc->pgybg_timer = 0xFFFFFFFF;		
 }
 
-//tcp_conn_desc->win_size ???
 int send_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u32 ack_num,u8 flags)
 {
 	u16 chk;
@@ -497,8 +498,8 @@ int send_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u32 a
 
 	tcp_header[12]=0x50;	                   			//HEADER LEN + 4 RESERVED BIT (5 << 4)
 	tcp_header[13]=flags;                           		//FLAGS
-	tcp_header[14]=HI_16(tcp_conn_desc->win_size);			//HI WINDOW SIZE
-	tcp_header[15]=LOW_16(tcp_conn_desc->win_size);                	//LOW WINDOW SIZE
+	tcp_header[14]=HI_16(tcp_conn_desc->wnd_size);			//HI WINDOW SIZE
+	tcp_header[15]=LOW_16(tcp_conn_desc->wnd_size);                	//LOW WINDOW SIZE
 
 	tcp_header[16]=HI_16(checksum);					//HI TCP CHECKSUM
 	tcp_header[17]=LOW_16(checksum);				//LOW TCP CHECKSUM
