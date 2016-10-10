@@ -309,12 +309,8 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 		tcp_queue->wnd_max = tcp_queue->wnd_min + tcp_conn_desc->cwnd;
 		data_to_send=tcp_queue->tcp_queue->data->wnd_max-tcp_queue->nxt_snd-1;
 		tcp_queue->buf_min = tcp_queue->wnd_min;
-		//INC_WND(tcp_queue->buf_max,tcp_queue->buf_size,word_to_ack);
-		
-		wnd_l_limit = SLOT_WND(tcp_snd_queue->nxt_snd,tcp_queue->size);
-		wnd_r_limit = SLOT_WND(tcp_queue->wnd_max,tcp_queue->size);
 
-	 	if (DATA_LF_OUT_WND(wnd_l_limit,wnd_r_limit,tcp_queue->buf_cur))
+		if (tcp_queue->buf_cur < wnd_l_limit) qui----------__>rivedere tutto non va bene!!!!!!!!!!!!!!!!!!111
 		{
 		 	//no data to send
 			if (tcp_conn_desc->pgybg_timer == 0xFFFFFFFF && ack_num > 0)
@@ -323,17 +319,23 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 			}
 			return;
 		}
-		if (DATA_IN_WND(wnd_l_limit,wnd_r_limit,tcp_queue->buf_cur))
+		if (tcp_queue->buf_cur >= wnd_l_limit && tcp_queue->buf_cur <= wnd_r_limit)
 		{	
 			//in window
-			wnd_r_limit=tcp_queue->buf_cur://occorre inizializzare seq_num!!!!!!!!!!!!!!!!!!
+			//occorre inizializzare seq_num!!!!!!!!!!!!!!!!!!
+			wnd_l_limit = tcp_snd_queue->nxt_snd;
+			wnd_r_limit = tcp_queue->buf_cur;
 		}
-		//more data than window nothing to do
-
+		if (tcp_queue->buf_cur >= wnd_r_limit)
+		{	
+			wnd_l_limit = tcp_snd_queue->nxt_snd;
+			wnd_r_limit = tcp_queue->buf_max;
+		}
+		
 		//sender silly window avoidance		
-		w_size=WND_SIZE(wnd_l_limit,wnd_r_limit);
+		w_size = wnd_r_limit - wnd_l_limit;
 		expected_ack = tcp_queue->nxt_snd - tcp_queue->data->wnd_min;
-		if (expected_ack == 0 || w_size >= SMSS || w_size >= tcp_conn_desc->max_adv_wnd/2)
+		if (expected_ack == 0)
 		{
 			data_to_send=w_size;
 		}
@@ -345,7 +347,7 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 		{
 			data_to_send=w_size;
 		}
-		indx=wnd_l_limit;
+		indx = SLOT_WND(wnd_l_limit,tcp_queue->size);
 		tcp_desc->seq_num = tcp_queue->nxt_snd;
 		tcp_queue->nxt_snd += data_to_send;
 	}
