@@ -207,8 +207,6 @@ rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len
 	}
 	seq_num=GET_DWORD(tcp_row_packet[4],tcp_row_packet[5],tcp_row_packet[6],tcp_row_packet[7]);
 	t_tcp_rcv_queue* tcp_queue=tcp_conn_desc->rcv_buf;
-	index=SLOT_WND(seq_num);
-
 	ip_len=GET_WORD(ip_row_packet[2],ip_row_packet[3]);
 	data_len=ip_len-HEADER_TCP;
 
@@ -216,21 +214,20 @@ rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len
 	{
 		if (seq_num >= tcp_queue->wnd_min && seq_num + data_len <= tcp_queue->wnd_max)
 		{
-			//occorre logica che controlla dati duplicati o parzialmente duplicati
 			low_index=seq_num;
-			hi_index=seq_num+data_len;
-			if (SLOT_WND(low_index)<SLOT_WND(hi_index)) 
+			hi_index=seq_num + data_len;
+			if (SLOT_WND(low_index) < SLOT_WND(hi_index)) 
 			{
 				kmemcpy(tcp_queue->buf,data_sckt_buf->data,data_len);
 			}
 			else 
 			{
-				len_1=tcp_queue->size-index;
+				buf_index = SLOT_WND(seq_num);
+				len_1=tcp_queue->size - buf_index;
 				len_2=data_len-len_1;
-				kmemcpy(tcp_queue->buf+index,data_sckt_buf->data,len_1);
+				kmemcpy(tcp_queue->buf+buf_index,data_sckt_buf->data,len_1);
 				kmemcpy(tcp_queue->buf,data_sckt_buf->data+len_1,len_2);
 			}
-			//update_rcv_window_and_ack(); la chimata va fatta sulla lettura sel socket
 		}
 		rcv_ack(tcp_conn_desc,ack_seq_num);
 		update_snd_window(tcp_conn_desc,ack_seq_num,data_len);
@@ -267,16 +264,16 @@ rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len
 
 void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 {
-	if (tcp_conn_desc->min<=ack_seq_num)
+	if (tcp_conn_desc->min <= ack_seq_num)
 	{
-		if (tcp_conn_desc->duplicated_ack>0)
+		if (tcp_conn_desc->duplicated_ack >0)
 		{
 			tcp_conn_desc->duplicated_ack=0;
 			tcp_conn_desc->cwnd=tcp_conn_desc->ssthresh;
 		}
-		if (tcp_conn_desc->cwnd<=tcp_conn_desc->ssthresh)
+		if (tcp_conn_desc->cwnd <= tcp_conn_desc->ssthresh)
 		{
-			tcp_conn_desc->cwnd+=SMSS;
+			tcp_conn_desc->cwnd +=SMSS;
 		}
 		else 
 		{
@@ -289,7 +286,6 @@ void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 		tcp_conn_desc->cwnd+=SMSS;
 	}
 	tcp_conn_desc->snd_buf->max=tcp_conn_desc->snd_buf->min+tcp_conn_desc->cwnd;
-	//update_snd_window(tcp_conn_desc->snd_buf,ack_seq_num);
 }
 
 static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_data_len)
@@ -386,7 +382,7 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32
 		}
 	}
 
-	if (data_to_send > 0)-------qui
+	if (data_to_send > 0)
 	{
 		if (if (ack_num > 0)
 		{
@@ -415,7 +411,7 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32
 		//timer RFC6298
 		if (tcp_conn_desc->rtrsn_timer == 0xFFFFFFFF)
 		{
-			tcp_conn_desc->rtrsn_timer = tcp_conn_desc->rto;
+			tcp_conn_desc->rtrsn_timer = tcp_conn_desc->rto;//aggiungere implenetazione rto
 		}
 	}
 }
