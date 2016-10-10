@@ -233,6 +233,7 @@ rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len
 			//update_rcv_window_and_ack(); la chimata va fatta sulla lettura sel socket
 		}
 		rcv_ack(tcp_conn_desc,ack_seq_num);
+		update_snd_window(tcp_conn_desc,ack_seq_num,data_len);
 	}
 	else
 	{
@@ -288,10 +289,10 @@ void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 		tcp_conn_desc->cwnd+=SMSS;
 	}
 	tcp_conn_desc->snd_buf->max=tcp_conn_desc->snd_buf->min+tcp_conn_desc->cwnd;
-	update_snd_window(tcp_conn_desc->snd_buf,ack_seq_num);
+	//update_snd_window(tcp_conn_desc->snd_buf,ack_seq_num);
 }
 
-static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
+static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_data_len)
 {
 	u32 word_to_ack;
 	u32 expected_ack;
@@ -310,7 +311,7 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 		data_to_send=tcp_queue->tcp_queue->data->wnd_max-tcp_queue->nxt_snd-1;
 		tcp_queue->buf_min = tcp_queue->wnd_min;
 
-		if (tcp_queue->buf_cur < wnd_l_limit) qui----------__>rivedere tutto non va bene!!!!!!!!!!!!!!!!!!111
+		if (tcp_queue->wnd_min == tcp_queue->buf_cur)
 		{
 		 	//no data to send
 			if (tcp_conn_desc->pgybg_timer == 0xFFFFFFFF && ack_num > 0)
@@ -319,14 +320,14 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 			}
 			return;
 		}
-		if (tcp_queue->buf_cur >= wnd_l_limit && tcp_queue->buf_cur <= wnd_r_limit)
+		if (tcp_queue->buf_cur >= tcp_queue->wnd_min && tcp_queue->buf_cur <= tcp_queue->wnd_max)
 		{	
 			//in window
 			//occorre inizializzare seq_num!!!!!!!!!!!!!!!!!!
 			wnd_l_limit = tcp_snd_queue->nxt_snd;
 			wnd_r_limit = tcp_queue->buf_cur;
 		}
-		if (tcp_queue->buf_cur >= wnd_r_limit)
+		if (tcp_queue->buf_cur >= tcp_queue->wnd_max)
 		{	
 			wnd_l_limit = tcp_snd_queue->nxt_snd;
 			wnd_r_limit = tcp_queue->buf_max;
@@ -353,13 +354,11 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 	}
 	else if (tcp_conn_desc->duplicated_ack == 1 || tcp_conn_desc->duplicated_ack == 2)
 	{
-		wnd_l_limit = SLOT_WND(tcp_snd_queue->nxt_snd-1,tcp_queue->size);
-		wnd_r_limit = SLOT_WND(tcp_queue->wnd_max,tcp_queue->size);
-		w_size=WND_SIZE(wnd_l_limit,wnd_r_limit);
-		flight_size = WND_SIZE(tcp_snd_queue->wnd_min,tcp_snd_queue->nxt_snd-1);
+		w_size = tcp_queue->wnd_max - tcp_snd_queue->nxt_snd;
+		flight_size = tcp_snd_queue->nxt_snd-1 - tcp_snd_queue->wnd_min;
 		flight_size_limit = tcp_conn_desc->cwnd + 2*SMSS;
 		
-		if (w_size >= SMSS && (flight_size + SMSS <= flight_size_limit))
+		if (w_size >= SMSS && (flight_size + SMSS <= flight_size_limit) && tcp_queue->buf_cur >= (tcp_snd_queue->nxt_snd + SMSS))
 		{
 			indx = SLOT_WND(tcp_snd_queue->nxt_snd,tcp_queue->buf_size);
 			tcp_desc->seq_num = tcp_queue->nxt_snd;
@@ -371,17 +370,15 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 	{
 		indx = SLOT_WND(ack_seq_num,tcp_queue->size);
 		tcp_desc->seq_num = ack_seq_num;
-		tcp_snd_queue->nxt_snd += SMSS;
-		data_to_send = SMSS;
+		data_to_send = ack_data_len;
+		tcp_snd_queue->nxt_snd += ack_data_len;
 	}
 	else if (tcp_conn_desc->duplicated_ack > 3)
 	{
 		indx = SLOT_WND(tcp_snd_queue->nxt_snd,tcp_queue->size);
-		wnd_l_limit = SLOT_WND(tcp_snd_queue->nxt_snd-1,tcp_queue->size);
-		wnd_r_limit = SLOT_WND(tcp_queue->max,tcp_queue->size);
-		w_size=WND_SIZE(wnd_l_limit,wnd_r_limit);
+		w_size = tcp_queue->max - tcp_snd_queue->nxt_snd;
 
-		if (w_size >= SMSS)
+		if (w_size >= SMSS && tcp_queue->buf_cur >= (tcp_snd_queue->nxt_snd + SMSS))
 		{
 			tcp_desc->seq_num = tcp_queue->nxt_snd;
 			tcp_snd_queue->nxt_snd += SMSS;
@@ -389,7 +386,7 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 		}
 	}
 
-	if (data_to_send > 0)
+	if (data_to_send > 0)-------qui
 	{
 		if (if (ack_num > 0)
 		{
@@ -405,7 +402,6 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 				tcp_conn_desc->pgybg_timer = 0xFFFFFFFF;
 			}
 		}
-
 		while (data_to_send >= SMSS)
 		{
 			send_packet_tcp(tcp_conn_desc,tcp_queue->buf[indx],SMSS,ack_num,flags);
