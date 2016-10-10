@@ -140,7 +140,7 @@ static u8 lookup_free_slot(offset)
 	}
 	return slot_state;
 }
-
+// https://easwer.wordpress.com/2010/11/09/bit-vectors-in-c/
 static void update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue,u32 rcv_seq_num)
 {
 	u32 ack_seq_num;
@@ -156,24 +156,26 @@ static void update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue,u32 rcv_seq_num
 		{
 			break;
 		}
-		tcp_queue->buf_state[i/8]=0;
+		//tcp_queue->buf_state[i/8]=0;
 		index++;
 	}
 	if (index != tcp_queue->min) 
 	{
 		if (slot_state == 0xFF)
 		{
-			tcp_queue->min += index;
-			tcp_queue->man += index;
-			tcp_queue->wnd_size += index;
+			//tcp_queue->min += index;
+			//tcp_queue->man += index;
+			//tcp_queue->wnd_size += index;
+			tcp_queue->nxt_rcv = index;
 		}
 		else 
 		{
 			offset = lookup_reserved_slot[(tcp_queue->buf_state[index/8]);
-			tcp_queue->buf_state[index/8] = lookup_free_slot(offset);
-			tcp_queue->min += index + offset;
-			tcp_queue->man += index + offset;
-			tcp_queue->wnd_size += index + offset;	
+			//tcp_queue->buf_state[index/8] = lookup_free_slot(offset);
+			//tcp_queue->min += index + offset;
+			//tcp_queue->man += index + offset;
+			//tcp_queue->wnd_size += index + offset;
+			tcp_queue->nxt_rcv = index + offset;	
 		}
 	}
 }
@@ -219,6 +221,7 @@ rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len
 			if (SLOT_WND(low_index) < SLOT_WND(hi_index)) 
 			{
 				kmemcpy(tcp_queue->buf,data_sckt_buf->data,data_len);
+				slot_state = tcp_queue->buf_state[index/8];-----------------qui
 			}
 			else 
 			{
