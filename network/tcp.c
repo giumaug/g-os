@@ -147,6 +147,7 @@ rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len
 
 		
 		send ack_sync
+		----------------------------qui--------------------------
 	
 	}
 	
