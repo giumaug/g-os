@@ -29,7 +29,7 @@ void tcp_rcv_queue_free(t_tcp_rcv_queue* tcp_rcv_queue)
 	kfree(tcp_rcv_queue);
 }
 
-t_tcp_conn_desc* tcp_conn_desc_int(u16 src_port,u16 dst_port)
+t_tcp_conn_desc* tcp_conn_desc_int(u16 src_port,u32 src_ip,u16 dst_port,u32 dst_ip)
 {
 	t_tcp_conn_desc* tcp_conn_desc;
 
@@ -40,6 +40,10 @@ t_tcp_conn_desc* tcp_conn_desc_int(u16 src_port,u16 dst_port)
 	tcp_conn_desc->rtrsn_timer = 0xFFFFFFFF;
 	tcp_conn_desc->pgybg_timer = 0xFFFFFFFF;
 	tcp_conn_desc->seq_num = 1;
+	tcp_conn_desc->src_port = src_port;
+ 	tcp_conn_desc->dst_port = dst_port;
+	tcp_conn_desc->src_ip = src_ip;
+	tcp_conn_desc->dst_ip = dst_ip; 
 	return tcp_conn_desc;
 }
 
@@ -107,7 +111,7 @@ bind_tcp(u16 bind_port)
 }
 
 
-rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len)
+void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len)
 {
 	t_tcp_desc* tcp_desc=NULL;
 	t_tcp_conn_desc* tcp_conn_desc=NULL;
@@ -129,6 +133,7 @@ rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len
 	src_port = GET_WORD(tcp_row_packet[0],tcp_row_packet[1]);
 	dst_port = GET_WORD(tcp_row_packet[2],tcp_row_packet[3]);
 	ack_seq_num = GET_DWORD(tcp_row_packet[8],tcp_row_packet[9],tcp_row_packet[10]tcp_row_packet[11]);
+	seq_num = GET_DWORD(tcp_row_packet[4],tcp_row_packet[5],tcp_row_packet[6],tcp_row_packet[7]);
 	flags = tcp_row_packet[14];
 
 	is_port_mapped = hashtable_get(tcp_desc->bind_map,dst_port);
@@ -137,28 +142,33 @@ rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len
 		free_sckt(data_sckt_buf);
 		return;
 	}
-	if (flags & (SYN | ACK))
+
+	if (flags & FLG_SYN)
 	{
 
-	}
-	else if (flags & SYN)
+	
+	if (flags & FLG_SYN)
 	{
-		tcp_conn_desc = tcp_conn_desc_int(u16 src_port,u16 dst_port);
-
-		
-		send ack_sync
-		----------------------------qui--------------------------
-	
+		SYN lost????????
+		tcp_conn_desc = tcp_conn_map_get(tcp_desc->back_log_i_map,src_ip,dst_ip,src_port,dst_port);
+		if (tcp_conn_desc == NULL)
+		{
+			tcp_conn_desc = tcp_conn_desc_int(src_port,src_ip,dst_port,dst_ip);
+			tcp_conn_map_put(tcp_desc->back_log_i_map,tcp_conn_desc);
+			ack_num = seq_num + 1;
+			tcp_conn_desc->seq_num++;
+			send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,FLG_SYN | FLG_ACK);
+		}
+		free_sckt(data_sckt_buf);
+		return;
 	}
 	
-
 	conn_id=dst_port | (src_port<<16);
 	tcp_conn_desc=hashtable_get(tcp_desc->conn_map,conn_id);
 	if (tcp_conn_desc==NULL) 
 	{
 		return NULL;
 	}
-	seq_num=GET_DWORD(tcp_row_packet[4],tcp_row_packet[5],tcp_row_packet[6],tcp_row_packet[7]);
 	t_tcp_rcv_queue* tcp_queue=tcp_conn_desc->rcv_buf;
 	ip_len=GET_WORD(ip_row_packet[2],ip_row_packet[3]);
 	data_len=ip_len-HEADER_TCP;

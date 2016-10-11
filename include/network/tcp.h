@@ -78,9 +78,10 @@ t_tcp_conn_desc;
 
 typedef struct s_tcp_desc
 {
-	t_hashtable* conn_map;
+	t_tcp_conn_map* conn_map;
 	t_hashtable* bind_map;
-	t_llist* duplicate_conn_list;
+	t_tcp_conn_map* back_log_c_map;
+	t_tcp_conn_map* back_log_i_map;
 }
 t_tcp_desc;
 

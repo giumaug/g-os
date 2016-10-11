@@ -107,7 +107,7 @@ void tcp_conn_map_remove(t_tcp_conn_map* tcp_conn_map,u16 src_ip,u16 dst_ip,u32 
 	}
 }
 
-void tcp_conn_map_get(t_tcp_conn_map* tcp_conn_map,u16 src_ip,u16 dst_ip,u32 src_ip,u32 dst_ip)
+void tcp_conn_map_get(t_tcp_conn_map* tcp_conn_map,u16 src_ip,u16 dst_ip,u32 src_port,u32 dst_port)
 {
 	u32 conn_id;
 	t_tcp_conn_desc* tcp_conn_desc = NULL;
