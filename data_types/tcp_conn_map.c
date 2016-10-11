@@ -1,4 +1,4 @@
-#define TCP_CONN_MAP_SIZE 10
+#include "data_types/tcp_conn_map.h"
 
 typedef struct s_tcp_conn_map
 {
@@ -41,6 +41,7 @@ void tcp_conn_map_remove(t_tcp_conn_map* tcp_conn_map,u16 src_ip,u16 dst_ip,u32 
 	t_tcp_conn_desc* next_tcp_conn_desc = NULL;
 	t_llist_node* sentinel_node = NULL;
 	t_llist_node* next = NULL;
+	u32 count = 0;
 	
 	conn_id = dst_port | (src_port << 16);
 	tcp_conn_desc = hashtable_get(tcp_conn_map->conn_map,conn_id);
@@ -56,23 +57,97 @@ void tcp_conn_map_remove(t_tcp_conn_map* tcp_conn_map,u16 src_ip,u16 dst_ip,u32 
 	}
 	else if (tcp_conn_desc->src_ip == src_ip && tcp_conn_desc->dst_ip == dst_ip && tcp_conn_desc->src_port == src_port && tcp_conn_desc->dst_port == dst_port)
 	{
-		next_tcp_conn_desc = hashtable_remove(tcp_conn_map->duplicate_conn_map,conn_id);
-		while (next_next = hashtable_get(tcp_conn_map->duplicate_conn_map,conn_id) != NULL)
-		{	
-	
-		}
-		if (next_next == NULL)
+		sentinel_node = ll_sentinel(tcp_conn_map->duplicate_conn_list);
+		next=ll_first(tcp_conn_map->duplicate_conn_list);
+		while(next != sentinel_node)
 		{
-			next_tcp_conn_desc->is_unique_key = 0;
+			next_tcp_conn_desc = next->val;
+			if (next_tcp_conn_desc->conn_id == conn_id)
+			{
+				count++;
+			}
+			if (count == 1)
+			{
+				remove_node = next;
+			}
+		}
+		if (count == 1)
+		{
+			remove_node->val->is_unique_key = 0;
 		}
 		hashtable_remove(tcp_conn_map->conn_map,conn_id);
-		hashtable_put(tcp_conn_map->duplicate_conn_map,conn_id,next_tcp_conn_desc);---------qui
+		hashtable_put(tcp_conn_map->conn_map,conn_id,remove_node->val);
+		ll_delete_node(remove_node);	
 	}
 	else 
 	{
-		
+		sentinel_node = ll_sentinel(tcp_conn_map->duplicate_conn_list);
+		next = ll_first(tcp_conn_map->duplicate_conn_list);
+		while(next != sentinel_node)
+		{
+			next_tcp_conn_desc = next->val;
+			if (next_tcp_conn_desc->src_ip == src_ip && 
+			    next_tcp_conn_desc->dst_ip == dst_ip && 
+			    next_tcp_conn_desc->src_port == src_port && 
+			    next_tcp_conn_desc->dst_port == dst_port)
+			{
+				remove_node = next;
+			}
+
+			if (next_tcp_conn_desc->conn_id == conn_id)
+			{
+				count++;
+			}
+		}
+		ll_delete_node(remove_node);
+		if (count == 1)
+		{
+			tcp_conn_desc->is_key_unique == 0
+		}
 	}
-	return NULL;
+}
+
+void tcp_conn_map_get(t_tcp_conn_map* tcp_conn_map,u16 src_ip,u16 dst_ip,u32 src_ip,u32 dst_ip)
+{
+	u32 conn_id;
+	t_tcp_conn_desc* tcp_conn_desc = NULL;
+	t_llist_node* sentinel_node = NULL;
+	t_llist_node* next = NULL;
+	
+	conn_id = dst_port | (src_port << 16);
+	tcp_conn_desc = hashtable_get(tcp_conn_map->conn_map,conn_id);
+
+	if (tcp_conn_desc == NULL)
+	{
+		return NULL;
+	}
+	if (tcp_conn_desc->is_key_unique == 0)
+	{
+		return tcp_conn_desc;
+	}
+	else if (tcp_conn_desc->src_ip == src_ip && tcp_conn_desc->dst_ip == dst_ip && tcp_conn_desc->src_port == src_port && tcp_conn_desc->dst_port == dst_port)
+	{
+		return tcp_conn_desc;
+	}
+	else
+	{
+		sentinel_node = ll_sentinel(tcp_conn_map->duplicate_conn_list);
+		next=ll_first(tcp_conn_map->duplicate_conn_list);
+		while(next != sentinel_node)
+		{
+			tcp_conn_desc = next->val;
+			if (tcp_conn_desc->conn_id == conn_id)
+			{
+				if (tcp_conn_desc->src_ip == src_ip && 
+			    	    tcp_conn_desc->dst_ip == dst_ip && 
+			   	    tcp_conn_desc->src_port == src_port && 
+			    	    tcp_conn_desc->dst_port == dst_port)
+				{
+					return tcp_conn_desc;
+				}
+			}
+		}
+	}
 }
 
 void tcp_conn_map_free(t_tcp_conn_map* tcp_conn_map)
