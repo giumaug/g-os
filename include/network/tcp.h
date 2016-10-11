@@ -78,6 +78,7 @@ t_tcp_conn_desc;
 typedef struct s_tcp_desc
 {
 	t_hashtable* conn_map;
+	t_hashtable* bind_map;
 	t_llist* conn_list;
 	new_dllist tcp_conn_desc_free(t_tcp_conn_desc* tcp_conn_desc)
 }

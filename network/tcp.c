@@ -89,6 +89,23 @@ static void update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue)
 	tcp_queue->nxt_rcv = index;
 }
 
+bind_tcp(u16 bind_port)
+{
+	static u8 PORT_MAPPED = 1;
+
+	t_tcp_desc* tcp_desc = NULL;
+	u8* is_port_mapped = NULL; 
+
+	tcp_desc=system.network_desc->tcp_desc;
+	is_port_mapped = hashtable_get(tcp_desc->bind_map,bind_port);
+	if (*is_port_mapped == PORT_MAPPED)
+	{
+		return -1;
+	}
+	hashtable_put(tcp_desc->bind_map,bind_port,&PORT_MAPPED);	
+}
+
+
 rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len)
 {
 	t_tcp_desc* tcp_desc=NULL;
@@ -103,13 +120,32 @@ rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len
 	u32 data_len;
 	u32 len_1;
 	u32 len_2;
+	u8* is_port_mapped = NULL;
 
-	tcp_desc=system.network_desc->tcp_desc;
-	tcp_row_packet=data_sckt_buf->transport_hdr;
-	ip_row_packet=data_sckt_buf->network_hdr;
-	src_port=GET_WORD(tcp_row_packet[0],tcp_row_packet[1]);
-	dst_port=GET_WORD(tcp_row_packet[2],tcp_row_packet[3]);
-	ack_seq_num=GET_DWORD(tcp_row_packet[8],tcp_row_packet[9],tcp_row_packet[10]tcp_row_packet[11]);
+	tcp_desc = system.network_desc->tcp_desc;
+	tcp_row_packet = data_sckt_buf->transport_hdr;
+	ip_row_packet = data_sckt_buf->network_hdr;
+	src_port = GET_WORD(tcp_row_packet[0],tcp_row_packet[1]);
+	dst_port = GET_WORD(tcp_row_packet[2],tcp_row_packet[3]);
+	ack_seq_num = GET_DWORD(tcp_row_packet[8],tcp_row_packet[9],tcp_row_packet[10]tcp_row_packet[11]);
+	flags = tcp_row_packet[14];
+
+	if (flags & SYN)
+	{
+		is_port_mapped = hashtable_get(tcp_desc->bind_map,dst_port);
+		if (is_port_mapped == NULL)
+		{
+			free_sckt(data_sckt_buf);
+			return;
+		}
+		else
+		{
+			tcp_conn_desc = tcp_conn_desc_int(u16 src_port,u16 dst_port);
+			------qui!!!
+		}
+	}
+	
+
 	conn_id=dst_port | (src_port<<16);
 	tcp_conn_desc=hashtable_get(tcp_desc->conn_map,conn_id);
 	if (tcp_conn_desc==NULL) 
