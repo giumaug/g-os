@@ -72,6 +72,7 @@ typedef struct s_tcp_conn_desc
 	u32 dst_ip;
 	u16 src_port;
 	u16 dst_port;
+	u8 is_key_unique;
 }
 t_tcp_conn_desc;
 
@@ -79,8 +80,7 @@ typedef struct s_tcp_desc
 {
 	t_hashtable* conn_map;
 	t_hashtable* bind_map;
-	t_llist* conn_list;
-	new_dllist tcp_conn_desc_free(t_tcp_conn_desc* tcp_conn_desc)
+	t_llist* duplicate_conn_list;
 }
 t_tcp_desc;
 

@@ -34,11 +34,12 @@ t_tcp_conn_desc* tcp_conn_desc_int(u16 src_port,u16 dst_port)
 	t_tcp_conn_desc* tcp_conn_desc;
 
 	tcp_conn_desc=kmalloc(sizeof(t_tcp_conn_desc));
-	tcp_conn_desc->rcv_buf=tcp_rcv_queue_init(TCP_RCV_SIZE);
-	tcp_conn_desc->snd_buf=tcp_snd_queue_init(TCP_SND_SIZE);
-	tcp_conn_desc->conn_id=src_port | (dst_port<<16);
-	tcp_conn_desc->rtrsn_timer=0xFFFFFFFF;
-	tcp_conn_desc->pgybg_timer=0xFFFFFFFF;
+	tcp_conn_desc->rcv_buf = tcp_rcv_queue_init(TCP_RCV_SIZE);
+	tcp_conn_desc->snd_buf = tcp_snd_queue_init(TCP_SND_SIZE);
+	tcp_conn_desc->conn_id = src_port | (dst_port<<16);
+	tcp_conn_desc->rtrsn_timer = 0xFFFFFFFF;
+	tcp_conn_desc->pgybg_timer = 0xFFFFFFFF;
+	tcp_conn_desc->seq_num = 1;
 	return tcp_conn_desc;
 }
 
@@ -130,19 +131,23 @@ rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len
 	ack_seq_num = GET_DWORD(tcp_row_packet[8],tcp_row_packet[9],tcp_row_packet[10]tcp_row_packet[11]);
 	flags = tcp_row_packet[14];
 
-	if (flags & SYN)
+	is_port_mapped = hashtable_get(tcp_desc->bind_map,dst_port);
+	if (is_port_mapped == NULL)
 	{
-		is_port_mapped = hashtable_get(tcp_desc->bind_map,dst_port);
-		if (is_port_mapped == NULL)
-		{
-			free_sckt(data_sckt_buf);
-			return;
-		}
-		else
-		{
-			tcp_conn_desc = tcp_conn_desc_int(u16 src_port,u16 dst_port);
-			------qui!!!
-		}
+		free_sckt(data_sckt_buf);
+		return;
+	}
+	if (flags & (SYN | ACK))
+	{
+
+	}
+	else if (flags & SYN)
+	{
+		tcp_conn_desc = tcp_conn_desc_int(u16 src_port,u16 dst_port);
+
+		
+		send ack_sync
+	
 	}
 	
 
