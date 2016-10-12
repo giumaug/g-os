@@ -122,11 +122,7 @@ int _bind(t_socket_desc* socket_desc,int sockfd,u32 src_ip,u32 src_port,u32 dst_
 		}
 		if (socket->type == 1)
 		{
-			socket->tcp_conn_desc->src_ip = src_ip;
-			socket->tcp_conn_desc->src_port = src_port;
-			//All incoming request are wildcarded
-			socket->tcp_conn_desc->dst_ip = 0;
-			socket->tcp_conn_desc->dst_port = 0;
+			bind_tcp(socket->tcp_conn_desc,src_ip,dst_ip,src_port,dst_port);
 		}
 	}
 	SPINLOCK_LOCK(socket_desc->lock);

@@ -110,6 +110,16 @@ static void update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue)
 	tcp_queue->nxt_rcv = index;
 }
 
+int bind_tcp(t_tcp_conn_desc* tcp_conn_desc,u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port)
+{
+	tcp_conn_desc->src_ip = src_ip;
+	tcp_conn_desc->src_port = src_port;
+	//All incoming request are wildcarded
+	tcp_conn_desc->dst_ip = 0;
+	tcp_conn_desc->dst_port = 0;
+	return 0;
+}
+
 int listen_tcp(t_tcp_conn_desc* tcp_conn_desc)
 {
 	t_tcp_conn_desc* tmp;
@@ -158,6 +168,11 @@ void connect_tpc(t_socket* socket,src_ip,dst_ip,src_port,dst_port)
 	tcp_conn_map_put(socket->tcp_req_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
 	send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,FLG_SYN);
 	return 0;
+}
+
+void close_tcp()
+{
+
 }
 
 void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len)
@@ -247,7 +262,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		}
 	}
 
-	????--------------------qui
 	tcp_conn_desc = tcp_conn_map_get(tcp_desc->tcp_conn_map,src_ip,dst_ip,src_port,dst_port);
 	if (tcp_conn_desc == NULL) 
 	{
