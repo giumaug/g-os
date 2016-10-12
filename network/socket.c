@@ -100,6 +100,11 @@ int _open_socket(t_socket_desc* socket_desc,int type)
 	return socket->sd;
 }
 
+int clone_socket(t_socket_desc* socket_desc)
+{
+	
+}
+
 int _bind(t_socket_desc* socket_desc,int sockfd,u32 src_ip,u32 src_port,u32 dst_ip,u16 dst_port)
 {
 	void* port;
