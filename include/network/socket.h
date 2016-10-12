@@ -32,6 +32,7 @@ typedef struct s_socket
 	u32 port;
 	t_queue* udp_rx_queue;	
 	t_tcp_conn_desc* t_tcp_conn_desc;
+	----back_log_queue qui!!!!!!!!!!!
 	u32 type;
 	u32 sd;
 }
