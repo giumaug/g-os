@@ -117,6 +117,11 @@ t_tcp_conn_desc* accept_tcp(t_tcp_conn_desc* tcp_conn_desc)
 	return NULL;
 }
 
+void connect_tpc()
+{
+	x
+}
+
 void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len)
 {
 	t_tcp_desc* tcp_desc=NULL;
@@ -150,21 +155,13 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		goto exit;
 	}
 
+	//THREE WAY HANDSHAKE SYN + ACK FROM SERVER TO CLIENT
 	if (flags & (FLG_SYN | FLG_ACK))
 	{
-		tcp_conn_desc = tcp_conn_map_get(socket->back_log_i_queue,src_ip,dst_ip,src_port,dst_port);
-		if (tcp_conn_desc != NULL)
-		{
-			if (tcp_conn_desc->seq_num +1 == ack_seq_num)
-			{
-				tcp_conn_map_remove(socket->back_log_i_map,src_ip,dst_ip,src_port,dst_port);
-				tcp_conn_map_put(socket->back_log_c_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
-				tcp_conn_map_put(socket->tcp_conn_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
-			}
-		}
-		goto exit;
+		//qui!!!!!!!!!!!!!!!!!!!!11
 	}
 
+	//THREE WAY HANDSHAKE SYN FROM CLIENT TO SERVER
 	else if (flags & FLG_SYN)
 	{
 		tcp_conn_desc = tcp_conn_map_get(socket->back_log_i_map,src_ip,dst_ip,src_port,dst_port);
@@ -180,9 +177,26 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			tcp_conn_desc->seq_num++;
 			tcp_conn_desc->socket = socket;
 		}
-		//Could be a lost sync
+		//COULD BE A LOST SYNC
 		send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,FLG_SYN | FLG_ACK);
 		goto exit;
+	}
+
+	//THREE WAY HANDSHAKE ACK FROM CLIENT TO SERVER
+	//IF THERE IS AN ACK COULD BE LAST STEP OF THREE WAY HANDSHAKE OR REGULAR PACKET
+	else if (flags & FLG_ACK)
+	{
+		tcp_conn_desc = tcp_conn_map_get(socket->back_log_i_queue,src_ip,dst_ip,src_port,dst_port);
+		if (tcp_conn_desc != NULL)
+		{
+			if (tcp_conn_desc->seq_num +1 == ack_seq_num)
+			{
+				tcp_conn_map_remove(socket->back_log_i_map,src_ip,dst_ip,src_port,dst_port);
+				tcp_conn_map_put(socket->back_log_c_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
+				tcp_conn_map_put(socket->tcp_conn_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
+			}
+			goto exit;
+		}
 	}
 
 	tcp_conn_desc = tcp_conn_map_get(tcp_desc->tcp_conn_map,src_ip,dst_ip,src_port,dst_port);

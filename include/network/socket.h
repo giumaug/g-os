@@ -32,6 +32,8 @@ typedef struct s_socket
 	u32 port;
 	t_queue* udp_rx_queue;	
 	t_tcp_conn_desc* t_tcp_conn_desc;
+	//WE NEED TO ADD A TIMEOUT SERVICE TO REMOVE INCOMPLETED REQUEST
+	//AFTER 75 SECONDS
 	struct t_queue* back_log_i_queue;
 	struct t_queue* back_log_c_queue;
 	u32 type;
