@@ -71,15 +71,14 @@ typedef struct s_tcp_conn_desc
 	u32 dst_ip;
 	u16 src_port;
 	u16 dst_port;
+	t_socket* socket;
 }
 t_tcp_conn_desc;
 
 typedef struct s_tcp_desc
 {
 	t_tcp_conn_map* conn_map;
-	t_hashtable* listen_map;
-	t_tcp_conn_map* back_log_c_map;
-	t_tcp_conn_map* back_log_i_map;
+	t_tcp_conn_map* listen_map;
 }
 t_tcp_desc;
 

@@ -59,7 +59,9 @@ t_socket* socket_init(int type)
 	}
 	else if (type == 1)
 	{
-		socket->t_tcp_conn_desc = tcp_conn_desc_int();
+		socket->tcp_conn_desc = tcp_conn_desc_int();
+		socket->back_log_i_queue = new_queue();
+		socket->back_log_c_queue = new_queue();
 	}
 	return 	socket;
 }
@@ -74,6 +76,8 @@ void socket_free(t_socket* socket)
 	else  if (socket->type == 1)
 	{
 		tcp_conn_desc_free(socket->tcp_conn_desc);
+		free_queue(socket->back_log_i_queue);
+		free_queue(socket->back_log_c_queue);
 	}
 	kfree(socket);
 } 
@@ -141,6 +145,32 @@ int _listen(t_socket_desc* socket_desc)
 		if (socket->type == 1)
 		{
 			listen_tcp(socket->tcp_conn_desc);
+		}
+	}
+	SPINLOCK_LOCK(socket_desc->lock);
+	return ret;
+}
+
+int _accept(t_socket_desc* socket_desc,t_socket** socket)
+{
+	t_socket* socket = NULL;
+	t_socket* new_socket = NULL; 
+	int ret=-1;
+
+	SPINLOCK_LOCK(socket_desc->lock);
+	socket = hashtable_get(socket_desc->sd_map,sockfd);
+	if (socket != NULL)
+	{
+		if (socket->type == 1)
+		{
+			new_tcp_conn_desc = accept_tcp(socket->tcp_conn_desc);
+			if (new_tcp_conn_desc != NULL)
+			{
+				new_socket = socket_init(1);
+				new_tcp_conn_desc->socket = socket;
+				ret = 0;
+				*socket = new_socket;------------qui timeout connessione!!!!
+			}
 		}
 	}
 	SPINLOCK_LOCK(socket_desc->lock);

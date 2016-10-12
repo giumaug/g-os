@@ -54,15 +54,15 @@ t_tcp_desc* tcp_init()
 	t_tcp_desc* tcp_desc;
 	
 	tcp_desc=kmalloc(sizeof(t_tcp_desc));
-	tcp_desc->conn_map=dc_hashtable_init(TCP_CONN_MAP_SIZE,&tcp_conn_desc_free);
-	tcp_desc->conn_map=dc_new_dllist(tcp_conn_desc_free);
+	tcp_desc->conn_map = tcp_conn_map_init();
+	tcp_desc->listen_map = tcp_conn_map_init();
 	return tcp_desc;
 }
 
 void tcp_free(t_tcp_desc* tcp_desc)
 {
-	hashtable_free(tcp_desc->conn_map);
-	free_llist(tcp_desc->conn_list);
+	tcp_conn_map_free(tcp_desc->conn_map);
+	tcp_conn_map_free(tcp_desc->listen_map);
 	kfree(tcp_desc);
 }
 
@@ -104,11 +104,18 @@ int listen_tcp(t_tcp_conn_desc* tcp_conn_desc)
 	return ret;
 }
 
-int accept_tcp()
+t_tcp_conn_desc* accept_tcp(t_tcp_conn_desc* tcp_conn_desc)
 {
+	t_tcp_conn_desc* new_tcp_conn_desc = NULL;
+	t_socket* socket = NULL;
 
+	new_tcp_conn_desc = dequeue(tcp_conn_desc->socket->back_log_c_queue);
+	if (new_tcp_conn_desc != NULL)
+	{
+		return new_tcp_conn_desc;
+	}
+	return NULL;
 }
-
 
 void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len)
 {
@@ -124,7 +131,8 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	u32 data_len;
 	u32 len_1;
 	u32 len_2;
-	u8* is_port_mapped = NULL;
+	t_tcp_conn_desc tcp_lstn_conn_desc = NULL;
+	t_socket* socket;
 
 	tcp_desc = system.network_desc->tcp_desc;
 	tcp_row_packet = data_sckt_buf->transport_hdr;
@@ -135,22 +143,23 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	seq_num = GET_DWORD(tcp_row_packet[4],tcp_row_packet[5],tcp_row_packet[6],tcp_row_packet[7]);
 	flags = tcp_row_packet[14];
 
-	is_port_mapped = tcp_conn_map_get(tcp_desc->listen_map,dst_port);
-	if (is_port_mapped == NULL)
+	tcp_lstn_conn_desc = tcp_conn_map_get(tcp_desc->listen_map,dst_port);
+	socket = tcp_lstn_conn_desc->socket;
+	if (tcp_lstn_conn_desc == NULL)
 	{
 		goto exit;
 	}
 
 	if (flags & (FLG_SYN | FLG_ACK))
 	{
-		tcp_conn_desc = tcp_conn_map_get(tcp_desc->back_log_i_map,src_ip,dst_ip,src_port,dst_port);
+		tcp_conn_desc = tcp_conn_map_get(socket->back_log_i_queue,src_ip,dst_ip,src_port,dst_port);
 		if (tcp_conn_desc != NULL)
 		{
 			if (tcp_conn_desc->seq_num +1 == ack_seq_num)
 			{
-				tcp_conn_map_remove(tcp_desc->back_log_i_map,src_ip,dst_ip,src_port,dst_port);
-				tcp_conn_map_put(tcp_desc->back_log_c_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
-				tcp_conn_map_put(tcp_desc->tcp_conn_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
+				tcp_conn_map_remove(socket->back_log_i_map,src_ip,dst_ip,src_port,dst_port);
+				tcp_conn_map_put(socket->back_log_c_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
+				tcp_conn_map_put(socket->tcp_conn_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
 			}
 		}
 		goto exit;
@@ -158,7 +167,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 
 	else if (flags & FLG_SYN)
 	{
-		tcp_conn_desc = tcp_conn_map_get(tcp_desc->back_log_i_map,src_ip,dst_ip,src_port,dst_port);
+		tcp_conn_desc = tcp_conn_map_get(socket->back_log_i_map,src_ip,dst_ip,src_port,dst_port);
 		if (tcp_conn_desc == NULL)
 		{
 			tcp_conn_desc = tcp_conn_desc_int();
@@ -169,6 +178,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			tcp_conn_map_put(tcp_desc->back_log_i_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
 			ack_num = seq_num + 1;
 			tcp_conn_desc->seq_num++;
+			tcp_conn_desc->socket = socket;
 		}
 		//Could be a lost sync
 		send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,FLG_SYN | FLG_ACK);
@@ -176,7 +186,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	}
 
 	tcp_conn_desc = tcp_conn_map_get(tcp_desc->tcp_conn_map,src_ip,dst_ip,src_port,dst_port);
-	if (tcp_conn_desc==NULL) 
+	if (tcp_conn_desc == NULL) 
 	{
 		goto exit;
 	}
