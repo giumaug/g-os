@@ -133,7 +133,26 @@ int _bind(t_socket_desc* socket_desc,int sockfd,u32 src_ip,u32 src_port,u32 dst_
 	return ret;
 }
 
-int _listen(t_socket_desc* socket_desc)
+int _connect(t_socket_desc* socket_desc,int socketfd,src_ip,dst_ip,src_port,dst_port)
+{
+	t_socket* socket=NULL;
+	int ret=-1;
+
+	SPINLOCK_LOCK(socket_desc->lock);
+	socket = hashtable_get(socket_desc->sd_map,sockfd);
+	if (socket != NULL)
+	{
+		if (socket->type == 1)
+		{
+			connect_tcp(socket->tcp_conn_desc,src_ip,dst_ip,src_port,dst_port);
+		}
+	}
+	SPINLOCK_LOCK(socket_desc->lock);
+	return ret;
+
+}
+
+int _listen(t_socket_desc* socket_desc,int socketfd)
 {
 	t_socket* socket=NULL;
 	int ret=-1;

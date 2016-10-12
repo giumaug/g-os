@@ -13,8 +13,8 @@ static int free_port_search()
 		{
 			tcp_desc->listen_port_index = 32767;
 		}
-		port = hashtable_get(tcp_desc->listen_port_map,tcp_desc->listen_port_index);
-		if (port == NULL)
+		tmp = tcp_conn_map_get(tcp_desc->listen_map,system.network_desc->ip,0,tcp_desc->listen_port_index,0);
+		if (tmp == NULL)
 		{
 			return tcp_desc->listen_port_index;
 		}
@@ -112,7 +112,7 @@ static void update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue)
 
 int listen_tcp(t_tcp_conn_desc* tcp_conn_desc)
 {
-	t_tcp_conn_desc* tmp;----------------qui!!!
+	t_tcp_conn_desc* tmp;
 	int ret;
 	
 	ret = -1;
@@ -138,7 +138,7 @@ t_tcp_conn_desc* accept_tcp(t_tcp_conn_desc* tcp_conn_desc)
 	return NULL;
 }
 
-void connect_tpc(t_socket* socket,u32 dst_ip,u16 dst_port)
+void connect_tpc(t_socket* socket,src_ip,dst_ip,src_port,dst_port)
 {
 	u32 src_port;
 	t_tcp_conn_desc* tcp_conn_desc = NULL;
@@ -151,7 +151,7 @@ void connect_tpc(t_socket* socket,u32 dst_ip,u16 dst_port)
 	tcp_conn_desc = new tcp_conn_desc_int();
 	tcp_conn_desc->dst_ip = dst_ip;
 	tcp_conn_desc->dst_port = dst_port;
-	tcp_conn_desc->src_ip = system.network_desc->ip;
+	tcp_conn_desc->src_ip = src_ip;
 	tcp_conn_desc->src_port = src_port;
 	tcp_conn_desc->socket = socket;
 
@@ -196,7 +196,16 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	//THREE WAY HANDSHAKE SYN + ACK FROM SERVER TO CLIENT
 	if (flags & (FLG_SYN | FLG_ACK))
 	{
-		
+		sono client qui
+		if (tcp_req_desc != NULL)
+		{
+			tcp_req_desc->seq_num++;
+			ack_num = seq_num + 1;
+			send_packet_tcp(tcp_req_desc,NULL,0,ack_num,FLG_SYN | FLG_ACK);
+			tcp_conn_map_remove(tcp_desc->tcp_req_map,src_ip,dst_ip,src_port,dst_port);
+			tcp_conn_map_put(socket->tcp_conn_map,src_ip,dst_ip,src_port,dst_port,tcp_req_desc);
+		}
+		goto exit;
 	}
 
 	//THREE WAY HANDSHAKE SYN FROM CLIENT TO SERVER
@@ -216,6 +225,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			tcp_conn_desc->socket = socket;
 		}
 		//COULD BE A LOST SYNC
+		//THREE WAY HANDSHAKE SYN + ACK FROM SERVER TO CLIENT
 		send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,FLG_SYN | FLG_ACK);
 		goto exit;
 	}
@@ -237,6 +247,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		}
 	}
 
+	????--------------------qui
 	tcp_conn_desc = tcp_conn_map_get(tcp_desc->tcp_conn_map,src_ip,dst_ip,src_port,dst_port);
 	if (tcp_conn_desc == NULL) 
 	{
