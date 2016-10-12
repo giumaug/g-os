@@ -36,7 +36,6 @@ t_tcp_conn_desc* tcp_conn_desc_int()
 	tcp_conn_desc=kmalloc(sizeof(t_tcp_conn_desc));
 	tcp_conn_desc->rcv_buf = tcp_rcv_queue_init(TCP_RCV_SIZE);
 	tcp_conn_desc->snd_buf = tcp_snd_queue_init(TCP_SND_SIZE);
-	tcp_conn_desc->conn_id = src_port | (dst_port<<16);
 	tcp_conn_desc->rtrsn_timer = 0xFFFFFFFF;
 	tcp_conn_desc->pgybg_timer = 0xFFFFFFFF;
 	tcp_conn_desc->seq_num = 1;
@@ -99,7 +98,7 @@ int listen_tcp(t_tcp_conn_desc* tcp_conn_desc)
 	tmp = tcp_conn_map_get(tcp_desc->listen_map,tcp_conn_desc->src_ip,0,tcp_conn_desc->src_port,0);
 	if (tmp == NULL)
 	{
-		tcp_conn_map_put(tcp_desc->listen_map,tcp_conn_desc->conn_id,tcp_conn_desc);
+		tcp_conn_map_put(tcp_desc->listen_map,tcp_conn_desc->src_ip,0,tcp_conn_desc->src_port,0,tcp_conn_desc);
 		ret = 0;
 	}
 	return ret;
@@ -143,8 +142,8 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		{
 			if (tcp_conn_desc->seq_num +1 == ack_seq_num)
 			{
-				tcp_conn_map_remove(tcp_desc->back_log_i_map,tcp_conn_desc->conn_id);
-				tcp_conn_map_put(tcp_desc->back_log_c_map,tcp_conn_desc->conn_id,tcp_conn_desc);
+				tcp_conn_map_remove(tcp_desc->back_log_i_map,src_ip,dst_ip,src_port,dst_port);
+				tcp_conn_map_put(tcp_desc->back_log_c_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
 			}
 		}
 		goto exit;
@@ -155,8 +154,12 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		tcp_conn_desc = tcp_conn_map_get(tcp_desc->back_log_i_map,src_ip,dst_ip,src_port,dst_port);
 		if (tcp_conn_desc == NULL)
 		{
-			tcp_conn_desc = tcp_conn_desc_int(src_port,src_ip,dst_port,dst_ip);
-			tcp_conn_map_put(tcp_desc->back_log_i_map,tcp_conn_desc->conn_id,tcp_conn_desc);
+			tcp_conn_desc = tcp_conn_desc_int();
+			tcp_conn_desc->src_ip = src_ip;
+			tcp_conn_desc->dst_ip = dst_ip;
+			tcp_conn_desc->src_port = src_port;
+			tcp_conn_desc->dst_port = dst_port;
+			tcp_conn_map_put(tcp_desc->back_log_i_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
 			ack_num = seq_num + 1;
 			tcp_conn_desc->seq_num++;
 		}
@@ -164,13 +167,13 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,FLG_SYN | FLG_ACK);
 		goto exit;
 	}
-	
-	conn_id=dst_port | (src_port<<16);
-	tcp_conn_desc=hashtable_get(tcp_desc->conn_map,conn_id);----------------qui + conn_id errato!!! sistemare pure struct tcp_desc
+
+	tcp_conn_desc = tcp_conn_map_get(tcp_desc->tcp_conn_map,src_ip,dst_ip,src_port,dst_port);
 	if (tcp_conn_desc==NULL) 
 	{
 		goto exit;
 	}
+
 	t_tcp_rcv_queue* tcp_queue=tcp_conn_desc->rcv_buf;
 	ip_len=GET_WORD(ip_row_packet[2],ip_row_packet[3]);
 	data_len=ip_len-HEADER_TCP;

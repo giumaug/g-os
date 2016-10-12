@@ -58,7 +58,6 @@ t_tcp_rcv_queue;
 
 typedef struct s_tcp_conn_desc
 {
-	u32 conn_id;
 	u32 rto;
 	u32 rtrsn_timer;
 	u32 pgybg_timer;

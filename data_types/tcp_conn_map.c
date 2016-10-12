@@ -18,12 +18,12 @@ t_tcp_conn_map* tcp_conn_map_init()
 	tcp_conn_map->is_key_unique = 0;
  }
 
-void tcp_conn_map_put(t_tcp_conn_map* tcp_conn_map,t_tcp_conn_desc* tcp_conn_desc)
+void tcp_conn_map_put(t_tcp_conn_map* tcp_conn_map,u16 src_ip,u16 dst_ip,u32 src_port,u32 dst_port,t_tcp_conn_desc* tcp_conn_desc)
 {
 	t_tcp_conn_desc* cur_conn;
 	t_tcp_conn_desc* new_conn;
 
-	conn_id = tcp_conn_desc->dst_port | (tcp_conn_desc->src_port << 16);
+	conn_id = dst_port | (src_port << 16);
 	cur_conn = hashtable_get(tcp_conn_map->conn_map,conn_id);
 	if (cur_conn != NULL)
 	{

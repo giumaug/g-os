@@ -123,7 +123,6 @@ int _bind(t_socket_desc* socket_desc,int sockfd,u32 src_ip,u32 src_port,u32 dst_
 			//All incoming request are wildcarded
 			socket->tcp_conn_desc->dst_ip = 0;
 			socket->tcp_conn_desc->dst_port = 0;
-			socket->tcp_conn_desc->conn_id = src_port;
 		}
 	}
 	SPINLOCK_LOCK(socket_desc->lock);
