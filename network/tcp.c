@@ -309,14 +309,45 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 
 			if (low_index < hi_index) 
 			{
-				kmemcpy(tcp_queue->buf,data_sckt_buf->data,data_len);
+				kmemcpy(tcp_queue->buf + low_index,data_sckt_buf->data,data_len);
+				for (i = low_index;i <= hi_index;i++)
+				{
+					slot_state = bit_vector_get(tcp_queue->buf_state,state_index);
+					if (slot_state == 0)
+					{
+						bit_vector_set(tcp_queue->buf_state,state_index);
+						tcp_queue->wnd_size--;
+					}
+				}
 			}
 			else 
 			{
-				len_1=tcp_queue->size - low_index;
-				len_2=data_len-len_1;
-				kmemcpy(tcp_queue->buf+buf_index,data_sckt_buf->data,len_1);
+				len_1 = tcp_queue->size - low_index;
+				len_2 = data_len - len_1;
+				kmemcpy(tcp_queue->buf + low_index,data_sckt_buf->data,len_1);
 				kmemcpy(tcp_queue->buf,data_sckt_buf->data+len_1,len_2);
+
+				qui + verificare dequeue_packet_tcp !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+				for (i = low_index;i <= len_1;i++)
+				{
+					slot_state = bit_vector_get(tcp_queue->buf_state,state_index);
+					if (slot_state == 0)
+					{
+						bit_vector_set(tcp_queue->buf_state,state_index);
+						tcp_queue->wnd_size--;
+					}	
+				}
+				for (i = 0;i <= len_2;i++)
+				{
+					slot_state = bit_vector_get(tcp_queue->buf_state,state_index);
+					if (slot_state == 0)
+					{
+						bit_vector_set(tcp_queue->buf_state,state_index);
+						tcp_queue->wnd_size--;
+					}
+				}
 			}
 			for (i = low_index;i <= hi_index;i++)
 			{
@@ -517,6 +548,12 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32
 
 int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 {
+	u32 i = 0;
+	u32 len_1 = 0;
+	u32 len_2 = 0;
+	u32 index = 0;
+	u32 low_index = 0;
+	u32 hi_index = 0;
 	u32 req_last_byte = 0;
 	u32 buf_last_byte = 0;
 	t_tcp_rcv_queue* tcp_queue = tcp_conn_desc->rcv_queue;
@@ -528,11 +565,35 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	{
 		return -1;
 	}
-	kmemcpy(tcp_queue->buf[tcp_snd_queue->buf_cur],data,data_len);
-	kmemcpy(data,tcp_queue->-------------qui)
 
+	low_index = tcp_queue->buf_min;
+	hi_index = SLOT_WND(tcp_queue->buf_min + data_len,tcp_queue->buf_size);
 
+	if (low_index < hi_index) 
+	{
+		kmemcpy(data,tcp_queue->buf_min,data_len);
+		for (i = low_index;i <= hi_index;i++)
+		{
+			bit_vector_reset(tcp_queue->buf_state,state_index);
+		}
+	}
+	else 
+	{
+		len_1 = tcp_queue->size - low_index;
+		len_2 = data_len - len_1;
+		kmemcpy(data,tcp_queue->buf_min,len_1);
+		kmemcpy(data + len_1,tcp_queue->buf_min,len_2);
 
+		for (i = low_index;i <= len_1;i++)
+		{
+			bit_vector_reset(tcp_queue->buf_state,state_index);
+		}
+		for (i = 0;i <= len_2;i++)
+		{
+			bit_vector_reset(tcp_queue->buf_state,state_index);
+		}
+	}
+	tcp_queue->wnd_size += data_len;
 }
 
 //Meglio scodare solo dentro la deferred queue,serve pure un meccanismo che
