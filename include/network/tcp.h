@@ -5,15 +5,15 @@
 
 #define INC_WND(cur,wnd_size,offset)  (cur + offset) % wnd_size
 #define SLOT_WND (cur,wnd_size) (cur % wnd_size
-#define DATA_IN_WND(min,max,index)					\
+#define DATA_IN_WND(min,max,index)									\
 (													\
-	(min <= max) ?									\
+	(min <= max) ?											\
 	(												\
-		(index >= min && index <= max) ? 1 : 0		\
+		(index >= min && index <= max) ? 1 : 0							\
 	)												\
 	:												\
 	(												\
-		(index >= max && index <= min) ? 1 : 0		\
+		(index >= max && index <= min) ? 1 : 0							\
 	)												\
 )													\
 
@@ -65,13 +65,15 @@ typedef struct s_tcp_conn_desc
 	t_tcp_snd_queue* snd_queue;
 	u32 seq_num;
 	u32 ack_seq_num;
-//	u32 offered_ack; //va usato nxt_rcv
-//	u32 expected_ack; // va usato nxt_snd
 	u32 src_ip;
 	u32 dst_ip;
 	u16 src_port;
 	u16 dst_port;
 	t_socket* socket;
+	//WE NEED TO ADD A TIMEOUT SERVICE TO REMOVE INCOMPLETED REQUEST
+	//AFTER 75 SECONDS
+	struct t_queue* back_log_i_queue;
+	struct t_queue* back_log_c_queue;
 }
 t_tcp_conn_desc;
 

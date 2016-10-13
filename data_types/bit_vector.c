@@ -6,7 +6,7 @@ t_bit_vector* bit_vector_init(u32 size)
 {
 	t_bit_vector* bit_vector;
 
-	bit_vector = kmalloc(size);
+	bit_vector = kmalloc((size/8)+1);
 	return bit_vector;
 }
 

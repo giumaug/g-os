@@ -32,15 +32,15 @@ t_tcp_rcv_queue* tcp_rcv_queue_init(u32 size)
 {
 	t_tcp_rcv_queue* tcp_rcv_queue;
 
-	tcp_rcv_queue=kmalloc(sizeof(t_tcp_rcv_queue));
-	tcp_rcv_queue->in_order_buf=kmalloc(size);
-	tcp_rcv_queue->out_order_buf=kmalloc(size/8);
-	tcp_rcv_queue->min=0;
-	tcp_rcv_queue->max=0;
-	tcp_rcv_queue->cur=0;
-	tcp_rcv_queue->size=size;
-	tcp_rcv_queue->nxt_rcv=0;
-	return tcp_rcv_queue;
+	tcp_rcv_queue = kmalloc(sizeof(t_tcp_rcv_queue));
+	tcp_rcv_queue->buf = kmalloc(TCP_RCV_SIZE);
+	tcp_rcv_queue->buf_state = bit_vector_init(TCP_RCV_SIZE);
+	tcp_rcv_queue->buf_size = TCP_RCV_SIZE;
+	tcp_rcv_queue->wnd_min = 0;
+	tcp_rcv_queue->wnd_max = 0;
+	tcp_rcv_queue->wnd_size = 0;
+	tcp_rcv_queue->nxt_rcv = 0;
+	return tcp_rcv_queue;-----------------------------qui!!!!!!!!!!!!!!!!!!!!!!!!
 }
 
 void tcp_rcv_queue_free(t_tcp_rcv_queue* tcp_rcv_queue)
@@ -74,9 +74,10 @@ t_tcp_desc* tcp_init()
 {
 	t_tcp_desc* tcp_desc;
 	
-	tcp_desc=kmalloc(sizeof(t_tcp_desc));
+	tcp_desc = kmalloc(sizeof(t_tcp_desc));
 	tcp_desc->conn_map = tcp_conn_map_init();
 	tcp_desc->listen_map = tcp_conn_map_init();
+	listen_map->req_map = tcp_conn_map_init();
 	return tcp_desc;
 }
 
@@ -84,6 +85,7 @@ void tcp_free(t_tcp_desc* tcp_desc)
 {
 	tcp_conn_map_free(tcp_desc->conn_map);
 	tcp_conn_map_free(tcp_desc->listen_map);
+	tcp_conn_map_free(tcp_desc->req_map);
 	kfree(tcp_desc);
 }
 
@@ -138,9 +140,8 @@ int listen_tcp(t_tcp_conn_desc* tcp_conn_desc)
 t_tcp_conn_desc* accept_tcp(t_tcp_conn_desc* tcp_conn_desc)
 {
 	t_tcp_conn_desc* new_tcp_conn_desc = NULL;
-	t_socket* socket = NULL;
 
-	new_tcp_conn_desc = dequeue(tcp_conn_desc->socket->back_log_c_queue);
+	new_tcp_conn_desc = dequeue(tcp_conn_desc->back_log_c_queue);
 	if (new_tcp_conn_desc != NULL)
 	{
 		return new_tcp_conn_desc;
@@ -148,7 +149,7 @@ t_tcp_conn_desc* accept_tcp(t_tcp_conn_desc* tcp_conn_desc)
 	return NULL;
 }
 
-void connect_tpc(t_socket* socket,src_ip,dst_ip,src_port,dst_port)
+void connect_tpc(t_tcp_conn_map* tcp_req_map,src_ip,dst_ip,src_port,dst_port)
 {
 	u32 src_port;
 	t_tcp_conn_desc* tcp_conn_desc = NULL;
@@ -158,21 +159,20 @@ void connect_tpc(t_socket* socket,src_ip,dst_ip,src_port,dst_port)
 	{
 		return -1;
 	}
-	tcp_conn_desc = new tcp_conn_desc_int();
+	tcp_conn_desc = tcp_conn_desc_int();
 	tcp_conn_desc->dst_ip = dst_ip;
 	tcp_conn_desc->dst_port = dst_port;
 	tcp_conn_desc->src_ip = src_ip;
 	tcp_conn_desc->src_port = src_port;
-	tcp_conn_desc->socket = socket;
 
-	tcp_conn_map_put(socket->tcp_req_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
+	tcp_conn_map_put(tcp_req_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
 	send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,FLG_SYN);
 	return 0;
 }
 
 void close_tcp()
 {
-
+	//devo flusshare prima!!!! 
 }
 
 void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len)
@@ -190,7 +190,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	u32 len_1;
 	u32 len_2;
 	t_tcp_conn_desc tcp_lstn_conn_desc = NULL;
-	t_socket* socket;
 
 	tcp_desc = system.network_desc->tcp_desc;
 	tcp_row_packet = data_sckt_buf->transport_hdr;
@@ -209,7 +208,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	}
 
 	//THREE WAY HANDSHAKE SYN + ACK FROM SERVER TO CLIENT
-	if (flags & (FLG_SYN | FLG_ACK))
+	if (flags & (FLG_SYN | FLG_ACK) && tcp_req_desc != NULL)
 	{
 		sono client qui
 		if (tcp_req_desc != NULL)
@@ -218,15 +217,15 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			ack_num = seq_num + 1;
 			send_packet_tcp(tcp_req_desc,NULL,0,ack_num,FLG_SYN | FLG_ACK);
 			tcp_conn_map_remove(tcp_desc->tcp_req_map,src_ip,dst_ip,src_port,dst_port);
-			tcp_conn_map_put(socket->tcp_conn_map,src_ip,dst_ip,src_port,dst_port,tcp_req_desc);
+			tcp_conn_map_put(tcp_desc->tcp_conn_map,src_ip,dst_ip,src_port,dst_port,tcp_req_desc);
 		}
 		goto exit;
 	}
 
 	//THREE WAY HANDSHAKE SYN FROM CLIENT TO SERVER
-	else if (flags & FLG_SYN)
+	else if (flags & FLG_SYN && tcp_listen_desc != NULL)
 	{
-		tcp_conn_desc = tcp_conn_map_get(socket->back_log_i_map,src_ip,dst_ip,src_port,dst_port);
+		tcp_conn_desc = tcp_conn_map_get(tcp_listen_desc->back_log_i_map,src_ip,dst_ip,src_port,dst_port);
 		if (tcp_conn_desc == NULL)
 		{
 			tcp_conn_desc = tcp_conn_desc_int();
@@ -237,7 +236,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			tcp_conn_map_put(tcp_desc->back_log_i_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
 			ack_num = seq_num + 1;
 			tcp_conn_desc->seq_num++;
-			tcp_conn_desc->socket = socket;
 		}
 		//COULD BE A LOST SYNC
 		//THREE WAY HANDSHAKE SYN + ACK FROM SERVER TO CLIENT
@@ -247,16 +245,16 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 
 	//THREE WAY HANDSHAKE ACK FROM CLIENT TO SERVER
 	//IF THERE IS AN ACK COULD BE LAST STEP OF THREE WAY HANDSHAKE OR REGULAR PACKET
-	else if (flags & FLG_ACK)
+	else if (flags & FLG_ACK && tcp_listen_desc != NULL)
 	{
-		tcp_conn_desc = tcp_conn_map_get(socket->back_log_i_queue,src_ip,dst_ip,src_port,dst_port);
+		tcp_conn_desc = tcp_conn_map_get(tcp_listen_desc->back_log_i_queue,src_ip,dst_ip,src_port,dst_port);
 		if (tcp_conn_desc != NULL)
 		{
 			if (tcp_conn_desc->seq_num +1 == ack_seq_num)
 			{
-				tcp_conn_map_remove(socket->back_log_i_map,src_ip,dst_ip,src_port,dst_port);
-				tcp_conn_map_put(socket->back_log_c_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
-				tcp_conn_map_put(socket->tcp_conn_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
+				tcp_conn_map_remove(tcp_listen_desc->back_log_i_map,src_ip,dst_ip,src_port,dst_port);
+				tcp_conn_map_put(tcp_listen_desc->back_log_c_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
+				tcp_conn_map_put(tcp_desc->tcp_conn_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
 			}
 			goto exit;
 		}
@@ -519,6 +517,11 @@ int buffer_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	}
 	//vedi commento sopra
 	//update_snd_window(tcp_conn_desc,0,1);
+}
+
+void rtrsn_timer_handler()
+{
+	//to do!!!
 }
 
 //Non occorre sincronizzazione sto dentro stessa deferred queue

@@ -60,8 +60,6 @@ t_socket* socket_init(int type)
 	else if (type == 1)
 	{
 		socket->tcp_conn_desc = tcp_conn_desc_int();
-		socket->back_log_i_queue = new_queue();
-		socket->back_log_c_queue = new_queue();
 	}
 	return 	socket;
 }
@@ -76,8 +74,6 @@ void socket_free(t_socket* socket)
 	else  if (socket->type == 1)
 	{
 		tcp_conn_desc_free(socket->tcp_conn_desc);
-		free_queue(socket->back_log_i_queue);
-		free_queue(socket->back_log_c_queue);
 	}
 	kfree(socket);
 } 
