@@ -41,6 +41,7 @@ typedef struct s_tcp_snd_queue
 	u32 wnd_min;
 	u32 wnd_size;
 	u32 nxt_snd;
+	t_spinlock_desc lock;
 }
 t_tcp_snd_queue;
 
@@ -53,6 +54,7 @@ typedef struct s_tcp_rcv_queue
 	u32 wnd_size;
 	u32 nxt_rcv; //ack relativo finestra di ricezione e usato in trasmissione
 	bit_vector* buf_state;
+	t_spinlock_desc lock;
 }
 t_tcp_rcv_queue;
 
