@@ -515,14 +515,34 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32
 	}
 }
 
+int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
+{
+	u32 req_last_byte = 0;
+	u32 buf_last_byte = 0;
+	t_tcp_rcv_queue* tcp_queue = tcp_conn_desc->rcv_queue;
+
+	buf_last_byte = SLOT_WND(tcp_queue->nxt_rcv - 1,tcp_queue->buf_size);
+	req_last_byte = INC_WND(tcp_queue->buf_min,TCP_RCV_SIZE,data_len);
+
+	if (req_last_byte > buf_last_byte) 
+	{
+		return -1;
+	}
+	kmemcpy(tcp_queue->buf[tcp_snd_queue->buf_cur],data,data_len);
+	kmemcpy(data,tcp_queue->-------------qui)
+
+
+
+}
+
 //Meglio scodare solo dentro la deferred queue,serve pure un meccanismo che
 //avvia lo scodamentom solo se non e' stato lanciato in precedenza dal
 //processamento dell'ack
-int buffer_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
+int enqueue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 {
 	t_tcp_snd_queue* tcp_queue = tcp_conn_desc->snd_queue;
 
-	b_free_size=WND_SIZE(tcp_queue->tcp_snd_queue->buf_cur,tcp_queue->buf_max);
+	b_free_size = WND_SIZE(tcp_queue->tcp_snd_queue->buf_cur,tcp_queue->buf_max);
 	if (b_free_size < data_len)
 	{
 		return -1;

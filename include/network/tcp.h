@@ -1,4 +1,4 @@
-#define SMSS 				1454			
+#define SMSS 			1454			
 #define TCP_RCV_SIZE 		16384
 #define TCP_SND_SIZE 		16384
 #define WND_ADV         	TCP_RCV_SIZE / SMSS

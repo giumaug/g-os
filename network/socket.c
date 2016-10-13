@@ -195,51 +195,55 @@ int _accept(t_socket_desc* socket_desc,t_socket** socket)
 
 int _recvfrom(t_socket_desc* socket_desc,int sockfd,unsigned char* src_ip,unsigned char* src_port,void* data,u32 data_len)
 {
-	u32 read_data=0;
-	t_socket* socket=NULL;
-	t_data_sckt_buf* data_sckt_buf=NULL;
+	u32 read_data = 0;
+	t_socket* socket = NULL;
+	t_data_sckt_buf* data_sckt_buf = NULL;
 	unsigned int _src_ip;
 	unsigned int _src_port;
 
 	SPINLOCK_LOCK(socket_desc->lock);
-	socket=hashtable_get(socket_desc->sd_map,sockfd);
+	socket = hashtable_get(socket_desc->sd_map,sockfd);
 	SPINLOCK_UNLOCK(socket_desc->lock);
-	if (socket!=NULL) 
+	if (socket != NULL) 
 	{
-		SPINLOCK_LOCK(*socket->lock);
-		data_sckt_buf=dequeue(socket->udp_rx_queue);
-		if (data_sckt_buf==NULL)
+		if (socket->type == 2)
 		{
-			_sleep_and_unlock(socket->lock);
 			SPINLOCK_LOCK(*socket->lock);
-			data_sckt_buf=dequeue(socket->udp_rx_queue);
-			SPINLOCK_UNLOCK(*socket->lock);
-			if (data_sckt_buf==NULL) 
+			data_sckt_buf = dequeue(socket->udp_rx_queue);
+			if (data_sckt_buf == NULL)
 			{
-				return read_data;
-			}	
-		} 
-		_src_port=GET_WORD(data_sckt_buf->transport_hdr[0],data_sckt_buf->transport_hdr[1]);
-		_src_ip=GET_DWORD(data_sckt_buf->network_hdr[12],data_sckt_buf->network_hdr[13],data_sckt_buf->network_hdr[14],data_sckt_buf->network_hdr[15]);
-		read_data=GET_WORD(data_sckt_buf->transport_hdr[4],data_sckt_buf->transport_hdr[5])-HEADER_UDP;
+				_sleep_and_unlock(socket->lock);
+				SPINLOCK_LOCK(*socket->lock);
+				data_sckt_buf = dequeue(socket->udp_rx_queue);
+				SPINLOCK_UNLOCK(*socket->lock);
+				if (data_sckt_buf == NULL) 
+				{
+					return read_data;
+				}	
+			} 
+			_src_port = GET_WORD(data_sckt_buf->transport_hdr[0],data_sckt_buf->transport_hdr[1]);
+			_src_ip = GET_DWORD(data_sckt_buf->network_hdr[12],data_sckt_buf->network_hdr[13],data_sckt_buf->network_hdr[14],data_sckt_buf->network_hdr[15]);
+			read_data = GET_WORD(data_sckt_buf->transport_hdr[4],data_sckt_buf->transport_hdr[5])-HEADER_UDP;
 
-		src_ip[0]=(_src_ip & 0xFF000000)>>24;
-		src_ip[1]=(_src_ip & 0xFF0000)>>16;
-		src_ip[2]=(_src_ip & 0xFF00)>>8;
-		src_ip[3]=(_src_ip & 0xFF);
+			src_ip[0] = (_src_ip & 0xFF000000)>>24;
+			src_ip[1] = (_src_ip & 0xFF0000)>>16;
+			src_ip[2] = (_src_ip & 0xFF00)>>8;
+			src_ip[3] = (_src_ip & 0xFF);
 
-		src_port[0]=(_src_port & 0xFF00)>>8;
-		src_port[1]=(_src_port & 0xFF);
-
-		printk("----------src_port[0] %d \n",src_port[0]);
-		printk("----------src_port[1] %d \n",src_port[1]);
+			src_port[0] = (_src_port & 0xFF00)>>8;
+			src_port[1] = (_src_port & 0xFF);
 		
-		if (read_data > data_len) 
-		{
-			read_data=data_len;
+			if (read_data > data_len) 
+			{
+				read_data = data_len;
+			}
+			kmemcpy(data,data_sckt_buf->transport_hdr+HEADER_UDP,read_data);
+			free_sckt(data_sckt_buf);
 		}
-		kmemcpy(data,data_sckt_buf->transport_hdr+HEADER_UDP,read_data);
-		free_sckt(data_sckt_buf);
+		else if (socket->type == 1)
+		{
+
+		}
 	}
 	return read_data;
 }
