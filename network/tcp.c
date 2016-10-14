@@ -203,19 +203,21 @@ void connect_tpc(t_tcp_conn_map* tcp_req_map,src_ip,dst_ip,src_port,dst_port)
 
 void close_tcp(t_tcp_conn_desc tcp_conn_desc*) 
 {
-	t_tcp_rcv_queue tcp_queue = NULL;
+	t_tcp_snd_queue tcp_queue = NULL;
+	struct t_process_context* current_process_context = NULL;
 
+	CURRENT_PROCESS_CONTEXT(current_process_context);
 	if (tcp_conn_desc->active_close == 1)
 	{
-		tcp_queue = tcp_conn_desc->rcv_queue;
-		if (tcp_queue->buf_min == tcp_queue->buf_cur)
+		tcp_queue = tcp_conn_desc->snd_queue;
+		SPINLOCK_LOCK(tcp_queue->lock);
+
+		if (tcp_queue->buf_min != tcp_queue->buf_cur)
 		{
-			//GO!!!!!!!!!!!!!!!!!!!
-		}
-		else
-		{
-			_sleep_and_unlock(socket->lock);
+			tcp_conn_desc->process_context = current_process_context;
+			_sleep_and_unlock(tcp_queue->lock);
 			
+			----------------qui!!!!!!!!!!!!
 		}
 	}
 }
@@ -250,7 +252,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	tcp_listen_desc = tcp_conn_map_get(tcp_desc->tcp_listen_map,system.network_desc->ip,dst_port,0,0);
 	if (tcp_req_desc == NULL && tcp_listen_desc == NULL)
 	{ 
-		goto exit;
+		goto EXIT;
 	}
 
 	//THREE WAY HANDSHAKE SYN + ACK FROM SERVER TO CLIENT
@@ -265,7 +267,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			tcp_conn_map_remove(tcp_desc->tcp_req_map,src_ip,dst_ip,src_port,dst_port);
 			tcp_conn_map_put(tcp_desc->tcp_conn_map,src_ip,dst_ip,src_port,dst_port,tcp_req_desc);
 		}
-		goto exit;
+		goto EXIT;
 	}
 
 	//THREE WAY HANDSHAKE SYN FROM CLIENT TO SERVER
@@ -286,7 +288,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		//COULD BE A LOST SYNC
 		//THREE WAY HANDSHAKE SYN + ACK FROM SERVER TO CLIENT
 		send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,FLG_SYN | FLG_ACK);
-		goto exit;
+		goto EXIT;
 	}
 
 	//THREE WAY HANDSHAKE ACK FROM CLIENT TO SERVER
@@ -302,17 +304,18 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 				tcp_conn_map_put(tcp_listen_desc->back_log_c_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
 				tcp_conn_map_put(tcp_desc->tcp_conn_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
 			}
-			goto exit;
+			goto EXIT;
 		}
 	}
 
 	tcp_conn_desc = tcp_conn_map_get(tcp_desc->tcp_conn_map,src_ip,dst_ip,src_port,dst_port);
 	if (tcp_conn_desc == NULL) 
 	{
-		goto exit;
+		goto EXIT;
 	}
 
 	t_tcp_rcv_queue* tcp_queue=tcp_conn_desc->rcv_buf;
+	SPINLOCK_LOCK(tcp_queue->lock);
 	ip_len=GET_WORD(ip_row_packet[2],ip_row_packet[3]);
 	data_len=ip_len-HEADER_TCP;
 
@@ -368,6 +371,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		rcv_ack(tcp_conn_desc,ack_seq_num);
 		update_snd_window(tcp_conn_desc,ack_seq_num,data_len);
 	}
+	SPINLOCK_UNLOCK(tcp_queue->lock);
 	EXIT:
 		free_sckt(data_sckt_buf);
 }
@@ -431,6 +435,7 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32
 	u8 flags=0;
 
 	tcp_queue = tcp_conn_desc->snd_queue;
+	SPINLOCK_LOCK(tcp_queue->lock);
 	ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;
 	//trasmission with good ack
 	if (tcp_conn_desc->duplicated_ack == 0)
@@ -553,10 +558,12 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32
 	{
 
 	}
+	SPINLOCK_UNLOCK(tcp_queue->lock);
 }
 
 int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 {
+	int ret = 0;
 	u32 i = 0;
 	u32 len_1 = 0;
 	u32 len_2 = 0;
@@ -567,13 +574,13 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	u32 buf_last_byte = 0;
 	t_tcp_rcv_queue* tcp_queue = tcp_conn_desc->rcv_queue;
 
-	SPINLOCK_LOCK(tcp_conn_desc->lock);
+	SPINLOCK_LOCK(tcp_queue->lock);
 	buf_last_byte = SLOT_WND(tcp_queue->nxt_rcv - 1,tcp_queue->buf_size);
 	req_last_byte = INC_WND(tcp_queue->buf_min,TCP_RCV_SIZE,data_len);
 
 	if (req_last_byte > buf_last_byte) 
 	{
-		return -1;
+		goto EXIT;
 	}
 
 	low_index = tcp_queue->buf_min;
@@ -604,7 +611,9 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		}
 	}
 	tcp_queue->wnd_size += data_len;
-	SPINLOCK_UNLOCK(tcp_conn_desc->lock);
+EXIT:
+	SPINLOCK_UNLOCK(tcp_queue->lock);
+	return ret;
 }
 
 //Meglio scodare solo dentro la deferred queue,serve pure un meccanismo che
