@@ -293,19 +293,27 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			goto EXIT;
 		}
 	}
-
 	tcp_conn_desc = tcp_conn_map_get(tcp_desc->tcp_conn_map,src_ip,dst_ip,src_port,dst_port);
 	if (tcp_conn_desc == NULL) 
 	{
 		goto EXIT;
 	}
-
+	
 	t_tcp_rcv_queue* tcp_queue=tcp_conn_desc->rcv_buf;
 	ip_len=GET_WORD(ip_row_packet[2],ip_row_packet[3]);
 	data_len=ip_len-HEADER_TCP;
 
 	if (checksum_udp((unsigned short*) tcp_row_packet,src_ip,dst_ip,data_len)==0)
 	{
+		////FIN REQUEST FROM SERVER
+		if (flags & FLG_FIN && tcp_conn_desc->active_close == 1)
+		{
+			ack_num = seq_num++;
+			tcp_conn_desc->seq_num++;
+			send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,FLG_ACK);
+			tcp_conn_desc_free(tcp_conn_desc);
+			goto EXIT;
+		}
 		wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
 		if (seq_num >= tcp_queue->wnd_min && seq_num + data_len <= wnd_max)
 		{
@@ -540,7 +548,6 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32
 	}
 	if (tcp_queue->buf_min == tcp_queue->buf_cur && tcp_conn_desc->active_close == 1)
 	{
-		tcp_conn_desc->process_context = current_process_context;-----------------qui!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;
 		tcp_conn_desc->seq_num++;
 		send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,FLG_FIN | FLG_ACK);
