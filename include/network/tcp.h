@@ -76,6 +76,7 @@ typedef struct s_tcp_conn_desc
 	//AFTER 75 SECONDS
 	struct t_queue* back_log_i_queue;
 	struct t_queue* back_log_c_queue;
+	struct t_process_context----qui!!
 }
 t_tcp_conn_desc;
 

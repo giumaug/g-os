@@ -201,9 +201,23 @@ void connect_tpc(t_tcp_conn_map* tcp_req_map,src_ip,dst_ip,src_port,dst_port)
 	return 0;
 }
 
-void close_tcp()
+void close_tcp(t_tcp_conn_desc tcp_conn_desc*) 
 {
-	//devo flusshare prima!!!! 
+	t_tcp_rcv_queue tcp_queue = NULL;
+
+	if (tcp_conn_desc->active_close == 1)
+	{
+		tcp_queue = tcp_conn_desc->rcv_queue;
+		if (tcp_queue->buf_min == tcp_queue->buf_cur)
+		{
+			//GO!!!!!!!!!!!!!!!!!!!
+		}
+		else
+		{
+			_sleep_and_unlock(socket->lock);
+			
+		}
+	}
 }
 
 void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len)
@@ -534,6 +548,10 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32
 		{
 			tcp_conn_desc->rtrsn_timer = tcp_conn_desc->rto;//aggiungere implenetazione rto
 		}
+	}
+	if (tcp_queue->buf_min == tcp_queue->buf_cur && tcp_conn_desc->active_close == 1)
+	{
+
 	}
 }
 
