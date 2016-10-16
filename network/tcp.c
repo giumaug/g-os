@@ -66,118 +66,27 @@ void tcp_free(t_tcp_desc* tcp_desc)
 	kfree(tcp_desc);
 }
 
-//only a little slower than a lookup table
-static int lookup_reserved_slot(int slot_state)
-{
-	int offset;
-
-	if (slot_state == 254) 
-	{
-		offset = 7;
-	}
-	else if (slot_state & 11111100 == 252)
-	{
-		offset = 6;
-	}
-	else if (slot_state & 11111100 == 252)
-	{
-		
-	}
-	else if (slot_state & 11111000 == 248)
-	{
-		offset = 5;
-	}
-	else if (slot_state & 11110000 == 240)
-	{
-		offset = 4;
-	}
-	else if (slot_state & 11100000 == 224)
-	{
-		offset = 3;
-	}
-	else if (slot_state & 11000000 == 192)
-	{
-		offset = 2;
-	}
-	else if (slot_state & 10000000 == 128)
-	{
-		offset = 1;
-	}
-	return offset;
-}
-
-static u8 lookup_free_slot(offset)
-{
-	u8 slot_state;
-
-	if (offset == 1)
-	{
-		slot_state = 128;
-	}
-	else if (offset == 2)
-	{
-		slot_state = 192;
-	}
-	else if (offset == 3)
-	{
-		slot_state = 224;
-	}
-	else if (offset == 4)
-	{
-		slot_state = 240;
-	}
-	else if (offset == 5)
-	{
-		slot_state = 248;
-	}
-	else if (offset == 6)
-	{
-		slot_state = 252;
-	}
-	else if (offset == 7)
-	{
-		slot_state = 254;
-	}
-	return slot_state;
-}
-// https://easwer.wordpress.com/2010/11/09/bit-vectors-in-c/
-static void update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue,u32 rcv_seq_num)
+static void update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue)
 {
 	u32 ack_seq_num;
 	u32 min;
 	u32 offset;
+	u32 index;
+	u32 state_index;
 
 	offset = 0;
 	index = tcp_queue->wnd_min;
 	while(index <= tcp_queue->wnd_max)
 	{
-		slot_state = tcp_queue->buf_state[index/8];
+		state_index = SLOT_WND(index,(tcp_queue->buf_size / 8) + 1);
+		slot_state = bit_vector_get(tcp_queue->buf_state,state_index);
 		if (slot_state != 0)
 		{
 			break;
 		}
-		//tcp_queue->buf_state[i/8]=0;
 		index++;
 	}
-	if (index != tcp_queue->min) 
-	{
-		if (slot_state == 0xFF)
-		{
-			//tcp_queue->min += index;
-			//tcp_queue->man += index;
-			//tcp_queue->wnd_size += index;
-			tcp_queue->nxt_rcv = index;
-		}
-		else 
-		{
-			offset = lookup_reserved_slot[(tcp_queue->buf_state[index/8]);
-			//tcp_queue->buf_state[index/8] = lookup_free_slot(offset);
-			//tcp_queue->min += index + offset;
-			//tcp_queue->man += index + offset;
-			//tcp_queue->wnd_size += index + offset;
-			tcp_queue->nxt_rcv = index + offset;	
-		}
-	}
+	tcp_queue->nxt_rcv = index;
 }
 
 rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len)
@@ -216,24 +125,31 @@ rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len
 	{
 		if (seq_num >= tcp_queue->wnd_min && seq_num + data_len <= tcp_queue->wnd_max)
 		{
-			low_index=seq_num;
-			hi_index=seq_num + data_len;
-			if (SLOT_WND(low_index) < SLOT_WND(hi_index)) 
+			low_index = SLOT_WND(seq_num,tcp_queue->buf_size);
+			hi_index = SLOT_WND(seq_num + data_len,tcp_queue->buf_size);
+
+			if (low_index < hi_index) 
 			{
 				kmemcpy(tcp_queue->buf,data_sckt_buf->data,data_len);
-				slot_state = tcp_queue->buf_state[index/8];-----------------qui
 			}
 			else 
 			{
-				buf_index = SLOT_WND(seq_num);
-				len_1=tcp_queue->size - buf_index;
+				len_1=tcp_queue->size - low_index;
 				len_2=data_len-len_1;
 				kmemcpy(tcp_queue->buf+buf_index,data_sckt_buf->data,len_1);
 				kmemcpy(tcp_queue->buf,data_sckt_buf->data+len_1,len_2);
 			}
-			//gestione duplicati????????
-			tcp_queue->wnd_size -= data_len;--------------------da qui--------------------
+			for (i = low_index;i <= hi_index;i++)
+			{
+				slot_state = bit_vector_get(tcp_queue->buf_state,state_index);
+				if (slot_state == 0)
+				{
+					bit_vector_set(tcp_queue->buf_state,state_index);
+					tcp_queue->wnd_size--;
+				}
+			}
 		}
+		update_rcv_window_and_ack(tcp_queue);
 		rcv_ack(tcp_conn_desc,ack_seq_num);
 		update_snd_window(tcp_conn_desc,ack_seq_num,data_len);
 	}

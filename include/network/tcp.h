@@ -50,7 +50,7 @@ typedef struct s_tcp_rcv_queue
 	u32 wnd_max;
 	u32 buf_size;
 	char* buf;
-	char* buf_status;
+	bit_vector* buf_state;
 	u32 nxt_rcv; //ack relativo finestra di ricezione e usato in trasmissione
 	u32 wnd_size;
 }
