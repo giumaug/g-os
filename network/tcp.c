@@ -94,10 +94,9 @@ static void update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue)
 	tcp_queue->nxt_rcv = index;
 }
 
-bind_tcp(u16 bind_port)
+int bind_tcp(u16 bind_port)
 {
 	static u8 PORT_MAPPED = 1;
-
 	t_tcp_desc* tcp_desc = NULL;
 	u8* is_port_mapped = NULL; 
 
@@ -109,6 +108,8 @@ bind_tcp(u16 bind_port)
 	}
 	hashtable_put(tcp_desc->bind_map,bind_port,&PORT_MAPPED);	
 }
+
+
 
 
 void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len)
@@ -139,35 +140,43 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	is_port_mapped = hashtable_get(tcp_desc->bind_map,dst_port);
 	if (is_port_mapped == NULL)
 	{
-		free_sckt(data_sckt_buf);
-		return;
+		goto exit;
 	}
 
-	if (flags & FLG_SYN)
+	if (flags & (FLG_SYN | FLG_ACK))
 	{
+		tcp_conn_desc = tcp_conn_map_get(tcp_desc->back_log_i_map,src_ip,dst_ip,src_port,dst_port);
+		if (tcp_conn_desc != NULL)
+		{
+			if (tcp_conn_desc->seq_num +1 == ack_seq_num)
+			{
+				tcp_conn_map_remove(tcp_desc->back_log_i_map,tcp_conn_desc->conn_id);
+				tcp_conn_map_put(tcp_desc->back_log_c_map,tcp_conn_desc->conn_id);
+			}
+		}
+		goto exit;
+	}
 
-	
-	if (flags & FLG_SYN)
+	else if (flags & FLG_SYN)
 	{
-		SYN lost????????
 		tcp_conn_desc = tcp_conn_map_get(tcp_desc->back_log_i_map,src_ip,dst_ip,src_port,dst_port);
 		if (tcp_conn_desc == NULL)
 		{
 			tcp_conn_desc = tcp_conn_desc_int(src_port,src_ip,dst_port,dst_ip);
-			tcp_conn_map_put(tcp_desc->back_log_i_map,tcp_conn_desc);
+			tcp_conn_map_put(tcp_desc->back_log_i_map,tcp_conn_desc->conn_id,tcp_conn_desc);
 			ack_num = seq_num + 1;
 			tcp_conn_desc->seq_num++;
-			send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,FLG_SYN | FLG_ACK);
 		}
-		free_sckt(data_sckt_buf);
-		return;
+		//Could be a lost sync
+		send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,FLG_SYN | FLG_ACK);
+		goto exit;
 	}
 	
 	conn_id=dst_port | (src_port<<16);
 	tcp_conn_desc=hashtable_get(tcp_desc->conn_map,conn_id);
 	if (tcp_conn_desc==NULL) 
 	{
-		return NULL;
+		goto exit;
 	}
 	t_tcp_rcv_queue* tcp_queue=tcp_conn_desc->rcv_buf;
 	ip_len=GET_WORD(ip_row_packet[2],ip_row_packet[3]);
@@ -205,11 +214,8 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		rcv_ack(tcp_conn_desc,ack_seq_num);
 		update_snd_window(tcp_conn_desc,ack_seq_num,data_len);
 	}
-	else
-	{
+	EXIT:
 		free_sckt(data_sckt_buf);
-	}
-
 }
 
 //	if good ack

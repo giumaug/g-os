@@ -72,7 +72,6 @@ typedef struct s_tcp_conn_desc
 	u32 dst_ip;
 	u16 src_port;
 	u16 dst_port;
-	u8 is_key_unique;
 }
 t_tcp_conn_desc;
 
