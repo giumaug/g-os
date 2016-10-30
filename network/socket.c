@@ -57,15 +57,23 @@ t_socket* socket_init(int type)
 		socket->lock=kmalloc(sizeof(t_spinlock_desc));
 		SPINLOCK_INIT(*socket->lock);
 	}
+	else if (type == 1)
+	{
+		socket->t_tcp_conn_desc = tcp_conn_desc_int();
+	}
 	return 	socket;
 }
 
 void socket_free(t_socket* socket)
 {
-	if (socket->type==2)
+	if (socket->type == 2)
 	{
 		free_queue(socket->udp_rx_queue);
 		kfree(socket->lock);
+	}
+	else  if (socket->type == 1)
+	{
+		tcp_conn_desc_free(socket->tcp_conn_desc);
 	}
 	kfree(socket);
 } 
@@ -88,21 +96,52 @@ int _open_socket(t_socket_desc* socket_desc,int type)
 	return socket->sd;
 }
 
-int _bind(t_socket_desc* socket_desc,int sockfd,u32 ip,u32 src_port)
+int _bind(t_socket_desc* socket_desc,int sockfd,u32 src_ip,u32 src_port,u32 dst_ip,u16 dst_port)
 {
 	void* port;
 	t_socket* socket=NULL;
 	int ret=-1;
 	
 	SPINLOCK_LOCK(socket_desc->lock);
-	socket=hashtable_get(socket_desc->sd_map,sockfd);
-	if (socket!=NULL)
+	socket = hashtable_get(socket_desc->sd_map,sockfd);
+	if (socket != NULL)
 	{
-		if (hashtable_get(socket_desc->udp_map,src_port)==NULL)
+		if (socket->type == 2)
 		{
-			socket->port=src_port;
-			hashtable_put(socket_desc->udp_map,src_port,socket);
-			ret=0;
+			//For udp map on port only.To be corrected!!!
+			if (hashtable_get(socket_desc->udp_map,src_port) == NULL)
+			{
+				socket->port = src_port;
+				hashtable_put(socket_desc->udp_map,src_port,socket);
+				ret = 0;
+			}
+		}
+		if (socket->type == 1)
+		{
+			socket->tcp_conn_desc->src_ip = src_ip;
+			socket->tcp_conn_desc->src_port = src_port;
+			//All incoming request are wildcarded
+			socket->tcp_conn_desc->dst_ip = 0;
+			socket->tcp_conn_desc->dst_port = 0;
+			socket->tcp_conn_desc->conn_id = src_port;
+		}
+	}
+	SPINLOCK_LOCK(socket_desc->lock);
+	return ret;
+}
+
+int _listen(t_socket_desc* socket_desc)
+{
+	t_socket* socket=NULL;
+	int ret=-1;
+
+	SPINLOCK_LOCK(socket_desc->lock);
+	socket = hashtable_get(socket_desc->sd_map,sockfd);
+	if (socket != NULL)
+	{
+		if (socket->type == 1)
+		{
+			listen_tcp(socket->tcp_conn_desc);
 		}
 	}
 	SPINLOCK_LOCK(socket_desc->lock);

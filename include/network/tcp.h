@@ -5,17 +5,17 @@
 
 #define INC_WND(cur,wnd_size,offset)  (cur + offset) % wnd_size
 #define SLOT_WND (cur,wnd_size) (cur % wnd_size
-#define DATA_IN_WND(min,max,index)				\
-(								\
-	(min <= max) ?						\
-	(							\
+#define DATA_IN_WND(min,max,index)					\
+(													\
+	(min <= max) ?									\
+	(												\
 		(index >= min && index <= max) ? 1 : 0		\
-	)							\
-	:							\
-	(							\
+	)												\
+	:												\
+	(												\
 		(index >= max && index <= min) ? 1 : 0		\
-	)							\
-)								\
+	)												\
+)													\
 
 #define DATA_LF_OUT_WND(min,max,index) ((index < min) ? 1 : 0)
 #define DATA_RH_OUT_WND(min,max,index) ((index > min) ? 1 : 0)
