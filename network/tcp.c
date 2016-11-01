@@ -104,6 +104,12 @@ int listen_tcp(t_tcp_conn_desc* tcp_conn_desc)
 	return ret;
 }
 
+int accept_tcp()
+{
+
+}
+
+
 void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len)
 {
 	t_tcp_desc* tcp_desc=NULL;
@@ -144,6 +150,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			{
 				tcp_conn_map_remove(tcp_desc->back_log_i_map,src_ip,dst_ip,src_port,dst_port);
 				tcp_conn_map_put(tcp_desc->back_log_c_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
+				tcp_conn_map_put(tcp_desc->tcp_conn_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
 			}
 		}
 		goto exit;
