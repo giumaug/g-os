@@ -1,6 +1,27 @@
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!IMPORTANTE VERIFICARE CHE LA STRUTTURA DATI COMPLESSIVA SIA SENSATA!!!!!!!!!!!!!!!!!!
 #include "network/tcp.h"
 
+static int free_port_search()
+{
+	int i;
+	void* port = NULL;
+	tcp_desc = system.network_desc->tcp_desc;
+
+	for (i=0;i<32767;i++)
+	{
+		if (tcp_desc->listen_port_index++ > 65535) 
+		{
+			tcp_desc->listen_port_index = 32767;
+		}
+		port = hashtable_get(tcp_desc->listen_port_map,tcp_desc->listen_port_index);
+		if (port == NULL)
+		{
+			return tcp_desc->listen_port_index;
+		}
+	}
+	return 0;
+}
+
 void tcp_snd_queue_free(t_tcp_snd_queue* tcp_snd_queue)
 {
 	kfree(tcp_snd_queue->buf);
@@ -91,12 +112,12 @@ static void update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue)
 
 int listen_tcp(t_tcp_conn_desc* tcp_conn_desc)
 {
-	t_tcp_conn_desc* tmp;
+	t_tcp_conn_desc* tmp;----------------qui!!!
 	int ret;
 	
 	ret = -1;
 	tmp = tcp_conn_map_get(tcp_desc->listen_map,tcp_conn_desc->src_ip,0,tcp_conn_desc->src_port,0);
-	if (tmp == NULL)
+	if (tcp_listen_desc == NULL)
 	{
 		tcp_conn_map_put(tcp_desc->listen_map,tcp_conn_desc->src_ip,0,tcp_conn_desc->src_port,0,tcp_conn_desc);
 		ret = 0;
@@ -117,9 +138,26 @@ t_tcp_conn_desc* accept_tcp(t_tcp_conn_desc* tcp_conn_desc)
 	return NULL;
 }
 
-void connect_tpc()
+void connect_tpc(t_socket* socket,u32 dst_ip,u16 dst_port)
 {
-	x
+	u32 src_port;
+	t_tcp_conn_desc* tcp_conn_desc = NULL;
+
+	src_port = free_port_search();
+	if (src_port == NULL)
+	{
+		return -1;
+	}
+	tcp_conn_desc = new tcp_conn_desc_int();
+	tcp_conn_desc->dst_ip = dst_ip;
+	tcp_conn_desc->dst_port = dst_port;
+	tcp_conn_desc->src_ip = system.network_desc->ip;
+	tcp_conn_desc->src_port = src_port;
+	tcp_conn_desc->socket = socket;
+
+	tcp_conn_map_put(socket->tcp_req_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
+	send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,FLG_SYN);
+	return 0;
 }
 
 void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len)
@@ -148,17 +186,17 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	seq_num = GET_DWORD(tcp_row_packet[4],tcp_row_packet[5],tcp_row_packet[6],tcp_row_packet[7]);
 	flags = tcp_row_packet[14];
 
-	tcp_lstn_conn_desc = tcp_conn_map_get(tcp_desc->listen_map,dst_port);
-	socket = tcp_lstn_conn_desc->socket;
-	if (tcp_lstn_conn_desc == NULL)
-	{
+	tcp_req_desc = tcp_conn_map_get(tcp_desc->tcp_req_map,system.network_desc->ip,dst_ip,dst_port,src_port);
+	tcp_listen_desc = tcp_conn_map_get(tcp_desc->tcp_listen_map,system.network_desc->ip,dst_port,0,0);
+	if (tcp_req_desc == NULL && tcp_listen_desc == NULL)
+	{ 
 		goto exit;
 	}
 
 	//THREE WAY HANDSHAKE SYN + ACK FROM SERVER TO CLIENT
 	if (flags & (FLG_SYN | FLG_ACK))
 	{
-		//qui!!!!!!!!!!!!!!!!!!!!11
+		
 	}
 
 	//THREE WAY HANDSHAKE SYN FROM CLIENT TO SERVER
@@ -479,42 +517,42 @@ int send_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u32 a
 	int ret = NULL;
 	char* tcp_header = NULL;
 	
-	data_sckt_buf=alloc_sckt(data_len+HEADER_ETH+HEADER_IP4+HEADER_TCP);
-	data_sckt_buf->transport_hdr=data_sckt_buf->data+HEADER_ETH+HEADER_IP4;
-	tcp_payload=data_sckt_buf->transport_hdr+HEADER_TCP;
+	data_sckt_buf = alloc_sckt(data_len + HEADER_ETH + HEADER_IP4 + HEADER_TCP);
+	data_sckt_buf->transport_hdr = data_sckt_buf->data + HEADER_ETH + HEADER_IP4;
+	tcp_payload = data_sckt_buf->transport_hdr + HEADER_TCP;
 	kmemcpy(tcp_payload,data,data_len);
 	tcp_header=data_sckt_buf->transport_hdr;
 	
-	tcp_header[0]=HI_16(tcp_conn_desc->src_port);   		//HI SRC PORT
-	tcp_header[1]=LOW_16(tcp_conn_desc->src_port);  		//LOW SRC PORT
-	tcp_header[2]=HI_16(tcp_conn_desc->dst_port);   		//HI DST PORT
-	tcp_header[3]=LOW_16(tcp_conn_desc->dst_port);  		//LOW DST PORT
+	tcp_header[0] = HI_16(tcp_conn_desc->src_port);   			//HI SRC PORT
+	tcp_header[1] = LOW_16(tcp_conn_desc->src_port);  			//LOW SRC PORT
+	tcp_header[2] = HI_16(tcp_conn_desc->dst_port);   			//HI DST PORT
+	tcp_header[3] = LOW_16(tcp_conn_desc->dst_port);  			//LOW DST PORT
 
-	tcp_header[4]=HI_OCT_32(tcp_conn_desc->seq_num);         	//HIGH SEQ NUM
-	tcp_header[5]=MID_LFT_OCT_32(tcp_conn_desc->seq_num);    	//MID LEFT SEQ NUM
-	tcp_header[6]=MID_RGT_OCT_32(tcp_conn_desc->seq_num);    	//MID RIGHT SEQ NUM
-	tcp_header[7]=LOW_OCT_32(tcp_conn_desc->seq_num);        	//LOW SEQ NUM
+	tcp_header[4] = HI_OCT_32(tcp_conn_desc->seq_num);         	//HIGH SEQ NUM
+	tcp_header[5] = MID_LFT_OCT_32(tcp_conn_desc->seq_num);    	//MID LEFT SEQ NUM
+	tcp_header[6] = MID_RGT_OCT_32(tcp_conn_desc->seq_num);    	//MID RIGHT SEQ NUM
+	tcp_header[7] = LOW_OCT_32(tcp_conn_desc->seq_num);        	//LOW SEQ NUM
 
-	tcp_header[8]=HI_OCT_32(ack_num);				//HIGH ACK NUM
-	tcp_header[9]=MID_LFT_OCT_32(ack_num);				//MID LEFT ACK NUM
-	tcp_header[10]=MID_RGT_OCT_32(ack_num); 			//MID RIGHT ACK NUM
-	tcp_header[11]=LOW_OCT_32(ack_num);				//LOW ACK NUM
+	tcp_header[8] = HI_OCT_32(ack_num);							//HIGH ACK NUM
+	tcp_header[9] = MID_LFT_OCT_32(ack_num);					//MID LEFT ACK NUM
+	tcp_header[10] = MID_RGT_OCT_32(ack_num); 					//MID RIGHT ACK NUM
+	tcp_header[11] = LOW_OCT_32(ack_num);						//LOW ACK NUM
 
-	tcp_header[12]=0x50;	                   			//HEADER LEN + 4 RESERVED BIT (5 << 4)
-	tcp_header[13]=flags;                           		//FLAGS
-	tcp_header[14]=HI_16(tcp_conn_desc->wnd_size);			//HI WINDOW SIZE
-	tcp_header[15]=LOW_16(tcp_conn_desc->wnd_size);                	//LOW WINDOW SIZE
+	tcp_header[12] = 0x50;	                   					//HEADER LEN + 4 RESERVED BIT (5 << 4)
+	tcp_header[13] = flags;                           			//FLAGS
+	tcp_header[14] = HI_16(tcp_conn_desc->wnd_size);			//HI WINDOW SIZE
+	tcp_header[15] = LOW_16(tcp_conn_desc->wnd_size);           //LOW WINDOW SIZE
 
-	tcp_header[16]=HI_16(checksum);					//HI TCP CHECKSUM
-	tcp_header[17]=LOW_16(checksum);				//LOW TCP CHECKSUM
-	tcp_header[18]=0;						//HI URGENT POINTER (NOT USED)
-	tcp_header[19]=0;						//LOW URGENT POINTER (NOT USED)
+	tcp_header[16] = HI_16(checksum);							//HI TCP CHECKSUM
+	tcp_header[17] = LOW_16(checksum);							//LOW TCP CHECKSUM
+	tcp_header[18] = 0;											//HI URGENT POINTER (NOT USED)
+	tcp_header[19] = 0;											//LOW URGENT POINTER (NOT USED)
 
-	chk=SWAP_WORD(checksum_tcp((unsigned short*) tcp_header,tcp_conn_desc->src_ip,tcp_conn_desc->dst_ip,data_len));
-	tcp_header[18]=HI_16(chk);
-	tcp_header[19]=LOW_16(chk);
+	chk = SWAP_WORD(checksum_tcp((unsigned short*) tcp_header,tcp_conn_desc->src_ip,tcp_conn_desc->dst_ip,data_len));
+	tcp_header[18] = HI_16(chk);
+	tcp_header[19] = LOW_16(chk);
 
-	ret=send_packet_ip4(data_sckt_buf,
+	ret = send_packet_ip4(data_sckt_buf,
 			    tcp_conn_desc->src_ip,
 			    tcp_conn_desc->dst_ip,
 			    tcp_conn_desc->ip_packet_len,

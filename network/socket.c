@@ -169,7 +169,7 @@ int _accept(t_socket_desc* socket_desc,t_socket** socket)
 				new_socket = socket_init(1);
 				new_tcp_conn_desc->socket = socket;
 				ret = 0;
-				*socket = new_socket;------------qui timeout connessione!!!!
+				*socket = new_socket;
 			}
 		}
 	}
