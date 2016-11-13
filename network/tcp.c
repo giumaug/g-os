@@ -22,6 +22,21 @@ static int free_port_search()
 	return 0;
 }
 
+t_tcp_snd_queue* tcp_snd_queue_init()
+{
+	t_tcp_snd_queue* tcp_snd_queue = NULL;
+
+	tcp_snd_queue = kmalloc(sizeof(t_tcp_snd_queue));
+	tcp_snd_queue->buf = kmalloc(TCP_SND_SIZE);
+	tcp_snd_queue->wnd_min = 0;
+	tcp_snd_queue->wnd_size = SMSS;
+	tcp_snd_queue->buf_min = 0;
+	tcp_snd_queue->buf_cur = 0;
+	tcp_snd_queue->buf_size = TCP_SND_SIZE;
+	tcp_snd_queue->seq_num = 0;
+	tcp_snd_queue->nxt_snd = 0;
+}
+
 void tcp_snd_queue_free(t_tcp_snd_queue* tcp_snd_queue)
 {
 	kfree(tcp_snd_queue->buf);
@@ -35,18 +50,18 @@ t_tcp_rcv_queue* tcp_rcv_queue_init(u32 size)
 	tcp_rcv_queue = kmalloc(sizeof(t_tcp_rcv_queue));
 	tcp_rcv_queue->buf = kmalloc(TCP_RCV_SIZE);
 	tcp_rcv_queue->buf_state = bit_vector_init(TCP_RCV_SIZE);
-	tcp_rcv_queue->buf_size = TCP_RCV_SIZE;
+	tcp_rcv_queue->buf_min = 0;
 	tcp_rcv_queue->wnd_min = 0;
-	tcp_rcv_queue->wnd_max = 0;
-	tcp_rcv_queue->wnd_size = 0;
-	tcp_rcv_queue->nxt_rcv = 0;
-	return tcp_rcv_queue;-----------------------------qui!!!!!!!!!!!!!!!!!!!!!!!!
+	tcp_rcv_queue->buf_size = TCP_RCV_SIZE;
+	tcp_rcv_queue->nxt_rcv = 0; 
+	tcp_rcv_queue->wnd_adv_size = WND_ADV;
+	return tcp_rcv_queue;
 }
 
 void tcp_rcv_queue_free(t_tcp_rcv_queue* tcp_rcv_queue)
 {
-	kfree(tcp_rcv_queue->in_order_buf);
-	kfree(tcp_rcv_queue->out_order_buf);
+	bit_vector_free(tcp_rcv_queue->bit_vector);
+	kfree(tcp_rcv_queue->buf);
 	kfree(tcp_rcv_queue);
 }
 
@@ -54,12 +69,21 @@ t_tcp_conn_desc* tcp_conn_desc_int()
 {
 	t_tcp_conn_desc* tcp_conn_desc;
 
-	tcp_conn_desc=kmalloc(sizeof(t_tcp_conn_desc));
+	tcp_conn_desc = kmalloc(sizeof(t_tcp_conn_desc));
 	tcp_conn_desc->rcv_buf = tcp_rcv_queue_init(TCP_RCV_SIZE);
 	tcp_conn_desc->snd_buf = tcp_snd_queue_init(TCP_SND_SIZE);
+	tcp_conn_desc->rto = 0;
 	tcp_conn_desc->rtrsn_timer = 0xFFFFFFFF;
 	tcp_conn_desc->pgybg_timer = 0xFFFFFFFF;
-	tcp_conn_desc->seq_num = 1;
+	tcp_conn_desc->seq_num = 0;
+	tcp_conn_desc->wnd_cwnd = SMSS;
+	tcp_conn_desc->ssthresh = WND_ADV;
+	tcp_conn_desc->src_ip = 0;
+	tcp_conn_desc->dst_ip = 0;
+	tcp_conn_desc->src_port = 0;
+	tcp_conn_desc->dst_port = 0;
+	tcp_conn_desc->back_log_i_queue = new_queue(&tcp_conn_desc_free);
+	tcp_conn_desc->back_log_c_queue = new_queue(&tcp_conn_desc_free);
 	return tcp_conn_desc;
 }
 
@@ -67,6 +91,8 @@ void tcp_conn_desc_free(t_tcp_conn_desc* tcp_conn_desc)
 {
 	tcp_rcv_queue_free(tcp_conn_desc->rcv_buf);
 	tcp_snd_queue_free(tcp_conn_desc->snd_buf);
+	free_queue(tcp_conn_desc->back_log_i_queue);
+	free_queue(tcp_conn_desc->back_log_c_queue);
 	kfree(tcp_conn_desc);
 }
 
@@ -96,10 +122,12 @@ static void update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue)
 	u32 offset;
 	u32 index;
 	u32 state_index;
+	u32 wnd_max;
 
 	offset = 0;
 	index = tcp_queue->wnd_min;
-	while(index <= tcp_queue->wnd_max)
+	wnd_max = index + tcp_queue->wnd_size;
+	while(index <= wnd_max)
 	{
 		state_index = SLOT_WND(index,(tcp_queue->buf_size / 8) + 1);
 		slot_state = bit_vector_get(tcp_queue->buf_state,state_index);
@@ -186,6 +214,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	u32 conn_id;
 	u32 seq_num;
 	u32 ack_seq_num;
+	u32 wnd_max;
 	u32 data_len;
 	u32 len_1;
 	u32 len_2;
@@ -272,7 +301,8 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 
 	if (checksum_udp((unsigned short*) tcp_row_packet,src_ip,dst_ip,data_len)==0)
 	{
-		if (seq_num >= tcp_queue->wnd_min && seq_num + data_len <= tcp_queue->wnd_max)
+		wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
+		if (seq_num >= tcp_queue->wnd_min && seq_num + data_len <= wnd_max)
 		{
 			low_index = SLOT_WND(seq_num,tcp_queue->buf_size);
 			hi_index = SLOT_WND(seq_num + data_len,tcp_queue->buf_size);
@@ -357,6 +387,7 @@ void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 
 static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_data_len)
 {
+	u32 wnd_max;
 	u32 word_to_ack;
 	u32 expected_ack;
 	u32 indx;
@@ -370,8 +401,8 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32
 	{
 		word_to_ack = ack_seq_num - tcp_queue->min;
 		tcp_queue->wnd_min = tcp_queue->wnd_min + word_to_ack;
-		tcp_queue->wnd_max = tcp_queue->wnd_min + tcp_conn_desc->cwnd;
-		data_to_send=tcp_queue->tcp_queue->data->wnd_max-tcp_queue->nxt_snd-1;
+		wnd_max = tcp_queue->wnd_min + tcp_conn_desc->cwnd;
+		data_to_send = wnd_max - tcp_queue->nxt_snd - 1;
 		tcp_queue->buf_min = tcp_queue->wnd_min;
 
 		if (tcp_queue->wnd_min == tcp_queue->buf_cur)
@@ -383,14 +414,14 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32
 			}
 			return;
 		}
-		if (tcp_queue->buf_cur >= tcp_queue->wnd_min && tcp_queue->buf_cur <= tcp_queue->wnd_max)
+		if (tcp_queue->buf_cur >= tcp_queue->wnd_min && tcp_queue->buf_cur <= wnd_max)
 		{	
 			//in window
 			//occorre inizializzare seq_num!!!!!!!!!!!!!!!!!!
 			wnd_l_limit = tcp_snd_queue->nxt_snd;
 			wnd_r_limit = tcp_queue->buf_cur;
 		}
-		if (tcp_queue->buf_cur >= tcp_queue->wnd_max)
+		if (tcp_queue->buf_cur >= wnd_max)
 		{	
 			wnd_l_limit = tcp_snd_queue->nxt_snd;
 			wnd_r_limit = tcp_queue->buf_max;
@@ -417,7 +448,8 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32
 	}
 	else if (tcp_conn_desc->duplicated_ack == 1 || tcp_conn_desc->duplicated_ack == 2)
 	{
-		w_size = tcp_queue->wnd_max - tcp_snd_queue->nxt_snd;
+		wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
+		w_size = wnd_max - tcp_snd_queue->nxt_snd;
 		flight_size = tcp_snd_queue->nxt_snd-1 - tcp_snd_queue->wnd_min;
 		flight_size_limit = tcp_conn_desc->cwnd + 2*SMSS;
 		
