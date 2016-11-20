@@ -35,7 +35,6 @@ t_tcp_snd_queue* tcp_snd_queue_init()
 	tcp_snd_queue->buf_size = TCP_SND_SIZE;
 	tcp_snd_queue->seq_num = 0;
 	tcp_snd_queue->nxt_snd = 0;
-	SPINLOCK_INIT(tcp_snd_queue->lock);
 }
 
 void tcp_snd_queue_free(t_tcp_snd_queue* tcp_snd_queue)
@@ -56,7 +55,6 @@ t_tcp_rcv_queue* tcp_rcv_queue_init(u32 size)
 	tcp_rcv_queue->buf_size = TCP_RCV_SIZE;
 	tcp_rcv_queue->nxt_rcv = 0; 
 	tcp_rcv_queue->wnd_adv_size = WND_ADV;
-	SPINLOCK_INIT(tcp_rcv_queue->lock);
 	return tcp_rcv_queue;
 }
 
@@ -86,7 +84,6 @@ t_tcp_conn_desc* tcp_conn_desc_int()
 	tcp_conn_desc->dst_port = 0;
 	tcp_conn_desc->back_log_i_queue = new_queue(&tcp_conn_desc_free);
 	tcp_conn_desc->back_log_c_queue = new_queue(&tcp_conn_desc_free);
-	SPINLOCK_INIT(tcp_conn_desc->lock);
 	return tcp_conn_desc;
 }
 
@@ -201,25 +198,14 @@ void connect_tpc(t_tcp_conn_map* tcp_req_map,src_ip,dst_ip,src_port,dst_port)
 	return 0;
 }
 
-void close_tcp(t_tcp_conn_desc tcp_conn_desc*) 
+void close_tcp(t_tcp_conn_desc tcp_conn_desc*)
 {
 	t_tcp_snd_queue tcp_queue = NULL;
-	struct t_process_context* current_process_context = NULL;
+	tcp_queue = tcp_conn_desc->snd_queue;
 
-	CURRENT_PROCESS_CONTEXT(current_process_context);
-	if (tcp_conn_desc->active_close == 1)
-	{
-		tcp_queue = tcp_conn_desc->snd_queue;
-		SPINLOCK_LOCK(tcp_queue->lock);
+	tcp_conn_desc->active_close == 1;
+	return;
 
-		if (tcp_queue->buf_min != tcp_queue->buf_cur)
-		{
-			tcp_conn_desc->process_context = current_process_context;
-			_sleep_and_unlock(tcp_queue->lock);
-			
-			----------------qui!!!!!!!!!!!!
-		}
-	}
 }
 
 void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len)
@@ -315,7 +301,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	}
 
 	t_tcp_rcv_queue* tcp_queue=tcp_conn_desc->rcv_buf;
-	SPINLOCK_LOCK(tcp_queue->lock);
 	ip_len=GET_WORD(ip_row_packet[2],ip_row_packet[3]);
 	data_len=ip_len-HEADER_TCP;
 
@@ -371,7 +356,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		rcv_ack(tcp_conn_desc,ack_seq_num);
 		update_snd_window(tcp_conn_desc,ack_seq_num,data_len);
 	}
-	SPINLOCK_UNLOCK(tcp_queue->lock);
 	EXIT:
 		free_sckt(data_sckt_buf);
 }
@@ -435,7 +419,6 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32
 	u8 flags=0;
 
 	tcp_queue = tcp_conn_desc->snd_queue;
-	SPINLOCK_LOCK(tcp_queue->lock);
 	ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;
 	//trasmission with good ack
 	if (tcp_conn_desc->duplicated_ack == 0)
@@ -538,6 +521,7 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32
 				tcp_conn_desc->pgybg_timer = 0xFFFFFFFF;
 			}
 		}
+		flags = 0;
 		while (data_to_send >= SMSS)
 		{
 			send_packet_tcp(tcp_conn_desc,tcp_queue->buf[indx],SMSS,ack_num,flags);
@@ -556,9 +540,11 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32
 	}
 	if (tcp_queue->buf_min == tcp_queue->buf_cur && tcp_conn_desc->active_close == 1)
 	{
-
+		tcp_conn_desc->process_context = current_process_context;-----------------qui!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;
+		tcp_conn_desc->seq_num++;
+		send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,FLG_FIN | FLG_ACK);
 	}
-	SPINLOCK_UNLOCK(tcp_queue->lock);
 }
 
 int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
@@ -574,7 +560,8 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	u32 buf_last_byte = 0;
 	t_tcp_rcv_queue* tcp_queue = tcp_conn_desc->rcv_queue;
 
-	SPINLOCK_LOCK(tcp_queue->lock);
+	//DISABLE PREEMPTION OR SOFT IRQ
+	DISABLE_PREEMPTION
 	buf_last_byte = SLOT_WND(tcp_queue->nxt_rcv - 1,tcp_queue->buf_size);
 	req_last_byte = INC_WND(tcp_queue->buf_min,TCP_RCV_SIZE,data_len);
 
@@ -612,7 +599,8 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	}
 	tcp_queue->wnd_size += data_len;
 EXIT:
-	SPINLOCK_UNLOCK(tcp_queue->lock);
+	//ENABLE PREEMPTION OR SOFT IRQ
+	ENALBLE_PREEMPTION
 	return ret;
 }
 
@@ -623,7 +611,8 @@ int enqueue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 {
 	t_tcp_snd_queue* tcp_queue = tcp_conn_desc->snd_queue;
 
-	SPINLOCK_LOCK(tcp_snd_queue->lock);
+	//DISABLE PREEMPTION OR SOFT IRQ
+	DISABLE_PREEMPTION
 	b_free_size = WND_SIZE(tcp_queue->tcp_snd_queue->buf_cur,tcp_queue->buf_max);
 	if (b_free_size < data_len)
 	{
@@ -649,7 +638,9 @@ int enqueue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 			INC_WND(tcp_snd_queue->cur,tcp_snd_queue->buf_size,data_len);
 		}
 	}
-	SPINLOCK_UNLOCK(tcp_snd_queue->lock);
+	//ENABLE PREEMPTION OR SOFT IRQ
+	ENABLE_PREEMPTION
+	
 	//vedi commento sopra
 	//update_snd_window(tcp_conn_desc,0,1);
 }
