@@ -64,7 +64,7 @@ t_socket* socket_init(int type)
 	return 	socket;
 }
 
-//CALLED AT THE END SO LOCK NOT REQUIRED---------------qui
+//CALLED AT THE END SO LOCK NOT REQUIRED
 void socket_free(t_socket* socket)
 {
 	if (socket->type == 2)
@@ -99,11 +99,6 @@ int _open_socket(t_socket_desc* socket_desc,int type)
 	hashtable_put(socket_desc->sd_map,socket->sd,socket);
 	SPINLOCK_UNLOCK(socket_desc->lock);
 	return socket->sd;
-}
-
-int clone_socket(t_socket_desc* socket_desc)
-{
-	
 }
 
 int _bind(t_socket_desc* socket_desc,int sockfd,u32 src_ip,u32 src_port,u32 dst_ip,u16 dst_port)
@@ -247,7 +242,7 @@ int _recvfrom(t_socket_desc* socket_desc,int sockfd,unsigned char* src_ip,unsign
 		}
 		else if (socket->type == 1)
 		{
-			dequeue_packet_tcp(socket->tcp_conn_desc,data,data_len);
+			dequeue_packet_tcp(socket->tcp_conn_desc,data,data_len);---------lock o semafori????
 		}
 	}
 	SPINLOCK_UNLOCK(socket_desc->lock);
@@ -311,7 +306,7 @@ int _close_socket(t_socket_desc* socket_desc,int sockfd)
 	{
 		if(socket->tcp_conn_desc->ref_count > 1)
 		{
-			socket->tcp_conn_desc->ref_count--;---------------------qui
+			socket->tcp_conn_desc->ref_count--;
 		}
 	}
 	SPINLOCK_UNLOCK(socket_desc->lock);

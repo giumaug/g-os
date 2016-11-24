@@ -567,18 +567,19 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	u32 index = 0;
 	u32 low_index = 0;
 	u32 hi_index = 0;
-	u32 req_last_byte = 0;
-	u32 buf_last_byte = 0;
+	u32 available_data = 0;
 	t_tcp_rcv_queue* tcp_queue = tcp_conn_desc->rcv_queue;
 
 	//DISABLE PREEMPTION OR SOFT IRQ
 	DISABLE_PREEMPTION
-	buf_last_byte = SLOT_WND(tcp_queue->nxt_rcv - 1,tcp_queue->buf_size);
-	req_last_byte = INC_WND(tcp_queue->buf_min,TCP_RCV_SIZE,data_len);
-
-	if (req_last_byte > buf_last_byte) 
+	available_data = (tcp_queue->nxt_rcv - 1) > tcp_queue->wnd_min;
+	if (available_data == 0)
 	{
-		goto EXIT;
+		//sleep
+	}
+	else if (available_data > 0 && available_data < data_len)
+	{
+		data_len = available_data;
 	}
 
 	low_index = tcp_queue->buf_min;
