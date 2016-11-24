@@ -77,6 +77,7 @@ typedef struct s_tcp_conn_desc
 	struct t_queue* back_log_i_queue;
 	struct t_queue* back_log_c_queue;
 	struct t_process_context* process_context;
+	u8 conn_status;
 }
 t_tcp_conn_desc;
 

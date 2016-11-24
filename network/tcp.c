@@ -200,12 +200,8 @@ void connect_tpc(t_tcp_conn_map* tcp_req_map,src_ip,dst_ip,src_port,dst_port)
 
 void close_tcp(t_tcp_conn_desc tcp_conn_desc*)
 {
-	t_tcp_snd_queue tcp_queue = NULL;
-	tcp_queue = tcp_conn_desc->snd_queue;
-
-	tcp_conn_desc->active_close == 1;
+	tcp_conn_desc->status == 1;
 	return;
-
 }
 
 void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len)
@@ -305,12 +301,15 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 
 	if (checksum_udp((unsigned short*) tcp_row_packet,src_ip,dst_ip,data_len)==0)
 	{
-		////FIN REQUEST FROM SERVER
-		if (flags & FLG_FIN && tcp_conn_desc->active_close == 1)
+		//FIN REQUEST FROM SERVER
+		if (flags & FLG_FIN)
 		{
-			ack_num = seq_num++;
-			tcp_conn_desc->seq_num++;
-			send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,FLG_ACK);
+			index = SLOT_WND(seq_num,tcp_queue->buf_size);
+			kmemcpy(tcp_queue->buf + index,EOF,1);
+			goto EXIT;
+		}
+		if (tcp_conn_desc->fin_ack == seq_num && tcp_conn_desc->status == 1)
+		{
 			tcp_conn_desc_free(tcp_conn_desc);
 			goto EXIT;
 		}
@@ -668,6 +667,11 @@ void static pgybg_timer_handler()
 	tcp_conn_desc->rcv_queue->nxt_rcv = 0;			
 	send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,flags);
 	tcp_conn_desc->pgybg_timer = 0xFFFFFFFF;		
+}
+
+void manage_tcp_timers()
+{
+
 }
 
 int send_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u32 ack_num,u8 flags)

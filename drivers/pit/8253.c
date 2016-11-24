@@ -124,6 +124,7 @@ void int_handler_pit()
 	//Qui non va bene servono interrupt attivi e softirq
 	//FLUSH NETWORK QUEUES BEFORE EXITING
 	//testx();
+	manage_tcp_timers();
 	equeue_packet(system.network_desc);
 	dequeue_packet(system.network_desc);
 exit_handler:;
