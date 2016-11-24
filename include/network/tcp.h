@@ -83,10 +83,11 @@ t_tcp_conn_desc;
 
 typedef struct s_tcp_desc
 {
-	t_tcp_conn_map* conn_map;			//ESTABILISHED CONNECTIONS
-	t_tcp_conn_map* req_map;			//REQUESTED CONNECTIONS
-	t_tcp_conn_map* listen_map;			//LISTENING CONNECTIONS
+	t_tcp_conn_map* conn_map;			//ESTABILISHED CONNECTIONS MAP
+	t_tcp_conn_map* req_map;			//REQUESTED CONNECTIONS MAP
+	t_tcp_conn_map* listen_map;			//LISTENING CONNECTIONS MAP
 	u32 listen_port_index;
+	t_llist* tcp_conn_list;                         //CONNECTION LIST
 }
 t_tcp_desc;
 

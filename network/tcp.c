@@ -103,7 +103,8 @@ t_tcp_desc* tcp_init()
 	tcp_desc = kmalloc(sizeof(t_tcp_desc));
 	tcp_desc->conn_map = tcp_conn_map_init();
 	tcp_desc->listen_map = tcp_conn_map_init();
-	listen_map->req_map = tcp_conn_map_init();
+	tcp_desc->req_map = tcp_conn_map_init();
+	tcp_desc->tcp_conn_list = new_dllist();
 	return tcp_desc;
 }
 
@@ -112,6 +113,9 @@ void tcp_free(t_tcp_desc* tcp_desc)
 	tcp_conn_map_free(tcp_desc->conn_map);
 	tcp_conn_map_free(tcp_desc->listen_map);
 	tcp_conn_map_free(tcp_desc->req_map);
+	xxx
+
+
 	kfree(tcp_desc);
 }
 
