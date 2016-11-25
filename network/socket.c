@@ -216,7 +216,7 @@ int _recvfrom(t_socket_desc* socket_desc,int sockfd,unsigned char* src_ip,unsign
 	src_port[0] = (_src_port & 0xFF00)>>8;
 	src_port[1] = (_src_port & 0xFF);
 
-	if (socket != NULL) 
+	if (socket != NULL)
 	{
 		if (socket->type == 2)
 		{
