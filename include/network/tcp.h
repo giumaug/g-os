@@ -29,6 +29,10 @@
 #define FLG_RST 0b0000010
 #define FLG_SYN 0b0000001
 
+#define OPEN 0
+#define ESTABILISHED 1
+#define CLOSED 2
+
 //timout=200 ms (quantum = 10 ms)
 #define PIGGYBACKING_TIMEOUT = 20 
 
@@ -77,7 +81,9 @@ typedef struct s_tcp_conn_desc
 	struct t_queue* back_log_i_queue;
 	struct t_queue* back_log_c_queue;
 	struct t_process_context* process_context;
-	u8 conn_status;
+	u8 status;
+	u32 ref_count;
+	t_spinlock_desc lock;
 }
 t_tcp_conn_desc;
 
@@ -87,7 +93,7 @@ typedef struct s_tcp_desc
 	t_tcp_conn_map* req_map;			//REQUESTED CONNECTIONS MAP
 	t_tcp_conn_map* listen_map;			//LISTENING CONNECTIONS MAP
 	u32 listen_port_index;
-	t_llist* tcp_conn_list;                         //CONNECTION LIST
+	t_llist* tcp_conn_list;             //CONNECTION LIST
 }
 t_tcp_desc;
 

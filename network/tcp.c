@@ -84,6 +84,7 @@ t_tcp_conn_desc* tcp_conn_desc_int()
 	tcp_conn_desc->dst_port = 0;
 	tcp_conn_desc->back_log_i_queue = new_queue(&tcp_conn_desc_free);
 	tcp_conn_desc->back_log_c_queue = new_queue(&tcp_conn_desc_free);
+	SPINLOCK_INIT(tcp_conn_desc->lock);
 	return tcp_conn_desc;
 }
 

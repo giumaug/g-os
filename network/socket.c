@@ -73,7 +73,13 @@ void socket_free(t_socket* socket)
 	}
 	else  if (socket->type == 1)
 	{
-		tcp_conn_desc_free(socket->tcp_conn_desc);
+		SPINLOCK_LOCK(socket->tcp_conn_desc->lock);
+		socket->tcp_conn_desc->ref_count--;
+		SPINLOCK_UNLOCK(socket->tcp_conn_desc->lock);
+		if (socket->tcp_conn_desc->status == ESTABILISHED && socket->tcp_conn_desc->ref_count == 1)
+		{
+			close_tcp(socket->tcp_conn_desc);
+		}
 	}
 	kfree(socket);
 } 
@@ -304,7 +310,7 @@ int _close_socket(t_socket_desc* socket_desc,int sockfd)
 	}
 	else
 	{
-		hashtable_remove(socket_desc->tcp_map,socket->port);
+		hashtable_remove(socket_desc->tcp_map,socket->port);-------------------qui
 	}
 	SPINLOCK_UNLOCK(socket_desc->lock);
 	socket_free(socket);
