@@ -206,6 +206,7 @@ void _sleep_and_unlock(t_spinlock_desc* lock)
 	{
 		SPINLOCK_UNLOCK(*lock);
 	}
+//	INT WILL BE DISABLED UNTIL SYSCALL HANDLER EXIT
 	SUSPEND
 	RESTORE_IF_STATUS
 }

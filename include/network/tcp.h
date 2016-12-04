@@ -84,6 +84,7 @@ typedef struct s_tcp_conn_desc
 	u8 status;
 	u32 ref_count;
 	t_spinlock_desc lock;
+	t_queue* rcv_queue;
 }
 t_tcp_conn_desc;
 

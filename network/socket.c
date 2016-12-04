@@ -82,6 +82,12 @@ void socket_free(t_socket* socket)
 	}
 	kfree(socket);
 } 
+/* NOTE:_open_socket,_bind,_connect,_listen,_accept,_rcvfrom,_send_to,_close_socket,
+		are free lock because process context keeps duplicated copy of socket.All possible
+		race is in tcp_conn_desc that is shared.Here race among processes is avoided disabling
+		preemption.This protect tcp_conn_desc aganist race between interrupt paths and
+		exception paths.
+*/
 
 int _open_socket(t_socket_desc* socket_desc,int type) 
 {
@@ -107,7 +113,6 @@ int _bind(t_socket_desc* socket_desc,int sockfd,u32 src_ip,u32 src_port,u32 dst_
 	t_socket* socket=NULL;
 	int ret=-1;
 	
-	SPINLOCK_LOCK(socket_desc->lock);
 	socket = hashtable_get(socket_desc->sd_map,sockfd);
 	if (socket != NULL)
 	{
@@ -126,7 +131,6 @@ int _bind(t_socket_desc* socket_desc,int sockfd,u32 src_ip,u32 src_port,u32 dst_
 			bind_tcp(socket->tcp_conn_desc,src_ip,dst_ip,src_port,dst_port);
 		}
 	}
-	SPINLOCK_UNLOCK(socket_desc->lock);
 	return ret;
 }
 
@@ -135,7 +139,6 @@ int _connect(t_socket_desc* socket_desc,int socketfd,src_ip,dst_ip,src_port,dst_
 	t_socket* socket=NULL;
 	int ret=-1;
 
-	SPINLOCK_LOCK(socket_desc->lock);
 	socket = hashtable_get(socket_desc->sd_map,sockfd);
 	if (socket != NULL)
 	{
@@ -144,7 +147,6 @@ int _connect(t_socket_desc* socket_desc,int socketfd,src_ip,dst_ip,src_port,dst_
 			connect_tcp(socket->tcp_conn_desc,src_ip,dst_ip,src_port,dst_port);
 		}
 	}
-	SPINLOCK_UNLOCK(socket_desc->lock);
 	return ret;
 
 }
@@ -154,7 +156,6 @@ int _listen(t_socket_desc* socket_desc,int socketfd)
 	t_socket* socket=NULL;
 	int ret=-1;
 
-	SPINLOCK_LOCK(socket_desc->lock);
 	socket = hashtable_get(socket_desc->sd_map,sockfd);
 	if (socket != NULL)
 	{
@@ -163,7 +164,6 @@ int _listen(t_socket_desc* socket_desc,int socketfd)
 			listen_tcp(socket->tcp_conn_desc);
 		}
 	}
-	SPINLOCK_UNLOCK(socket_desc->lock);
 	return ret;
 }
 
@@ -173,7 +173,6 @@ int _accept(t_socket_desc* socket_desc,t_socket** socket)
 	t_socket* new_socket = NULL; 
 	int ret=-1;
 
-	SPINLOCK_LOCK(socket_desc->lock);
 	socket = hashtable_get(socket_desc->sd_map,sockfd);
 	if (socket != NULL)
 	{
@@ -189,7 +188,6 @@ int _accept(t_socket_desc* socket_desc,t_socket** socket)
 			}
 		}
 	}
-	SPINLOCK_UNLOCK(socket_desc->lock);
 	return ret;
 }
 
@@ -201,7 +199,6 @@ int _recvfrom(t_socket_desc* socket_desc,int sockfd,unsigned char* src_ip,unsign
 	unsigned int _src_ip;
 	unsigned int _src_port;
 
-	SPINLOCK_LOCK(socket_desc->lock);
 	socket = hashtable_get(socket_desc->sd_map,sockfd);
 
 	_src_port = GET_WORD(data_sckt_buf->transport_hdr[0],data_sckt_buf->transport_hdr[1]);
@@ -245,7 +242,6 @@ int _recvfrom(t_socket_desc* socket_desc,int sockfd,unsigned char* src_ip,unsign
 			dequeue_packet_tcp(socket->tcp_conn_desc,data,data_len);---------lock o semafori????
 		}
 	}
-	SPINLOCK_UNLOCK(socket_desc->lock);
 	return read_data;
 }
 
@@ -256,7 +252,6 @@ int _sendto(t_socket_desc* socket_desc,int sockfd,u32 dst_ip,u16 dst_port,void* 
 	char* ip_payload=NULL;
 	int ret=0;
 	
-	SPINLOCK_LOCK(socket_desc->lock);
 	socket=hashtable_get(socket_desc->sd_map,sockfd);
 	if (socket!=NULL)
 	{
@@ -286,7 +281,6 @@ int _sendto(t_socket_desc* socket_desc,int sockfd,u32 dst_ip,u16 dst_port,void* 
 			enqueue_packet_tcp(socket->tcp_conn_desc,data,data_len);
 		}
 	}
-	SPINLOCK_UNLOCK(socket_desc->lock);
 	return ret;
 }
 
@@ -296,7 +290,6 @@ int _close_socket(t_socket_desc* socket_desc,int sockfd)
 	t_data_sckt_buf* data_sckt_buf=NULL;
 	t_socket* socket=NULL;
 
-	SPINLOCK_LOCK(socket_desc->lock);
 	socket=hashtable_remove(socket_desc->sd_map,sockfd);
 	if (socket->type==2)
 	{
@@ -309,7 +302,6 @@ int _close_socket(t_socket_desc* socket_desc,int sockfd)
 			socket->tcp_conn_desc->ref_count--;
 		}
 	}
-	SPINLOCK_UNLOCK(socket_desc->lock);
 	socket_free(socket);
 }
 

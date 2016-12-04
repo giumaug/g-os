@@ -568,15 +568,35 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	u32 low_index = 0;
 	u32 hi_index = 0;
 	u32 available_data = 0;
+	struct t_process_context* current_process_context;
 	t_tcp_rcv_queue* tcp_queue = tcp_conn_desc->rcv_queue;
+	
+	CURRENT_PROCESS_CONTEXT(current_process_context);
 
 	//DISABLE PREEMPTION OR SOFT IRQ
 	DISABLE_PREEMPTION
 	available_data = (tcp_queue->nxt_rcv - 1) > tcp_queue->wnd_min;
 	if (available_data == 0)
 	{
-		//sleep
+		enqueue(tcp_conn_desc->rcv_queue,current_process_context);
+		CLI
+		ENABLE_PREEMPTION
+		_sleep();
+
 	}
+
+	while (available_data == 0)
+	{
+		enqueue(tcp_conn_desc->rcv_queue,current_process_context);
+		CLI
+		ENABLE_PREEMPTION
+		_sleep();
+		DISABLE_PREEMPTION
+		available_data = (tcp_queue->nxt_rcv - 1) > tcp_queue->wnd_min;
+	}-------------------qui!!!!!!
+
+
+
 	else if (available_data > 0 && available_data < data_len)
 	{
 		data_len = available_data;
