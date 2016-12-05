@@ -527,7 +527,9 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32
 	if (data_to_send > 0)
 	{
 		if (if (ack_num > 0)
-		{
+		{			
+			//se ack == fin seq rimanda fin
+			
 			data_len =  data_to_send >= SMSS ? SMSS : data_to_send;
 			flags = FLG_ACK;
 			tcp_conn_desc->rcv_queue->nxt_rcv = 0;
