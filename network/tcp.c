@@ -85,6 +85,7 @@ t_tcp_conn_desc* tcp_conn_desc_int()
 	tcp_conn_desc->back_log_i_queue = new_queue(&tcp_conn_desc_free);
 	tcp_conn_desc->back_log_c_queue = new_queue(&tcp_conn_desc_free);
 	SPINLOCK_INIT(tcp_conn_desc->lock);
+	tcp_conn_desc->rcv_queue = new_queue();
 	return tcp_conn_desc;
 }
 
@@ -94,6 +95,7 @@ void tcp_conn_desc_free(t_tcp_conn_desc* tcp_conn_desc)
 	tcp_snd_queue_free(tcp_conn_desc->snd_buf);
 	free_queue(tcp_conn_desc->back_log_i_queue);
 	free_queue(tcp_conn_desc->back_log_c_queue);
+	free_queue(tcp_conn_desc->rcv_queue);
 	kfree(tcp_conn_desc);
 }
 
@@ -367,6 +369,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		update_rcv_window_and_ack(tcp_queue);
 		rcv_ack(tcp_conn_desc,ack_seq_num);
 		update_snd_window(tcp_conn_desc,ack_seq_num,data_len);
+		qui--------------------sveglio processo!!!!
 	}
 	EXIT:
 		free_sckt(data_sckt_buf);
@@ -572,32 +575,23 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	t_tcp_rcv_queue* tcp_queue = tcp_conn_desc->rcv_queue;
 	
 	CURRENT_PROCESS_CONTEXT(current_process_context);
-
 	//DISABLE PREEMPTION OR SOFT IRQ
 	DISABLE_PREEMPTION
 	available_data = (tcp_queue->nxt_rcv - 1) > tcp_queue->wnd_min;
-	if (available_data == 0)
-	{
-		enqueue(tcp_conn_desc->rcv_queue,current_process_context);
-		CLI
-		ENABLE_PREEMPTION
-		_sleep();
-
-	}
-
 	while (available_data == 0)
 	{
 		enqueue(tcp_conn_desc->rcv_queue,current_process_context);
 		CLI
 		ENABLE_PREEMPTION
 		_sleep();
+		//I use CLI to avoid a new context switch
+		CLI
 		DISABLE_PREEMPTION
+		STI
 		available_data = (tcp_queue->nxt_rcv - 1) > tcp_queue->wnd_min;
-	}-------------------qui!!!!!!
+	}
 
-
-
-	else if (available_data > 0 && available_data < data_len)
+	if (available_data > 0 && available_data < data_len)
 	{
 		data_len = available_data;
 	}
