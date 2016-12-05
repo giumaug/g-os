@@ -369,7 +369,11 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		update_rcv_window_and_ack(tcp_queue);
 		rcv_ack(tcp_conn_desc,ack_seq_num);
 		update_snd_window(tcp_conn_desc,ack_seq_num,data_len);
-		qui--------------------sveglio processo!!!!
+		current_process_context = dequeue(tcp_conn_desc->queue);
+		if (current_process_context != NULL)
+		{
+			_awake(current_process_context);
+		}
 	}
 	EXIT:
 		free_sckt(data_sckt_buf);
