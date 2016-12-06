@@ -76,6 +76,8 @@ typedef struct s_tcp_conn_desc
 	u32 dst_ip;
 	u16 src_port;
 	u16 dst_port;
+	u8 status;
+	u32 fin_seq_num;
 	//WE NEED TO ADD A TIMEOUT SERVICE TO REMOVE INCOMPLETED REQUEST
 	//AFTER 75 SECONDS
 	struct t_queue* back_log_i_queue;
@@ -94,7 +96,7 @@ typedef struct s_tcp_desc
 	t_tcp_conn_map* req_map;			//REQUESTED CONNECTIONS MAP
 	t_tcp_conn_map* listen_map;			//LISTENING CONNECTIONS MAP
 	u32 listen_port_index;
-	t_llist* tcp_conn_list;             //CONNECTION LIST
+	t_llist* tcp_conn_list;             		//CONNECTION LIST
 }
 t_tcp_desc;
 
