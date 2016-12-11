@@ -72,6 +72,7 @@ typedef struct s_system
 	unsigned int int_path_count;
 	struct s_network_desc* network_desc;
 	unsigned int panic;
+	t_llist* timers_list;
 }
 t_system;
 

@@ -73,8 +73,9 @@ t_tcp_conn_desc* tcp_conn_desc_int()
 	tcp_conn_desc->rcv_buf = tcp_rcv_queue_init(TCP_RCV_SIZE);
 	tcp_conn_desc->snd_buf = tcp_snd_queue_init(TCP_SND_SIZE);
 	tcp_conn_desc->rto = 0;
-	tcp_conn_desc->rtrsn_timer = 0xFFFFFFFF;
-	tcp_conn_desc->pgybg_timer = 0xFFFFFFFF;
+	tcp_conn_desc->rtrsn_timer = timer_init(0,&rtrsn_timer_handler,tcp_conn_desc,0);
+	tcp_conn_desc->pgybg_timer = tmer_init(PIGGYBACKING_TIMEOUT,&pgybg_timer_handler,tcp_conn_desc,0);
+	tcp_conn_desc->rto = DEFAULT_RTO;	
 	tcp_conn_desc->seq_num = 0;
 	tcp_conn_desc->wnd_cwnd = SMSS;
 	tcp_conn_desc->ssthresh = WND_ADV;
@@ -97,6 +98,8 @@ void tcp_conn_desc_free(t_tcp_conn_desc* tcp_conn_desc)
 	free_queue(tcp_conn_desc->back_log_i_queue);
 	free_queue(tcp_conn_desc->back_log_c_queue);
 	free_queue(tcp_conn_desc->rcv_queue);
+	free_timer(tcp_conn_desc->rtrsn_timer);
+	free_timer(tcp_conn_desc->pgybg_timer);
 	kfree(tcp_conn_desc);
 }
 
@@ -228,7 +231,8 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 				tcp_conn_map_remove(tcp_listen_desc->back_log_i_map,src_ip,dst_ip,src_port,dst_port);
 				tcp_conn_map_put(tcp_listen_desc->back_log_c_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
 				tcp_conn_map_put(tcp_desc->tcp_conn_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
-				ll_append(tcp_desc->tcp_conn_list,tcp_req_desc);
+				//tcp_req_desc->rtrsn_timer->ref = ll_append(system.timers,tcp_req_desc->rtrsn_timer);
+				//tcp_req_desc->pgybg_timer->ref = ll_append(system.timers,tcp_req_desc->pgybg_timer);
 			}
 			goto EXIT;
 		}
@@ -254,7 +258,8 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		}
 		if (tcp_conn_desc->fin_seq_num == seq_num && tcp_conn_desc->status == CLOSED)
 		{
-			tcp_conn_desc_free(tcp_conn_desc);----------------------------qui!!!!!
+			//stop timer;
+			//tcp_conn_desc_free(tcp_conn_desc);
 			goto EXIT;
 		}
 		wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
@@ -380,7 +385,6 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32
 	// FIN flag retry
 	if (tcp_conn_desc->status == CLOSED && tcp_conn_desc->fin_seq_num == ack_seq_num)
 	{
-		ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;
 		tcp_conn_desc->seq_num = tcp_conn_desc->fin_seq_num;
 		send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,FLG_FIN);
 		return;
@@ -389,7 +393,6 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32
 	//close connection with FIN flag	
 	else if (tcp_queue->buf_min == tcp_queue->buf_cur && tcp_conn_desc->status == CLOSED)
 	{
-		ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;
 		tcp_conn_desc->seq_num++;
 		tcp_conn_desc->fin_seq_num = tcp_conn_desc->seq_num;
 		send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,FLG_FIN);
@@ -405,15 +408,21 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32
 		data_to_send = wnd_max - tcp_queue->nxt_snd - 1;
 		tcp_queue->buf_min = tcp_queue->wnd_min;
 
+		//no data to send
 		if (tcp_queue->wnd_min == tcp_queue->buf_cur)
 		{
-		 	//no data to send
+			ll_delete_node(tcp_conn_desc->rtrsn_timer->ref);	
 			if (tcp_conn_desc->pgybg_timer == 0xFFFFFFFF && ack_num > 0)
 			{
 				tcp_conn_desc->pgybg_timer = PIGGYBACKING_TIMEOUT;
 			}
 			return;
 		}
+		else 
+		{
+			tcp_conn_desc->rtrsn_timer->val = tcp_conn_desc->rto;
+		}
+
 		if (tcp_queue->buf_cur >= tcp_queue->wnd_min && tcp_queue->buf_cur <= wnd_max)
 		{	
 			//in window
@@ -511,16 +520,39 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32
 			send_packet_tcp(tcp_conn_desc,tcp_queue->buf[indx],data_to_send,0,flags);
 		}
 		//timer RFC6298
-		if (tcp_conn_desc->rtrsn_timer == 0xFFFFFFFF)
+		if (tcp_conn_desc->rtrsn_timer->val == 0)
 		{
-			tcp_conn_desc->rtrsn_timer = tcp_conn_desc->rto;//aggiungere implenetazione rto
+			//Al momento non ci sono problemi perche' sto con int disabilitati (da gestire caso con softirq)
+			tcp_conn_desc->rtrsn_timer->val == tcp_conn_desc->rto;//aggiungere implenetazione rto
+			tcp_req_desc->rtrsn_timer->ref = ll_append(system.timers,tcp_req_desc->rtrsn_timer);
 		}
 	}
 }
 
-void rtrsn_timer_handler()
+void rtrsn_timer_handler(void* arg)
 {
-	//to do!!!
+	t_tcp_conn_desc* tcp_conn_desc = NULL;
+
+	tcp_conn_desc = (t_tcp_conn_desc*) arg;
+	if (tcp_conn_desc->status == ESTABILISHED)
+	{
+		tcp_conn_desc->rto *= 2;
+		tcp_conn_desc->rtrsn_timer->val = tcp_conn_desc->rto;
+		tcp_conn_desc->cwnd = SMSS;
+		tcp_conn_desc->snd_queue->nxt_snd = tcp_queue->wnd_min;
+	}
+	else if (tcp_conn_desc->status == ACTIVE_OPEN)
+	{
+
+	}
+	else if (tcp_conn_desc->status == PASSIVE_OPEN)
+	{
+
+	}
+
+	//to do!!!------------------------------------------------------qui!!!!!
+	new_rto=a*rto + (1-a)rto_sample
+	retrasmission sync????
 }
 
 //Non occorre sincronizzazione sto dentro stessa deferred queue
@@ -534,11 +566,6 @@ void static pgybg_timer_handler()
 	tcp_conn_desc->rcv_queue->nxt_rcv = 0;			
 	send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,flags);
 	tcp_conn_desc->pgybg_timer = 0xFFFFFFFF;		
-}
-
-void manage_tcp_timers()
-{
-
 }
 
 int send_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u32 ack_num,u8 flags)

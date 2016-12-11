@@ -120,6 +120,18 @@ void int_handler_pit()
 			}
 		}
 	}
+	//MANAGE TIMERS
+	sentinel_timer = ll_sentinel(system.timer_list);
+	next_timer = ll_first(system.timers_list);
+	next_ = next->val;
+	while(next_timer != sentinel_timer)
+	{
+		next_timer->val -= TICK //sub 10 ms;
+		if (next_timer->val <=0 )
+		{
+			(*next->timer_handler)(next->handler_arg);
+		}
+	}
 
 	//Qui non va bene servono interrupt attivi e softirq
 	//FLUSH NETWORK QUEUES BEFORE EXITING

@@ -34,7 +34,9 @@
 #define CLOSED 2
 
 //timout=200 ms (quantum = 10 ms)
-#define PIGGYBACKING_TIMEOUT = 20 
+#define PIGGYBACKING_TIMEOUT 20 
+//3 sec
+#define DEFAULT_RTO 300 
 
 typedef struct s_tcp_snd_queue
 {
@@ -65,8 +67,8 @@ t_tcp_rcv_queue;
 typedef struct s_tcp_conn_desc
 {
 	u32 rto;
-	u32 rtrsn_timer;
-	u32 pgybg_timer;
+	t_timer* rtrsn_timer;
+	t_timer* pgybg_timer;
 	u32 wnd_cwnd;
 	u32 ssthresh;
 	t_tcp_rcv_queue* rcv_queue;
@@ -96,7 +98,6 @@ typedef struct s_tcp_desc
 	t_tcp_conn_map* req_map;			//REQUESTED CONNECTIONS MAP
 	t_tcp_conn_map* listen_map;			//LISTENING CONNECTIONS MAP
 	u32 listen_port_index;
-	t_llist* tcp_conn_list;             		//CONNECTION LIST
 }
 t_tcp_desc;
 
