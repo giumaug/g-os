@@ -185,7 +185,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	//THREE WAY HANDSHAKE SYN + ACK FROM SERVER TO CLIENT
 	if (flags & (FLG_SYN | FLG_ACK) && tcp_req_desc != NULL)
 	{
-		sono client qui
+		//FIRST TIME
 		if (tcp_req_desc != NULL)
 		{
 			tcp_req_desc->seq_num++;
@@ -195,6 +195,11 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			tcp_conn_map_put(tcp_desc->tcp_conn_map,src_ip,dst_ip,src_port,dst_port,tcp_req_desc);
 			ll_append(tcp_desc->tcp_conn_list,tcp_req_desc);
 			tcp_req_desc->status = ESTABILISHED;
+		}
+		//RETRY
+		else if (tcp_req_desc == NULL)
+		{
+			send_packet_tcp(tcp_req_desc,NULL,0,ack_num,FLG_SYN | FLG_ACK);
 		}
 		goto EXIT;
 	}
@@ -259,23 +264,21 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			{
 				//SHOULD BE CLOSE_WAIT AND SHOULD BE MANAGED 2MLS TIMER (TCP ILLUSTRATED PAG 590)
 				tcp_conn_desc->status = CLOSE;
-				send ack 
-				release conn--------------qui
+				tcp_conn_desc->seq_num++;
+				send_packet_tcp(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK);
+				tcp_conn_desc_free(tcp_conn_desc);
 			}
-			else if (tcp_conn_desc->status == ESTABILISHED )
+			//WE CAN ENTER IN CLOSE CONNECTION PHASE IF ALL PACKETS HAVE BEEN ACKNOWLEDGED ONLY
+			else if (tcp_conn_desc->status == ESTABILISHED && tcp_conn_desc->rcv_queue->nxt_rcv == seq_num)
 			{
 				tcp_conn_desc->status = TME_WAIT;
+				index = SLOT_WND(seq_num,tcp_queue->buf_size);
+				kmemcpy(tcp_queue->buf + index,EOF,1);
+				send_packet_tcp(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK);
+				goto EXIT;
 			}
-			index = SLOT_WND(seq_num,tcp_queue->buf_size);
-			kmemcpy(tcp_queue->buf + index,EOF,1);
-			goto EXIT;
 		}
-		if (tcp_conn_desc->fin_seq_num == seq_num && tcp_conn_desc->status == CLOSED)
-		{
-			//stop timer;
-			//tcp_conn_desc_free(tcp_conn_desc);
-			goto EXIT;
-		}
+		
 		wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
 		if (seq_num >= tcp_queue->wnd_min && seq_num + data_len <= wnd_max)
 		{
@@ -555,16 +558,16 @@ void rtrsn_timer_handler(void* arg)
 		tcp_conn_desc->cwnd = SMSS;
 		tcp_conn_desc->snd_queue->nxt_snd = tcp_queue->wnd_min;
 	}
-	else if (tcp_conn_desc->status == ACTIVE_OPEN)
+	else if (tcp_conn_desc->status == SYN_SENT)
+	{
+		--------------------------------------------------qui
+	}
+	else if (tcp_conn_desc->status == SYN_RCVD)
 	{
 
 	}
-	else if (tcp_conn_desc->status == PASSIVE_OPEN)
-	{
 
-	}
-
-	//to do!!!------------------------------------------------------qui!!!!!
+	//to do!!!------------------------------------------------------qui22222222!!!!!
 	new_rto=a*rto + (1-a)rto_sample
 	retrasmission sync????
 }
