@@ -51,6 +51,7 @@ void connect_tpc(t_tcp_conn_map* tcp_req_map,src_ip,dst_ip,src_port,dst_port)
 	tcp_conn_desc->dst_port = dst_port;
 	tcp_conn_desc->src_ip = src_ip;
 	tcp_conn_desc->src_port = src_port;
+	tcp_conn_desc->status = SYN_SENT;
 
 	tcp_conn_map_put(tcp_req_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
 	send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,FLG_SYN);
@@ -59,7 +60,16 @@ void connect_tpc(t_tcp_conn_map* tcp_req_map,src_ip,dst_ip,src_port,dst_port)
 
 void close_tcp(t_tcp_conn_desc tcp_conn_desc*)
 {
-	tcp_conn_desc->status == 1;
+	if (tcp_conn_desc->status = ESTABILISHED)
+	{
+		//FIN from client to server
+		tcp_conn_desc->status = FIN_WAIT_1;
+	}
+	else if (tcp_conn_desc->status = CLOSE_WAIT) {
+
+		//FIN from server to client
+		tcp_conn_desc->status = LAST_ACK;
+	}
 	return;
 }
 

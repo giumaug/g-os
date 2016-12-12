@@ -29,9 +29,21 @@
 #define FLG_RST 0b0000010
 #define FLG_SYN 0b0000001
 
-#define OPEN 0
-#define ESTABILISHED 1
-#define CLOSED 2
+//#define OPEN 0
+//#define ESTABILISHED 1
+//#define CLOSED 2
+#define SYN_SENT		0
+#define SYN_RCVD		1
+#define ESTABILISHED 		2
+#define FIN_WAIT_1		3
+#define CLOSE_WAIT		4
+#define FIN_WAIT_2		5
+#define LAST_ACK		6	
+#define TIME_WAIT		7
+#define CLOSED                  8
+
+
+
 
 //timout=200 ms (quantum = 10 ms)
 #define PIGGYBACKING_TIMEOUT 20 

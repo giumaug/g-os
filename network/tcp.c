@@ -194,6 +194,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			tcp_conn_map_remove(tcp_desc->tcp_req_map,src_ip,dst_ip,src_port,dst_port);
 			tcp_conn_map_put(tcp_desc->tcp_conn_map,src_ip,dst_ip,src_port,dst_port,tcp_req_desc);
 			ll_append(tcp_desc->tcp_conn_list,tcp_req_desc);
+			tcp_req_desc->status = ESTABILISHED;
 		}
 		goto EXIT;
 	}
@@ -212,6 +213,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			tcp_conn_map_put(tcp_desc->back_log_i_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
 			ack_num = seq_num + 1;
 			tcp_conn_desc->seq_num++;
+			tcp_conn_desc->status = SYN_RCVD;
 		}
 		//COULD BE A LOST SYNC
 		//THREE WAY HANDSHAKE SYN + ACK FROM SERVER TO CLIENT
@@ -231,6 +233,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 				tcp_conn_map_remove(tcp_listen_desc->back_log_i_map,src_ip,dst_ip,src_port,dst_port);
 				tcp_conn_map_put(tcp_listen_desc->back_log_c_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
 				tcp_conn_map_put(tcp_desc->tcp_conn_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
+				tcp_conn_desc->status = ESTABILISHED;
 				//tcp_req_desc->rtrsn_timer->ref = ll_append(system.timers,tcp_req_desc->rtrsn_timer);
 				//tcp_req_desc->pgybg_timer->ref = ll_append(system.timers,tcp_req_desc->pgybg_timer);
 			}
@@ -249,9 +252,20 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 
 	if (checksum_udp((unsigned short*) tcp_row_packet,src_ip,dst_ip,data_len)==0)
 	{
-		//FIN REQUEST FROM SERVER
-		if (flags & FLG_FIN)
+		//FIN REQUEST BOTH FROM SERVER AND CLIENT
+		if (flags & FLG_FIN && (tcp_conn_desc->status == FIN_WAIT_2 || tcp_conn_desc->status == FIN_WAIT_2 == ESTABILISHED ))
 		{
+			if (tcp_conn_desc->status == FIN_WAIT_2 )
+			{
+				//SHOULD BE CLOSE_WAIT AND SHOULD BE MANAGED 2MLS TIMER (TCP ILLUSTRATED PAG 590)
+				tcp_conn_desc->status = CLOSE;
+				send ack 
+				release conn--------------qui
+			}
+			else if (tcp_conn_desc->status == ESTABILISHED )
+			{
+				tcp_conn_desc->status = TME_WAIT;
+			}
 			index = SLOT_WND(seq_num,tcp_queue->buf_size);
 			kmemcpy(tcp_queue->buf + index,EOF,1);
 			goto EXIT;
@@ -390,8 +404,8 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32
 		return;
 	}
 
-	//close connection with FIN flag	
-	else if (tcp_queue->buf_min == tcp_queue->buf_cur && tcp_conn_desc->status == CLOSED)
+	//close connection with FIN flag both client and server	
+	else if (tcp_queue->buf_min == tcp_queue->buf_cur && (tcp_conn_desc->status == ESTABILISHED || tcp_conn_desc->status == CLOSE_WAIT ))
 	{
 		tcp_conn_desc->seq_num++;
 		tcp_conn_desc->fin_seq_num = tcp_conn_desc->seq_num;
