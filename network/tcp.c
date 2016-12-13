@@ -424,9 +424,10 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32
 		if (tcp_queue->wnd_min == tcp_queue->buf_cur)
 		{
 			ll_delete_node(tcp_conn_desc->rtrsn_timer->ref);	
-			if (tcp_conn_desc->pgybg_timer == 0xFFFFFFFF && ack_num > 0)
+			if (tcp_conn_desc->pgybg_timer->val == 0 && ack_num > 0)
 			{
-				tcp_conn_desc->pgybg_timer = PIGGYBACKING_TIMEOUT;
+				tcp_conn_desc->pgybg_timer->val = PIGGYBACKING_TIMEOUT;
+				tcp_conn_desc->pgybg_timer->ref = ll_append(system.timers,tcp_conn_desc->pgybg_timer);
 			}
 			return;
 		}
@@ -515,9 +516,9 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32
 			data_to_send -= data_len;
 			indx += data_len;
 			
-			if (tcp_conn_desc->pgybg_timer != 0xFFFFFFFF)
+			if (tcp_conn_desc->pgybg_timer->val != 0)
 			{
-				tcp_conn_desc->pgybg_timer = 0xFFFFFFFF;
+				ll_delete_node(tcp_conn_desc->pgybg_timer->ref);
 			}
 		}
 		flags = 0;
@@ -575,8 +576,6 @@ void rtrsn_timer_handler(void* arg)
 		send_packet_tcp(tcp_conn_desc,NULL,0,0,FLG_FIN);
 		tcp_conn_desc->rtrsn_timer->val = tcp_conn_desc->rto;
 	}
-	//controllare abilitazione iniziale timeout
-
 
 	//to do!!!------------------------------------------------------qui22222222!!!!!
 	new_rto=a*rto + (1-a)rto_sample
@@ -593,7 +592,7 @@ void static pgybg_timer_handler()
 	ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;	
 	tcp_conn_desc->rcv_queue->nxt_rcv = 0;			
 	send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,flags);
-	tcp_conn_desc->pgybg_timer = 0xFFFFFFFF;		
+	ll_delete_node(tcp_conn_desc->pgybg_timer->ref);
 }
 
 int send_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u32 ack_num,u8 flags)
