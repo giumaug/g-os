@@ -52,10 +52,13 @@ void connect_tpc(t_tcp_conn_map* tcp_req_map,src_ip,dst_ip,src_port,dst_port)
 	tcp_conn_desc->src_ip = src_ip;
 	tcp_conn_desc->src_port = src_port;
 	tcp_conn_desc->status = SYN_SENT;
+	tcp_req_desc->rtrsn_timer->val = tcp_conn_desc->rto;
+	tcp_req_desc->rtrsn_timer->ref = ll_append(system.timers,tcp_req_desc->rtrsn_timer);
 
 	tcp_conn_map_put(tcp_req_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
 	//SYN NEED RETRASMISSION TIMEOUT MANAGEMENT ONLY.NO RETRY	
 	send_packet_tcp(tcp_conn_desc,NULL,0,0,FLG_SYN);
+
 	return 0;
 }
 

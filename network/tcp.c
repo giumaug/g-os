@@ -220,6 +220,8 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			tcp_conn_desc->seq_num++;
 			tcp_conn_desc->status = SYN_RCVD;
 			tcp_conn_desc->rcv_queue->nxt_rcv = ack_num;
+			tcp_req_desc->rtrsn_timer->val = tcp_conn_desc->rto;
+			tcp_req_desc->rtrsn_timer->ref = ll_append(system.timers,tcp_req_desc->rtrsn_timer);
 		}
 		//COULD BE A LOST SYNC + ACK
 		//THREE WAY HANDSHAKE SYN + ACK FROM SERVER TO CLIENT
@@ -405,7 +407,6 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32
 	else if (tcp_queue->buf_min == tcp_queue->buf_cur && (tcp_conn_desc->status == ESTABILISHED || tcp_conn_desc->status == CLOSE_WAIT ))
 	{
 		tcp_conn_desc->seq_num++;
-		tcp_conn_desc->fin_seq_num = tcp_conn_desc->seq_num;
 		send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,FLG_FIN);
 		return;
 	}
@@ -566,12 +567,13 @@ void rtrsn_timer_handler(void* arg)
 	}
 	else if (tcp_conn_desc->status == FIN_WAIT_1)
 	{
-		send_packet_tcp(tcp_conn_desc,NULL,0,0,FLG_SYN);
-		tcp_conn_desc->rtrsn_timer->val = tcp_conn_desc->rto;---------qui
+		send_packet_tcp(tcp_conn_desc,NULL,0,0,FLG_FIN);
+		tcp_conn_desc->rtrsn_timer->val = tcp_conn_desc->rto;
 	}
 	else if (tcp_conn_desc->status == LAST_ACK)
 	{
-
+		send_packet_tcp(tcp_conn_desc,NULL,0,0,FLG_FIN);
+		tcp_conn_desc->rtrsn_timer->val = tcp_conn_desc->rto;
 	}
 	//controllare abilitazione iniziale timeout
 
