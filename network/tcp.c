@@ -400,15 +400,8 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32
 	tcp_queue = tcp_conn_desc->snd_queue;
 	ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;
 
-	// FIN flag retry
-	if (tcp_conn_desc->status == CLOSED && tcp_conn_desc->fin_seq_num == ack_seq_num)
-	{
-		tcp_conn_desc->seq_num = tcp_conn_desc->fin_seq_num;
-		send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,FLG_FIN);
-		return;
-	}
-
 	//close connection with FIN flag both client and server	
+	//FIN needs retrasmission management only. No retry.
 	else if (tcp_queue->buf_min == tcp_queue->buf_cur && (tcp_conn_desc->status == ESTABILISHED || tcp_conn_desc->status == CLOSE_WAIT ))
 	{
 		tcp_conn_desc->seq_num++;
@@ -571,6 +564,17 @@ void rtrsn_timer_handler(void* arg)
 		send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,FLG_SYN | FLG_ACK);
 		tcp_conn_desc->rtrsn_timer->val = tcp_conn_desc->rto;
 	}
+	else if (tcp_conn_desc->status == FIN_WAIT_1)
+	{
+		send_packet_tcp(tcp_conn_desc,NULL,0,0,FLG_SYN);
+		tcp_conn_desc->rtrsn_timer->val = tcp_conn_desc->rto;---------qui
+	}
+	else if (tcp_conn_desc->status == LAST_ACK)
+	{
+
+	}
+	//controllare abilitazione iniziale timeout
+
 
 	//to do!!!------------------------------------------------------qui22222222!!!!!
 	new_rto=a*rto + (1-a)rto_sample

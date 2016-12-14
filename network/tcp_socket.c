@@ -54,6 +54,7 @@ void connect_tpc(t_tcp_conn_map* tcp_req_map,src_ip,dst_ip,src_port,dst_port)
 	tcp_conn_desc->status = SYN_SENT;
 
 	tcp_conn_map_put(tcp_req_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
+	//SYN NEED RETRASMISSION TIMEOUT MANAGEMENT ONLY.NO RETRY	
 	send_packet_tcp(tcp_conn_desc,NULL,0,0,FLG_SYN);
 	return 0;
 }
