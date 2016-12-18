@@ -1,3 +1,10 @@
+#ifndef TCP_H                
+#define TCP_H
+
+#include "timer.h"
+#include "data_types/bit_vector.h"
+#include "network/tcp_conn_map.h"
+
 #define SMSS 			1454			
 #define TCP_RCV_SIZE 		16384
 #define TCP_SND_SIZE 		16384
@@ -42,13 +49,11 @@
 #define TIME_WAIT		7
 #define CLOSED                  8
 
-
-
-
 //timout=200 ms (quantum = 10 ms)
 #define PIGGYBACKING_TIMEOUT 20 
 //3 sec
-#define DEFAULT_RTO 300 
+#define DEFAULT_RTO 300
+#define SRTT_FACTOR 0.8;
 
 typedef struct s_tcp_snd_queue
 {
@@ -71,7 +76,7 @@ typedef struct s_tcp_rcv_queue
 	u32 wnd_min;
 	u32 wnd_size;
 	u32 nxt_rcv; //ack relativo finestra di ricezione e usato in trasmissione
-	bit_vector* buf_state;
+	t_bit_vector* buf_state;
 	//t_spinlock_desc lock;
 }
 t_tcp_rcv_queue;
@@ -96,10 +101,8 @@ typedef struct s_tcp_conn_desc
 	struct t_queue* back_log_i_queue;
 	struct t_queue* back_log_c_queue;
 	struct t_process_context* process_context;
-	u8 status;
 	u32 ref_count;
 	t_spinlock_desc lock;
-	t_queue* rcv_queue;
 }
 t_tcp_conn_desc;
 
@@ -112,16 +115,4 @@ typedef struct s_tcp_desc
 }
 t_tcp_desc;
 
-t_tcp_snd_queue* tcp_snd_queue_init(u32 size)
-{
-	t_tcp_snd_queue* tcp_snd_queue;
-
-	tcp_snd_queue=kmalloc(sizeof(t_tcp_snd_queue));
-	tcp_snd_queue->buf=kmalloc(size);
-	tcp_snd_queue->wnd_min=0;
-	tcp_snd_queue->wnd_max=0;
-	tcp_snd_queue->buf_cur=0;
-	tcp_snd_queue->buf_size=size;
-	tcp_snd_queue->nxt_snd=0;
-	return tcp_snd_queue;
-}
+#endif

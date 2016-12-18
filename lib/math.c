@@ -1,3 +1,5 @@
+#include "lib/lib.h"
+
 inline unsigned int pow2(unsigned int x)
 {
 	unsigned int ret=1;

@@ -366,12 +366,14 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 
 void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 {
-	if (tcp_conn_desc->min <= ack_seq_num)
+	u32 rtt = 0;
+
+	if (tcp_conn_desc->rcv_queue->nxt_rcv <= ack_seq_num)
 	{
-		if (tcp_conn_desc->duplicated_ack >0)
+		if (tcp_conn_desc->duplicated_ack > 0)
 		{
-			tcp_conn_desc->duplicated_ack=0;
-			tcp_conn_desc->cwnd=tcp_conn_desc->ssthresh;
+			tcp_conn_desc->duplicated_ack = 0;
+			tcp_conn_desc->cwnd = tcp_conn_desc->ssthresh;
 		}
 		if (tcp_conn_desc->cwnd <= tcp_conn_desc->ssthresh)
 		{
@@ -379,15 +381,15 @@ void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 		}
 		else 
 		{
-			tcp_conn_desc->cwnd+=SMSS*(SMSS/tcp_conn_desc->cwnd->cwnd);
+			rtt = system.time - tcp_conn_desc->last_sent_time;
+			tcp_conn_desc->rto = rtt * SRTT_FACTOR * tcp_conn_desc->rto + (1 - SRTT_FACTOR);
 		}
 	}
-	else if (++tcp_conn_desc->duplicated_ack==3)
+	else if (++tcp_conn_desc->duplicated_ack == 3)
 	{
-		tcp_conn_desc->ssthresh=max(tcp_conn_desc->flight_size/2,2*SMSS);
-		tcp_conn_desc->cwnd+=SMSS;
+		tcp_conn_desc->ssthresh = max(tcp_conn_desc->flight_size / 2,2 * SMSS);
+		tcp_conn_desc->cwnd+= SMSS;
 	}
-	tcp_conn_desc->snd_buf->max=tcp_conn_desc->snd_buf->min+tcp_conn_desc->cwnd;
 }
 
 static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_data_len)
@@ -576,10 +578,6 @@ void rtrsn_timer_handler(void* arg)
 		send_packet_tcp(tcp_conn_desc,NULL,0,0,FLG_FIN);
 		tcp_conn_desc->rtrsn_timer->val = tcp_conn_desc->rto;
 	}
-
-	//to do!!!------------------------------------------------------qui22222222!!!!!
-	new_rto=a*rto + (1-a)rto_sample
-	retrasmission sync????
 }
 
 //Non occorre sincronizzazione sto dentro stessa deferred queue
@@ -637,6 +635,8 @@ int send_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u32 a
 	chk = SWAP_WORD(checksum_tcp((unsigned short*) tcp_header,tcp_conn_desc->src_ip,tcp_conn_desc->dst_ip,data_len));
 	tcp_header[18] = HI_16(chk);
 	tcp_header[19] = LOW_16(chk);
+
+	tcp_conn_desc->last_sent_time = system.time;
 
 	ret = send_packet_ip4(data_sckt_buf,
 			    tcp_conn_desc->src_ip,

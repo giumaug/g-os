@@ -1,6 +1,12 @@
 #ifndef PRIMITIVE_TYPES_H                
 #define PRIMITIVE_TYPES_H
 
+#define NULL 0
+#define NULL 0
+#define EOF -1
+#define TRUE 1
+#define FALSE 0
+
 typedef unsigned int u32;
 typedef unsigned short u16;
 typedef unsigned char u8;

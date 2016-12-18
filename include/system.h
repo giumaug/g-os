@@ -11,6 +11,7 @@
 #include "scheduler/scheduler.h"
 #include "memory_manager/buddy.h"
 #include "network/network.h"
+#include "timer.h"
 
 //#define DEBUG
 #ifdef DEBUG 
@@ -18,11 +19,6 @@
 #else
 	#define PRINTK(...)
 #endif
-
-#define NULL 0
-#define EOF -1
-#define TRUE 1
-#define FALSE 0
 
 #define DEVICE_IDLE 0
 #define DEVICE_BUSY 1
@@ -72,7 +68,7 @@ typedef struct s_system
 	unsigned int int_path_count;
 	struct s_network_desc* network_desc;
 	unsigned int panic;
-	t_llist* timers_list;
+	t_llist* timer_list;
 }
 t_system;
 

@@ -134,7 +134,7 @@ int _bind(t_socket_desc* socket_desc,int sockfd,u32 src_ip,u32 src_port,u32 dst_
 	return ret;
 }
 
-int _connect(t_socket_desc* socket_desc,int socketfd,src_ip,dst_ip,src_port,dst_port)
+int _connect(t_socket_desc* socket_desc,int sockfd,u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port)
 {
 	t_socket* socket=NULL;
 	int ret=-1;
@@ -151,7 +151,7 @@ int _connect(t_socket_desc* socket_desc,int socketfd,src_ip,dst_ip,src_port,dst_
 
 }
 
-int _listen(t_socket_desc* socket_desc,int socketfd)
+int _listen(t_socket_desc* socket_desc,int sockfd)
 {
 	t_socket* socket=NULL;
 	int ret=-1;
@@ -167,7 +167,7 @@ int _listen(t_socket_desc* socket_desc,int socketfd)
 	return ret;
 }
 
-int _accept(t_socket_desc* socket_desc,t_socket** socket)
+int _accept(t_socket_desc* socket_desc)
 {
 	t_socket* socket = NULL;
 	t_socket* new_socket = NULL; 
@@ -197,7 +197,7 @@ int _recvfrom(t_socket_desc* socket_desc,int sockfd,unsigned char* src_ip,unsign
 	t_socket* socket = NULL;
 	t_data_sckt_buf* data_sckt_buf = NULL;
 	unsigned int _src_ip;
-	unsigned int _src_port;
+	unsigne
 
 	socket = hashtable_get(socket_desc->sd_map,sockfd);
 

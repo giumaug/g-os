@@ -1,3 +1,6 @@
+#ifndef LIB_H                
+#define LIB_H
+
 #include "system.h"
 
 void printk(char *text,...);
@@ -9,4 +12,6 @@ unsigned int log2(unsigned int x);
 int strcmp(const char* s1, const char* s2);
 int strncmp(const char* s1, const char* s2,unsigned int n);
 unsigned int strlen(const char* s);
+
+#endif
 

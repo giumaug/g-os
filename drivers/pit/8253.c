@@ -1,6 +1,7 @@
 #include "drivers/pit/8253.h" 
 #include "asm.h"  
 #include "idt.h" 
+#include "timer.h" 
 #include "virtual_memory/vm.h"
 #include "drivers/pic/8259A.h" 
 
@@ -38,6 +39,9 @@ void int_handler_pit()
 	struct t_process_context* next_process;
 	unsigned int queue_index;
 	unsigned int priority;
+	t_llist_node* sentinel_timer;
+	t_llist_node* next_timer;
+	t_timer* timer;
 	
 	SAVE_PROCESSOR_REG
 	EOI_TO_MASTER_PIC
@@ -122,21 +126,21 @@ void int_handler_pit()
 	}
 	//MANAGE TIMERS
 	sentinel_timer = ll_sentinel(system.timer_list);
-	next_timer = ll_first(system.timers_list);
-	next_ = next->val;
+	next_timer = ll_first(system.timer_list);
+	next_timer = next_timer->val;
 	while(next_timer != sentinel_timer)
 	{
-		next_timer->val -= TICK //sub 10 ms;
-		if (next_timer->val <=0 )
+		timer = next_timer->val;
+		timer->val -= TICK //sub 10 ms;
+		if (timer->val <=0 )
 		{
-			(*next->timer_handler)(next->handler_arg);
+			(*timer->handler)(timer->handler_arg);
 		}
 	}
 
 	//Qui non va bene servono interrupt attivi e softirq
 	//FLUSH NETWORK QUEUES BEFORE EXITING
 	//testx();
-	manage_tcp_timers();
 	equeue_packet(system.network_desc);
 	dequeue_packet(system.network_desc);
 exit_handler:;

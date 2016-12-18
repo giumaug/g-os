@@ -1,6 +1,5 @@
 #include "data_types/dllist.h"
-
-#define NULL 0
+#include "data_types/primitive_types.h"
 
 t_llist* new_dllist()
 {

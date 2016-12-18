@@ -1,6 +1,5 @@
 #include "data_types/queue.h"
-
-#define NULL 0
+#include "data_types/primitive_types.h"
 
 t_queue* new_queue()
 {

@@ -6,6 +6,7 @@
 #include "network/common.h"
 #include "network/socket_buffer.h"
 #include "network/socket.h"
+#include "network/tcp.h"
 #include "drivers/i8254x/i8254x.h"
 
 struct s_i8254x;
@@ -21,9 +22,9 @@ typedef struct s_network_desc
 	struct s_i8254x* dev;
 	u32 ip;
 	u32 netmask;
-        u32 default_gw_ip;
+    u32 default_gw_ip;
 	struct s_socket_desc* socket_desc;
-	struct s_tcp_desc tpc* tcp_desc;
+	struct s_tcp_desc* tcp_desc;
 }
 t_network_desc;
 

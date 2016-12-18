@@ -3,6 +3,7 @@ include make.rules
 vpath %.h $(INCLUDE)
 
 all:	kmain.o                       \
+        timer.o                       \
         idt.o                         \
         syscall_handler.o             \
         asm.o loader.o                \
@@ -48,6 +49,9 @@ process_0.o:process_0.c
 
 kmain.o:kmain.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) kmain.c
+
+timer.o:   timer.c timer.h
+	$(CC) $(CPPFLAGS) $(CFLAGS) timer.c
 
 idt.o:	idt.c idt.h
 	$(CC) $(CPPFLAGS) $(CFLAGS) idt.c
@@ -119,7 +123,7 @@ bochs:all
 	cp /home/peppe/Desktop/g-os/kernel.bin  /opt/virtutech/simics-3.0.31/workspace/kernel.bin
 	umount /mnt
 clean:	
-	rm -f kmain.o idt.o syscall_handler.o asm.o loader.o kernel_init.o debug.o process_0.o
+	rm -f kmain.o idt.o syscall_handler.o asm.o loader.o kernel_init.o debug.o process_0.o timer.o
 	$(MAKE) -C scheduler clean
 	$(MAKE) -C memory_manager clean
 	$(MAKE) -C virtual_memory clean
