@@ -1,4 +1,4 @@
-#ifndef NETWORK_H                
+#ifndef NETWORK_H
 #define NETWORK_H
 
 #include "system.h"
@@ -22,7 +22,7 @@ typedef struct s_network_desc
 	struct s_i8254x* dev;
 	u32 ip;
 	u32 netmask;
-    u32 default_gw_ip;
+    	u32 default_gw_ip;
 	struct s_socket_desc* socket_desc;
 	struct s_tcp_desc* tcp_desc;
 }

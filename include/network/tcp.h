@@ -3,7 +3,6 @@
 
 #include "timer.h"
 #include "data_types/bit_vector.h"
-#include "network/tcp_conn_map.h"
 
 #define SMSS 			1454			
 #define TCP_RCV_SIZE 		16384
@@ -106,11 +105,13 @@ typedef struct s_tcp_conn_desc
 }
 t_tcp_conn_desc;
 
+struct s_tcp_conn_map;
+
 typedef struct s_tcp_desc
 {
-	t_tcp_conn_map* conn_map;			//ESTABILISHED CONNECTIONS MAP
-	t_tcp_conn_map* req_map;			//REQUESTED CONNECTIONS MAP
-	t_tcp_conn_map* listen_map;			//LISTENING CONNECTIONS MAP
+	struct s_tcp_conn_map* conn_map;		//ESTABILISHED CONNECTIONS MAP
+	struct s_tcp_conn_map* req_map;			//REQUESTED CONNECTIONS MAP
+	struct s_tcp_conn_map* listen_map;		//LISTENING CONNECTIONS MAP
 	u32 listen_port_index;
 }
 t_tcp_desc;
