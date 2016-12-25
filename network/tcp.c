@@ -1,10 +1,17 @@
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!IMPORTANTE VERIFICARE CHE LA STRUTTURA DATI COMPLESSIVA SIA SENSATA!!!!!!!!!!!!!!!!!!
 #include "network/tcp.h"
 
+void static rtrsn_timer_handler(void* arg);
+void static pgybg_timer_handler(void* arg);
+void tcp_conn_desc_free(t_tcp_conn_desc* tcp_conn_desc);
+
 static int free_port_search()
 {
 	int i;
 	void* port = NULL;
+	t_tcp_desc* tcp_desc = NULL;
+	t_tcp_conn_desc* tmp = NULL;
+
 	tcp_desc = system.network_desc->tcp_desc;
 
 	for (i=0;i<32767;i++)
@@ -33,7 +40,6 @@ t_tcp_snd_queue* tcp_snd_queue_init()
 	tcp_snd_queue->buf_min = 0;
 	tcp_snd_queue->buf_cur = 0;
 	tcp_snd_queue->buf_size = TCP_SND_SIZE;
-	tcp_snd_queue->seq_num = 0;
 	tcp_snd_queue->nxt_snd = 0;
 }
 
@@ -54,13 +60,12 @@ t_tcp_rcv_queue* tcp_rcv_queue_init(u32 size)
 	tcp_rcv_queue->wnd_min = 0;
 	tcp_rcv_queue->buf_size = TCP_RCV_SIZE;
 	tcp_rcv_queue->nxt_rcv = 0; 
-	tcp_rcv_queue->wnd_adv_size = WND_ADV;
 	return tcp_rcv_queue;
 }
 
 void tcp_rcv_queue_free(t_tcp_rcv_queue* tcp_rcv_queue)
 {
-	bit_vector_free(tcp_rcv_queue->bit_vector);
+	bit_vector_free(tcp_rcv_queue->buf_state);
 	kfree(tcp_rcv_queue->buf);
 	kfree(tcp_rcv_queue);
 }
@@ -70,14 +75,14 @@ t_tcp_conn_desc* tcp_conn_desc_int()
 	t_tcp_conn_desc* tcp_conn_desc;
 
 	tcp_conn_desc = kmalloc(sizeof(t_tcp_conn_desc));
-	tcp_conn_desc->rcv_buf = tcp_rcv_queue_init(TCP_RCV_SIZE);
-	tcp_conn_desc->snd_buf = tcp_snd_queue_init(TCP_SND_SIZE);
+	tcp_conn_desc->rcv_queue = tcp_rcv_queue_init(TCP_RCV_SIZE);
+	tcp_conn_desc->snd_queue = tcp_snd_queue_init(TCP_SND_SIZE);
 	tcp_conn_desc->rto = 0;
-	tcp_conn_desc->rtrsn_timer = timer_init(0,&rtrsn_timer_handler,tcp_conn_desc,0);
-	tcp_conn_desc->pgybg_timer = tmer_init(PIGGYBACKING_TIMEOUT,&pgybg_timer_handler,tcp_conn_desc,0);
+	tcp_conn_desc->rtrsn_timer = timer_init(0,&rtrsn_timer_handler,tcp_conn_desc,NULL);
+	tcp_conn_desc->pgybg_timer = tmer_init(PIGGYBACKING_TIMEOUT,&pgybg_timer_handler,tcp_conn_desc,NULL);
 	tcp_conn_desc->rto = DEFAULT_RTO;	
 	tcp_conn_desc->seq_num = 0;
-	tcp_conn_desc->wnd_cwnd = SMSS;
+	tcp_conn_desc->cwnd = SMSS;
 	tcp_conn_desc->ssthresh = WND_ADV;
 	tcp_conn_desc->src_ip = 0;
 	tcp_conn_desc->dst_ip = 0;
@@ -87,14 +92,14 @@ t_tcp_conn_desc* tcp_conn_desc_int()
 	tcp_conn_desc->back_log_c_queue = new_queue(&tcp_conn_desc_free);
 	SPINLOCK_INIT(tcp_conn_desc->lock);
 	tcp_conn_desc->rcv_queue = new_queue();
-	tcp_conn_desc->status = OPEN;
+	tcp_conn_desc->status = CLOSED;
 	return tcp_conn_desc;
 }
 
 void tcp_conn_desc_free(t_tcp_conn_desc* tcp_conn_desc)
 {
-	tcp_rcv_queue_free(tcp_conn_desc->rcv_buf);
-	tcp_snd_queue_free(tcp_conn_desc->snd_buf);
+	tcp_rcv_queue_free(tcp_conn_desc->rcv_queue);
+	tcp_snd_queue_free(tcp_conn_desc->snd_queue);
 	free_queue(tcp_conn_desc->back_log_i_queue);
 	free_queue(tcp_conn_desc->back_log_c_queue);
 	free_queue(tcp_conn_desc->rcv_queue);
@@ -111,7 +116,6 @@ t_tcp_desc* tcp_init()
 	tcp_desc->conn_map = tcp_conn_map_init();
 	tcp_desc->listen_map = tcp_conn_map_init();
 	tcp_desc->req_map = tcp_conn_map_init();
-	tcp_desc->tcp_conn_list = new_dllist();
 	return tcp_desc;
 }
 
@@ -120,7 +124,6 @@ void tcp_free(t_tcp_desc* tcp_desc)
 	tcp_conn_map_free(tcp_desc->conn_map);
 	tcp_conn_map_free(tcp_desc->listen_map);
 	tcp_conn_map_free(tcp_desc->req_map);
-	free_llist(tcp_desc->tcp_conn_list);
 	kfree(tcp_desc);
 }
 
@@ -132,13 +135,14 @@ static void update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue)
 	u32 index;
 	u32 state_index;
 	u32 wnd_max;
+	u8 slot_state;
 
 	offset = 0;
 	index = tcp_queue->wnd_min;
 	wnd_max = index + tcp_queue->wnd_size;
 	while(index <= wnd_max)
 	{
-		state_index = SLOT_WND(index,(tcp_queue->buf_size / 8) + 1);
+		state_index = SLOT_WND(index,((tcp_queue->buf_size / 8) + 1));
 		slot_state = bit_vector_get(tcp_queue->buf_state,state_index);
 		if (slot_state != 0)
 		{
@@ -544,7 +548,7 @@ static void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32
 	}
 }
 
-void rtrsn_timer_handler(void* arg)
+void static rtrsn_timer_handler(void* arg)
 {
 	t_tcp_conn_desc* tcp_conn_desc = NULL;
 	u32 ack_num = 0;
@@ -581,7 +585,7 @@ void rtrsn_timer_handler(void* arg)
 }
 
 //Non occorre sincronizzazione sto dentro stessa deferred queue
-void static pgybg_timer_handler()
+void static pgybg_timer_handler(void* arg)
 {
 	u8 flags = 0;
 	u32 ack_num = 0;
@@ -624,8 +628,8 @@ int send_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u32 a
 
 	tcp_header[12] = 0x50;	                   					//HEADER LEN + 4 RESERVED BIT (5 << 4)
 	tcp_header[13] = flags;                           			//FLAGS
-	tcp_header[14] = HI_16(tcp_conn_desc->wnd_size);			//HI WINDOW SIZE
-	tcp_header[15] = LOW_16(tcp_conn_desc->wnd_size);           //LOW WINDOW SIZE
+	tcp_header[14] = HI_16(tcp_conn_desc->cwnd);				//HI WINDOW SIZE
+	tcp_header[15] = LOW_16(tcp_conn_desc->cwnd);           	//LOW WINDOW SIZE
 
 	tcp_header[16] = HI_16(checksum);							//HI TCP CHECKSUM
 	tcp_header[17] = LOW_16(checksum);							//LOW TCP CHECKSUM

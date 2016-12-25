@@ -57,10 +57,6 @@ t_socket* socket_init(int type)
 		socket->lock=kmalloc(sizeof(t_spinlock_desc));
 		SPINLOCK_INIT(*socket->lock);
 	}
-	else if (type == 1)
-	{
-		socket->tcp_conn_desc = tcp_conn_desc_int();
-	}
 	return 	socket;
 }
 
@@ -91,17 +87,16 @@ void socket_free(t_socket* socket)
 
 int _open_socket(t_socket_desc* socket_desc,int type) 
 {
-	t_socket* socket=NULL;
+	t_socket* socket = NULL;
 
-	socket=socket_init(type);
-//	socket=kmalloc(sizeof(t_socket));
-	socket->process_context=NULL;
-	socket->ip=NULL;
-	socket->port=NULL;
+	socket = socket_init(type);
+	socket->process_context = NULL;
+	socket->ip = NULL;
+	socket->port = NULL;
 	CURRENT_PROCESS_CONTEXT(socket->process_context);
-	socket->type=type;
+	socket->type = type;
 	SPINLOCK_LOCK(socket_desc->lock);
-	socket->sd=++socket_desc->fd;
+	socket->sd = ++socket_desc->fd;
 	hashtable_put(socket_desc->sd_map,socket->sd,socket);
 	SPINLOCK_UNLOCK(socket_desc->lock);
 	return socket->sd;
@@ -109,6 +104,7 @@ int _open_socket(t_socket_desc* socket_desc,int type)
 
 int _bind(t_socket_desc* socket_desc,int sockfd,u32 src_ip,u32 src_port,u32 dst_ip,u16 dst_port)
 {
+	t_tcp_conn_desc* tcp_conn_desc = NULL;
 	void* port;
 	t_socket* socket=NULL;
 	int ret=-1;
@@ -128,6 +124,8 @@ int _bind(t_socket_desc* socket_desc,int sockfd,u32 src_ip,u32 src_port,u32 dst_
 		}
 		if (socket->type == 1)
 		{
+			tcp_conn_desc = tcp_conn_desc_int();
+			socket->tcp_conn_desc = tcp_conn_desc;
 			bind_tcp(socket->tcp_conn_desc,src_ip,dst_ip,src_port,dst_port);
 		}
 	}
@@ -136,6 +134,7 @@ int _bind(t_socket_desc* socket_desc,int sockfd,u32 src_ip,u32 src_port,u32 dst_
 
 int _connect(t_socket_desc* socket_desc,int sockfd,u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port)
 {
+	t_tcp_conn_desc* tcp_conn_desc = NULL;
 	t_socket* socket=NULL;
 	int ret=-1;
 
@@ -144,6 +143,8 @@ int _connect(t_socket_desc* socket_desc,int sockfd,u32 src_ip,u32 dst_ip,u16 src
 	{
 		if (socket->type == 1)
 		{
+			tcp_conn_desc = tcp_conn_desc_int();
+			socket->tcp_conn_desc = tcp_conn_desc;
 			connect_tcp(socket->tcp_conn_desc,src_ip,dst_ip,src_port,dst_port);
 		}
 	}
@@ -167,10 +168,11 @@ int _listen(t_socket_desc* socket_desc,int sockfd)
 	return ret;
 }
 
-int _accept(t_socket_desc* socket_desc)
+int _accept(t_socket_desc* socket_desc,int sockfd)
 {
 	t_socket* socket = NULL;
-	t_socket* new_socket = NULL; 
+	t_socket* new_socket = NULL;
+	t_tcp_conn_desc* new_tcp_conn_desc;
 	int ret=-1;
 
 	socket = hashtable_get(socket_desc->sd_map,sockfd);
@@ -182,9 +184,11 @@ int _accept(t_socket_desc* socket_desc)
 			if (new_tcp_conn_desc != NULL)
 			{
 				new_socket = socket_init(1);
-				new_tcp_conn_desc->socket = socket;
-				ret = 0;
-				*socket = new_socket;
+				SPINLOCK_LOCK(socket_desc->lock);
+				socket->sd = ++socket_desc->fd;
+				SPINLOCK_UNLOCK(socket_desc->lock);
+				new_socket->tcp_conn_desc = new_tcp_conn_desc;
+				ret = socket->sd;
 			}
 		}
 	}
@@ -197,7 +201,7 @@ int _recvfrom(t_socket_desc* socket_desc,int sockfd,unsigned char* src_ip,unsign
 	t_socket* socket = NULL;
 	t_data_sckt_buf* data_sckt_buf = NULL;
 	unsigned int _src_ip;
-	unsigne
+	unsigned int _src_port; 
 
 	socket = hashtable_get(socket_desc->sd_map,sockfd);
 
@@ -239,7 +243,7 @@ int _recvfrom(t_socket_desc* socket_desc,int sockfd,unsigned char* src_ip,unsign
 		}
 		else if (socket->type == 1)
 		{
-			dequeue_packet_tcp(socket->tcp_conn_desc,data,data_len);---------lock o semafori????
+			dequeue_packet_tcp(socket->tcp_conn_desc,data,data_len);
 		}
 	}
 	return read_data;

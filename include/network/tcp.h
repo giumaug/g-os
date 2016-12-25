@@ -1,8 +1,10 @@
 #ifndef TCP_H                
 #define TCP_H
 
+#include "system.h"
 #include "timer.h"
 #include "data_types/bit_vector.h"
+#include "synchro_types/spin_lock.h"
 
 #define SMSS 			1454			
 #define TCP_RCV_SIZE 		16384
@@ -11,7 +13,7 @@
 #define TCP_CONN_MAP_SIZE 	20
 
 #define INC_WND(cur,wnd_size,offset)  (cur + offset) % wnd_size
-#define SLOT_WND (cur,wnd_size) (cur % wnd_size
+#define SLOT_WND(cur,wnd_size) (cur % wnd_size)
 #define DATA_IN_WND(min,max,index)										\
 (																		\
 	(min <= max) ?														\
@@ -35,9 +37,6 @@
 #define FLG_RST 0b0000010
 #define FLG_SYN 0b0000001
 
-//#define OPEN 0
-//#define ESTABILISHED 1
-//#define CLOSED 2
 #define SYN_SENT		0
 #define SYN_RCVD		1
 #define ESTABILISHED 		2
@@ -85,7 +84,7 @@ typedef struct s_tcp_conn_desc
 	u32 rto;
 	t_timer* rtrsn_timer;
 	t_timer* pgybg_timer;
-	u32 wnd_cwnd;
+	u32 cwnd;
 	u32 ssthresh;
 	t_tcp_rcv_queue* rcv_queue;
 	t_tcp_snd_queue* snd_queue;

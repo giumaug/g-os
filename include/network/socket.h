@@ -25,6 +25,7 @@ typedef struct s_socket_desc
 t_socket_desc;
 
 struct s_spinlock_desc;
+struct s_tcp_conn_desc;
 
 typedef struct s_socket
 {
@@ -33,7 +34,7 @@ typedef struct s_socket
 	u32 ip;
 	u32 port;
 	t_queue* udp_rx_queue;	
-	t_tcp_conn_desc* tcp_conn_desc;
+	struct s_tcp_conn_desc* tcp_conn_desc;
 	u32 type;
 	u32 sd;
 }
@@ -44,11 +45,10 @@ void socket_desc_free(t_socket_desc* socket_desc);
 t_socket* socket_init(int type);
 void socket_free(t_socket* socket);
 int _open_socket(t_socket_desc* socket_desc,int type);
-//int _bind(t_socket_desc* socket_desc,int sockfd,u32 ip,u32 dst_port);
 int _bind(t_socket_desc* socket_desc,int sockfd,u32 src_ip,u32 src_port,u32 dst_ip,u16 dst_port);
-int _connect(t_socket_desc* socket_desc,int sockfd,u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port)
+int _connect(t_socket_desc* socket_desc,int sockfd,u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port);
 int _listen(t_socket_desc* socket_desc,int sockfd);
-int _accept(t_socket_desc* socket_desc);
+int _accept(t_socket_desc* socket_desc,int sockfd);
 int _recvfrom(t_socket_desc* socket_desc,int sockfd,unsigned char* src_ip,unsigned char* src_port,void* data,u32 data_len);
 int _sendto(t_socket_desc* socket_desc,int sockfd,u32 dst_ip,u16 dst_port,void* data,u32 data_len);
 int _close_socket(t_socket_desc* socket_desc,int sockfd);

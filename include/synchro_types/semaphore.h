@@ -2,6 +2,7 @@
 #define SEMAPHORE_H
 
 #include "system.h"
+#include "synchro_types/spin_lock.h"
 
 typedef struct s_sem_desc 
 {
