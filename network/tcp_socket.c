@@ -1,3 +1,5 @@
+#include "network/tcp_socket.h"
+
 int bind_tcp(t_tcp_conn_desc* tcp_conn_desc,u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port)
 {
 	tcp_conn_desc->src_ip = src_ip;
@@ -62,7 +64,7 @@ void connect_tpc(t_tcp_conn_map* tcp_req_map,src_ip,dst_ip,src_port,dst_port)
 	return 0;
 }
 
-void close_tcp(t_tcp_conn_desc tcp_conn_desc*)
+void close_tcp(t_tcp_conn_desc* tcp_conn_desc)
 {
 	if (tcp_conn_desc->status = ESTABILISHED)
 	{
@@ -77,6 +79,7 @@ void close_tcp(t_tcp_conn_desc tcp_conn_desc*)
 	return;
 }
 
+//CURRENTLY IT WORKS WITH INTERRUPTS DISABLED
 int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 {
 	int ret = 0;
@@ -92,18 +95,18 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 	//DISABLE PREEMPTION OR SOFT IRQ
-	DISABLE_PREEMPTION
+//	DISABLE_PREEMPTION
 	available_data = (tcp_queue->nxt_rcv - 1) > tcp_queue->wnd_min;
 	while (available_data == 0)
 	{
-		enqueue(tcp_conn_desc->rcv_queue,current_process_context);
-		CLI
-		ENABLE_PREEMPTION
+		enqueue(tcp_conn_desc->data_wait_queue,current_process_context);
+//		CLI
+//		ENABLE_PREEMPTION
 		_sleep();
 		//I use CLI to avoid a new context switch
-		CLI
-		DISABLE_PREEMPTION
-		STI
+//		CLI
+//		DISABLE_PREEMPTION
+//		STI
 		available_data = (tcp_queue->nxt_rcv - 1) > tcp_queue->wnd_min;
 	}
 
@@ -112,12 +115,12 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		data_len = available_data;
 	}
 
-	low_index = tcp_queue->buf_min;
-	hi_index = SLOT_WND(tcp_queue->buf_min + data_len,tcp_queue->buf_size);
+	low_index = SLOT_WND(tcp_queue->wnd_min,tcp_queue->buf_size);
+	hi_index = SLOT_WND(tcp_queue->wnd_min + data_len,tcp_queue->buf_size);
 
 	if (low_index < hi_index) 
 	{
-		kmemcpy(data,tcp_queue->buf_min,data_len);
+		kmemcpy(data,(tcp_queue->buf + low_index),data_len);
 		for (i = low_index;i <= hi_index;i++)
 		{
 			bit_vector_reset(tcp_queue->buf_state,state_index);
@@ -127,8 +130,8 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	{
 		len_1 = tcp_queue->size - low_index;
 		len_2 = data_len - len_1;
-		kmemcpy(data,tcp_queue->buf_min,len_1);
-		kmemcpy(data + len_1,tcp_queue->buf_min,len_2);
+		kmemcpy(data,(tcp_queue->buf + hi_index),len_1);
+		kmemcpy(data + len_1,(tcp_queue->buf + low_index),len_2);
 
 		for (i = low_index;i <= len_1;i++)
 		{
@@ -142,48 +145,52 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	tcp_queue->wnd_size += data_len;
 EXIT:
 	//ENABLE PREEMPTION OR SOFT IRQ
-	ENALBLE_PREEMPTION
+//	ENALBLE_PREEMPTION
 	return ret;
 }
 
 //Meglio scodare solo dentro la deferred queue,serve pure un meccanismo che
-//avvia lo scodamentom solo se non e' stato lanciato in precedenza dal
+//avvia lo scodamento solo se non e' stato lanciato in precedenza dal
 //processamento dell'ack
+//CURRENTLY IT WORKS WITH INTERRUPTS DISABLED
 int enqueue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 {
 	t_tcp_snd_queue* tcp_queue = tcp_conn_desc->snd_queue;
+	u32 cur_index;
 
 	//DISABLE PREEMPTION OR SOFT IRQ
-	DISABLE_PREEMPTION
-	b_free_size = WND_SIZE(tcp_queue->tcp_snd_queue->buf_cur,tcp_queue->buf_max);
+//	DISABLE_PREEMPTION
+	b_free_size = WND_SIZE(tcp_queue->tcp_snd_queue->cur,tcp_queue->buf_max);
 	if (b_free_size < data_len)
 	{
 		return -1;
 	}
-	if (tcp_snd_queue->cur < tcp_queue->buf_max) 
-	{
-		kmemcpy(tcp_queue->buf[tcp_snd_queue->buf_cur],data,data_len);
-		INC_WND(tcp_snd_queue->buf_cur,tcp_snd_queue->buf_size,data_len);
-	}
+// DEAD CODE?????
+//	if (tcp_snd_queue->cur < tcp_queue->buf_max) 
+//	{
+//		kmemcpy(tcp_queue->buf[tcp_snd_queue->buf_cur],data,data_len);
+//		INC_WND(tcp_snd_queue->buf_cur,tcp_snd_queue->buf_size,data_len);
+//	}
 	else
 	{
-		if ((tcp_queue->buf_size - tcp_queue->buf_cur) > data_len)
+		cur_index = SLOT_WND(tcp_queue->cur,tcp_queue->buf_size);
+		if ((tcp_queue->buf_size - tcp_queue->cur) > data_len)
 		{
 			kmemcpy(tcp_queue->buf[tcp_snd_queue->cur],data,data_len);
 			INC_WND(tcp_snd_queue->cur,tcp_snd_queue->buf_size,data_len);
 		}
 		else
 		{
-			offset = data_len - (tcp_queue->buf_size - tcp_queue->buf_cur);
+			offset = data_len - (tcp_queue->buf_size - cur_index);
 			kmemcpy(tcp_queue->buf[tcp_snd_queue->cur],data,data_len);
 			kmemcpy(tcp_queue->buf[0],data,offset);
 			INC_WND(tcp_snd_queue->cur,tcp_snd_queue->buf_size,data_len);
 		}
 	}
 	//ENABLE PREEMPTION OR SOFT IRQ
-	ENABLE_PREEMPTION
+//	ENABLE_PREEMPTION
 	
 	//vedi commento sopra
-	//update_snd_window(tcp_conn_desc,0,1);
+	update_snd_window(tcp_conn_desc,0,1);
 }
 

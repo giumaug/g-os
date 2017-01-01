@@ -14,7 +14,7 @@ void bit_vector_free(t_bit_vector* bit_vector)
 	kfree(bit_vector);
 }
 
-void bit_vector_set(t_bit_vector* bit_vector,u8 bit,u32 index)
+void bit_vector_set(t_bit_vector* bit_vector,u32 index)
 {
 	u32 block_index;
 	u32 block_offset;
@@ -24,7 +24,7 @@ void bit_vector_set(t_bit_vector* bit_vector,u8 bit,u32 index)
 	bit_vector[block_index] |= (1 << block_offset);
 }
 
-void bit_vector_reset(t_bit_vector* bit_vector,u8 bit,u32 index)
+void bit_vector_reset(t_bit_vector* bit_vector,u32 index)
 {
 	u32 block_index;
 	u32 block_offset;
