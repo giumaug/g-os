@@ -88,6 +88,7 @@ typedef struct s_tcp_conn_desc
 	u32 cwnd;
 	u32 ssthresh;
 	u32 rcv_wmd_adv;
+	u32 max_adv_wnd;
 	t_tcp_rcv_queue* rcv_queue;
 	t_tcp_snd_queue* snd_queue;
 	u32 seq_num;
@@ -119,5 +120,12 @@ typedef struct s_tcp_desc
 	u32 listen_port_index;
 }
 t_tcp_desc;
+
+t_tcp_conn_desc* tcp_conn_desc_int()
+void tcp_conn_desc_free(t_tcp_conn_desc* tcp_conn_desc)
+t_tcp_desc* tcp_init()
+void tcp_free(t_tcp_desc* tcp_desc)
+void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len)
+void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_data_len) ???
 
 #endif

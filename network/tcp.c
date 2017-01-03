@@ -5,6 +5,15 @@ void static rtrsn_timer_handler(void* arg);
 void static pgybg_timer_handler(void* arg);
 void tcp_conn_desc_free(t_tcp_conn_desc* tcp_conn_desc);
 
+static void upd_max_adv_wnd(t_tcp_conn_desc* tcp_conn_desc,u32 rcv_wmd_adv)
+{
+	tcp_req_desc->rcv_wmd_adv = rcv_wmd_adv;
+	if (tcp_conn_desc->max_adv_wnd < rcv_wmd_adv)
+	{
+		tcp_conn_desc->max_adv_wnd = rcv_wmd_adv;
+	}
+}
+
 static int free_port_search()
 {
 	int i;
@@ -29,7 +38,7 @@ static int free_port_search()
 	return 0;
 }
 
-t_tcp_snd_queue* tcp_snd_queue_init()
+static t_tcp_snd_queue* tcp_snd_queue_init()
 {
 	t_tcp_snd_queue* tcp_snd_queue = NULL;
 
@@ -42,13 +51,13 @@ t_tcp_snd_queue* tcp_snd_queue_init()
 	tcp_snd_queue->nxt_snd = 0;
 }
 
-void tcp_snd_queue_free(t_tcp_snd_queue* tcp_snd_queue)
+static void tcp_snd_queue_free(t_tcp_snd_queue* tcp_snd_queue)
 {
 	kfree(tcp_snd_queue->buf);
 	kfree(tcp_snd_queue);
 }
 
-t_tcp_rcv_queue* tcp_rcv_queue_init(u32 size)
+static t_tcp_rcv_queue* tcp_rcv_queue_init(u32 size)
 {
 	t_tcp_rcv_queue* tcp_rcv_queue;
 
@@ -61,7 +70,7 @@ t_tcp_rcv_queue* tcp_rcv_queue_init(u32 size)
 	return tcp_rcv_queue;
 }
 
-void tcp_rcv_queue_free(t_tcp_rcv_queue* tcp_rcv_queue)
+static void tcp_rcv_queue_free(t_tcp_rcv_queue* tcp_rcv_queue)
 {
 	bit_vector_free(tcp_rcv_queue->buf_state);
 	kfree(tcp_rcv_queue->buf);
@@ -81,7 +90,8 @@ t_tcp_conn_desc* tcp_conn_desc_int()
 	tcp_conn_desc->seq_num = 0;
 	tcp_conn_desc->cwnd = SMSS;
 	tcp_conn_desc->ssthresh = WND_ADV;
-	tcp_conn_desc->rcv_wmd_adv = 0; 
+	tcp_conn_desc->rcv_wmd_adv = 0;
+	tcp_conn_desc->max_adv_wnd = 0;
 	tcp_conn_desc->src_ip = 0;
 	tcp_conn_desc->dst_ip = 0;
 	tcp_conn_desc->src_port = 0;
@@ -218,12 +228,12 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			tcp_conn_map_put(tcp_desc->conn_map,src_ip,dst_ip,src_port,dst_port,tcp_req_desc);
 			//ll_append(tcp_desc->tcp_conn_list,tcp_req_desc);
 			tcp_req_desc->status = ESTABILISHED;
-			tcp_req_desc->rcv_wmd_adv = rcv_wmd_adv;
+			upd_max_adv_wnd(tcp_req_desc,rcv_wmd_adv);
 		}
 		//RETRY
 		else if (tcp_conn_desc != NULL)
 		{
-			tcp_conn_desc->rcv_wmd_adv = rcv_wmd_adv;
+			upd_max_adv_wnd(tcp_conn_desc,rcv_wmd_adv);
 			send_packet_tcp(tcp_req_desc,NULL,0,ack_num,FLG_SYN | FLG_ACK);
 		}
 		goto EXIT;
@@ -249,7 +259,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			new_tcp_conn_desc->rtrsn_timer->ref = ll_append(system.timer_list,tcp_req_desc->rtrsn_timer);
 		}
 		//IF new_tcp_conn_desc != NULL IS LOST SYNC
-		new_tcp_conn_desc->rcv_wmd_adv = rcv_wmd_adv;
+		upd_max_adv_wnd(new_tcp_conn_desc,rcv_wmd_adv);
 		send_packet_tcp(new_tcp_conn_desc,NULL,0,ack_num,FLG_SYN | FLG_ACK);
 		goto EXIT;
 	}
@@ -268,6 +278,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 				tcp_conn_map_put(tcp_desc->conn_map,src_ip,dst_ip,src_port,dst_port,new_tcp_conn_desc);
 				new_tcp_conn_desc->status = ESTABILISHED;
 				new_tcp_conn_desc->rcv_wmd_adv = rcv_wmd_adv;
+				upd_max_adv_wnd(new_tcp_conn_desc,rcv_wmd_adv);
 			}
 			goto EXIT;
 		}
@@ -278,7 +289,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		goto EXIT;
 	}
 	t_tcp_rcv_queue* tcp_queue = tcp_conn_desc->rcv_queue;
-	tcp_req_desc->rcv_wmd_adv = rcv_wmd_adv;
+	upd_max_adv_wnd(tcp_conn_desc,rcv_wmd_adv);
 	
 	//FIN REQUEST BOTH FROM SERVER AND CLIENT
 	if (flags & FLG_FIN && (tcp_conn_desc->status == FIN_WAIT_2 || tcp_conn_desc->status == FIN_WAIT_2 == ESTABILISHED ))
@@ -432,6 +443,9 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	u32 wnd_l_limit;
 	u32 wnd_r_limit;
 	u32 w_size;
+	u32 flight_size;
+	u32 flight_size_limit;
+	u32 data_len;
 
 	tcp_queue = tcp_conn_desc->snd_queue;
 	ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;
@@ -479,7 +493,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		if (tcp_queue->cur >= wnd_max)
 		{	
 			wnd_l_limit = tcp_queue->nxt_snd;
-			wnd_r_limit = tcp_queue->wnd_max;
+			wnd_r_limit = wnd_max;
 		}
 		
 		//sender silly window avoidance		
@@ -497,40 +511,40 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		{
 			data_to_send=w_size;
 		}
-		indx = SLOT_WND(wnd_l_limit,tcp_queue->size);
-		tcp_desc->seq_num = tcp_queue->nxt_snd;
+		indx = SLOT_WND(wnd_l_limit,tcp_queue->wnd_size);
+		tcp_conn_desc->seq_num = tcp_queue->nxt_snd;
 		tcp_queue->nxt_snd += data_to_send;
 	}
 	else if (tcp_conn_desc->duplicated_ack == 1 || tcp_conn_desc->duplicated_ack == 2)
 	{
 		wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
-		w_size = wnd_max - tcp_snd_queue->nxt_snd;
-		flight_size = tcp_snd_queue->nxt_snd-1 - tcp_snd_queue->wnd_min;
+		w_size = wnd_max - tcp_queue->nxt_snd;
+		flight_size = tcp_queue->nxt_snd - 1 - tcp_queue->wnd_min;
 		flight_size_limit = tcp_conn_desc->cwnd + 2*SMSS;
 		
-		if (w_size >= SMSS && (flight_size + SMSS <= flight_size_limit) && tcp_queue->cur >= (tcp_snd_queue->nxt_snd + SMSS))
+		if (w_size >= SMSS && (flight_size + SMSS <= flight_size_limit) && tcp_queue->cur >= (tcp_queue->nxt_snd + SMSS))
 		{
-			indx = SLOT_WND(tcp_snd_queue->nxt_snd,tcp_queue->buf_size);
-			tcp_desc->seq_num = tcp_queue->nxt_snd;
-			tcp_snd_queue->nxt_snd += SMSS;
+			indx = SLOT_WND(tcp_queue->nxt_snd,tcp_queue->buf_size);
+			tcp_conn_desc->seq_num = tcp_queue->nxt_snd;
+			tcp_queue->nxt_snd += SMSS;
 			data_to_send = SMSS;
 		}
 	}
 	else if (tcp_conn_desc->duplicated_ack == 3)
 	{
-		indx = SLOT_WND(ack_seq_num,tcp_queue->size);
-		tcp_desc->seq_num = ack_seq_num;
+		indx = SLOT_WND(ack_seq_num,tcp_queue->wnd_size);
+		tcp_conn_desc->seq_num = ack_seq_num;
 		data_to_send = ack_data_len;
-		tcp_snd_queue->nxt_snd += ack_data_len;
+		tcp_queue->nxt_snd += ack_data_len;
 	}
 	else if (tcp_conn_desc->duplicated_ack > 3)
 	{
-		indx = SLOT_WND(tcp_snd_queue->nxt_snd,tcp_queue->size);
-		w_size = tcp_queue->max - tcp_snd_queue->nxt_snd;
+		indx = SLOT_WND(tcp_queue->nxt_snd,tcp_queue->wnd_size);
+		w_size = tcp_queue->wnd_min + tcp_queue->wnd_size - tcp_snd_queue->nxt_snd;
 
 		if (w_size >= SMSS && tcp_queue->cur >= (tcp_snd_queue->nxt_snd + SMSS))
 		{
-			tcp_desc->seq_num = tcp_queue->nxt_snd;
+			tcp_conn_desc->seq_num = tcp_queue->nxt_snd;
 			tcp_snd_queue->nxt_snd += SMSS;
 			data_to_send = SMSS;
 		}
@@ -538,7 +552,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 
 	if (data_to_send > 0)
 	{
-		if (if (ack_num > 0)
+		if (ack_num > 0)
 		{			
 			//se ack == fin seq rimanda fin
 			
@@ -570,7 +584,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		{
 			//Al momento non ci sono problemi perche' sto con int disabilitati (da gestire caso con softirq)
 			tcp_conn_desc->rtrsn_timer->val == tcp_conn_desc->rto;//aggiungere implenetazione rto
-			tcp_conn_desc->rtrsn_timer->ref = ll_append(system.timers,tcp_conn_desc->rtrsn_timer);
+			tcp_conn_desc->rtrsn_timer->ref = ll_append(system.timer_list,tcp_conn_desc->rtrsn_timer);
 		}
 	}
 }
@@ -586,7 +600,7 @@ void static rtrsn_timer_handler(void* arg)
 		tcp_conn_desc->rto *= 2;
 		tcp_conn_desc->rtrsn_timer->val = tcp_conn_desc->rto;
 		tcp_conn_desc->cwnd = SMSS;
-		tcp_conn_desc->snd_queue->nxt_snd = tcp_queue->wnd_min;
+		tcp_conn_desc->snd_queue->nxt_snd =  tcp_conn_desc->snd_queue->wnd_min;
 	}
 	else if (tcp_conn_desc->status == SYN_SENT)
 	{
@@ -616,7 +630,9 @@ void static pgybg_timer_handler(void* arg)
 {
 	u8 flags = 0;
 	u32 ack_num = 0;
+	t_tcp_conn_desc* tcp_conn_desc = NULL;
 
+	tcp_conn_desc = (t_tcp_conn_desc*) arg;
 	flags = FLG_ACK;
 	ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;	
 	tcp_conn_desc->rcv_queue->nxt_rcv = 0;			
