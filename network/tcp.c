@@ -76,7 +76,7 @@ t_tcp_conn_desc* tcp_conn_desc_int()
 	tcp_conn_desc->rcv_queue = tcp_rcv_queue_init(TCP_RCV_SIZE);
 	tcp_conn_desc->snd_queue = tcp_snd_queue_init(TCP_SND_SIZE);
 	tcp_conn_desc->rtrsn_timer = timer_init(0,&rtrsn_timer_handler,tcp_conn_desc,NULL);
-	tcp_conn_desc->pgybg_timer = tmer_init(PIGGYBACKING_TIMEOUT,&pgybg_timer_handler,tcp_conn_desc,NULL);
+	tcp_conn_desc->pgybg_timer = timer_init(PIGGYBACKING_TIMEOUT,&pgybg_timer_handler,tcp_conn_desc,NULL);
 	tcp_conn_desc->rto = DEFAULT_RTO;	
 	tcp_conn_desc->seq_num = 0;
 	tcp_conn_desc->cwnd = SMSS;
@@ -167,7 +167,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	u32 ack_seq_num;
 	u32 ack_num;
 	u32 wnd_max;
-	u32 rcv_wnd_adv;
+	u32 rcv_wmd_adv;
 	u32 len_1;
 	u32 len_2;
 	u32 index;
@@ -386,6 +386,7 @@ EXIT:
 
 void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 {
+	t_tcp_snd_queue* tcp_queue = NULL;
 	u32 rtt = 0;
 
 	if (tcp_conn_desc->rcv_queue->nxt_rcv <= ack_seq_num)
@@ -410,6 +411,12 @@ void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 		tcp_conn_desc->ssthresh = max(tcp_conn_desc->flight_size / 2,2 * SMSS);
 		tcp_conn_desc->cwnd+= SMSS;
 	}
+	if (tcp_conn_desc->cwnd > TCP_SND_SIZE) 
+	{
+		tcp_conn_desc->cwnd = TCP_SND_SIZE;
+	}
+	tcp_queue = tcp_conn_desc->snd_queue;
+	tcp_queue->wnd_size = min(tcp_conn_desc->cwnd,tcp_conn_desc->rcv_wmd_adv);
 }
 
 void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_data_len)
@@ -439,11 +446,11 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	}
 	
 	//trasmission with good ack
-	else if (tcp_conn_desc->duplicated_ack == 0)-------------------------------------------qui!!!!!!!!!!!!!!!1
+	else if (tcp_conn_desc->duplicated_ack == 0)
 	{
 		word_to_ack = ack_seq_num - tcp_queue->wnd_min;
 		tcp_queue->wnd_min = tcp_queue->wnd_min + word_to_ack;
-		wnd_max = tcp_queue->wnd_min + tcp_conn_desc->cwnd;
+		wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
 		data_to_send = wnd_max - tcp_queue->nxt_snd - 1;
 
 		//no data to send

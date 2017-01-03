@@ -132,7 +132,7 @@ void int_handler_pit()
 	{
 		timer = next_timer->val;
 		timer->val -= TICK //sub 10 ms;
-		if (timer->val <=0 )
+		if (timer->val <= 0 )
 		{
 			(*timer->handler)(timer->handler_arg);
 		}

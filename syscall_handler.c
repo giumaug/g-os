@@ -181,7 +181,7 @@ void syscall_handler()
 	}
 	else if (syscall_num==29)
 	{
- 		params[3]=_bind(system.network_desc->socket_desc,params[0],params[1],params[2]);
+ 		params[5]=_bind(system.network_desc->socket_desc,params[0],params[1],params[2],params[3],params[4]);
 	}
 	else if (syscall_num==30)
 	{
