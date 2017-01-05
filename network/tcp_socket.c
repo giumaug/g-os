@@ -12,12 +12,14 @@ int bind_tcp(t_tcp_conn_desc* tcp_conn_desc,u32 src_ip,u32 dst_ip,u16 src_port,u
 
 int listen_tcp(t_tcp_conn_desc* tcp_conn_desc)
 {
-	t_tcp_conn_desc* tmp;
 	int ret;
-	
+	t_tcp_desc* tcp_desc = NULL;
+	t_tcp_conn_desc* tmp = NULL;
+
+	tcp_desc = system.network_desc->tcp_desc;
 	ret = -1;
 	tmp = tcp_conn_map_get(tcp_desc->listen_map,tcp_conn_desc->src_ip,0,tcp_conn_desc->src_port,0);
-	if (tcp_listen_desc == NULL)
+	if (tmp == NULL)
 	{
 		tcp_conn_map_put(tcp_desc->listen_map,tcp_conn_desc->src_ip,0,tcp_conn_desc->src_port,0,tcp_conn_desc);
 		ret = 0;
@@ -38,7 +40,7 @@ t_tcp_conn_desc* accept_tcp(t_tcp_conn_desc* tcp_conn_desc)
 	return NULL;
 }
 
-void connect_tpc(t_tcp_conn_map* tcp_req_map,src_ip,dst_ip,src_port,dst_port)
+void connect_tpc(t_tcp_conn_map* tcp_req_map,u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port)
 {
 	u32 src_port;
 	t_tcp_conn_desc* tcp_conn_desc = NULL;

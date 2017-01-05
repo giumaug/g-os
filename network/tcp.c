@@ -1,13 +1,12 @@
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!IMPORTANTE VERIFICARE CHE LA STRUTTURA DATI COMPLESSIVA SIA SENSATA!!!!!!!!!!!!!!!!!!
 #include "network/tcp.h"
 
-void static rtrsn_timer_handler(void* arg);
-void static pgybg_timer_handler(void* arg);
-void tcp_conn_desc_free(t_tcp_conn_desc* tcp_conn_desc);
+static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num);
+static u16 checksum_tcp(char* tcp_row_packet,u32 src_ip,u32 dst_ip,u16 data_len);
 
 static void upd_max_adv_wnd(t_tcp_conn_desc* tcp_conn_desc,u32 rcv_wmd_adv)
 {
-	tcp_req_desc->rcv_wmd_adv = rcv_wmd_adv;
+	tcp_conn_desc->rcv_wmd_adv = rcv_wmd_adv;
 	if (tcp_conn_desc->max_adv_wnd < rcv_wmd_adv)
 	{
 		tcp_conn_desc->max_adv_wnd = rcv_wmd_adv;
@@ -395,7 +394,7 @@ EXIT:
 //	}
 //	update window edges
 
-void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
+static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 {
 	t_tcp_snd_queue* tcp_queue = NULL;
 	u32 rtt = 0;
@@ -540,12 +539,12 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	else if (tcp_conn_desc->duplicated_ack > 3)
 	{
 		indx = SLOT_WND(tcp_queue->nxt_snd,tcp_queue->wnd_size);
-		w_size = tcp_queue->wnd_min + tcp_queue->wnd_size - tcp_snd_queue->nxt_snd;
+		w_size = tcp_queue->wnd_min + tcp_queue->wnd_size - tcp_queue->nxt_snd;
 
-		if (w_size >= SMSS && tcp_queue->cur >= (tcp_snd_queue->nxt_snd + SMSS))
+		if (w_size >= SMSS && tcp_queue->cur >= (tcp_queue->nxt_snd + SMSS))
 		{
 			tcp_conn_desc->seq_num = tcp_queue->nxt_snd;
-			tcp_snd_queue->nxt_snd += SMSS;
+			tcp_queue->nxt_snd += SMSS;
 			data_to_send = SMSS;
 		}
 	}
@@ -589,7 +588,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	}
 }
 
-void static rtrsn_timer_handler(void* arg)
+void rtrsn_timer_handler(void* arg)
 {
 	t_tcp_conn_desc* tcp_conn_desc = NULL;
 	u32 ack_num = 0;
@@ -626,7 +625,7 @@ void static rtrsn_timer_handler(void* arg)
 }
 
 //Non occorre sincronizzazione sto dentro stessa deferred queue
-void static pgybg_timer_handler(void* arg)
+void pgybg_timer_handler(void* arg)
 {
 	u8 flags = 0;
 	u32 ack_num = 0;
@@ -655,6 +654,7 @@ int send_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u32 a
 	kmemcpy(tcp_payload,data,data_len);
 	tcp_header = data_sckt_buf->transport_hdr;
 	tcp_queue = tcp_conn_desc->rcv_queue;
+	chk = SWAP_WORD(checksum_tcp((unsigned short*) tcp_header,tcp_conn_desc->src_ip,tcp_conn_desc->dst_ip,data_len));
 	
 	tcp_header[0] = HI_16(tcp_conn_desc->src_port);   			//HI SRC PORT
 	tcp_header[1] = LOW_16(tcp_conn_desc->src_port);  			//LOW SRC PORT
@@ -673,24 +673,20 @@ int send_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u32 a
 
 	tcp_header[12] = 0x50;	                   					//HEADER LEN + 4 RESERVED BIT (5 << 4)
 	tcp_header[13] = flags;                           			//FLAGS
-	???tcp_header[14] = HI_16(tcp_queue->wnd_size);				//HI WINDOW SIZE
-	???tcp_header[15] = LOW_16(tcp_queue->wnd_size);           	//LOW WINDOW SIZE
+	tcp_header[14] = HI_16(tcp_queue->wnd_size);				//HI WINDOW SIZE
+	tcp_header[15] = LOW_16(tcp_queue->wnd_size);           	//LOW WINDOW SIZE
 
-	tcp_header[16] = HI_16(checksum);							//HI TCP CHECKSUM
-	tcp_header[17] = LOW_16(checksum);							//LOW TCP CHECKSUM
+	tcp_header[16] = HI_16(chk);							//HI TCP CHECKSUM
+	tcp_header[17] = LOW_16(chk);							//LOW TCP CHECKSUM
 	tcp_header[18] = 0;											//HI URGENT POINTER (NOT USED)
 	tcp_header[19] = 0;											//LOW URGENT POINTER (NOT USED)
-
-	chk = SWAP_WORD(checksum_tcp((unsigned short*) tcp_header,tcp_conn_desc->src_ip,tcp_conn_desc->dst_ip,data_len));
-	tcp_header[18] = HI_16(chk);
-	tcp_header[19] = LOW_16(chk);
 
 	tcp_conn_desc->last_sent_time = system.time;
 
 	ret = send_packet_ip4(data_sckt_buf,
 			    tcp_conn_desc->src_ip,
 			    tcp_conn_desc->dst_ip,
-			    tcp_conn_desc->ip_packet_len,
+			    (data_len + HEADER_TCP),
 			    TCP_PROTOCOL);
 	return ret;
 }
@@ -717,7 +713,7 @@ static u16 checksum_tcp(char* tcp_row_packet,u32 src_ip,u32 dst_ip,u16 data_len)
 	header_virt[11]=tcp_row_packet[5];
 
 	packet_len=HEADER_TCP+data_len;	
-	chk=checksum((unsigned short*) udp_row_packet,packet_len);
+	chk=checksum((unsigned short*) tcp_row_packet,packet_len);
 	chk_virt=checksum((unsigned short*) header_virt,12);
 
 	chk_final[0]=LOW_16(~chk_virt);

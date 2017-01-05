@@ -6,6 +6,7 @@
 #include "data_types/bit_vector.h"
 #include "synchro_types/spin_lock.h"
 #include "network/common.h"
+#include "network/socket_buffer.h"
 
 #define SMSS 			1454			
 #define TCP_RCV_SIZE 		16384
@@ -121,11 +122,16 @@ typedef struct s_tcp_desc
 }
 t_tcp_desc;
 
-t_tcp_conn_desc* tcp_conn_desc_int()
-void tcp_conn_desc_free(t_tcp_conn_desc* tcp_conn_desc)
-t_tcp_desc* tcp_init()
-void tcp_free(t_tcp_desc* tcp_desc)
-void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len)
-void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_data_len) ???
+struct s_data_sckt_buf;
+
+t_tcp_conn_desc* tcp_conn_desc_int();
+void tcp_conn_desc_free(t_tcp_conn_desc* tcp_conn_desc);
+t_tcp_desc* tcp_init();
+void tcp_free(t_tcp_desc* tcp_desc);
+void rcv_packet_tcp(struct s_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len);
+void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_data_len);
+void rtrsn_timer_handler(void* arg);
+void pgybg_timer_handler(void* arg);
+int send_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u32 ack_num,u8 flags);
 
 #endif
