@@ -125,24 +125,25 @@ void int_handler_pit()
 		}
 	}
 	//MANAGE TIMERS
-	sentinel_timer = ll_sentinel(system.timer_list);
-	next_timer = ll_first(system.timer_list);
-	next_timer = next_timer->val;
-	while(next_timer != sentinel_timer)
-	{
-		timer = next_timer->val;
-		timer->val -= TICK //sub 10 ms;
-		if (timer->val <= 0 )
-		{
-			(*timer->handler)(timer->handler_arg);
-		}
-	}
+//	sentinel_timer = ll_sentinel(system.timer_list);
+//	next_timer = ll_first(system.timer_list);
+//	next_timer = next_timer->val;
+//	while(next_timer != sentinel_timer)
+//	{
+//		timer = next_timer->val;
+//		timer->val -= TICK //sub 10 ms;
+//		if (timer->val <= 0 )
+//		{
+//			(*timer->handler)(timer->handler_arg);
+//		}
+//	}
+//----
 
 	//Qui non va bene servono interrupt attivi e softirq
 	//FLUSH NETWORK QUEUES BEFORE EXITING
 	//testx();
-	equeue_packet(system.network_desc);
-	dequeue_packet(system.network_desc);
+//	equeue_packet(system.network_desc);
+//	dequeue_packet(system.network_desc);
 exit_handler:;
 //	EXIT_INT_HANDLER(is_schedule,processor_reg);
 
