@@ -30,14 +30,14 @@ void main()
 	ssock.sin_family = AF_INET;
 	((unsigned char*) &(ssock.sin_addr.s_addr))[0]=172;
 	((unsigned char*) &(ssock.sin_addr.s_addr))[1]=16;
-	((unsigned char*) &(ssock.sin_addr.s_addr))[2]=243;
+	((unsigned char*) &(ssock.sin_addr.s_addr))[2]=6;
 	((unsigned char*) &(ssock.sin_addr.s_addr))[3]=1;
 //  	send_addr.sin_port = (unsigned short) port;
 	((unsigned char*) &(ssock.sin_port))[0]=((unsigned char*) &(port))[1];
 	((unsigned char*) &(ssock.sin_port))[1]=((unsigned char*) &(port))[0];
 //----------------------------------------
 	
-	sid = socket(AF_INET, SOCK_DGRAM, 0);	
+	sid = socket(AF_INET, SOCK_STREAM, 0);	
 	connect(sid,(struct sockaddr *) &ssock, sizeof(ssock));
 
 	printf("\n Enter the string:");

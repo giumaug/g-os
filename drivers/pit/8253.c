@@ -135,6 +135,7 @@ void int_handler_pit()
 		{
 			(*timer->handler)(timer->handler_arg);
 		}
+		node = ll_next(node);
 	}
 
 	//Qui non va bene servono interrupt attivi e softirq
