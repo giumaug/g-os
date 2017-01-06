@@ -32,12 +32,8 @@ void main()
 //  	send_addr.sin_port = (unsigned short) port;
 	((unsigned char*) &(ssock.sin_port))[0]=((unsigned char*) &(port))[1];
 	((unsigned char*) &(ssock.sin_port))[1]=((unsigned char*) &(port))[0];
-
 	
-	send_len = sizeof(send_addr);
-	rcv_len = sizeof(rcv_addr);
-	sid = socket(AF_INET, SOCK_DGRAM, 0);
-	
+	sid = socket(AF_INET, SOCK_DGRAM, 0);	
 	connect(sid,(struct sockaddr *)&ssock,sizeof(ssock));
 	printf("\n Enter the string:");
 	scanf("%s",s);

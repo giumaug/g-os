@@ -60,6 +60,28 @@ int sendto(int sockfd,void* data,size_t  data_len, int flags,const struct sockad
 }
 
 //symbol conflict!!!
+int write_socket(int fd, void *buf, int count)
+{
+	unsigned int params[6];
+	unsigned char* ip;
+	unsigned char* port;
+
+	params[0] = fd;
+	params[1] = 0;
+	params[2] = 0;
+	params[3] = buf;
+	params[4] = count;
+	SYSCALL(31,params);
+	return  params[5];------qui
+}
+
+//symbol conflict!!!
+int read_socket(int fd, void *buf, int count)
+{
+
+}
+
+//symbol conflict!!!
 int close_socket(int sockfd)
 {
 	unsigned int params[1];

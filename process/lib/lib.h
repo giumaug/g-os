@@ -115,7 +115,10 @@ int socket(int socket_family, int socket_type, int protocol);
 int bind(int sockfd, const struct sockaddr *addr,socklen_t addrlen);
 int recvfrom(int sockfd, void* data,size_t data_len,int flags,struct sockaddr* src_addr,socklen_t* addrlen);
 int sendto(int sockfd,void* data,size_t  data_len, int flags,const struct sockaddr *dest_addr, socklen_t addrlen);
+int write_socket(int fd, void *buf, int count);
+int read_socket(int fd, void *buf, int count);
 int close_socket(int sockfd);
+
 
 #endif
 
