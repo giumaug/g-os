@@ -1,10 +1,14 @@
-#include<stdio.h>
-#include<unistd.h>
-#include<sys/types.h>
-#include<string.h>
-#include<sys/socket.h>
-#include<arpa/inet.h>
-#include<netinet/in.h>
+//#include<stdio.h>
+//#include<unistd.h>
+//#include<sys/types.h>
+//#include<string.h>
+//#include<sys/socket.h>
+//#include<arpa/inet.h>
+//#include<netinet/in.h>
+
+#include "lib/lib.h"
+#include "tcpclient.h"
+
 void main()
 {
 	int sid;
@@ -18,13 +22,12 @@ void main()
 //	ssock.sin_port=htons(39734);
 //----------------------------------------
 	
-	//G-OS
+//-----------------G-OS-------------------
 	unsigned int ip=IP(172,16,6,1);
 	unsigned int port=21846;
-	int sid;
     	struct sockaddr_in ssock;
 	
-	send_addr.sin_family = AF_INET;
+	ssock.sin_family = AF_INET;
 	((unsigned char*) &(ssock.sin_addr.s_addr))[0]=172;
 	((unsigned char*) &(ssock.sin_addr.s_addr))[1]=16;
 	((unsigned char*) &(ssock.sin_addr.s_addr))[2]=243;
@@ -32,15 +35,17 @@ void main()
 //  	send_addr.sin_port = (unsigned short) port;
 	((unsigned char*) &(ssock.sin_port))[0]=((unsigned char*) &(port))[1];
 	((unsigned char*) &(ssock.sin_port))[1]=((unsigned char*) &(port))[0];
+//----------------------------------------
 	
 	sid = socket(AF_INET, SOCK_DGRAM, 0);	
-	connect(sid,(struct sockaddr *)&ssock,sizeof(ssock));
+	connect(sid,(struct sockaddr *) &ssock, sizeof(ssock));
+
 	printf("\n Enter the string:");
 	scanf("%s",s);
 	printf("input = %s \n",s);
 	int n = write(sid, s, strlen(s));
 	printf("sent = %d \n",n);
-	read(sid,(void*)s1,sizeof(s1));
+	read_socket(sid,(void*)s1,sizeof(s1));
 	printf("\n The receiveddd string is:%s\n",s1);
-	close(sid);
+	close_socket(sid);
 }

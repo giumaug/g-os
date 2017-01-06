@@ -4,12 +4,12 @@ include ../make.rules
 all:	user_space_process.o                      \
         lib.o    
 
-	ld -T linker.ld  -melf_i386 -o $(process)  \
-	$(process).o                                        \
+	ld -T linker.ld  -melf_i386 -o $(process) \
+	$(process).o                              \
 	lib/*.o
 
 install:
-	mount /dev/loop6 /mnt
+	mount /dev/loop5 /mnt
 	cp /home/peppe/Desktop/g-os/process/$(process) /mnt/$(path)
 	umount /mnt   
 
