@@ -177,8 +177,8 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	dst_port = GET_WORD(tcp_row_packet[2],tcp_row_packet[3]);
 	ack_seq_num = GET_DWORD(tcp_row_packet[8],tcp_row_packet[9],tcp_row_packet[10],tcp_row_packet[11]);
 	seq_num = GET_DWORD(tcp_row_packet[4],tcp_row_packet[5],tcp_row_packet[6],tcp_row_packet[7]);
-	flags = tcp_row_packet[14];
-	rcv_wmd_adv = GET_DWORD(tcp_row_packet[15],tcp_row_packet[16],tcp_row_packet[17],tcp_row_packet[18]);
+	flags = tcp_row_packet[13];
+	rcv_wmd_adv = GET_WORD(tcp_row_packet[14],tcp_row_packet[15]);
 
 	if (checksum_tcp((unsigned short*) tcp_row_packet,src_ip,dst_ip,data_len)==0)
 	{
@@ -693,8 +693,8 @@ static u16 checksum_tcp(char* tcp_row_packet,u32 src_ip,u32 dst_ip,u16 data_len)
 	header_virt[7] = LOW_OCT_32(dst_ip);		
 	header_virt[8] = 0;
 	header_virt[9] = TCP_PROTOCOL;
-	header_virt[10] = tcp_row_packet[4];
-	header_virt[11] = tcp_row_packet[5];
+	header_virt[10] = HI_16(HEADER_TCP + data_len);
+	header_virt[11] = LOW_16(HEADER_TCP + data_len);
 
 	packet_len=HEADER_TCP+data_len;	
 	chk=checksum((unsigned short*) tcp_row_packet,packet_len);
