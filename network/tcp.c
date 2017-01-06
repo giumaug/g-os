@@ -704,5 +704,6 @@ static u16 checksum_tcp(char* tcp_row_packet,u32 src_ip,u32 dst_ip,u16 data_len)
 	chk_final[1]=HI_16(~chk_virt);
 	chk_final[2]=LOW_16(~chk);
 	chk_final[3]=HI_16(~chk);
+	u16 xxx=checksum(chk_final,4);
 	return checksum(chk_final,4);
 }
