@@ -656,10 +656,14 @@ int send_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u32 a
 	tcp_header[14] = HI_16(tcp_queue->wnd_size);                //HI WINDOW SIZE
 	tcp_header[15] = LOW_16(tcp_queue->wnd_size);               //LOW WINDOW SIZE
 
-	tcp_header[16] = HI_16(chk);                                //HI TCP CHECKSUM
-	tcp_header[17] = LOW_16(chk);                               //LOW TCP CHECKSUM
+	tcp_header[16] = 0;                                         //HI TCP CHECKSUM
+	tcp_header[17] = 0;                                         //LOW TCP CHECKSUM
 	tcp_header[18] = 0;                                         //HI URGENT POINTER (NOT USED)
 	tcp_header[19] = 0;                                         //LOW URGENT POINTER (NOT USED)
+
+	chk = SWAP_WORD(checksum_tcp((unsigned short*) tcp_header,tcp_conn_desc->src_ip,tcp_conn_desc->dst_ip,data_len));
+	tcp_header[16] = HI_16(chk);
+	tcp_header[17] = LOW_16(chk);
 
 	tcp_conn_desc->last_sent_time = system.time;
 
