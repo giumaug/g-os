@@ -29,7 +29,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	static t_device_desc device_desc;
 	static u32 kernel_stack;
 
-	system.time=0;
+	system.time = 0;
 	init_data=init_data_add;
 	if ( magic != 0x2BADB002 )
    	{
@@ -92,7 +92,8 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	init_vm_process(process_context);
 	*(system.process_info->tss.ss)=0x18;
 	*(system.process_info->tss.esp)=KERNEL_STACK;
-//	system.network_desc=network_init();
+	system.network_desc=network_init();
+	system.timer_list = new_dllist();
                        		
 	kernel_stack=KERNEL_STACK-100;
 	asm("movl %0,%%ebp;"::"r"(kernel_stack));

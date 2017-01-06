@@ -39,8 +39,8 @@ void int_handler_pit()
 	struct t_process_context* next_process;
 	unsigned int queue_index;
 	unsigned int priority;
-	t_llist_node* sentinel_timer;
-	t_llist_node* next_timer;
+	t_llist_node* sentinel_node;
+	t_llist_node* node;
 	t_timer* timer;
 	
 	SAVE_PROCESSOR_REG
@@ -125,19 +125,17 @@ void int_handler_pit()
 		}
 	}
 	//MANAGE TIMERS
-//	sentinel_timer = ll_sentinel(system.timer_list);
-//	next_timer = ll_first(system.timer_list);
-//	next_timer = next_timer->val;
-//	while(next_timer != sentinel_timer)
-//	{
-//		timer = next_timer->val;
-//		timer->val -= TICK //sub 10 ms;
-//		if (timer->val <= 0 )
-//		{
-//			(*timer->handler)(timer->handler_arg);
-//		}
-//	}
-//----
+	sentinel_node = ll_sentinel(system.timer_list);
+	node = ll_first(system.timer_list);
+	while(node != sentinel_node)
+	{
+		timer = node->val;
+		timer->val -= TICK //sub 10 ms;
+		if (timer->val <= 0 )
+		{
+			(*timer->handler)(timer->handler_arg);
+		}
+	}
 
 	//Qui non va bene servono interrupt attivi e softirq
 	//FLUSH NETWORK QUEUES BEFORE EXITING
