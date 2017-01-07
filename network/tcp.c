@@ -601,7 +601,7 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 				ll_delete_node(tcp_conn_desc->pgybg_timer->ref);
 			}
 		}
-		flags = 0;
+		flags = FLG_PSH;
 		while (data_to_send >= SMSS)
 		{
 			send_packet_tcp(tcp_conn_desc,tcp_queue->buf[indx],SMSS,ack_num,flags);

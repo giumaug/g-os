@@ -23,6 +23,7 @@ void main()
 //----------------------------------------
 	
 //-----------------G-OS-------------------
+	int msg_len;
 	unsigned int port=21846;
     	struct sockaddr_in ssock;
 	
@@ -49,8 +50,12 @@ void main()
 	printf("\n Enter the string:");
 	scanf("%s",s);
 	printf("input = %s \n",s);
-	int n = write_socket(sid, s, strlen(s));
-	printf("sent = %d \n",n);
+
+	msg_len = strlen(s);
+	s[msg_len] = '\n';
+	int n = write_socket(sid, s, (msg_len + 1));
+	//printf("sent = %d \n",n);
+	while(1);
 	read_socket(sid,(void*)s1,sizeof(s1));
 	printf("\n The receiveddd string is:%s\n",s1);
 	close_socket(sid);
