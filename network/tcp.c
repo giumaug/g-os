@@ -4,6 +4,7 @@
 
 static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num);
 static u16 checksum_tcp(char* tcp_row_packet,u32 src_ip,u32 dst_ip,u16 data_len);
+static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_num,u32 indx);
 
 static void upd_max_adv_wnd(t_tcp_conn_desc* tcp_conn_desc,u32 rcv_wmd_adv)
 {
@@ -437,7 +438,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	}
 	
 	//trasmission with good ack
-	else if (tcp_conn_desc->duplicated_ack == 0)                0 - 1
+	else if (tcp_conn_desc->duplicated_ack == 0)
 	{
 		word_to_ack = ack_seq_num - tcp_queue->wnd_min;
 		tcp_queue->wnd_min = tcp_queue->wnd_min + word_to_ack;
@@ -509,25 +510,76 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 			data_to_send = SMSS;
 		}
 	}
-	else if (tcp_conn_desc->duplicated_ack == 3)
+	else if (tcp_conn_desc->duplicated_ack == 3 || tcp_conn_desc->duplicated_ack > 3)
 	{
-		indx = SLOT_WND(ack_seq_num,tcp_queue->wnd_size);
-		tcp_conn_desc->seq_num = ack_seq_num;
-		data_to_send = ack_data_len;
-		tcp_queue->nxt_snd += ack_data_len;
-	}
-	else if (tcp_conn_desc->duplicated_ack > 3)
-	{
-		indx = SLOT_WND(tcp_queue->nxt_snd,tcp_queue->wnd_size);
-		w_size = tcp_queue->wnd_min + tcp_queue->wnd_size - tcp_queue->nxt_snd;
-
-		if (w_size >= SMSS && tcp_queue->cur >= (tcp_queue->nxt_snd + SMSS))
+		data_to_send = tcp_queue->nxt_snd - 1 - ack_seq_num;
+		if (data_to_send > SMSS) 
 		{
-			tcp_conn_desc->seq_num = tcp_queue->nxt_snd;
-			tcp_queue->nxt_snd += SMSS;
 			data_to_send = SMSS;
 		}
+
+		indx = SLOT_WND(ack_seq_num,tcp_queue->wnd_size);
+		tcp_conn_desc->seq_num = ack_seq_num;
+		flush_data(tcp_conn_desc,data_to_send,ack_num,indx);
+	
+		if (tcp_conn_desc->duplicated_ack > 3)
+		{
+			indx = SLOT_WND(tcp_queue->nxt_snd,tcp_queue->wnd_size);
+			w_size = tcp_queue->wnd_min + tcp_queue->wnd_size - tcp_queue->nxt_snd;
+
+			if (w_size >= SMSS && tcp_queue->cur >= (tcp_queue->nxt_snd + SMSS))
+			{
+				tcp_conn_desc->seq_num = tcp_queue->nxt_snd;
+				tcp_queue->nxt_snd += SMSS;
+				data_to_send = SMSS;
+			}
+		}
 	}
+	flush_data(tcp_conn_desc,data_to_send,ack_num,indx);
+
+//	if (data_to_send > 0)
+//	{
+//		if (ack_num > 0)
+//		{			
+//			//se ack == fin seq rimanda fin
+//			
+//			data_len =  data_to_send >= SMSS ? SMSS : data_to_send;
+//			flags = FLG_ACK;
+//			tcp_conn_desc->rcv_queue->nxt_rcv = 0;
+//			send_packet_tcp(tcp_conn_desc,tcp_queue->buf[indx],data_len,ack_num,flags);
+//			data_to_send -= data_len;
+//			indx += data_len;
+//			
+//			if (tcp_conn_desc->pgybg_timer->val != 0)
+//			{
+//				ll_delete_node(tcp_conn_desc->pgybg_timer->ref);
+//			}
+//		}
+//		flags = 0;
+//		while (data_to_send >= SMSS)
+//		{
+//			send_packet_tcp(tcp_conn_desc,tcp_queue->buf[indx],SMSS,ack_num,flags);
+//			data_to_send -= SMSS;
+//			indx += SMSS;
+//		}
+//		if (data_to_send > 0)
+//		{	
+//			send_packet_tcp(tcp_conn_desc,tcp_queue->buf[indx],data_to_send,0,flags);
+//		}
+//		//timer RFC6298
+//		if (tcp_conn_desc->rtrsn_timer->val == 0)
+//		{
+//			//Al momento non ci sono problemi perche' sto con int disabilitati (da gestire caso con softirq)
+//			tcp_conn_desc->rtrsn_timer->val == tcp_conn_desc->rto;//aggiungere implenetazione rto
+//			tcp_conn_desc->rtrsn_timer->ref = ll_append(system.timer_list,tcp_conn_desc->rtrsn_timer);
+//		}
+//	}
+}
+
+static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_num,u32 indx)
+{
+	u8 flags;
+	u32 data_len;
 
 	if (data_to_send > 0)
 	{
@@ -567,6 +619,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		}
 	}
 }
+
 
 void rtrsn_timer_handler(void* arg)
 {
