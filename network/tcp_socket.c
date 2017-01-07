@@ -64,7 +64,7 @@ t_tcp_conn_desc* accept_tcp(t_tcp_conn_desc* tcp_conn_desc)
 	return NULL;
 }
 
-void connect_tcp(u32 dst_ip,u16 dst_port)
+int connect_tcp(u32 dst_ip,u16 dst_port,t_socket* socket)
 {
 	u16 src_port;
 	u32 src_ip;
@@ -86,7 +86,7 @@ void connect_tcp(u32 dst_ip,u16 dst_port)
 	tcp_conn_desc->status = SYN_SENT;
 	tcp_conn_desc->rtrsn_timer->val = tcp_conn_desc->rto;
 	tcp_conn_desc->rtrsn_timer->ref = ll_append(system.timer_list,tcp_conn_desc->rtrsn_timer);
-
+	socket->tcp_conn_desc = tcp_conn_desc;
 	tcp_conn_map_put(tcp_req_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
 	//SYN NEED RETRASMISSION TIMEOUT MANAGEMENT ONLY.NO RETRY	
 	send_packet_tcp(tcp_conn_desc,NULL,0,0,FLG_SYN);

@@ -580,7 +580,9 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 {
 	u8 flags;
 	u32 data_len;
+	t_tcp_snd_queue* tcp_queue = NULL;
 
+	tcp_queue = tcp_conn_desc->snd_queue;
 	if (data_to_send > 0)
 	{
 		if (ack_num > 0)

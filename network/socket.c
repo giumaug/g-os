@@ -134,7 +134,6 @@ int _bind(t_socket_desc* socket_desc,int sockfd,u32 src_ip,u32 src_port,u32 dst_
 
 int _connect(t_socket_desc* socket_desc,int sockfd,u32 dst_ip,u16 dst_port)
 {
-	t_tcp_conn_desc* tcp_conn_desc = NULL;
 	t_socket* socket=NULL;
 	int ret=-1;
 
@@ -143,9 +142,7 @@ int _connect(t_socket_desc* socket_desc,int sockfd,u32 dst_ip,u16 dst_port)
 	{
 		if (socket->type == 1)
 		{
-			tcp_conn_desc = tcp_conn_desc_int();
-			socket->tcp_conn_desc = tcp_conn_desc;
-			connect_tcp(dst_ip,dst_port);
+			connect_tcp(dst_ip,dst_port,socket);
 		}
 	}
 	return ret;
