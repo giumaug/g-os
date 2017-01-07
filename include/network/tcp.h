@@ -14,7 +14,8 @@
 #define WND_ADV         	TCP_RCV_SIZE
 #define TCP_CONN_MAP_SIZE 	20
 
-#define INC_WND(cur,wnd_size,offset)  (cur + offset) % wnd_size
+//#define INC_WND(cur,wnd_size,offset)  (cur + offset) % wnd_size
+#define INC_WND(cur,wnd_size,offset) (((cur + offset) <= wnd_size) ? (cur = cur + offset) : (cur = ((cur + offset) % wnd_size)))
 #define SLOT_WND(cur,wnd_size) (cur % wnd_size)
 #define DATA_IN_WND(min,max,index)										\
 (																		\

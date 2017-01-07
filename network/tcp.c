@@ -437,10 +437,12 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	}
 	
 	//trasmission with good ack
-	else if (tcp_conn_desc->duplicated_ack == 0)
+	else if (tcp_conn_desc->duplicated_ack == 0)                0 - 1
 	{
 		word_to_ack = ack_seq_num - tcp_queue->wnd_min;
 		tcp_queue->wnd_min = tcp_queue->wnd_min + word_to_ack;
+
+
 		wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
 		data_to_send = wnd_max - tcp_queue->nxt_snd - 1;
 
