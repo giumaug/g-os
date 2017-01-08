@@ -4,7 +4,7 @@ t_timer* timer_init(int val,void (*handler)(void*),void* handler_arg,void* ref)
 {
 	t_timer* timer = NULL;
 
-	timer = kamalloc(sizeof(t_timer));
+	timer = kmalloc(sizeof(t_timer));
 	timer->val = val;
 	timer->handler = handler;
 	timer->handler_arg = handler_arg;

@@ -1,5 +1,6 @@
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!IMPORTANTE VERIFICARE CHE LA STRUTTURA DATI COMPLESSIVA SIA SENSATA!!!!!!!!!!!!!!!!!!
 #include "network/tcp.h"
+#include "lib/lib.h"
 
 static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num);
 static u16 checksum_tcp(char* tcp_row_packet,u32 src_ip,u32 dst_ip,u16 data_len);
@@ -11,30 +12,6 @@ static void upd_max_adv_wnd(t_tcp_conn_desc* tcp_conn_desc,u32 rcv_wmd_adv)
 	{
 		tcp_conn_desc->max_adv_wnd = rcv_wmd_adv;
 	}
-}
-
-static int free_port_search()
-{
-	int i;
-	void* port = NULL;
-	t_tcp_desc* tcp_desc = NULL;
-	t_tcp_conn_desc* tmp = NULL;
-
-	tcp_desc = system.network_desc->tcp_desc;
-
-	for (i=0;i<32767;i++)
-	{
-		if (tcp_desc->listen_port_index++ > 65535) 
-		{
-			tcp_desc->listen_port_index = 32767;
-		}
-		tmp = tcp_conn_map_get(tcp_desc->listen_map,system.network_desc->ip,0,tcp_desc->listen_port_index,0);
-		if (tmp == NULL)
-		{
-			return tcp_desc->listen_port_index;
-		}
-	}
-	return 0;
 }
 
 static t_tcp_snd_queue* tcp_snd_queue_init()
@@ -113,8 +90,8 @@ void tcp_conn_desc_free(t_tcp_conn_desc* tcp_conn_desc)
 	tcp_conn_map_free(tcp_conn_desc->back_log_i_map);
 	free_queue(tcp_conn_desc->back_log_c_queue);
 	free_queue(tcp_conn_desc->data_wait_queue);
-	free_timer(tcp_conn_desc->rtrsn_timer);
-	free_timer(tcp_conn_desc->pgybg_timer);
+	timer_free(tcp_conn_desc->rtrsn_timer);
+	timer_free(tcp_conn_desc->pgybg_timer);
 	kfree(tcp_conn_desc);
 }
 
@@ -656,30 +633,30 @@ int send_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u32 a
 	tcp_queue = tcp_conn_desc->rcv_queue;
 	chk = SWAP_WORD(checksum_tcp((unsigned short*) tcp_header,tcp_conn_desc->src_ip,tcp_conn_desc->dst_ip,data_len));
 	
-	tcp_header[0] = HI_16(tcp_conn_desc->src_port);   			//HI SRC PORT
-	tcp_header[1] = LOW_16(tcp_conn_desc->src_port);  			//LOW SRC PORT
-	tcp_header[2] = HI_16(tcp_conn_desc->dst_port);   			//HI DST PORT
-	tcp_header[3] = LOW_16(tcp_conn_desc->dst_port);  			//LOW DST PORT
+	tcp_header[0] = HI_16(tcp_conn_desc->src_port);             //HI SRC PORT
+	tcp_header[1] = LOW_16(tcp_conn_desc->src_port);            //LOW SRC PORT
+	tcp_header[2] = HI_16(tcp_conn_desc->dst_port);             //HI DST PORT
+	tcp_header[3] = LOW_16(tcp_conn_desc->dst_port);            //LOW DST PORT
 
-	tcp_header[4] = HI_OCT_32(tcp_conn_desc->seq_num);         	//HIGH SEQ NUM
-	tcp_header[5] = MID_LFT_OCT_32(tcp_conn_desc->seq_num);    	//MID LEFT SEQ NUM
-	tcp_header[6] = MID_RGT_OCT_32(tcp_conn_desc->seq_num);    	//MID RIGHT SEQ NUM
-	tcp_header[7] = LOW_OCT_32(tcp_conn_desc->seq_num);        	//LOW SEQ NUM
+	tcp_header[4] = HI_OCT_32(tcp_conn_desc->seq_num);          //HIGH SEQ NUM
+	tcp_header[5] = MID_LFT_OCT_32(tcp_conn_desc->seq_num);     //MID LEFT SEQ NUM
+	tcp_header[6] = MID_RGT_OCT_32(tcp_conn_desc->seq_num);     //MID RIGHT SEQ NUM
+	tcp_header[7] = LOW_OCT_32(tcp_conn_desc->seq_num);         //LOW SEQ NUM
 
-	tcp_header[8] = HI_OCT_32(ack_num);							//HIGH ACK NUM
-	tcp_header[9] = MID_LFT_OCT_32(ack_num);					//MID LEFT ACK NUM
-	tcp_header[10] = MID_RGT_OCT_32(ack_num); 					//MID RIGHT ACK NUM
-	tcp_header[11] = LOW_OCT_32(ack_num);						//LOW ACK NUM
+	tcp_header[8] = HI_OCT_32(ack_num);                         //HIGH ACK NUM
+	tcp_header[9] = MID_LFT_OCT_32(ack_num);                    //MID LEFT ACK NUM
+	tcp_header[10] = MID_RGT_OCT_32(ack_num);                   //MID RIGHT ACK NUM
+	tcp_header[11] = LOW_OCT_32(ack_num);                       //LOW ACK NUM
 
-	tcp_header[12] = 0x50;	                   					//HEADER LEN + 4 RESERVED BIT (5 << 4)
-	tcp_header[13] = flags;                           			//FLAGS
-	tcp_header[14] = HI_16(tcp_queue->wnd_size);				//HI WINDOW SIZE
-	tcp_header[15] = LOW_16(tcp_queue->wnd_size);           	//LOW WINDOW SIZE
+	tcp_header[12] = 0x50;                                      //HEADER LEN + 4 RESERVED BIT (5 << 4)
+	tcp_header[13] = flags;                                     //FLAGS
+	tcp_header[14] = HI_16(tcp_queue->wnd_size);                //HI WINDOW SIZE
+	tcp_header[15] = LOW_16(tcp_queue->wnd_size);               //LOW WINDOW SIZE
 
-	tcp_header[16] = HI_16(chk);							//HI TCP CHECKSUM
-	tcp_header[17] = LOW_16(chk);							//LOW TCP CHECKSUM
-	tcp_header[18] = 0;											//HI URGENT POINTER (NOT USED)
-	tcp_header[19] = 0;											//LOW URGENT POINTER (NOT USED)
+	tcp_header[16] = HI_16(chk);                                //HI TCP CHECKSUM
+	tcp_header[17] = LOW_16(chk);                               //LOW TCP CHECKSUM
+	tcp_header[18] = 0;                                         //HI URGENT POINTER (NOT USED)
+	tcp_header[19] = 0;                                         //LOW URGENT POINTER (NOT USED)
 
 	tcp_conn_desc->last_sent_time = system.time;
 
@@ -699,18 +676,18 @@ static u16 checksum_tcp(char* tcp_row_packet,u32 src_ip,u32 dst_ip,u16 data_len)
 	unsigned char header_virt[16];
 	unsigned char chk_final[4];
 	
-	header_virt[0]=IP_HI_OCT(src_ip);          	
-	header_virt[1]=IP_MID_LFT_OCT(src_ip);
-	header_virt[2]=IP_MID_RGT_OCT(src_ip);
-	header_virt[3]=IP_LOW_OCT(src_ip);
-	header_virt[4]=IP_HI_OCT(dst_ip);          	
-	header_virt[5]=IP_MID_LFT_OCT(dst_ip);
-	header_virt[6]=IP_MID_RGT_OCT(dst_ip);
-	header_virt[7]=IP_LOW_OCT(dst_ip);		
-	header_virt[8]=0;
-	header_virt[9]=TCP_PROTOCOL;
-	header_virt[10]=tcp_row_packet[4];
-	header_virt[11]=tcp_row_packet[5];
+	header_virt[0] = HI_OCT_32(src_ip);          	
+	header_virt[1] = MID_LFT_OCT_32(src_ip);
+	header_virt[2] = MID_RGT_OCT_32(src_ip);
+	header_virt[3] = LOW_OCT_32(src_ip);
+	header_virt[4] = HI_OCT_32(dst_ip);          	
+	header_virt[5] = MID_LFT_OCT_32(dst_ip);
+	header_virt[6] = MID_RGT_OCT_32(dst_ip);
+	header_virt[7] = LOW_OCT_32(dst_ip);		
+	header_virt[8] = 0;
+	header_virt[9] = TCP_PROTOCOL;
+	header_virt[10] = tcp_row_packet[4];
+	header_virt[11] = tcp_row_packet[5];
 
 	packet_len=HEADER_TCP+data_len;	
 	chk=checksum((unsigned short*) tcp_row_packet,packet_len);

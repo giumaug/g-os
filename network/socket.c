@@ -132,7 +132,7 @@ int _bind(t_socket_desc* socket_desc,int sockfd,u32 src_ip,u32 src_port,u32 dst_
 	return ret;
 }
 
-int _connect(t_socket_desc* socket_desc,int sockfd,u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port)
+int _connect(t_socket_desc* socket_desc,int sockfd,u32 dst_ip,u16 dst_port)
 {
 	t_tcp_conn_desc* tcp_conn_desc = NULL;
 	t_socket* socket=NULL;
@@ -145,7 +145,7 @@ int _connect(t_socket_desc* socket_desc,int sockfd,u32 src_ip,u32 dst_ip,u16 src
 		{
 			tcp_conn_desc = tcp_conn_desc_int();
 			socket->tcp_conn_desc = tcp_conn_desc;
-			connect_tcp(socket->tcp_conn_desc,src_ip,dst_ip,src_port,dst_port);
+			connect_tcp(socket->tcp_conn_desc,dst_ip,dst_port);
 		}
 	}
 	return ret;

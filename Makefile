@@ -24,7 +24,7 @@ all:	kmain.o                       \
 	network.o	              \
 	pci.o
 
-	ld -T linker.ld -o kernel.bin \
+	ld -T linker.ld -melf_i386 -o kernel.bin \
 	*.o                           \
 	scheduler/*.o                 \
 	memory_manager/*.o            \

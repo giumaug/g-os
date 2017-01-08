@@ -15,14 +15,14 @@ int send_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 src
 
 	if (data_len<=0xFFFF-HEADER_UDP)
 	{
-		udp_row_packet[0]=HI_16(src_port); 		//HIGH UDP SOURCE PORT NUMBER
-		udp_row_packet[1]=LOW_16(src_port);    		//LOW UDP SOURCE PORT NUMBER
-		udp_row_packet[2]=HI_16(dst_port);		//HIGH UDP DESTINATION PORT NUMBER
-		udp_row_packet[3]=LOW_16(dst_port);    	 	//LOW UDP DESTINATION PORT NUMBER
- 		udp_row_packet[4]=HI_16(HEADER_UDP+data_len);   //HIGH LENGHT
-		udp_row_packet[5]=LOW_16(HEADER_UDP+data_len);  //LOW LENGHT
-		udp_row_packet[6]=0;	   			//HIGH CHECKSUM
-		udp_row_packet[7]=0;    			//LOW CHECKSUM
+		udp_row_packet[0] = HI_16(src_port);               //HIGH UDP SOURCE PORT NUMBER
+		udp_row_packet[1] = LOW_16(src_port);              //LOW UDP SOURCE PORT NUMBER
+		udp_row_packet[2] = HI_16(dst_port);               //HIGH UDP DESTINATION PORT NUMBER
+		udp_row_packet[3] = LOW_16(dst_port);              //LOW UDP DESTINATION PORT NUMBER
+ 		udp_row_packet[4] = HI_16(HEADER_UDP+data_len);    //HIGH LENGHT
+		udp_row_packet[5] = LOW_16(HEADER_UDP+data_len);   //LOW LENGHT
+		udp_row_packet[6] = 0;                             //HIGH CHECKSUM
+		udp_row_packet[7] = 0;                             //LOW CHECKSUM
 
 		chk=SWAP_WORD(checksum_udp((unsigned short*) udp_row_packet,src_ip,dst_ip,data_len));
 		udp_row_packet[6]=HI_16(chk);
@@ -79,18 +79,18 @@ static u16 checksum_udp(char* udp_row_packet,u32 src_ip,u32 dst_ip,u16 data_len)
 	unsigned char header_virt[16];
 	unsigned char chk_final[4];
 	
-	header_virt[0]=IP_HI_OCT(src_ip);          	
-	header_virt[1]=IP_MID_LFT_OCT(src_ip);
-	header_virt[2]=IP_MID_RGT_OCT(src_ip);
-	header_virt[3]=IP_LOW_OCT(src_ip);
-	header_virt[4]=IP_HI_OCT(dst_ip);          	
-	header_virt[5]=IP_MID_LFT_OCT(dst_ip);
-	header_virt[6]=IP_MID_RGT_OCT(dst_ip);
-	header_virt[7]=IP_LOW_OCT(dst_ip);		
-	header_virt[8]=0;
-	header_virt[9]=UDP_PROTOCOL;
-	header_virt[10]=udp_row_packet[4];
-	header_virt[11]=udp_row_packet[5];
+	header_virt[0] = HI_OCT_32(src_ip);          	
+	header_virt[1] = MID_LFT_OCT_32(src_ip);
+	header_virt[2] = MID_RGT_OCT_32(src_ip);
+	header_virt[3] = LOW_OCT_32(src_ip);
+	header_virt[4] = HI_OCT_32(dst_ip);          	
+	header_virt[5] = MID_LFT_OCT_32(dst_ip);
+	header_virt[6] = MID_RGT_OCT_32(dst_ip);
+	header_virt[7] = LOW_OCT_32(dst_ip);		
+	header_virt[8] = 0;
+	header_virt[9] = UDP_PROTOCOL;
+	header_virt[10] = udp_row_packet[4];
+	header_virt[11] = udp_row_packet[5];
 
 	packet_len=HEADER_UDP+data_len;	
 	chk=checksum((unsigned short*) udp_row_packet,packet_len);

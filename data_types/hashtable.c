@@ -31,33 +31,6 @@ static void* hashtable_search(t_hashtable* hashtable,u32 key,int remove)
 	return NULL;
 }
 
-//static void free_bucket_data(t_bucket_data* bucket_data,)
-//{
-//	if (hashtable->data_destructor!=NULL)
-//	{
-//		(*hashtable->data_destructor)(bucket_data->value);
-//	}
-//	else 
-//	{
-//		kfree(bucket_data->value);
-//	}
-//	kfree(bucket_data);
-//}
-
-//static void hashtable_free_bucket(t_llist** bucket,u32 size)
-//{
-//	u32 i;
-//
-//	for (i=0;i<size;i++)
-//	{
-//		if ((bucket[i])!=NULL)
-//		{
-//			free_llist(bucket[i]);
-//		}
-//	}
-//	kfree(bucket);
-//}
-
 static void hashtable_free_bucket(t_llist** bucket,u32 size,void (*data_destructor)(void*))
 {
 	u32 i;

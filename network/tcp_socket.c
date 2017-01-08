@@ -1,5 +1,29 @@
 #include "network/tcp_socket.h"
 
+static int free_port_search()
+{
+	int i;
+	void* port = NULL;
+	t_tcp_desc* tcp_desc = NULL;
+	t_tcp_conn_desc* tmp = NULL;
+
+	tcp_desc = system.network_desc->tcp_desc;
+
+	for (i=0;i<32767;i++)
+	{
+		if (tcp_desc->listen_port_index++ > 65535) 
+		{
+			tcp_desc->listen_port_index = 32767;
+		}
+		tmp = tcp_conn_map_get(tcp_desc->listen_map,system.network_desc->ip,0,tcp_desc->listen_port_index,0);
+		if (tmp == NULL)
+		{
+			return tcp_desc->listen_port_index;
+		}
+	}
+	return 0;
+}
+
 int bind_tcp(t_tcp_conn_desc* tcp_conn_desc,u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port)
 {
 	tcp_conn_desc->src_ip = src_ip;
@@ -40,9 +64,10 @@ t_tcp_conn_desc* accept_tcp(t_tcp_conn_desc* tcp_conn_desc)
 	return NULL;
 }
 
-void connect_tpc(t_tcp_conn_map* tcp_req_map,u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port)
+void connect_tcp(t_tcp_conn_map* tcp_req_map,u32 dst_ip,u16 dst_port)
 {
-	u32 src_port;
+	u16 src_port;
+	u32 src_ip;
 	t_tcp_conn_desc* tcp_conn_desc = NULL;
 
 	src_port = free_port_search();
@@ -50,14 +75,15 @@ void connect_tpc(t_tcp_conn_map* tcp_req_map,u32 src_ip,u32 dst_ip,u16 src_port,
 	{
 		return -1;
 	}
+	src_ip = system.network_desc->ip;
 	tcp_conn_desc = tcp_conn_desc_int();
 	tcp_conn_desc->dst_ip = dst_ip;
 	tcp_conn_desc->dst_port = dst_port;
 	tcp_conn_desc->src_ip = src_ip;
 	tcp_conn_desc->src_port = src_port;
 	tcp_conn_desc->status = SYN_SENT;
-	tcp_req_desc->rtrsn_timer->val = tcp_conn_desc->rto;
-	tcp_req_desc->rtrsn_timer->ref = ll_append(system.timers,tcp_req_desc->rtrsn_timer);
+	tcp_conn_desc->rtrsn_timer->val = tcp_conn_desc->rto;
+	tcp_conn_desc->rtrsn_timer->ref = ll_append(system.timer_list,tcp_conn_desc->rtrsn_timer);
 
 	tcp_conn_map_put(tcp_req_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
 	//SYN NEED RETRASMISSION TIMEOUT MANAGEMENT ONLY.NO RETRY	
@@ -125,23 +151,23 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		kmemcpy(data,(tcp_queue->buf + low_index),data_len);
 		for (i = low_index;i <= hi_index;i++)
 		{
-			bit_vector_reset(tcp_queue->buf_state,state_index);
+			bit_vector_reset(tcp_queue->buf_state,i);
 		}
 	}
 	else 
 	{
-		len_1 = tcp_queue->size - low_index;
+		len_1 = tcp_queue->wnd_size - low_index;
 		len_2 = data_len - len_1;
 		kmemcpy(data,(tcp_queue->buf + hi_index),len_1);
 		kmemcpy(data + len_1,(tcp_queue->buf + low_index),len_2);
 
 		for (i = low_index;i <= len_1;i++)
 		{
-			bit_vector_reset(tcp_queue->buf_state,state_index);
+			bit_vector_reset(tcp_queue->buf_state,i);
 		}
 		for (i = 0;i <= len_2;i++)
 		{
-			bit_vector_reset(tcp_queue->buf_state,state_index);
+			bit_vector_reset(tcp_queue->buf_state,i);
 		}
 	}
 	tcp_queue->wnd_size += data_len;
@@ -159,10 +185,14 @@ int enqueue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 {
 	t_tcp_snd_queue* tcp_queue = tcp_conn_desc->snd_queue;
 	u32 cur_index;
+	u32 b_free_size;
+	u32 offset;
+	u32 wnd_max;
 
 	//DISABLE PREEMPTION OR SOFT IRQ
 //	DISABLE_PREEMPTION
-	b_free_size = WND_SIZE(tcp_queue->tcp_snd_queue->cur,tcp_queue->buf_max);
+	wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
+	b_free_size = wnd_max - tcp_queue->cur;
 	if (b_free_size < data_len)
 	{
 		return -1;
@@ -178,15 +208,15 @@ int enqueue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		cur_index = SLOT_WND(tcp_queue->cur,tcp_queue->buf_size);
 		if ((tcp_queue->buf_size - tcp_queue->cur) > data_len)
 		{
-			kmemcpy(tcp_queue->buf[tcp_snd_queue->cur],data,data_len);
-			INC_WND(tcp_snd_queue->cur,tcp_snd_queue->buf_size,data_len);
+			kmemcpy(tcp_queue->buf[tcp_queue->cur],data,data_len);
+			INC_WND(tcp_queue->cur,tcp_queue->buf_size,data_len);
 		}
 		else
 		{
 			offset = data_len - (tcp_queue->buf_size - cur_index);
-			kmemcpy(tcp_queue->buf[tcp_snd_queue->cur],data,data_len);
+			kmemcpy(tcp_queue->buf[tcp_queue->cur],data,data_len);
 			kmemcpy(tcp_queue->buf[0],data,offset);
-			INC_WND(tcp_snd_queue->cur,tcp_snd_queue->buf_size,data_len);
+			INC_WND(tcp_queue->cur,tcp_queue->buf_size,data_len);
 		}
 	}
 	//ENABLE PREEMPTION OR SOFT IRQ
