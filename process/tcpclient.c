@@ -28,15 +28,15 @@ void main()
     	struct sockaddr_in ssock;
 	
 	ssock.sin_family = AF_INET;
-	((unsigned char*) &(ssock.sin_addr.s_addr))[0]=192;
-	((unsigned char*) &(ssock.sin_addr.s_addr))[1]=168;
-	((unsigned char*) &(ssock.sin_addr.s_addr))[2]=124;
-	((unsigned char*) &(ssock.sin_addr.s_addr))[3]=1;
-
-//	((unsigned char*) &(ssock.sin_addr.s_addr))[0]=172;
-//	((unsigned char*) &(ssock.sin_addr.s_addr))[1]=16;
-//	((unsigned char*) &(ssock.sin_addr.s_addr))[2]=6;
+//	((unsigned char*) &(ssock.sin_addr.s_addr))[0]=192;
+//	((unsigned char*) &(ssock.sin_addr.s_addr))[1]=168;
+//	((unsigned char*) &(ssock.sin_addr.s_addr))[2]=124;
 //	((unsigned char*) &(ssock.sin_addr.s_addr))[3]=1;
+
+	((unsigned char*) &(ssock.sin_addr.s_addr))[0]=172;
+	((unsigned char*) &(ssock.sin_addr.s_addr))[1]=16;
+	((unsigned char*) &(ssock.sin_addr.s_addr))[2]=6;
+	((unsigned char*) &(ssock.sin_addr.s_addr))[3]=1;
 
 
 //  	send_addr.sin_port = (unsigned short) port;
