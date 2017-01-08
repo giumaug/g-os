@@ -63,7 +63,7 @@ t_tcp_conn_desc* tcp_conn_desc_int()
 	tcp_conn_desc->rcv_queue = tcp_rcv_queue_init(TCP_RCV_SIZE);
 	tcp_conn_desc->snd_queue = tcp_snd_queue_init(TCP_SND_SIZE);
 	tcp_conn_desc->rtrsn_timer = timer_init(0,&rtrsn_timer_handler,tcp_conn_desc,NULL);
-	tcp_conn_desc->pgybg_timer = timer_init(PIGGYBACKING_TIMEOUT,&pgybg_timer_handler,tcp_conn_desc,NULL);
+	tcp_conn_desc->pgybg_timer = timer_init(0,&pgybg_timer_handler,tcp_conn_desc,NULL);
 	tcp_conn_desc->rto = DEFAULT_RTO;	
 	tcp_conn_desc->seq_num = 0;
 	tcp_conn_desc->cwnd = SMSS;
@@ -194,7 +194,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	}
 
 	//THREE WAY HANDSHAKE SYN + ACK FROM SERVER TO CLIENT
-	if (flags & (FLG_SYN | FLG_ACK) && (tcp_req_desc != NULL || tcp_conn_desc !=NULL))
+	if ((flags & FLG_SYN) && (flags & FLG_ACK) && (tcp_req_desc != NULL || tcp_conn_desc !=NULL))
 	{
 		//FIRST TIME
 		if (tcp_req_desc != NULL)
@@ -313,6 +313,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		}
 		else 
 		{
+     			//gestire qui PIGGYBACKING_TIMEOUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 			len_1 = tcp_queue->wnd_size - low_index;
 			len_2 = data_len - len_1;
 			kmemcpy(tcp_queue->buf + low_index,data_sckt_buf->data,len_1);
@@ -600,7 +601,7 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 		}
 		if (data_to_send > 0)
 		{	
-			send_packet_tcp(tcp_conn_desc,tcp_queue->buf[indx],data_to_send,0,flags);
+			send_packet_tcp(tcp_conn_desc,tcp_queue->buf[indx],data_to_send,ack_num,flags);
 		}
 		//timer RFC6298
 		if (tcp_conn_desc->rtrsn_timer->val == 0)
