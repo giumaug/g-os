@@ -201,7 +201,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		{
 			tcp_req_desc->seq_num++;
 			ack_num = seq_num + 1;
-			new_tcp_conn_desc->rcv_queue->nxt_rcv = ack_num;--------------qui
+			tcp_req_desc->rcv_queue->nxt_rcv = ack_num;
 			send_packet_tcp(tcp_req_desc,NULL,0,ack_num,FLG_ACK);
 			tcp_conn_map_remove(tcp_desc->req_map,src_ip,dst_ip,src_port,dst_port);
 			tcp_conn_map_put(tcp_desc->conn_map,src_ip,dst_ip,src_port,dst_port,tcp_req_desc);
@@ -586,12 +586,48 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 	tcp_queue = tcp_conn_desc->snd_queue;
 	if (data_to_send > 0)
 	{
+		flags = FLG_ACK;
+		if (tcp_conn_desc->pgybg_timer->val != 0)
+		{
+			ll_delete_node(tcp_conn_desc->pgybg_timer->ref);
+		}
+
+		while (data_to_send >= SMSS)
+		{
+			send_packet_tcp(tcp_conn_desc,tcp_queue->buf[indx],SMSS,ack_num,flags);
+			data_to_send -= SMSS;
+			indx += SMSS;
+		}
+		if (data_to_send > 0)
+		{	
+			send_packet_tcp(tcp_conn_desc,tcp_queue->buf[indx],data_to_send,0,flags);
+		}
+		//timer RFC6298
+		if (tcp_conn_desc->rtrsn_timer->val == 0)
+		{
+			//Al momento non ci sono problemi perche' sto con int disabilitati (da gestire caso con softirq)
+			tcp_conn_desc->rtrsn_timer->val == tcp_conn_desc->rto;//aggiungere implenetazione rto
+			tcp_conn_desc->rtrsn_timer->ref = ll_append(system.timer_list,tcp_conn_desc->rtrsn_timer);
+		}
+	}
+}
+
+static void __flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_num,u32 indx)
+{
+	u8 flags;
+	u32 data_len;
+	t_tcp_snd_queue* tcp_queue = NULL;
+
+	tcp_queue = tcp_conn_desc->snd_queue;
+	if (data_to_send > 0)
+	{
 		if (ack_num > 0)
 		{			
 			//se ack == fin seq rimanda fin
 			
 			data_len =  data_to_send >= SMSS ? SMSS : data_to_send;
 			flags = FLG_ACK;
+			flags = 0;
 			tcp_conn_desc->rcv_queue->nxt_rcv = 0;
 			send_packet_tcp(tcp_conn_desc,tcp_queue->buf[indx],data_len,ack_num,flags);
 			data_to_send -= data_len;
@@ -602,7 +638,7 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 				ll_delete_node(tcp_conn_desc->pgybg_timer->ref);
 			}
 		}
-		flags = FLG_PSH;
+		//flags = FLG_PSH;
 		while (data_to_send >= SMSS)
 		{
 			send_packet_tcp(tcp_conn_desc,tcp_queue->buf[indx],SMSS,ack_num,flags);
