@@ -208,6 +208,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			//ll_append(tcp_desc->tcp_conn_list,tcp_req_desc);
 			tcp_req_desc->status = ESTABILISHED;
 			upd_max_adv_wnd(tcp_req_desc,rcv_wmd_adv);
+			tcp_req_desc->rcv_queue->wnd_min = ack_num;
 		}
 		//RETRY
 		else if (tcp_conn_desc != NULL)
@@ -291,50 +292,53 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			goto EXIT;
 		}
 	}
-		
-	wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
-	if (seq_num >= tcp_queue->wnd_min && seq_num + data_len <= wnd_max)
+	
+	if (data_len != 0)
 	{
-		low_index = SLOT_WND(seq_num,tcp_queue->buf_size);
-		hi_index = SLOT_WND(seq_num + data_len,tcp_queue->buf_size);
-
-		if (low_index < hi_index) 
+		wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
+		if (seq_num >= tcp_queue->wnd_min && seq_num + data_len <= wnd_max)
 		{
-			kmemcpy(tcp_queue->buf + low_index,data_sckt_buf->data,data_len);
-			for (i = low_index;i <= hi_index;i++)
+			low_index = SLOT_WND(seq_num,tcp_queue->buf_size);
+			hi_index = SLOT_WND((seq_num + data_len),tcp_queue->buf_size);
+
+			if (low_index < hi_index) 
 			{
-				slot_state = bit_vector_get(tcp_queue->buf_state,i);
-				if (slot_state == 0)
+				kmemcpy(tcp_queue->buf + low_index,data_sckt_buf->data,data_len);
+				for (i = low_index;i <= hi_index;i++)
 				{
-					bit_vector_set(tcp_queue->buf_state,i);
-					tcp_queue->wnd_size--;
+					slot_state = bit_vector_get(tcp_queue->buf_state,i);
+					if (slot_state == 0)
+					{
+						bit_vector_set(tcp_queue->buf_state,i);
+						tcp_queue->wnd_size--;
+					}
 				}
 			}
-		}
-		else 
-		{
-     			//gestire qui PIGGYBACKING_TIMEOUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-			len_1 = tcp_queue->wnd_size - low_index;
-			len_2 = data_len - len_1;
-			kmemcpy(tcp_queue->buf + low_index,data_sckt_buf->data,len_1);
-			kmemcpy(tcp_queue->buf,data_sckt_buf->data+len_1,len_2);
+			else 
+			{
+	     			//gestire qui PIGGYBACKING_TIMEOUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+				len_1 = tcp_queue->wnd_size - low_index;
+				len_2 = data_len - len_1;
+				kmemcpy(tcp_queue->buf + low_index,data_sckt_buf->data,len_1);
+				kmemcpy(tcp_queue->buf,data_sckt_buf->data+len_1,len_2);
 
-			for (i = low_index;i <= len_1;i++)
-			{
-				slot_state = bit_vector_get(tcp_queue->buf_state,i);
-				if (slot_state == 0)
+				for (i = low_index;i <= len_1;i++)
 				{
-					bit_vector_set(tcp_queue->buf_state,i);
-					tcp_queue->wnd_size--;
-				}	
-			}
-			for (i = 0;i <= len_2;i++)
-			{
-				slot_state = bit_vector_get(tcp_queue->buf_state,i);
-				if (slot_state == 0)
+					slot_state = bit_vector_get(tcp_queue->buf_state,i);
+					if (slot_state == 0)
+					{
+						bit_vector_set(tcp_queue->buf_state,i);
+						tcp_queue->wnd_size--;
+					}	
+				}
+				for (i = 0;i <= len_2;i++)
 				{
-					bit_vector_set(tcp_queue->buf_state,i);
-					tcp_queue->wnd_size--;
+					slot_state = bit_vector_get(tcp_queue->buf_state,i);
+					if (slot_state == 0)
+					{
+						bit_vector_set(tcp_queue->buf_state,i);
+						tcp_queue->wnd_size--;
+					}
 				}
 			}
 		}
