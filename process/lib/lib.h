@@ -10,6 +10,7 @@
 #define O_RDWR 0b100
 
 #define RAND_MAX 4294967294
+#define IP(a,b,c,d)	(d | (c<<8) | (b<<16) | (a<<24))
 
 unsigned int seed;
 
@@ -115,7 +116,11 @@ int socket(int socket_family, int socket_type, int protocol);
 int bind(int sockfd, const struct sockaddr *addr,socklen_t addrlen);
 int recvfrom(int sockfd, void* data,size_t data_len,int flags,struct sockaddr* src_addr,socklen_t* addrlen);
 int sendto(int sockfd,void* data,size_t  data_len, int flags,const struct sockaddr *dest_addr, socklen_t addrlen);
+int connect(int sockfd, const struct sockaddr *address,int len);
+int write_socket(int sockfd, void *buf, int count);
+int read_socket(int sockfd, void *buf, int count);
 int close_socket(int sockfd);
+
 
 #endif
 

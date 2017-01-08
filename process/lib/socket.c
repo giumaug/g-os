@@ -59,6 +59,45 @@ int sendto(int sockfd,void* data,size_t  data_len, int flags,const struct sockad
 	return  params[5];
 }
 
+int connect(int sockfd, const struct sockaddr *address,int len)
+{
+	unsigned int params[5];
+
+	params[0] = sockfd;
+	params[1] = 0;
+	params[2] = 0;
+	SYSCALL(33,params);
+	return  params[4];
+}
+
+//symbol conflict!!!
+int write_socket(int sockfd, void *buf, int count)
+{
+	unsigned int params[6];
+
+	params[0] = sockfd;
+	params[1] = 0;
+	params[2] = 0;
+	params[3] = buf;
+	params[4] = count;
+	SYSCALL(31,params);
+	return  params[5];
+}
+
+//symbol conflict!!!
+int read_socket(int sockfd, void *buf, int count)
+{
+	unsigned int params[6];
+
+	params[0] = sockfd;
+	params[1] = 0;
+	params[2] = 0;
+	params[3] = buf;
+	params[4] = count;
+	SYSCALL(31,params);
+	return  params[5];
+}
+
 //symbol conflict!!!
 int close_socket(int sockfd)
 {

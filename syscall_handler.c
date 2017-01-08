@@ -195,7 +195,10 @@ void syscall_handler()
 	{
  		params[1]=_close_socket(system.network_desc->socket_desc,params[0]);
 	}
-
+	else if (syscall_num==33)
+	{
+ 		params[3]=_connect(system.network_desc->socket_desc,params[0],params[1],params[2]);
+	}
 	else if (syscall_num==101) 
 	{
 		on_exit_action=1; 

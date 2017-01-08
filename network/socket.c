@@ -145,11 +145,10 @@ int _connect(t_socket_desc* socket_desc,int sockfd,u32 dst_ip,u16 dst_port)
 		{
 			tcp_conn_desc = tcp_conn_desc_int();
 			socket->tcp_conn_desc = tcp_conn_desc;
-			connect_tcp(socket->tcp_conn_desc,dst_ip,dst_port);
+			connect_tcp(dst_ip,dst_port);
 		}
 	}
 	return ret;
-
 }
 
 int _listen(t_socket_desc* socket_desc,int sockfd)

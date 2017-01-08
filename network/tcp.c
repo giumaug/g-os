@@ -103,6 +103,7 @@ t_tcp_desc* tcp_init()
 	tcp_desc->conn_map = tcp_conn_map_init();
 	tcp_desc->listen_map = tcp_conn_map_init();
 	tcp_desc->req_map = tcp_conn_map_init();
+	tcp_desc->listen_port_index = 32767;
 	return tcp_desc;
 }
 
@@ -580,23 +581,23 @@ void rtrsn_timer_handler(void* arg)
 	}
 	else if (tcp_conn_desc->status == SYN_SENT)
 	{
-		send_packet_tcp(tcp_conn_desc,NULL,0,0,FLG_SYN);
+		//send_packet_tcp(tcp_conn_desc,NULL,0,0,FLG_SYN);
 		tcp_conn_desc->rtrsn_timer->val = tcp_conn_desc->rto;
 	}
 	else if (tcp_conn_desc->status == SYN_RCVD)
 	{
 		ack_num = tcp_conn_desc->rcv_queue->nxt_rcv = ack_num;
-		send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,FLG_SYN | FLG_ACK);
+		//send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,FLG_SYN | FLG_ACK);
 		tcp_conn_desc->rtrsn_timer->val = tcp_conn_desc->rto;
 	}
 	else if (tcp_conn_desc->status == FIN_WAIT_1)
 	{
-		send_packet_tcp(tcp_conn_desc,NULL,0,0,FLG_FIN);
+		//send_packet_tcp(tcp_conn_desc,NULL,0,0,FLG_FIN);
 		tcp_conn_desc->rtrsn_timer->val = tcp_conn_desc->rto;
 	}
 	else if (tcp_conn_desc->status == LAST_ACK)
 	{
-		send_packet_tcp(tcp_conn_desc,NULL,0,0,FLG_FIN);
+		//send_packet_tcp(tcp_conn_desc,NULL,0,0,FLG_FIN);
 		tcp_conn_desc->rtrsn_timer->val = tcp_conn_desc->rto;
 	}
 }

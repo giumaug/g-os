@@ -64,12 +64,14 @@ t_tcp_conn_desc* accept_tcp(t_tcp_conn_desc* tcp_conn_desc)
 	return NULL;
 }
 
-void connect_tcp(t_tcp_conn_map* tcp_req_map,u32 dst_ip,u16 dst_port)
+void connect_tcp(u32 dst_ip,u16 dst_port)
 {
 	u16 src_port;
 	u32 src_ip;
 	t_tcp_conn_desc* tcp_conn_desc = NULL;
+	t_tcp_conn_map* tcp_req_map = NULL;
 
+	tcp_req_map = system.network_desc->tcp_desc->req_map;
 	src_port = free_port_search();
 	if (src_port == NULL)
 	{

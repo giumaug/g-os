@@ -8,6 +8,7 @@ t_tcp_conn_map* tcp_conn_map_init()
 	tcp_conn_map->conn_map = hashtable_init(TCP_CONN_MAP_SIZE);
 	tcp_conn_map->duplicate_conn_list = new_dllist();
 	tcp_conn_map->duplicate_key_map = hashtable_init(DPLC_CONN_MAP_SIZE);
+	return tcp_conn_map;
  }
 
 void tcp_conn_map_free(t_tcp_conn_map* tcp_conn_map)
