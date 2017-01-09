@@ -109,6 +109,7 @@ typedef struct s_tcp_conn_desc
 	t_spinlock_desc lock;
 	u32 last_sent_time;
 	u32 flight_size;
+	u32 last_ack_sent;
 }
 t_tcp_conn_desc;
 

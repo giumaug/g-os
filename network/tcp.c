@@ -455,7 +455,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		if (data_to_send == 0)
 		{
 			ll_delete_node(tcp_conn_desc->rtrsn_timer->ref);	
-			if (tcp_conn_desc->pgybg_timer->val == 0 && ack_num > 0)
+			if (tcp_conn_desc->pgybg_timer->val == 0 && ack_num > tcp_conn_desc->last_ack_sent)
 			{
 				tcp_conn_desc->pgybg_timer->val = PIGGYBACKING_TIMEOUT;
 				tcp_conn_desc->pgybg_timer->ref = ll_append(system.timer_list,tcp_conn_desc->pgybg_timer);
@@ -762,6 +762,7 @@ int send_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u32 a
 	tcp_header[17] = LOW_16(chk);
 
 	tcp_conn_desc->last_sent_time = system.time;
+	tcp_conn_desc->last_ack_sent = ack_num;
 
 	ret = send_packet_ip4(data_sckt_buf,
 			    tcp_conn_desc->src_ip,
