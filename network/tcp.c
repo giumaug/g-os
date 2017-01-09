@@ -394,11 +394,14 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 		if (tcp_conn_desc->cwnd <= tcp_conn_desc->ssthresh)
 		{
 			tcp_conn_desc->cwnd +=SMSS;
+			printk("using slow down \n");
 		}
 		else 
 		{
 			rtt = system.time - tcp_conn_desc->last_sent_time;
 			tcp_conn_desc->rto = rtt * SRTT_FACTOR * tcp_conn_desc->rto + (1 - SRTT_FACTOR);
+			tcp_conn_desc->cwnd += SMSS*(SMSS/tcp_conn_desc->cwnd);
+			printk("using congestion avoidance \n");
 		}
 	}
 	else if (++tcp_conn_desc->duplicated_ack == 3)
@@ -412,6 +415,7 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 	}
 	tcp_queue = tcp_conn_desc->snd_queue;
 	tcp_queue->wnd_size = min(tcp_conn_desc->cwnd,tcp_conn_desc->rcv_wmd_adv);
+	printk("cwd is: %d \n",tcp_conn_desc->cwnd);
 }
 
 void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_data_len)

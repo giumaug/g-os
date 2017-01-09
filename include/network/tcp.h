@@ -11,7 +11,8 @@
 #define SMSS 			1454			
 #define TCP_RCV_SIZE 		16384
 #define TCP_SND_SIZE 		16384
-#define WND_ADV         	TCP_RCV_SIZE
+//SPECS SAYS WND_ADV SHOULD BE TCP_RCV_SIZE. I USE TCP_RCV_SIZE FOR TEST
+#define WND_ADV         	8192
 #define TCP_CONN_MAP_SIZE 	20
 
 //#define INC_WND(cur,wnd_size,offset)  (cur + offset) % wnd_size
