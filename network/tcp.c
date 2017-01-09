@@ -496,7 +496,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 			data_to_send=w_size;
 		}
 		indx = SLOT_WND(wnd_l_limit,tcp_queue->wnd_size);
-		tcp_conn_desc->seq_num = tcp_queue->nxt_snd + 1;
+		tcp_conn_desc->seq_num = tcp_queue->nxt_snd;
 		tcp_queue->nxt_snd += data_to_send;
 	}
 	else if (tcp_conn_desc->duplicated_ack == 1 || tcp_conn_desc->duplicated_ack == 2)
@@ -509,7 +509,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		if (w_size >= SMSS && (flight_size + SMSS <= flight_size_limit) && tcp_queue->cur >= (tcp_queue->nxt_snd + SMSS))
 		{
 			indx = SLOT_WND(tcp_queue->nxt_snd,tcp_queue->buf_size);
-			tcp_conn_desc->seq_num = tcp_queue->nxt_snd +1 ;
+			tcp_conn_desc->seq_num = tcp_queue->nxt_snd;
 			tcp_queue->nxt_snd += SMSS;
 			data_to_send = SMSS;
 		}
@@ -533,7 +533,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 
 			if (w_size >= SMSS && tcp_queue->cur >= (tcp_queue->nxt_snd + SMSS))
 			{
-				tcp_conn_desc->seq_num = tcp_queue->nxt_snd + 1;
+				tcp_conn_desc->seq_num = tcp_queue->nxt_snd;
 				tcp_queue->nxt_snd += SMSS;
 				data_to_send = SMSS;
 			}

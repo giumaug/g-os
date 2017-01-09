@@ -28,15 +28,15 @@ void main()
     	struct sockaddr_in ssock;
 	
 	ssock.sin_family = AF_INET;
-	((unsigned char*) &(ssock.sin_addr.s_addr))[0]=192;
-	((unsigned char*) &(ssock.sin_addr.s_addr))[1]=168;
-	((unsigned char*) &(ssock.sin_addr.s_addr))[2]=124;
-	((unsigned char*) &(ssock.sin_addr.s_addr))[3]=1;
-
-//	((unsigned char*) &(ssock.sin_addr.s_addr))[0]=172;
-//	((unsigned char*) &(ssock.sin_addr.s_addr))[1]=16;
-//	((unsigned char*) &(ssock.sin_addr.s_addr))[2]=6;
+//	((unsigned char*) &(ssock.sin_addr.s_addr))[0]=192;
+//	((unsigned char*) &(ssock.sin_addr.s_addr))[1]=168;
+//	((unsigned char*) &(ssock.sin_addr.s_addr))[2]=124;
 //	((unsigned char*) &(ssock.sin_addr.s_addr))[3]=1;
+
+	((unsigned char*) &(ssock.sin_addr.s_addr))[0]=172;
+	((unsigned char*) &(ssock.sin_addr.s_addr))[1]=16;
+	((unsigned char*) &(ssock.sin_addr.s_addr))[2]=6;
+	((unsigned char*) &(ssock.sin_addr.s_addr))[3]=1;
 
 
 //  	send_addr.sin_port = (unsigned short) port;
@@ -47,15 +47,17 @@ void main()
 	sid = socket(AF_INET, SOCK_STREAM, 0);	
 	connect(sid,(struct sockaddr *) &ssock, sizeof(ssock));
 
-	printf("\n Enter... the string:");
-	scanf("%s",s);
-	printf("input = %s \n",s);
+	while (1)
+	{
+		printf("\n Enter... the string:");
+		scanf("%s",s);
+		printf("input = %s \n",s);
 
-	msg_len = strlen(s);
-	s[msg_len] = '\n';
-	int n = write_socket(sid, s, (msg_len + 1));
-	//printf("sent = %d \n",n);
-	while(1);
+		msg_len = strlen(s);
+		s[msg_len] = '\n';
+		int n = write_socket(sid, s, (msg_len + 1));
+		//printf("sent = %d \n",n);
+	}
 	read_socket(sid,(void*)s1,sizeof(s1));
 	printf("\n The receiveddd string is:%s\n",s1);
 	close_socket(sid);
