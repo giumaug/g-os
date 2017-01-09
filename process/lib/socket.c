@@ -59,13 +59,18 @@ int sendto(int sockfd,void* data,size_t  data_len, int flags,const struct sockad
 	return  params[5];
 }
 
-int connect(int sockfd, const struct sockaddr *address,int len)
+int connect(int sockfd, const struct sockaddr *address,socklen_t len)
 {
 	unsigned int params[5];
+	unsigned char* ip;
+	unsigned char* port;
+
+	ip=&((struct sockaddr_in*) address)->sin_addr;
+	port=&((struct sockaddr_in*) address)->sin_port;
 
 	params[0] = sockfd;
-	params[1] = 0;
-	params[2] = 0;
+	params[1] = (((unsigned char) ip[0]) <<24) + (((unsigned char) ip[1])<<16) + (((unsigned char) ip[2]) <<8) + (((unsigned char) ip[3]));;
+	params[2] = ((port[0])<<8)+port[1];
 	SYSCALL(33,params);
 	return  params[4];
 }

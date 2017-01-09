@@ -116,7 +116,7 @@ int socket(int socket_family, int socket_type, int protocol);
 int bind(int sockfd, const struct sockaddr *addr,socklen_t addrlen);
 int recvfrom(int sockfd, void* data,size_t data_len,int flags,struct sockaddr* src_addr,socklen_t* addrlen);
 int sendto(int sockfd,void* data,size_t  data_len, int flags,const struct sockaddr *dest_addr, socklen_t addrlen);
-int connect(int sockfd, const struct sockaddr *address,int len);
+int connect(int sockfd, const struct sockaddr *address,socklen_t len);
 int write_socket(int sockfd, void *buf, int count);
 int read_socket(int sockfd, void *buf, int count);
 int close_socket(int sockfd);

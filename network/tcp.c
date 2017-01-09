@@ -41,6 +41,7 @@ static t_tcp_rcv_queue* tcp_rcv_queue_init(u32 size)
 	tcp_rcv_queue->buf = kmalloc(TCP_RCV_SIZE);
 	tcp_rcv_queue->buf_state = bit_vector_init(TCP_RCV_SIZE);
 	tcp_rcv_queue->wnd_min = 0;
+	tcp_rcv_queue->wnd_size = TCP_RCV_SIZE;
 	tcp_rcv_queue->buf_size = TCP_RCV_SIZE;
 	tcp_rcv_queue->nxt_rcv = 0; 
 	return tcp_rcv_queue;
@@ -628,6 +629,7 @@ int send_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u32 a
 	
 	data_sckt_buf = alloc_sckt(data_len + HEADER_ETH + HEADER_IP4 + HEADER_TCP);
 	data_sckt_buf->transport_hdr = data_sckt_buf->data + HEADER_ETH + HEADER_IP4;
+	data_sckt_buf->network_hdr=data_sckt_buf->transport_hdr-HEADER_IP4;
 	tcp_payload = data_sckt_buf->transport_hdr + HEADER_TCP;
 	kmemcpy(tcp_payload,data,data_len);
 	tcp_header = data_sckt_buf->transport_hdr;

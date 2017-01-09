@@ -23,14 +23,13 @@ void main()
 //----------------------------------------
 	
 //-----------------G-OS-------------------
-	unsigned int ip=IP(172,16,6,1);
 	unsigned int port=21846;
     	struct sockaddr_in ssock;
 	
 	ssock.sin_family = AF_INET;
-	((unsigned char*) &(ssock.sin_addr.s_addr))[0]=172;
-	((unsigned char*) &(ssock.sin_addr.s_addr))[1]=16;
-	((unsigned char*) &(ssock.sin_addr.s_addr))[2]=6;
+	((unsigned char*) &(ssock.sin_addr.s_addr))[0]=192;   //172.16.6.1
+	((unsigned char*) &(ssock.sin_addr.s_addr))[1]=168;
+	((unsigned char*) &(ssock.sin_addr.s_addr))[2]=124;
 	((unsigned char*) &(ssock.sin_addr.s_addr))[3]=1;
 //  	send_addr.sin_port = (unsigned short) port;
 	((unsigned char*) &(ssock.sin_port))[0]=((unsigned char*) &(port))[1];
