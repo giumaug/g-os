@@ -144,10 +144,10 @@ static void update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue)
 
 void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len)
 {
-	t_tcp_desc* tcp_desc=NULL;
-	t_tcp_conn_desc* tcp_conn_desc=NULL;
-	char* tcp_row_packet=NULL;
-	char* ip_row_packet=NULL;
+	t_tcp_desc* tcp_desc = NULL;
+	t_tcp_conn_desc* tcp_conn_desc = NULL;
+	unsigned char* tcp_row_packet = NULL;
+	unsigned char* ip_row_packet = NULL;
 	u16 src_port;
 	u16 dst_port;
 	u32 conn_id;
@@ -169,7 +169,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	t_tcp_conn_desc* new_tcp_conn_desc = NULL;
 	struct t_process_context* process_context;
 	u8 flags;
-
+	
 	tcp_desc = system.network_desc->tcp_desc;
 	tcp_row_packet = data_sckt_buf->transport_hdr;
 	ip_row_packet = data_sckt_buf->network_hdr;
@@ -180,13 +180,12 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	flags = tcp_row_packet[13];
 	rcv_wmd_adv = GET_WORD(tcp_row_packet[14],tcp_row_packet[15]);
 
-	if (checksum_tcp((unsigned short*) tcp_row_packet,src_ip,dst_ip,data_len)==0)
+	if (checksum_tcp((unsigned short*) tcp_row_packet,src_ip,dst_ip,data_len) !=0 )
 	{
 		goto EXIT;
 	}
-	
 	tcp_conn_desc = tcp_conn_map_get(tcp_desc->conn_map,src_ip,dst_ip,src_port,dst_port);
-	tcp_req_desc = tcp_conn_map_get(tcp_desc->req_map,system.network_desc->ip,dst_ip,dst_port,src_port);
+	tcp_req_desc = tcp_conn_map_get(tcp_desc->req_map,dst_ip,system.network_desc->ip,dst_port,src_port);
 	tcp_listen_desc = tcp_conn_map_get(tcp_desc->listen_map,system.network_desc->ip,dst_port,0,0);
 	if (tcp_req_desc == NULL && tcp_listen_desc == NULL && tcp_conn_desc != NULL )
 	{ 
@@ -201,7 +200,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		{
 			tcp_req_desc->seq_num++;
 			ack_num = seq_num + 1;
-			send_packet_tcp(tcp_req_desc,NULL,0,ack_num,FLG_SYN | FLG_ACK);
+			send_packet_tcp(tcp_req_desc,NULL,0,ack_num,FLG_ACK);
 			tcp_conn_map_remove(tcp_desc->req_map,src_ip,dst_ip,src_port,dst_port);
 			tcp_conn_map_put(tcp_desc->conn_map,src_ip,dst_ip,src_port,dst_port,tcp_req_desc);
 			//ll_append(tcp_desc->tcp_conn_list,tcp_req_desc);
@@ -212,7 +211,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		else if (tcp_conn_desc != NULL)
 		{
 			upd_max_adv_wnd(tcp_conn_desc,rcv_wmd_adv);
-			send_packet_tcp(tcp_req_desc,NULL,0,ack_num,FLG_SYN | FLG_ACK);
+			send_packet_tcp(tcp_req_desc,NULL,0,ack_num,FLG_ACK);
 		}
 		goto EXIT;
 	}
