@@ -21,11 +21,11 @@ static t_tcp_snd_queue* tcp_snd_queue_init()
 
 	tcp_snd_queue = kmalloc(sizeof(t_tcp_snd_queue));
 	tcp_snd_queue->buf = kmalloc(TCP_SND_SIZE);
-	tcp_snd_queue->wnd_min = 0;
+	tcp_snd_queue->wnd_min = 1;
 	tcp_snd_queue->wnd_size = SMSS;
-	tcp_snd_queue->cur = 0;
+	tcp_snd_queue->cur = 1;
 	tcp_snd_queue->buf_size = TCP_SND_SIZE;
-	tcp_snd_queue->nxt_snd = 0;
+	tcp_snd_queue->nxt_snd = 1;
 }
 
 static void tcp_snd_queue_free(t_tcp_snd_queue* tcp_snd_queue)
@@ -342,8 +342,8 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 				}
 			}
 		}
+		update_rcv_window_and_ack(tcp_queue);
 	}
-	update_rcv_window_and_ack(tcp_queue);
 	rcv_ack(tcp_conn_desc,ack_seq_num);
 	update_snd_window(tcp_conn_desc,ack_seq_num,data_len);
 	process_context = dequeue(tcp_conn_desc->data_wait_queue);
@@ -384,7 +384,7 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 	t_tcp_snd_queue* tcp_queue = NULL;
 	u32 rtt = 0;
 
-	if (tcp_conn_desc->rcv_queue->nxt_rcv <= ack_seq_num)
+	if (tcp_conn_desc->snd_queue->wnd_min <= ack_seq_num)
 	{
 		if (tcp_conn_desc->duplicated_ack > 0)
 		{
@@ -446,15 +446,13 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	//trasmission with good ack
 	else if (tcp_conn_desc->duplicated_ack == 0)
 	{
+		data_to_send = tcp_queue->cur - tcp_queue->nxt_snd;
 		word_to_ack = ack_seq_num - tcp_queue->wnd_min;
 		tcp_queue->wnd_min = tcp_queue->wnd_min + word_to_ack;
-
-
 		wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
-		data_to_send = wnd_max - tcp_queue->nxt_snd - 1;
 
 		//no data to send
-		if (tcp_queue->wnd_min == tcp_queue->cur)
+		if (data_to_send == 0)
 		{
 			ll_delete_node(tcp_conn_desc->rtrsn_timer->ref);	
 			if (tcp_conn_desc->pgybg_timer->val == 0 && ack_num > 0)
