@@ -130,7 +130,7 @@ void int_handler_pit()
 	while(node != sentinel_node)
 	{
 		timer = node->val;
-		timer->val -= TICK //sub 10 ms;
+		timer->val --;
 		if (timer->val <= 0 )
 		{
 			(*timer->handler)(timer->handler_arg);

@@ -209,14 +209,24 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			tcp_req_desc->status = ESTABILISHED;
 			upd_max_adv_wnd(tcp_req_desc,rcv_wmd_adv);
 			tcp_req_desc->rcv_queue->wnd_min = ack_num;
-			tcp_req_desc->rtrsn_timer->val = tcp_req_desc->rto;
+			tcp_req_desc->rtrsn_timer->val = 0;
+			if (tcp_req_desc->rtrsn_timer->ref != NULL)
+			{
+				ll_delete_node(tcp_req_desc->rtrsn_timer->ref);
+				tcp_req_desc->rtrsn_timer->ref = NULL;
+			}
 		}
 		//RETRY
 		else if (tcp_conn_desc != NULL)
 		{
 			upd_max_adv_wnd(tcp_conn_desc,rcv_wmd_adv);
 			send_packet_tcp(tcp_req_desc,NULL,0,ack_num,FLG_ACK);
-			tcp_req_desc->rtrsn_timer->val = tcp_req_desc->rto;
+			tcp_req_desc->rtrsn_timer->val = 0;
+			if (tcp_req_desc->rtrsn_timer->ref != NULL)
+			{
+				ll_delete_node(tcp_req_desc->rtrsn_timer->ref);
+				tcp_req_desc->rtrsn_timer->ref = NULL;
+			}
 		}
 		goto EXIT;
 	}
@@ -461,9 +471,10 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		//no data to send
 		if (data_to_send == 0)
 		{
-			if (tcp_conn_desc->rtrsn_timer->val == 0)
+			if (tcp_conn_desc->rtrsn_timer->val == 0 && tcp_conn_desc->rtrsn_timer->ref == NULL)
 			{
 				ll_delete_node(tcp_conn_desc->rtrsn_timer->ref);
+				tcp_conn_desc->rtrsn_timer->ref = NULL;
 			}	
 			if (tcp_conn_desc->pgybg_timer->val == 0 && ack_num > tcp_conn_desc->last_ack_sent)
 			{
@@ -505,7 +516,8 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		{
 			data_to_send=w_size;
 		}
-		indx = SLOT_WND(wnd_l_limit,tcp_queue->wnd_size);
+		//indx = SLOT_WND(wnd_l_limit,tcp_queue->wnd_size);
+		indx = wnd_l_limit;
 		tcp_conn_desc->seq_num = tcp_queue->nxt_snd;
 		tcp_queue->nxt_snd += data_to_send;
 	}
@@ -518,7 +530,8 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		
 		if (w_size >= SMSS && (flight_size + SMSS <= flight_size_limit) && tcp_queue->cur >= (tcp_queue->nxt_snd + SMSS))
 		{
-			indx = SLOT_WND(tcp_queue->nxt_snd,tcp_queue->buf_size);
+			//indx = SLOT_WND(tcp_queue->nxt_snd,tcp_queue->buf_size);
+			indx = tcp_queue->nxt_snd;
 			tcp_conn_desc->seq_num = tcp_queue->nxt_snd;
 			tcp_queue->nxt_snd += SMSS;
 			data_to_send = SMSS;
@@ -532,13 +545,15 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 			data_to_send = SMSS;
 		}
 
-		indx = SLOT_WND(ack_seq_num,tcp_queue->wnd_size);
+		//indx = SLOT_WND(ack_seq_num,tcp_queue->wnd_size);
+		indx = ack_seq_num;
 		tcp_conn_desc->seq_num = ack_seq_num;
 		flush_data(tcp_conn_desc,data_to_send,ack_num,indx);
 	
 		if (tcp_conn_desc->duplicated_ack > 3)
 		{
-			indx = SLOT_WND(tcp_queue->nxt_snd,tcp_queue->wnd_size);
+			//indx = SLOT_WND(tcp_queue->nxt_snd,tcp_queue->wnd_size);
+			indx = tcp_queue->nxt_snd;
 			w_size = tcp_queue->wnd_min + tcp_queue->wnd_size - tcp_queue->nxt_snd;
 
 			if (w_size >= SMSS && tcp_queue->cur >= (tcp_queue->nxt_snd + SMSS))
@@ -549,45 +564,10 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 			}
 		}
 	}
+	printk("buf index= %d \n",indx);
+	printk("cur is= %d \n",tcp_queue->cur);
+	printk("nxt_snd is= %d \n",tcp_queue->nxt_snd);
 	flush_data(tcp_conn_desc,data_to_send,ack_num,indx);
-
-//	if (data_to_send > 0)
-//	{
-//		if (ack_num > 0)
-//		{			
-//			//se ack == fin seq rimanda fin
-//			
-//			data_len =  data_to_send >= SMSS ? SMSS : data_to_send;
-//			flags = FLG_ACK;
-//			tcp_conn_desc->rcv_queue->nxt_rcv = 0;
-//			send_packet_tcp(tcp_conn_desc,tcp_queue->buf[indx],data_len,ack_num,flags);
-//			data_to_send -= data_len;
-//			indx += data_len;
-//			
-//			if (tcp_conn_desc->pgybg_timer->val != 0)
-//			{
-//				ll_delete_node(tcp_conn_desc->pgybg_timer->ref);
-//			}
-//		}
-//		flags = 0;
-//		while (data_to_send >= SMSS)
-//		{
-//			send_packet_tcp(tcp_conn_desc,tcp_queue->buf[indx],SMSS,ack_num,flags);
-//			data_to_send -= SMSS;
-//			indx += SMSS;
-//		}
-//		if (data_to_send > 0)
-//		{	
-//			send_packet_tcp(tcp_conn_desc,tcp_queue->buf[indx],data_to_send,0,flags);
-//		}
-//		//timer RFC6298
-//		if (tcp_conn_desc->rtrsn_timer->val == 0)
-//		{
-//			//Al momento non ci sono problemi perche' sto con int disabilitati (da gestire caso con softirq)
-//			tcp_conn_desc->rtrsn_timer->val == tcp_conn_desc->rto;//aggiungere implenetazione rto
-//			tcp_conn_desc->rtrsn_timer->ref = ll_append(system.timer_list,tcp_conn_desc->rtrsn_timer);
-//		}
-//	}
 }
 
 static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_num,u32 indx)
@@ -599,11 +579,14 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 	tcp_queue = tcp_conn_desc->snd_queue;
 	if (data_to_send > 0)
 	{
+		//indx = SLOT_WND(tcp_queue->nxt_snd,tcp_queue->buf_size);
+
 		flags = FLG_ACK;
-		if (tcp_conn_desc->pgybg_timer->val != 0)
+		if (tcp_conn_desc->pgybg_timer->val != 0 && tcp_conn_desc->pgybg_timer->ref != NULL)
 		{
 			ll_delete_node(tcp_conn_desc->pgybg_timer->ref);
 			tcp_conn_desc->pgybg_timer->val = 0;
+			tcp_conn_desc->pgybg_timer->ref = NULL;
 		}
 
 		while (data_to_send >= SMSS)
@@ -675,7 +658,11 @@ void pgybg_timer_handler(void* arg)
 	ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;	
 	tcp_conn_desc->rcv_queue->nxt_rcv = 0;			
 	send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,flags);
-	ll_delete_node(tcp_conn_desc->pgybg_timer->ref);
+	if (tcp_conn_desc->pgybg_timer->ref != NULL)
+	{
+		ll_delete_node(tcp_conn_desc->pgybg_timer->ref);
+		tcp_conn_desc->pgybg_timer->ref = NULL;
+	}
 	tcp_conn_desc->pgybg_timer->val = 0;
 }
 
