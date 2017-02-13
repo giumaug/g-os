@@ -188,8 +188,9 @@ int enqueue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	t_tcp_snd_queue* tcp_queue = tcp_conn_desc->snd_queue;
 	u32 cur_index;
 	u32 b_free_size;
-	u32 offset;
 	u32 wnd_max;
+	u32 len_1;
+	u32 len_2;
 
 	//DISABLE PREEMPTION OR SOFT IRQ
 //	DISABLE_PREEMPTION
@@ -208,17 +209,18 @@ int enqueue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	else
 	{
 		cur_index = SLOT_WND(tcp_queue->cur,tcp_queue->buf_size);
-		if ((tcp_queue->buf_size - tcp_queue->cur) > data_len)
+		if ((tcp_queue->buf_size - cur_index) > data_len)
 		{
-			kmemcpy(tcp_queue->buf[tcp_queue->cur],data,data_len);
-			INC_WND(tcp_queue->cur,tcp_queue->buf_size,data_len);
+			kmemcpy(tcp_queue->buf[cur_index],data,data_len);
+			tcp_queue->cur += data_len;
 		}
 		else
 		{
-			offset = data_len - (tcp_queue->buf_size - cur_index);----------qui!!!
-			kmemcpy(tcp_queue->buf[tcp_queue->cur],data,data_len);
-			kmemcpy(tcp_queue->buf[0],data,offset);
-			INC_WND(tcp_queue->cur,tcp_queue->buf_size,data_len);
+			len_1 = tcp_queue->buf_size - cur_index;
+			len_2 = data_len - len_1;
+			kmemcpy(tcp_queue->buf[cur_index],data,len_1);
+			kmemcpy(tcp_queue->buf[0],data,len_2);
+			tcp_queue->cur += data_len;
 		}
 	}
 	//ENABLE PREEMPTION OR SOFT IRQ
