@@ -575,12 +575,14 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 	u8 flags;
 	u32 data_len;
 	t_tcp_snd_queue* tcp_queue = NULL;
+	u32 len_1;
+	u32 len_2;
+	u32 offset;
 
 	tcp_queue = tcp_conn_desc->snd_queue;
 	if (data_to_send > 0)
 	{
-		//indx = SLOT_WND(tcp_queue->nxt_snd,tcp_queue->buf_size);
-
+		offset = SLOT_WND(indx,TCP_SND_SIZE);
 		flags = FLG_ACK;
 		if (tcp_conn_desc->pgybg_timer->val != 0 && tcp_conn_desc->pgybg_timer->ref != NULL)
 		{
@@ -591,13 +593,33 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 
 		while (data_to_send >= SMSS)
 		{
-			send_packet_tcp(tcp_conn_desc,tcp_queue->buf[indx],SMSS,ack_num,flags);
+			if (offset + SMSS <= TCP_SND_SIZE)
+			{
+				send_packet_tcp(tcp_conn_desc,tcp_queue->buf[offset],SMSS,ack_num,flags);
+			}
+			else 
+			{
+				len_1 = TCP_SND_SIZE - offset;
+				len_2 = SMSS - len_1;
+				send_packet_tcp(tcp_conn_desc,tcp_queue->buf[offset],len_1,ack_num,flags);
+				send_packet_tcp(tcp_conn_desc,tcp_queue->buf[0],len_2,ack_num,flags);
+			}
 			data_to_send -= SMSS;
-			indx += SMSS;
+			offset += SMSS;
 		}
 		if (data_to_send > 0)
 		{	
-			send_packet_tcp(tcp_conn_desc,tcp_queue->buf[indx],data_to_send,ack_num,flags);
+			if (offset + data_to_send <= TCP_SND_SIZE)
+			{
+				send_packet_tcp(tcp_conn_desc,tcp_queue->buf[offset],data_to_send,ack_num,flags);
+			}
+			else
+			{
+				len_1 = TCP_SND_SIZE - offset;
+				len_2 = data_to_send - len_1;
+				send_packet_tcp(tcp_conn_desc,tcp_queue->buf[offset],data_to_send,ack_num,flags);
+				send_packet_tcp(tcp_conn_desc,tcp_queue->buf[offset],data_to_send,ack_num,flags);
+			}
 		}
 		//timer RFC6298
 		if (tcp_conn_desc->rtrsn_timer->val == 0)

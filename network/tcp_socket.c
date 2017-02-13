@@ -215,7 +215,7 @@ int enqueue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		}
 		else
 		{
-			offset = data_len - (tcp_queue->buf_size - cur_index);
+			offset = data_len - (tcp_queue->buf_size - cur_index);----------qui!!!
 			kmemcpy(tcp_queue->buf[tcp_queue->cur],data,data_len);
 			kmemcpy(tcp_queue->buf[0],data,offset);
 			INC_WND(tcp_queue->cur,tcp_queue->buf_size,data_len);
