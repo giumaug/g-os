@@ -50,30 +50,29 @@ void main()
 	((unsigned char*) &(ssock.sin_port))[1]=((unsigned char*) &(port))[0];
 //----------------------------------------
 	
-	
+	for (t=0;t<16384;t++)
+	{
+		buffer_1[t] = *s;
+	}
 
 	sid = socket(AF_INET, SOCK_STREAM, 0);
 	printf("..\n");	
 	connect(sid,(struct sockaddr *) &ssock, sizeof(ssock));
 	sleep(5000);
 
-//	while (1)
-
-	for (t=0;t<16384;t++)
-	{
-		buffer_1[t] = *s;
-	}
-
-	for (t=0;t<3;t++)
+	while (1)
+//	for (t=0;t<3;t++)
 	{
 		for (i=0;i<index;i++)
 		{
 			buffer_2[i] = buffer_1[i];
 		}
+		sleep(5000);
 		buffer_2[index]='\0';
 		write_socket(sid, buffer_2,index);
 		index += 16;
-		sleep(5000);
+		printf("sent %d \n",index);
 	}
 	close_socket(sid);
+	exit(0);
 }
