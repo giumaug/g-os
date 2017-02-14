@@ -464,8 +464,11 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	else if (tcp_conn_desc->duplicated_ack == 0)
 	{
 		data_to_send = tcp_queue->cur - tcp_queue->nxt_snd;
-		word_to_ack = ack_seq_num - tcp_queue->wnd_min;
-		tcp_queue->wnd_min = tcp_queue->wnd_min + word_to_ack;
+		if (ack_seq_num != 0)
+		{
+			word_to_ack = ack_seq_num - tcp_queue->wnd_min;
+			tcp_queue->wnd_min = tcp_queue->wnd_min + word_to_ack;
+		}
 		wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
 
 		//no data to send
