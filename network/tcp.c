@@ -573,6 +573,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	flush_data(tcp_conn_desc,data_to_send,ack_num,indx);
 }
 
+//NOTA:NON HA SENSO CONSERVARE IL SEQ_NUM SU tcp_conn_desc->seq_num.
 static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_num,u32 indx)
 {
 	u8 flags;
@@ -599,13 +600,16 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 			if (offset + SMSS <= TCP_SND_SIZE)
 			{
 				send_packet_tcp(tcp_conn_desc,tcp_queue->buf[offset],SMSS,ack_num,flags);
+				tcp_conn_desc->seq_num += SMSS;
 			}
 			else 
 			{
 				len_1 = TCP_SND_SIZE - offset;
 				len_2 = SMSS - len_1;
 				send_packet_tcp(tcp_conn_desc,tcp_queue->buf[offset],len_1,ack_num,flags);
+				tcp_conn_desc->seq_num += len_1;
 				send_packet_tcp(tcp_conn_desc,tcp_queue->buf[0],len_2,ack_num,flags);
+				tcp_conn_desc->seq_num += len_2;
 			}
 			data_to_send -= SMSS;
 			offset += SMSS;
@@ -616,13 +620,16 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 			if (offset + data_to_send <= TCP_SND_SIZE)
 			{
 				send_packet_tcp(tcp_conn_desc,tcp_queue->buf[offset],data_to_send,ack_num,flags);
+				tcp_conn_desc->seq_num += data_to_send;
 			}
 			else
 			{
 				len_1 = TCP_SND_SIZE - offset;
 				len_2 = data_to_send - len_1;
-				send_packet_tcp(tcp_conn_desc,tcp_queue->buf[offset],data_to_send,ack_num,flags);
-				send_packet_tcp(tcp_conn_desc,tcp_queue->buf[offset],data_to_send,ack_num,flags);
+				send_packet_tcp(tcp_conn_desc,tcp_queue->buf[offset],len_1,ack_num,flags);
+				tcp_conn_desc->seq_num += len_1;
+				send_packet_tcp(tcp_conn_desc,tcp_queue->buf[offset],len_2,ack_num,flags);
+				tcp_conn_desc->seq_num += len_2;
 			}
 		}
 		//timer RFC6298

@@ -34,15 +34,15 @@ void main()
     	struct sockaddr_in ssock;
 	
 	ssock.sin_family = AF_INET;
-	((unsigned char*) &(ssock.sin_addr.s_addr))[0]=192;
-	((unsigned char*) &(ssock.sin_addr.s_addr))[1]=168;
-	((unsigned char*) &(ssock.sin_addr.s_addr))[2]=124;
-	((unsigned char*) &(ssock.sin_addr.s_addr))[3]=1;
-
-//	((unsigned char*) &(ssock.sin_addr.s_addr))[0]=172;
-//	((unsigned char*) &(ssock.sin_addr.s_addr))[1]=16;
-//	((unsigned char*) &(ssock.sin_addr.s_addr))[2]=6;
+//	((unsigned char*) &(ssock.sin_addr.s_addr))[0]=192;
+//	((unsigned char*) &(ssock.sin_addr.s_addr))[1]=168;
+//	((unsigned char*) &(ssock.sin_addr.s_addr))[2]=124;
 //	((unsigned char*) &(ssock.sin_addr.s_addr))[3]=1;
+
+	((unsigned char*) &(ssock.sin_addr.s_addr))[0]=172;
+	((unsigned char*) &(ssock.sin_addr.s_addr))[1]=16;
+	((unsigned char*) &(ssock.sin_addr.s_addr))[2]=6;
+	((unsigned char*) &(ssock.sin_addr.s_addr))[3]=1;
 
 //  	send_addr.sin_port = (unsigned short) port;
 	((unsigned char*) &(ssock.sin_port))[0]=((unsigned char*) &(port))[1];
@@ -58,7 +58,7 @@ void main()
 	printf("..\n");	
 	connect(sid,(struct sockaddr *) &ssock, sizeof(ssock));
 
-	index = 1400;
+//	index = 1400;
 	while (1)
 //	for (t=0;t<3;t++)
 	{
@@ -70,6 +70,10 @@ void main()
 		buffer_2[index]='\0';
 		write_socket(sid, buffer_2,index);
 		index += 16;
+		if (index >4000)
+		{
+			index=4000;
+		}
 		printf("sent %d \n",index);
 	}
 	close_socket(sid);
