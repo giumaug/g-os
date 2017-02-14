@@ -14,7 +14,7 @@ void main()
 	int sid;
 	//char s[100] = {};
 	char s1[100] = {};
-	char s[] = "ciao chicco!!!!!";
+	char s[] = "a";
 	char buffer_1[16384];
 	char buffer_2[16384];
 
@@ -58,6 +58,12 @@ void main()
 	sleep(5000);
 
 //	while (1)
+
+	for (t=0;t<16384;t++)
+	{
+		buffer_1[t] = *s;
+	}
+
 	for (t=0;t<3;t++)
 	{
 		for (i=0;i<index;i++)
