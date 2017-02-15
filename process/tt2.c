@@ -59,8 +59,8 @@ void main()
 	connect(sid,(struct sockaddr *) &ssock, sizeof(ssock));
 
 //	index = 1400;
-	while (1)
-//	for (t=0;t<3;t++)
+//	while (1)
+	for (t=0;t<1;t++)
 	{
 		for (i=0;i<index;i++)
 		{

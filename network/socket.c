@@ -71,7 +71,7 @@ void socket_free(t_socket* socket)
 	else  if (socket->type == 1)
 	{
 		socket->tcp_conn_desc->ref_count--;
-		if (socket->tcp_conn_desc->status == ESTABILISHED && socket->tcp_conn_desc->ref_count == 1)
+		if (socket->tcp_conn_desc->status == ESTABILISHED && socket->tcp_conn_desc->ref_count == 0)
 		{
 			close_tcp(socket->tcp_conn_desc);
 		}

@@ -79,6 +79,7 @@ int connect_tcp(u32 dst_ip,u16 dst_port,t_socket* socket)
 	}
 	src_ip = system.network_desc->ip;
 	tcp_conn_desc = tcp_conn_desc_int();
+	tcp_conn_desc->ref_count = 1;
 	tcp_conn_desc->dst_ip = dst_ip;
 	tcp_conn_desc->dst_port = dst_port;
 	tcp_conn_desc->src_ip = src_ip;
