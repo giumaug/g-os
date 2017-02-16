@@ -451,17 +451,17 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	tcp_queue = tcp_conn_desc->snd_queue;
 	ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;
 
-	//close connection with FIN flag both client and server	
-	//FIN needs retrasmission management only. No retry.
-	if (tcp_queue->wnd_min == tcp_queue->cur && tcp_conn_desc->status == FIN_WAIT_1 )
-	{
-		tcp_conn_desc->seq_num++;
-		send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,FLG_FIN);
-		return;
-	}
+//	//close connection with FIN flag both client and server	
+//	//FIN needs retrasmission management only. No retry.
+//	if (tcp_queue->wnd_min == tcp_queue->cur && tcp_conn_desc->status == FIN_WAIT_1 )
+//	{
+//		tcp_conn_desc->seq_num++;
+//		send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,FLG_FIN);
+//		return;
+//	}
 	
 	//trasmission with good ack
-	else if (tcp_conn_desc->duplicated_ack == 0)
+	if (tcp_conn_desc->duplicated_ack == 0)
 	{
 		data_to_send = tcp_queue->cur - tcp_queue->nxt_snd;
 		if (ack_seq_num != 0)
@@ -484,7 +484,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 				tcp_conn_desc->pgybg_timer->val = PIGGYBACKING_TIMEOUT;
 				tcp_conn_desc->pgybg_timer->ref = ll_append(system.timer_list,tcp_conn_desc->pgybg_timer);
 			}
-			return;
+			goto EXIT;
 		}
 		else 
 		{
@@ -567,10 +567,19 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 			}
 		}
 	}
+EXIT:
 	printk("buf index= %d \n",indx);
 	printk("cur is= %d \n",tcp_queue->cur);
 	printk("nxt_snd is= %d \n",tcp_queue->nxt_snd);
 	flush_data(tcp_conn_desc,data_to_send,ack_num,indx);
+
+	//close connection with FIN flag both client and server	
+	//FIN needs retrasmission management only. No retry.
+	if (tcp_queue->wnd_min == tcp_queue->cur && tcp_conn_desc->status == FIN_WAIT_1 )
+	{
+		tcp_conn_desc->seq_num++;
+		send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,FLG_FIN | FLG_ACK);
+	}
 }
 
 //NOTA:NON HA SENSO CONSERVARE IL SEQ_NUM SU tcp_conn_desc->seq_num.

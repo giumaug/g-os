@@ -60,7 +60,7 @@ void main()
 
 //	index = 1400;
 //	while (1)
-	for (t=0;t<1;t++)
+	for (t=0;t<2;t++)
 	{
 		for (i=0;i<index;i++)
 		{
