@@ -26,11 +26,14 @@ static int free_port_search()
 
 int bind_tcp(t_tcp_conn_desc* tcp_conn_desc,u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port)
 {
+	SAVE_IF_STATUS
+	CLI
 	tcp_conn_desc->src_ip = src_ip;
 	tcp_conn_desc->src_port = src_port;
 	//All incoming request are wildcarded
 	tcp_conn_desc->dst_ip = 0;
 	tcp_conn_desc->dst_port = 0;
+	RESTORE_IF_STATUS
 	return 0;
 }
 
@@ -40,6 +43,8 @@ int listen_tcp(t_tcp_conn_desc* tcp_conn_desc)
 	t_tcp_desc* tcp_desc = NULL;
 	t_tcp_conn_desc* tmp = NULL;
 
+	SAVE_IF_STATUS
+	CLI
 	tcp_desc = system.network_desc->tcp_desc;
 	ret = -1;
 	tmp = tcp_conn_map_get(tcp_desc->listen_map,tcp_conn_desc->src_ip,0,tcp_conn_desc->src_port,0);
@@ -48,6 +53,7 @@ int listen_tcp(t_tcp_conn_desc* tcp_conn_desc)
 		tcp_conn_map_put(tcp_desc->listen_map,tcp_conn_desc->src_ip,0,tcp_conn_desc->src_port,0,tcp_conn_desc);
 		ret = 0;
 	}
+	RESTORE_IF_STATUS
 	return ret;
 }
 
@@ -55,12 +61,15 @@ t_tcp_conn_desc* accept_tcp(t_tcp_conn_desc* tcp_conn_desc)
 {
 	t_tcp_conn_desc* new_tcp_conn_desc = NULL;
 
+	SAVE_IF_STATUS
+	CLI 
 	new_tcp_conn_desc = dequeue(tcp_conn_desc->back_log_c_queue);
 	new_tcp_conn_desc->status = ESTABILISHED;
 	if (new_tcp_conn_desc != NULL)
 	{
 		return new_tcp_conn_desc;
 	}
+	RESTORE_IF_STATUS
 	return NULL;
 }
 
@@ -71,10 +80,13 @@ int connect_tcp(u32 dst_ip,u16 dst_port,t_socket* socket)
 	t_tcp_conn_desc* tcp_conn_desc = NULL;
 	t_tcp_conn_map* tcp_req_map = NULL;
 
+	SAVE_IF_STATUS
+	CLI
 	tcp_req_map = system.network_desc->tcp_desc->req_map;
 	src_port = free_port_search();
 	if (src_port == NULL)
 	{
+		RESTORE_IF_STATUS
 		return -1;
 	}
 	src_ip = system.network_desc->ip;
@@ -92,11 +104,19 @@ int connect_tcp(u32 dst_ip,u16 dst_port,t_socket* socket)
 	//SYN NEED RETRASMISSION TIMEOUT MANAGEMENT ONLY.NO RETRY	
 	send_packet_tcp(tcp_conn_desc,NULL,0,0,FLG_SYN);
 
+	RESTORE_IF_STATUS
 	return 0;
 }
 
 void close_tcp(t_tcp_conn_desc* tcp_conn_desc)
 {
+	SAVE_IF_STATUS
+	CLI
+	if (tcp_conn_desc->snd_queue->wnd_min == tcp_conn_desc->snd_queue->cur)
+	{
+		tcp_conn_desc->seq_num++;
+		send_packet_tcp(tcp_conn_desc,NULL,0,0,FLG_FIN);
+	}
 	if (tcp_conn_desc->status = ESTABILISHED)
 	{
 		//FIN from client to server
@@ -107,10 +127,10 @@ void close_tcp(t_tcp_conn_desc* tcp_conn_desc)
 		//FIN from server to client
 		tcp_conn_desc->status = LAST_ACK;
 	}
+	RESTORE_IF_STATUS
 	return;
 }
 
-//CURRENTLY IT WORKS WITH INTERRUPTS DISABLED
 int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 {
 	int ret = 0;
@@ -122,22 +142,17 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	u32 hi_index = 0;
 	u32 available_data = 0;
 	struct t_process_context* current_process_context;
-	t_tcp_rcv_queue* tcp_queue = tcp_conn_desc->rcv_queue;
+	t_tcp_rcv_queue* tcp_queue = NULL;
 	
+	SAVE_IF_STATUS
+	CLI
 	CURRENT_PROCESS_CONTEXT(current_process_context);
-	//DISABLE PREEMPTION OR SOFT IRQ
-//	DISABLE_PREEMPTION
+	tcp_queue = tcp_conn_desc->rcv_queue;
 	available_data = (tcp_queue->nxt_rcv - 1) > tcp_queue->wnd_min;
 	while (available_data == 0)
 	{
 		enqueue(tcp_conn_desc->data_wait_queue,current_process_context);
-//		CLI
-//		ENABLE_PREEMPTION
 		_sleep();
-		//I use CLI to avoid a new context switch
-//		CLI
-//		DISABLE_PREEMPTION
-//		STI
 		available_data = (tcp_queue->nxt_rcv - 1) > tcp_queue->wnd_min;
 	}
 
@@ -174,9 +189,7 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		}
 	}
 	tcp_queue->wnd_size += data_len;
-EXIT:
-	//ENABLE PREEMPTION OR SOFT IRQ
-//	ENALBLE_PREEMPTION
+	RESTORE_IF_STATUS
 	return ret;
 }
 
@@ -186,27 +199,22 @@ EXIT:
 //CURRENTLY IT WORKS WITH INTERRUPTS DISABLED
 int enqueue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 {
-	t_tcp_snd_queue* tcp_queue = tcp_conn_desc->snd_queue;
+	t_tcp_snd_queue* tcp_queue = NULL;
 	u32 cur_index;
 	u32 b_free_size;
 	u32 wnd_max;
 	u32 len_1;
 	u32 len_2;
 
-	//DISABLE PREEMPTION OR SOFT IRQ
-//	DISABLE_PREEMPTION
+	SAVE_IF_STATUS
+	CLI
+	tcp_queue = tcp_conn_desc->snd_queue;
 	wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
 	b_free_size = wnd_max - tcp_queue->cur;
 	if (b_free_size < data_len)
 	{
 		return -1;
 	}
-// DEAD CODE?????
-//	if (tcp_snd_queue->cur < tcp_queue->buf_max) 
-//	{
-//		kmemcpy(tcp_queue->buf[tcp_snd_queue->buf_cur],data,data_len);
-//		INC_WND(tcp_snd_queue->buf_cur,tcp_snd_queue->buf_size,data_len);
-//	}
 	else
 	{
 		cur_index = SLOT_WND(tcp_queue->cur,tcp_queue->buf_size);
@@ -224,10 +232,8 @@ int enqueue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 			tcp_queue->cur += data_len;
 		}
 	}
-	//ENABLE PREEMPTION OR SOFT IRQ
-//	ENABLE_PREEMPTION
-	
 	//vedi commento sopra
 	update_snd_window(tcp_conn_desc,0,1);
+	RESTORE_IF_STATUS
 }
 

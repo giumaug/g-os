@@ -79,10 +79,10 @@ void socket_free(t_socket* socket)
 	kfree(socket);
 } 
 /* NOTE:_open_socket,_bind,_connect,_listen,_accept,_rcvfrom,_send_to,_close_socket,
-		are free lock because process context keeps duplicated copy of socket.All possible
-		race is in tcp_conn_desc that is shared.Here race among processes is avoided disabling
-		preemption.This protect tcp_conn_desc aganist race between interrupt paths and
-		exception paths.
+	 are free lock because process context keeps duplicated copy of socket.All possible
+	 race is in tcp_conn_desc that is shared.Race on tcp_conn_desc is avoided disabling 
+	 interrupt on tcp system call.There are no other way because this is a race beetwen
+	 exception and interrupt path.
 */
 
 int _open_socket(t_socket_desc* socket_desc,int type) 

@@ -453,7 +453,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 
 	//close connection with FIN flag both client and server	
 	//FIN needs retrasmission management only. No retry.
-	if (tcp_queue->wnd_min == tcp_queue->cur && (tcp_conn_desc->status == ESTABILISHED || tcp_conn_desc->status == CLOSE_WAIT ))
+	if (tcp_queue->wnd_min == tcp_queue->cur && tcp_conn_desc->status == FIN_WAIT_1 )
 	{
 		tcp_conn_desc->seq_num++;
 		send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,FLG_FIN);
