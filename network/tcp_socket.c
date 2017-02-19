@@ -115,6 +115,7 @@ void close_tcp(t_tcp_conn_desc* tcp_conn_desc)
 	if (tcp_conn_desc->snd_queue->wnd_min == tcp_conn_desc->snd_queue->cur)
 	{
 		tcp_conn_desc->seq_num++;
+		tcp_conn_desc->fin_num = tcp_conn_desc->seq_num;
 		send_packet_tcp(tcp_conn_desc,NULL,0,0,FLG_FIN);
 	}
 	if (tcp_conn_desc->status = ESTABILISHED)
