@@ -54,8 +54,8 @@
 
 //timout=200 ms (quantum = 10 ms)
 #define PIGGYBACKING_TIMEOUT 20 
-//3 sec
-#define DEFAULT_RTO 300
+//3 sec should be 300
+#define DEFAULT_RTO 500
 #define SRTT_FACTOR 0.8
 
 typedef struct s_tcp_snd_queue

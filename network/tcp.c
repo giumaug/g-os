@@ -585,7 +585,6 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 	tcp_queue = tcp_conn_desc->snd_queue;
 	if (data_to_send > 0)
 	{
-		offset = SLOT_WND(indx,TCP_SND_SIZE);
 		flags = FLG_ACK;
 		if (tcp_conn_desc->pgybg_timer->val != 0 && tcp_conn_desc->pgybg_timer->ref != NULL)
 		{
@@ -596,6 +595,7 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 
 		while (data_to_send >= SMSS)
 		{
+			offset = SLOT_WND(indx,TCP_SND_SIZE);
 			if (offset + SMSS <= TCP_SND_SIZE)
 			{
 				send_packet_tcp(tcp_conn_desc,tcp_queue->buf[offset],SMSS,ack_num,flags);
@@ -611,7 +611,8 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 			offset += SMSS;
 		}
 		if (data_to_send > 0)
-		{	
+		{
+			offset = SLOT_WND(indx,TCP_SND_SIZE);	
 			if (offset + data_to_send <= TCP_SND_SIZE)
 			{
 				send_packet_tcp(tcp_conn_desc,tcp_queue->buf[offset],data_to_send,ack_num,flags);
