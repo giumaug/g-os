@@ -103,7 +103,8 @@ int connect_tcp(u32 dst_ip,u16 dst_port,t_socket* socket)
 	tcp_conn_map_put(tcp_req_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
 	//SYN NEED RETRASMISSION TIMEOUT MANAGEMENT ONLY.NO RETRY	
 	send_packet_tcp(tcp_conn_desc,NULL,0,0,FLG_SYN);
-
+	CURRENT_PROCESS_CONTEXT(tcp_conn_desc->process_context);
+	_sleep();
 	RESTORE_IF_STATUS
 	return 0;
 }

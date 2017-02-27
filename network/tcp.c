@@ -217,6 +217,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 				ll_delete_node(tcp_req_desc->rtrsn_timer->ref);
 				tcp_req_desc->rtrsn_timer->ref = NULL;
 			}
+			_awake(tcp_req_desc->process_context);
 		}
 		//RETRY
 		else if (tcp_conn_desc != NULL)
@@ -316,7 +317,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	{
 		//SHOULD BE CLOSE_WAIT AND SHOULD BE MANAGED 2MLS TIMER (TCP ILLUSTRATED PAG 590)
 		tcp_conn_desc->status = CLOSED;
-		tcp_conn_desc->fin_num = ack_seq_num;
+		tcp_conn_desc->seq_num = tcp_conn_desc->fin_num + 1;
 		send_packet_tcp(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK);
 		tcp_conn_desc_free(tcp_conn_desc);
 		goto EXIT;
@@ -334,7 +335,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		
 		//SHOULD BE CLOSE_WAIT AND SHOULD BE MANAGED 2MLS TIMER (TCP ILLUSTRATED PAG 590)
 		tcp_conn_desc->status = CLOSED;
-		tcp_conn_desc->seq_num = ack_seq_num;
+		tcp_conn_desc->seq_num = tcp_conn_desc->fin_num + 1;
 		send_packet_tcp(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK);
 		tcp_conn_desc_free(tcp_conn_desc);
 		goto EXIT;
@@ -470,9 +471,9 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	u32 wnd_max;
 	u32 word_to_ack;
 	u32 expected_ack;
-	u32 indx;
+	u32 indx = 0;
 	t_tcp_snd_queue* tcp_queue = NULL;
-	u8 flags=0;
+	u8 flags = 0;
 	u32 ack_num;
 	u32 data_to_send;
 	u32 wnd_l_limit;
