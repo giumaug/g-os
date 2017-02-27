@@ -82,6 +82,8 @@ t_tcp_conn_desc* tcp_conn_desc_int()
 	tcp_conn_desc->duplicated_ack = 0;
 	tcp_conn_desc->last_sent_time = 0;
 	tcp_conn_desc->flight_size = 0;
+	tcp_conn_desc->syn_num = 0;
+	tcp_conn_desc->fin_num = 0;
 	return tcp_conn_desc;
 }
 
@@ -283,29 +285,61 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	t_tcp_rcv_queue* tcp_queue = tcp_conn_desc->rcv_queue;
 	upd_max_adv_wnd(tcp_conn_desc,rcv_wmd_adv);
 	
-	//FIN REQUEST BOTH FROM SERVER AND CLIENT
-	if (flags & FLG_FIN && (tcp_conn_desc->status == FIN_WAIT_2 || tcp_conn_desc->status == FIN_WAIT_2 == ESTABILISHED ))
+//	//FIN REQUEST BOTH FROM SERVER AND CLIENT
+//	if (flags & FLG_FIN && (tcp_conn_desc->status == FIN_WAIT_2 || tcp_conn_desc->status == FIN_WAIT_2 == ESTABILISHED ))
+// 	da correggere anche con gestione fin lato server
+//	if (flags & FLG_FIN && tcp_conn_desc->status == FIN_WAIT_1 )
+//	{
+//		if (tcp_conn_desc->status == FIN_WAIT_2 )
+//		{
+//			//SHOULD BE CLOSE_WAIT AND SHOULD BE MANAGED 2MLS TIMER (TCP ILLUSTRATED PAG 590)
+//			tcp_conn_desc->status = CLOSED;
+//			tcp_conn_desc->seq_num++;
+//			send_packet_tcp(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK);
+//			tcp_conn_desc_free(tcp_conn_desc);
+//		}
+//		//WE CAN ENTER IN CLOSE CONNECTION PHASE IF ALL PACKETS HAVE BEEN ACKNOWLEDGED ONLY
+//		else if (tcp_conn_desc->status == ESTABILISHED && tcp_conn_desc->rcv_queue->nxt_rcv == seq_num)
+//		{
+//			tcp_conn_desc->status = TIME_WAIT;
+//			index = SLOT_WND(seq_num,tcp_queue->buf_size);
+//			kmemcpy(tcp_queue->buf + index,EOF,1);
+//			send_packet_tcp(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK);
+//			goto EXIT;
+//		}
+//	}
+
+//	FIN,ACK OR FIN AND ACK FROM SERVER
+	if (flags & (FLG_FIN | FLG_ACK) 
+	    && tcp_conn_desc->status == FIN_WAIT_1 
+	    && tcp_conn_desc->fin_num + 1 == ack_seq_num)
 	{
-		if (tcp_conn_desc->status == FIN_WAIT_2 )
-		{
-			//SHOULD BE CLOSE_WAIT AND SHOULD BE MANAGED 2MLS TIMER (TCP ILLUSTRATED PAG 590)
-			tcp_conn_desc->status = CLOSED;
-			tcp_conn_desc->seq_num++;
-			send_packet_tcp(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK);
-			tcp_conn_desc_free(tcp_conn_desc);
-		}
-		//WE CAN ENTER IN CLOSE CONNECTION PHASE IF ALL PACKETS HAVE BEEN ACKNOWLEDGED ONLY
-		else if (tcp_conn_desc->status == ESTABILISHED && tcp_conn_desc->rcv_queue->nxt_rcv == seq_num)
-		{
-			tcp_conn_desc->status = TIME_WAIT;
-			index = SLOT_WND(seq_num,tcp_queue->buf_size);
-			kmemcpy(tcp_queue->buf + index,EOF,1);
-			send_packet_tcp(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK);
-			goto EXIT;
-		}
+		//SHOULD BE CLOSE_WAIT AND SHOULD BE MANAGED 2MLS TIMER (TCP ILLUSTRATED PAG 590)
+		tcp_conn_desc->status = CLOSED;
+		tcp_conn_desc->fin_num = ack_seq_num;
+		send_packet_tcp(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK);
+		tcp_conn_desc_free(tcp_conn_desc);
+		goto EXIT;
 	}
-	
-	if (data_len != 0)
+	else if (flags & FLG_ACK 
+	    	 && tcp_conn_desc->status == FIN_WAIT_1 
+	    	 && tcp_conn_desc->fin_num + 1 == ack_seq_num)
+	{
+		tcp_conn_desc->status = FIN_WAIT_2;
+		goto EXIT;
+	}
+	else if (flags & FLG_FIN 
+	    	 && tcp_conn_desc->status == FIN_WAIT_2)
+	{
+		
+		//SHOULD BE CLOSE_WAIT AND SHOULD BE MANAGED 2MLS TIMER (TCP ILLUSTRATED PAG 590)
+		tcp_conn_desc->status = CLOSED;
+		tcp_conn_desc->seq_num = ack_seq_num;
+		send_packet_tcp(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK);
+		tcp_conn_desc_free(tcp_conn_desc);
+		goto EXIT;
+	}
+	else if (data_len != 0)
 	{
 		wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
 		if (seq_num >= tcp_queue->wnd_min && seq_num + data_len <= wnd_max)
@@ -577,7 +611,7 @@ EXIT:
 	//FIN needs retrasmission management only. No retry.
 	if (tcp_queue->wnd_min == tcp_queue->cur && tcp_conn_desc->status == FIN_WAIT_1 )
 	{
-		tcp_conn_desc->seq_num++;
+		tcp_conn_desc->fin_num = tcp_conn_desc->seq_num;
 		send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,FLG_FIN | FLG_ACK);
 	}
 }
