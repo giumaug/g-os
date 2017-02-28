@@ -200,24 +200,24 @@ int _recvfrom(t_socket_desc* socket_desc,int sockfd,unsigned char* src_ip,unsign
 	unsigned int _src_port; 
 
 	socket = hashtable_get(socket_desc->sd_map,sockfd);
-
-	_src_port = GET_WORD(data_sckt_buf->transport_hdr[0],data_sckt_buf->transport_hdr[1]);
-	_src_ip = GET_DWORD(data_sckt_buf->network_hdr[12],data_sckt_buf->network_hdr[13],data_sckt_buf->network_hdr[14],data_sckt_buf->network_hdr[15]);
-	read_data = GET_WORD(data_sckt_buf->transport_hdr[4],data_sckt_buf->transport_hdr[5])-HEADER_UDP;
-
-	src_ip[0] = (_src_ip & 0xFF000000)>>24;
-	src_ip[1] = (_src_ip & 0xFF0000)>>16;
-	src_ip[2] = (_src_ip & 0xFF00)>>8;
-	src_ip[3] = (_src_ip & 0xFF);
-
-	src_port[0] = (_src_port & 0xFF00)>>8;
-	src_port[1] = (_src_port & 0xFF);
-
 	if (socket != NULL)
 	{
 		if (socket->type == 2)
 		{
 			SPINLOCK_LOCK(*socket->lock);
+
+			_src_port = GET_WORD(data_sckt_buf->transport_hdr[0],data_sckt_buf->transport_hdr[1]);
+			_src_ip = GET_DWORD(data_sckt_buf->network_hdr[12],data_sckt_buf->network_hdr[13],data_sckt_buf->network_hdr[14],data_sckt_buf->network_hdr[15]);
+			read_data = GET_WORD(data_sckt_buf->transport_hdr[4],data_sckt_buf->transport_hdr[5])-HEADER_UDP;
+
+			src_ip[0] = (_src_ip & 0xFF000000)>>24;
+			src_ip[1] = (_src_ip & 0xFF0000)>>16;
+			src_ip[2] = (_src_ip & 0xFF00)>>8;
+			src_ip[3] = (_src_ip & 0xFF);
+
+			src_port[0] = (_src_port & 0xFF00)>>8;
+			src_port[1] = (_src_port & 0xFF);
+
 			data_sckt_buf = dequeue(socket->udp_rx_queue);
 			if (data_sckt_buf == NULL)
 			{

@@ -12,7 +12,6 @@
 void main()
 {
 	int sid;
-	//char s[100] = {};
 	char s1[100] = {};
 	char s[] = "a";
 	char buffer_1[16384];
@@ -75,6 +74,9 @@ void main()
 			index=4000;
 		}
 		printf("sent %d \n",index);
+		read_socket(sid,(void*)s1,sizeof(s1));
+		printf("\n The receiveddd string is:%s\n",s1);
+
 	}
 	close_socket(sid);
 	exit(0);

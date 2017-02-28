@@ -134,7 +134,7 @@ static void update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue)
 	wnd_max = index + tcp_queue->wnd_size;
 	while(index <= wnd_max)
 	{
-		state_index = SLOT_WND(index,((tcp_queue->buf_size / 8) + 1));
+		state_index = SLOT_WND(index,tcp_queue->buf_size);
 		slot_state = bit_vector_get(tcp_queue->buf_state,state_index);
 		if (slot_state != 0)
 		{

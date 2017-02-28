@@ -99,7 +99,7 @@ int read_socket(int sockfd, void *buf, int count)
 	params[2] = 0;
 	params[3] = buf;
 	params[4] = count;
-	SYSCALL(31,params);
+	SYSCALL(30,params);
 	return  params[5];
 }
 
