@@ -150,12 +150,12 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	CLI
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 	tcp_queue = tcp_conn_desc->rcv_queue;
-	available_data = (tcp_queue->nxt_rcv - 1) > tcp_queue->wnd_min;
+	available_data = tcp_queue->nxt_rcv - tcp_queue->wnd_min;
 	while (available_data == 0)
 	{
 		enqueue(tcp_conn_desc->data_wait_queue,current_process_context);
 		_sleep();
-		available_data = (tcp_queue->nxt_rcv - 1) > tcp_queue->wnd_min;
+		available_data = tcp_queue->nxt_rcv - tcp_queue->wnd_min;
 	}
 
 	if (available_data > 0 && available_data < data_len)
@@ -164,7 +164,7 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	}
 
 	low_index = SLOT_WND(tcp_queue->wnd_min,tcp_queue->buf_size);
-	hi_index = SLOT_WND(tcp_queue->wnd_min + data_len,tcp_queue->buf_size);
+	hi_index = SLOT_WND((tcp_queue->wnd_min + data_len),tcp_queue->buf_size);
 
 	if (low_index < hi_index) 
 	{

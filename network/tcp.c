@@ -391,15 +391,14 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			}
 		}
 		update_rcv_window_and_ack(tcp_queue);
+		process_context = dequeue(tcp_conn_desc->data_wait_queue);
+		if (process_context != NULL)
+		{
+			_awake(process_context);
+		}
 	}
 	rcv_ack(tcp_conn_desc,ack_seq_num);
 	update_snd_window(tcp_conn_desc,ack_seq_num,data_len);
-	process_context = dequeue(tcp_conn_desc->data_wait_queue);
-	if (process_context != NULL)
-	{
-		_awake(process_context);
-	}
-
 EXIT:
 		free_sckt(data_sckt_buf);
 }
