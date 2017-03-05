@@ -111,13 +111,24 @@ int connect_tcp(u32 dst_ip,u16 dst_port,t_socket* socket)
 
 void close_tcp(t_tcp_conn_desc* tcp_conn_desc)
 {
+	u8 flags = 0;
+	u32 ack_num = 0;
+
 	SAVE_IF_STATUS
 	CLI
+	flags = FLG_FIN;
 	if (tcp_conn_desc->snd_queue->wnd_min == tcp_conn_desc->snd_queue->cur)
 	{
-		tcp_conn_desc->seq_num++;
+		if (tcp_conn_desc->pgybg_timer->ref != NULL)
+		{
+			flags |= FLG_ACK;
+			ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;
+			ll_delete_node(tcp_conn_desc->pgybg_timer->ref);
+			tcp_conn_desc->pgybg_timer->ref = NULL;
+		}
+		tcp_conn_desc->seq_num++;------------qui + flag e stess cosa su tcp
 		tcp_conn_desc->fin_num = tcp_conn_desc->seq_num;
-		send_packet_tcp(tcp_conn_desc,NULL,0,0,FLG_FIN);
+		send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,FLG_FIN);
 	}
 	if (tcp_conn_desc->status = ESTABILISHED)
 	{
@@ -151,6 +162,8 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 	tcp_queue = tcp_conn_desc->rcv_queue;
 	available_data = tcp_queue->nxt_rcv - tcp_queue->wnd_min;
+	printk("min=%d \n",tcp_queue->wnd_min);
+	printk("nxt=%d \n",tcp_queue->nxt_rcv);
 	while (available_data == 0)
 	{
 		enqueue(tcp_conn_desc->data_wait_queue,current_process_context);
@@ -163,6 +176,7 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		data_len = available_data;
 	}
 
+	printk("rcv is %d \n",tcp_queue->nxt_rcv);
 	low_index = SLOT_WND(tcp_queue->wnd_min,tcp_queue->buf_size);
 	hi_index = SLOT_WND((tcp_queue->wnd_min + data_len),tcp_queue->buf_size);
 
@@ -191,6 +205,7 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		}
 	}
 	tcp_queue->wnd_size += data_len;
+	tcp_queue->wnd_min += data_len;
 	RESTORE_IF_STATUS
 	return ret;
 }

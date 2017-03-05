@@ -351,8 +351,8 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 
 			if (low_index < hi_index) 
 			{
-				kmemcpy(tcp_queue->buf + low_index,data_sckt_buf->data,data_len);
-				for (i = low_index;i <= hi_index;i++)
+				kmemcpy(tcp_queue->buf + low_index,data_sckt_buf->transport_hdr+HEADER_TCP,data_len);
+				for (i = low_index;i < hi_index;i++)
 				{
 					slot_state = bit_vector_get(tcp_queue->buf_state,i);
 					if (slot_state == 0)
@@ -370,7 +370,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 				kmemcpy(tcp_queue->buf + low_index,data_sckt_buf->data,len_1);
 				kmemcpy(tcp_queue->buf,data_sckt_buf->data+len_1,len_2);
 
-				for (i = low_index;i <= len_1;i++)
+				for (i = low_index;i < len_1;i++)
 				{
 					slot_state = bit_vector_get(tcp_queue->buf_state,i);
 					if (slot_state == 0)
@@ -379,7 +379,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 						tcp_queue->wnd_size--;
 					}	
 				}
-				for (i = 0;i <= len_2;i++)
+				for (i = 0;i < len_2;i++)
 				{
 					slot_state = bit_vector_get(tcp_queue->buf_state,i);
 					if (slot_state == 0)
@@ -402,36 +402,12 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 EXIT:
 		free_sckt(data_sckt_buf);
 }
-
-//	if good ack
-//	{
-//        	if cwnd<ssthresh cwnd+=SMSS                    //slow start SMSS sender maximum segment size (13.8) usiamo valore
-//							       // costante 1454=MTU_ETH-HEADER_TCP-HEADER_IP-HEADER_ETH
-//		
-//		if cwnd>ssthresh cwnd+=SMSS*(SMSS/cwnd)        //congestion avoidance
-//	}
-//
-//	else if third duplicate ack                            //start fast retrasmit
-//	{
-//
-//		while (!good ack received)
-//		{
-//			ssthresh=max(flight_size/2,2*SMSS)            //flight size=min(cwnd,awnd)
-//
-//			retrasmit packet signaled by duplicated ack
-//
-//			cwnd+=SMSS for each ack duplicated ack received
-//		}
-//		cwnd=ssthresh
-//	}
-//	update window edges
-
+	
 static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 {
 	t_tcp_snd_queue* tcp_queue = NULL;
 	u32 rtt = 0;
 
-	//printk("duplicate ack= %d \n",tcp_conn_desc->duplicated_ack);
 	if (tcp_conn_desc->snd_queue->wnd_min <= ack_seq_num)
 	{
 		if (tcp_conn_desc->duplicated_ack > 0)
@@ -732,8 +708,7 @@ void pgybg_timer_handler(void* arg)
 
 	tcp_conn_desc = (t_tcp_conn_desc*) arg;
 	flags = FLG_ACK;
-	ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;	
-	tcp_conn_desc->rcv_queue->nxt_rcv = 0;			
+	ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;				
 	send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,flags);
 	if (tcp_conn_desc->pgybg_timer->ref != NULL)
 	{
