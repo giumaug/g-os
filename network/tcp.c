@@ -588,8 +588,15 @@ EXIT:
 	//FIN needs retrasmission management only. No retry.
 	if (tcp_queue->wnd_min == tcp_queue->cur && tcp_conn_desc->status == FIN_WAIT_1 )
 	{
+		if (tcp_conn_desc->pgybg_timer->ref != NULL)
+		{
+			ll_delete_node(tcp_conn_desc->pgybg_timer->ref);
+			tcp_conn_desc->pgybg_timer->ref = NULL;
+		}
+
 		tcp_conn_desc->fin_num = tcp_conn_desc->seq_num;
 		send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,FLG_FIN | FLG_ACK);
+		printk("fin from fix2 \n");
 	}
 }
 

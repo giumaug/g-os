@@ -126,9 +126,10 @@ void close_tcp(t_tcp_conn_desc* tcp_conn_desc)
 			ll_delete_node(tcp_conn_desc->pgybg_timer->ref);
 			tcp_conn_desc->pgybg_timer->ref = NULL;
 		}
-		tcp_conn_desc->seq_num++;------------qui + flag e stess cosa su tcp
+		//tcp_conn_desc->seq_num++;
 		tcp_conn_desc->fin_num = tcp_conn_desc->seq_num;
-		send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,FLG_FIN);
+		send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,flags);
+		printk("fin from fix1 \n");
 	}
 	if (tcp_conn_desc->status = ESTABILISHED)
 	{
