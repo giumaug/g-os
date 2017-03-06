@@ -311,20 +311,27 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 //		}
 //	}
 
+//START ACTIVE CLOSE
 //	FIN,ACK OR FIN AND ACK FROM SERVER
 	if (flags & (FLG_FIN | FLG_ACK) 
-	    && tcp_conn_desc->status == FIN_WAIT_1 
-	    && tcp_conn_desc->fin_num + 1 == ack_seq_num)
+	    && tcp_conn_desc->status == FIN_WAIT_1)
 	{
-		//SHOULD BE CLOSE_WAIT AND SHOULD BE MANAGED 2MLS TIMER (TCP ILLUSTRATED PAG 590)
-		tcp_conn_desc->status = CLOSED;
-		tcp_conn_desc->seq_num = tcp_conn_desc->fin_num + 1;
-		send_packet_tcp(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK);
-		tcp_conn_desc_free(tcp_conn_desc);
-		goto EXIT;
+		if (tcp_conn_desc->fin_num + 1 == ack_seq_num)
+		{
+			//SHOULD BE CLOSE_WAIT AND SHOULD BE MANAGED 2MLS TIMER (TCP ILLUSTRATED PAG 590)
+			tcp_conn_desc->status = CLOSED;
+			tcp_conn_desc->seq_num = tcp_conn_desc->fin_num + 1;
+			send_packet_tcp(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK);
+			tcp_conn_desc_free(tcp_conn_desc);
+			goto EXIT;
+		}
+		else
+		{
+			//TO CHECK RETRY SU FIN WITH WRONG ACK
+		}
 	}
 	else if (flags & FLG_ACK 
-	    	 && tcp_conn_desc->status == FIN_WAIT_1 
+	    	 && tcp_conn_desc->status == FIN_WAIT_1
 	    	 && tcp_conn_desc->fin_num + 1 == ack_seq_num)
 	{
 		tcp_conn_desc->status = FIN_WAIT_2;
@@ -333,7 +340,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	else if (flags & FLG_FIN 
 	    	 && tcp_conn_desc->status == FIN_WAIT_2)
 	{
-		
+		-------------------qui!!!!!!!!!!!!!!!!!!!!
 		//SHOULD BE CLOSE_WAIT AND SHOULD BE MANAGED 2MLS TIMER (TCP ILLUSTRATED PAG 590)
 		tcp_conn_desc->status = CLOSED;
 		tcp_conn_desc->seq_num = tcp_conn_desc->fin_num + 1;
@@ -341,6 +348,51 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		tcp_conn_desc_free(tcp_conn_desc);
 		goto EXIT;
 	}
+//END ACTIVE CLOSE
+
+//START PASSIVE CLOSE
+//	FIN,ACK OR FIN AND ACK FROM CLIENT
+	else if (flags & (FLG_FIN | FLG_ACK) 
+	    && tcp_conn_desc->status == ESTABILISHED)
+	{
+		if (tcp_conn_desc->tcp_queue->nxt_snd == ack_seq_num)
+		{
+			tcp_conn_desc->status = CLOSE_WAIT;
+			tcp_conn_desc->seq_num = tcp_conn_desc->fin_num + 1;
+			send_packet_tcp(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK);
+			tcp_conn_desc_free(tcp_conn_desc);
+			goto EXIT;
+		}
+		else
+		{
+			//TO CHECK RETRY ON FIN WITH WRONG ACK	
+		}
+	}
+	else if (flags & FLG_ACK 
+	    	 && tcp_conn_desc->status == FIN_WAIT_1
+	    	 && tcp_conn_desc->fin_num + 1 == ack_seq_num)
+	{
+		tcp_conn_desc->status = FIN_WAIT_2;
+		goto EXIT;
+	}
+	else if (flags & FLG_FIN 
+	    	 && tcp_conn_desc->status == FIN_WAIT_2)
+	{
+		if (tcp_conn_desc->tcp_queue->nxt_snd == ack_seq_num)
+		{
+			tcp_conn_desc->status = CLOSED;
+			tcp_conn_desc->seq_num = tcp_conn_desc->fin_num + 1;
+			send_packet_tcp(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK);
+			tcp_conn_desc_free(tcp_conn_desc);
+			goto EXIT;
+		}
+		else
+		{
+			//TO CHECK RETRY ON FIN WITH WRONG ACK
+		}
+	}
+//END PASSIVE CLOSE
+
 	else if (data_len != 0)
 	{
 		wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;

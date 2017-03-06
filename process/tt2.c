@@ -88,7 +88,7 @@ void main()
 		write_socket(sid,s,5);
 		read_socket(sid,(void*)s1,sizeof(s1));
 		printf("\n The receiveddd string is:%s\n",s1);
-		while(1);
+		//while(1);
 	}
 	close_socket(sid);
 	exit(0);
