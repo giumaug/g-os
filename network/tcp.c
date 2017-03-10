@@ -287,7 +287,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	if (tcp_conn_desc->status != ESTABILISHED && tcp_conn_desc->status != FIN_WAIT_1 && tcp_conn_desc->status != FIN_WAIT_2)
 	{
 		goto EXIT;
-	}------------non va bene.ho due problemi fin da ritrasmettere e ack duplicato dopo fin.Quest'ultimo caso va gestito dentro logica del fin
+	}
 
 	t_tcp_rcv_queue* tcp_queue = tcp_conn_desc->rcv_queue;
 	upd_max_adv_wnd(tcp_conn_desc,rcv_wmd_adv);
