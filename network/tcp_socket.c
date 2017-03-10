@@ -226,32 +226,34 @@ int enqueue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 
 	SAVE_IF_STATUS
 	CLI
-	tcp_queue = tcp_conn_desc->snd_queue;
-	wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
-	b_free_size = wnd_max - tcp_queue->cur;
-	if (b_free_size < data_len)
+	if (tcp_conn_desc->status == ESTABILISHED || tcp_conn_desc->status == CLOSE_WAIT)
 	{
-		return -1;
-	}
-	else
-	{
-		cur_index = SLOT_WND(tcp_queue->cur,tcp_queue->buf_size);
-		if ((tcp_queue->buf_size - cur_index) > data_len)
+		tcp_queue = tcp_conn_desc->snd_queue;
+		wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
+		b_free_size = wnd_max - tcp_queue->cur;
+		if (b_free_size < data_len)
 		{
-			kmemcpy(tcp_queue->buf[cur_index],data,data_len);
-			tcp_queue->cur += data_len;
+			return -1;
 		}
 		else
 		{
-			len_1 = tcp_queue->buf_size - cur_index;
-			len_2 = data_len - len_1;
-			kmemcpy(tcp_queue->buf[cur_index],data,len_1);
-			kmemcpy(tcp_queue->buf[0],data,len_2);
-			tcp_queue->cur += data_len;
+			cur_index = SLOT_WND(tcp_queue->cur,tcp_queue->buf_size);
+			if ((tcp_queue->buf_size - cur_index) > data_len)
+			{
+				kmemcpy(tcp_queue->buf[cur_index],data,data_len);
+				tcp_queue->cur += data_len;
+			}
+			else
+			{
+				len_1 = tcp_queue->buf_size - cur_index;
+				len_2 = data_len - len_1;
+				kmemcpy(tcp_queue->buf[cur_index],data,len_1);
+				kmemcpy(tcp_queue->buf[0],data,len_2);
+				tcp_queue->cur += data_len;
+			}
 		}
+		//vedi commento sopra
+		update_snd_window(tcp_conn_desc,0,1);
 	}
-	//vedi commento sopra
-	update_snd_window(tcp_conn_desc,0,1);
 	RESTORE_IF_STATUS
 }
-

@@ -195,7 +195,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	{ 
 		goto EXIT;
 	}
-
+	
 	//THREE WAY HANDSHAKE SYN + ACK FROM SERVER TO CLIENT
 	if ((flags & FLG_SYN) && (flags & FLG_ACK) && (tcp_req_desc != NULL || tcp_conn_desc !=NULL))
 	{
@@ -284,6 +284,11 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	{
 		goto EXIT;
 	}
+	if (tcp_conn_desc->status != ESTABILISHED && tcp_conn_desc->status != FIN_WAIT_1 && tcp_conn_desc->status != FIN_WAIT_2)
+	{
+		goto EXIT;
+	}
+
 	t_tcp_rcv_queue* tcp_queue = tcp_conn_desc->rcv_queue;
 	upd_max_adv_wnd(tcp_conn_desc,rcv_wmd_adv);
 	
@@ -357,43 +362,11 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 
 //START PASSIVE CLOSE
 //	FIN,ACK OR FIN AND ACK FROM CLIENT
-	else if (flags & (FLG_FIN | FLG_ACK) 
+	else if ((flags & FLG_FIN) 
 	    && tcp_conn_desc->status == ESTABILISHED)
 	{
-		if (tcp_conn_desc->tcp_queue->nxt_snd == ack_seq_num)
-		{
-			tcp_conn_desc->status = CLOSE_WAIT;
-			tcp_conn_desc->seq_num = tcp_conn_desc->fin_num + 1;
-			send_packet_tcp(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK);
-			goto EXIT;
-		}
-		else
-		{
-			//TO CHECK RETRY ON FIN WITH WRONG ACK	
-		}
-	}
-	else if (flags & FLG_ACK 
-	    	 && tcp_conn_desc->status == LAST_ACK
-	    	 && tcp_conn_desc->fin_num + 1 == ack_seq_num)
-	{
-		tcp_conn_desc->status = CLOSED;
-		tcp_conn_desc_free(tcp_conn_desc);
-		goto EXIT;
-	}
-	else if (flags & FLG_FIN 
-	    	 && tcp_conn_desc->status == ESTABILISHED)
-	{
-		if (tcp_conn_desc->tcp_queue->nxt_snd == ack_seq_num)
-		{
-			tcp_conn_desc->status = CLOSE_WAIT;
-			tcp_conn_desc->seq_num = tcp_conn_desc->fin_num + 1;
-			send_packet_tcp(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK);
-			goto EXIT;
-		}
-		else
-		{
-			//TO CHECK RETRY ON FIN WITH WRONG ACK
-		}
+		tcp_conn_desc->status = CLOSE_WAIT;
+		send_packet_tcp(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK);
 	}
 //END PASSIVE CLOSE
 
