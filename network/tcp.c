@@ -287,34 +287,10 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	if (tcp_conn_desc->status != ESTABILISHED && tcp_conn_desc->status != FIN_WAIT_1 && tcp_conn_desc->status != FIN_WAIT_2)
 	{
 		goto EXIT;
-	}
+	}------------non va bene.ho due problemi fin da ritrasmettere e ack duplicato dopo fin.Quest'ultimo caso va gestito dentro logica del fin
 
 	t_tcp_rcv_queue* tcp_queue = tcp_conn_desc->rcv_queue;
 	upd_max_adv_wnd(tcp_conn_desc,rcv_wmd_adv);
-	
-//	//FIN REQUEST BOTH FROM SERVER AND CLIENT
-//	if (flags & FLG_FIN && (tcp_conn_desc->status == FIN_WAIT_2 || tcp_conn_desc->status == FIN_WAIT_2 == ESTABILISHED ))
-// 	da correggere anche con gestione fin lato server
-//	if (flags & FLG_FIN && tcp_conn_desc->status == FIN_WAIT_1 )
-//	{
-//		if (tcp_conn_desc->status == FIN_WAIT_2 )
-//		{
-//			//SHOULD BE CLOSE_WAIT AND SHOULD BE MANAGED 2MLS TIMER (TCP ILLUSTRATED PAG 590)
-//			tcp_conn_desc->status = CLOSED;
-//			tcp_conn_desc->seq_num++;
-//			send_packet_tcp(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK);
-//			tcp_conn_desc_free(tcp_conn_desc);
-//		}
-//		//WE CAN ENTER IN CLOSE CONNECTION PHASE IF ALL PACKETS HAVE BEEN ACKNOWLEDGED ONLY
-//		else if (tcp_conn_desc->status == ESTABILISHED && tcp_conn_desc->rcv_queue->nxt_rcv == seq_num)
-//		{
-//			tcp_conn_desc->status = TIME_WAIT;
-//			index = SLOT_WND(seq_num,tcp_queue->buf_size);
-//			kmemcpy(tcp_queue->buf + index,EOF,1);
-//			send_packet_tcp(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK);
-//			goto EXIT;
-//		}
-//	}
 
 //START ACTIVE CLOSE
 //	FIN,ACK OR FIN AND ACK FROM SERVER
@@ -342,21 +318,24 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		tcp_conn_desc->status = FIN_WAIT_2;
 		goto EXIT;
 	}
-	else if (flags & FLG_FIN)
+	else if (flags & FLG_ACK 
+	    	 && tcp_conn_desc->status == FIN_WAIT_2
+	    	 && data_len > 0)
 	{
-		if (tcp_conn_desc->status == FIN_WAIT_2)
-		{
-			//SHOULD BE CLOSE_WAIT AND SHOULD BE MANAGED 2MLS TIMER (TCP ILLUSTRATED PAG 590)
-			tcp_conn_desc->status = CLOSED;
-			tcp_conn_desc->seq_num = tcp_conn_desc->fin_num + 1;
-			send_packet_tcp(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK);
-			tcp_conn_desc_free(tcp_conn_desc);
-			goto EXIT;
-		}
-		else
-		{
-			//TO CHECK RETRY SU FIN WITH WRONG ACK
-		}
+		//TO CHECK RETRY SU FIN WITH WRONG ACK
+	}
+	else if (flags & FLG_FIN && tcp_conn_desc->status == FIN_WAIT_2)
+	{
+		//SHOULD BE CLOSE_WAIT AND SHOULD BE MANAGED 2MLS TIMER (TCP ILLUSTRATED PAG 590)
+		tcp_conn_desc->status = CLOSED;
+		tcp_conn_desc->seq_num = tcp_conn_desc->fin_num + 1;
+		send_packet_tcp(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK);
+		tcp_conn_desc_free(tcp_conn_desc);
+		goto EXIT;
+	}
+	else if (flags & FLG_FIN && tcp_conn_desc->status == FIN_WAIT_1)
+	{
+		//TO CHECK RETRY SU FIN WITH WRONG ACK
 	}
 //END ACTIVE CLOSE
 
@@ -368,8 +347,23 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		tcp_conn_desc->status = CLOSE_WAIT;
 		send_packet_tcp(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK);
 	}
-//END PASSIVE CLOSE
+	else if ((flags & FLG_ACK) 
+	    && tcp_conn_desc->status == LAST_ACK
+	    && tcp_conn_desc->fin_num + 1 == ack_seq_num)
+	{
+		tcp_conn_desc_free(tcp_conn_desc);
+		goto EXIT;
+	}
+	else if ((tcp_conn_desc->status == CLOSE_WAIT || tcp_conn_desc->status == LAST_ACK)
+	    	&& data_len > 0)
+	{
+		//TO CHECK RETRY SU FIN WITH WRONG ACK
+		goto EXIT;
+	}
+	
 
+//END PASSIVE CLOSE
+//BUG!!!!!!!!!!!!!!!!!!!!!!!! ONLY NEW DATA
 	else if (data_len != 0)
 	{
 		wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
