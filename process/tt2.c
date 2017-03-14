@@ -91,8 +91,9 @@ void main()
 		//while(1);
 	}
 	sleep(15000);
-	printk("fin called!!!!! \n");
+	printf("fin called!!!!! \n");
 	close_socket(sid);
+	while(1);
 	exit(0);
 }
 //questo e' master

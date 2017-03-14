@@ -117,6 +117,17 @@ void close_tcp(t_tcp_conn_desc* tcp_conn_desc)
 	SAVE_IF_STATUS
 	CLI
 	flags = FLG_FIN;
+	printk("close_tcp called \n");
+
+
+	if ((socket->tcp_conn_desc->status == ESTABILISHED || socket->tcp_conn_desc->status == LAST_ACK) && socket->tcp_conn_desc->ref_count == 0)
+		{
+			close_tcp(socket->tcp_conn_desc);
+		}
+
+
+
+
 	if (tcp_conn_desc->snd_queue->wnd_min == tcp_conn_desc->snd_queue->cur)
 	{
 		if (tcp_conn_desc->pgybg_timer->ref != NULL)
