@@ -90,6 +90,7 @@ void main()
 		printf("\n The receiveddd string is:%s\n",s1);
 		//while(1);
 	}
+	while(1);
 	sleep(15000);
 	printf("fin called!!!!! \n");
 	close_socket(sid);

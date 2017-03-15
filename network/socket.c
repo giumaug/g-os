@@ -67,19 +67,21 @@ void socket_free(t_socket* socket)
 	{
 		free_queue(socket->udp_rx_queue);
 		kfree(socket->lock);
+		kfree(socket);
 	}
 	else  if (socket->type == 1)
 	{
 		printk("---------\n");
 		printk("status=%d \n",socket->tcp_conn_desc->status);
 		printk("ref_count=%d \n",socket->tcp_conn_desc->ref_count);
-		socket->tcp_conn_desc->ref_count--;
-		if ((socket->tcp_conn_desc->status == ESTABILISHED || socket->tcp_conn_desc->status == LAST_ACK) && socket->tcp_conn_desc->ref_count == 0)
+		if ((socket->tcp_conn_desc->status == ESTABILISHED || socket->tcp_conn_desc->status == CLOSE_WAIT) && socket->tcp_conn_desc->ref_count == 1)
 		{
+			socket->tcp_conn_desc->ref_count--;
 			close_tcp(socket->tcp_conn_desc);
+			kfree(socket);
 		}
 	}
-	kfree(socket);okkio free!!!!
+	kfree(socket);
 } 
 /* NOTE:_open_socket,_bind,_connect,_listen,_accept,_rcvfrom,_send_to,_close_socket,
 	 are free lock because process context keeps duplicated copy of socket.All possible
