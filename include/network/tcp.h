@@ -58,6 +58,9 @@
 #define DEFAULT_RTO 500
 #define SRTT_FACTOR 0.8
 
+send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,flags);
+send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,flags);
+
 typedef struct s_tcp_snd_queue
 {
 	char* buf;

@@ -748,7 +748,7 @@ void pgybg_timer_handler(void* arg)
 	tcp_conn_desc->pgybg_timer->val = 0;
 }
 
-int send_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u32 ack_num,u8 flags)
+int __send_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u32 ack_num,u8 flags)
 {
 	u16 chk;
 	char* tcp_payload = NULL;
@@ -801,6 +801,64 @@ int send_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u32 a
 	ret = send_packet_ip4(data_sckt_buf,
 			    tcp_conn_desc->src_ip,
 			    tcp_conn_desc->dst_ip,
+			    (data_len + HEADER_TCP),
+			    TCP_PROTOCOL);
+	return ret;
+}
+
+int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 seq_num,u32 wnd_size,u32 data_len,u32 ack_num,u8 flags)
+{
+	u16 chk;
+	char* tcp_payload = NULL;
+	t_data_sckt_buf* data_sckt_buf = NULL;
+	int ret = NULL;
+	char* tcp_header = NULL;
+	t_tcp_rcv_queue* tcp_queue = NULL;
+	
+	data_sckt_buf = alloc_sckt(data_len + HEADER_ETH + HEADER_IP4 + HEADER_TCP);
+	data_sckt_buf->transport_hdr = data_sckt_buf->data + HEADER_ETH + HEADER_IP4;
+	data_sckt_buf->network_hdr=data_sckt_buf->transport_hdr-HEADER_IP4;
+	tcp_payload = data_sckt_buf->transport_hdr + HEADER_TCP;
+	kmemcpy(tcp_payload,data,data_len);
+	tcp_header = data_sckt_buf->transport_hdr;
+	tcp_queue = tcp_conn_desc->rcv_queue;
+	chk = SWAP_WORD(checksum_tcp((unsigned short*) tcp_header,tcp_conn_desc->src_ip,tcp_conn_desc->dst_ip,data_len));
+	
+	tcp_header[0] = HI_16(src_port);                            //HI SRC PORT
+	tcp_header[1] = LOW_16(src_port);                           //LOW SRC PORT
+	tcp_header[2] = HI_16(dst_port);                            //HI DST PORT
+	tcp_header[3] = LOW_16(dst_port);                           //LOW DST PORT
+
+	tcp_header[4] = HI_OCT_32(seq_num);                         //HIGH SEQ NUM
+	tcp_header[5] = MID_LFT_OCT_32(seq_num);                    //MID LEFT SEQ NUM
+	tcp_header[6] = MID_RGT_OCT_32(seq_num);                    //MID RIGHT SEQ NUM
+	tcp_header[7] = LOW_OCT_32(seq_num);                        //LOW SEQ NUM
+
+	tcp_header[8] = HI_OCT_32(ack_num);                         //HIGH ACK NUM
+	tcp_header[9] = MID_LFT_OCT_32(ack_num);                    //MID LEFT ACK NUM
+	tcp_header[10] = MID_RGT_OCT_32(ack_num);                   //MID RIGHT ACK NUM
+	tcp_header[11] = LOW_OCT_32(ack_num);                       //LOW ACK NUM
+
+	tcp_header[12] = 0x50;                                      //HEADER LEN + 4 RESERVED BIT (5 << 4)
+	tcp_header[13] = flags;                                     //FLAGS
+	tcp_header[14] = HI_16(wnd_size);                           //HI WINDOW SIZE
+	tcp_header[15] = LOW_16(wnd_size);                          //LOW WINDOW SIZE
+
+	tcp_header[16] = 0;                                         //HI TCP CHECKSUM
+	tcp_header[17] = 0;                                         //LOW TCP CHECKSUM
+	tcp_header[18] = 0;                                         //HI URGENT POINTER (NOT USED)
+	tcp_header[19] = 0;                                         //LOW URGENT POINTER (NOT USED)
+
+	chk = SWAP_WORD(checksum_tcp((unsigned short*) tcp_header,src_ip,dst_ip,data_len));
+	tcp_header[16] = HI_16(chk);
+	tcp_header[17] = LOW_16(chk);
+
+	tcp_conn_desc->last_sent_time = system.time;
+	tcp_conn_desc->last_ack_sent = ack_num;
+
+	ret = send_packet_ip4(data_sckt_buf,
+			    src_ip,
+			    dst_ip,
 			    (data_len + HEADER_TCP),
 			    TCP_PROTOCOL);
 	return ret;
