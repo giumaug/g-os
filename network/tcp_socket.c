@@ -129,7 +129,7 @@ void close_tcp(t_tcp_conn_desc* tcp_conn_desc)
 			tcp_conn_desc->pgybg_timer->ref = NULL;
 		}
 		//tcp_conn_desc->seq_num++;
-		tcp_conn_desc->fin_num = tcp_conn_desc->seq_num;
+		//tcp_conn_desc->fin_num = tcp_conn_desc->seq_num;
 		send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,flags);
 		printk("fin from fix1 \n");
 	}

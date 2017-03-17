@@ -58,8 +58,16 @@
 #define DEFAULT_RTO 500
 #define SRTT_FACTOR 0.8
 
-send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,flags);
-send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,flags);
+#define _SEND_PACKET_TCP(tcp_conn_desc,data,data_len,ack_num,flags) \
+        send_packet_tcp(tcp_conn_desc->src_ip,                      \
+                        tcp_conn_desc->dst_ip                       \
+                        tcp_conn_desc->src_port                     \
+                        tcp_conn_desc->dst_port                     \
+                        tcp_conn_desc->rcv_queue->wnd_size          \
+                        data_len                                    \
+                        ack_num                                     \
+                        flags                                       \
+                        seq_num)
 
 typedef struct s_tcp_snd_queue
 {
@@ -97,7 +105,7 @@ typedef struct s_tcp_conn_desc
 	u32 max_adv_wnd;
 	t_tcp_rcv_queue* rcv_queue;
 	t_tcp_snd_queue* snd_queue;
-	u32 seq_num;
+	u32 first_seq_num;
 	u32 src_ip;
 	u32 dst_ip;
 	u16 src_port;
@@ -114,7 +122,7 @@ typedef struct s_tcp_conn_desc
 	u32 last_sent_time;
 	u32 flight_size;
 	u32 last_ack_sent;
-	u32 syn_num;
+	//u32 syn_num;
 	u32 fin_num;
 }
 t_tcp_conn_desc;
