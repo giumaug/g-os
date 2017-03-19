@@ -82,8 +82,6 @@ t_tcp_conn_desc* tcp_conn_desc_int()
 	tcp_conn_desc->duplicated_ack = 0;
 	tcp_conn_desc->last_sent_time = 0;
 	tcp_conn_desc->flight_size = 0;
-	tcp_conn_desc->syn_num = 0;
-	tcp_conn_desc->fin_num = 0;
 	return tcp_conn_desc;
 }
 
@@ -248,7 +246,8 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			tcp_conn_map_put(tcp_listen_desc->back_log_i_map,src_ip,dst_ip,src_port,dst_port,new_tcp_conn_desc);
 			
 			ack_num = seq_num + 1;
-			new_tcp_conn_desc->seq_num++;
+			//new_tcp_conn_desc->seq_num++;
+			new_tcp_conn_desc->snd_queue->nxt_snd++;
 			new_tcp_conn_desc->status = SYN_RCVD;
 			new_tcp_conn_desc->rcv_queue->nxt_rcv = ack_num;
 			new_tcp_conn_desc->rtrsn_timer->ref = ll_append(system.timer_list,tcp_req_desc->rtrsn_timer);
@@ -266,7 +265,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		new_tcp_conn_desc = tcp_conn_map_get(tcp_listen_desc->back_log_i_map,src_ip,dst_ip,src_port,dst_port);
 		if (new_tcp_conn_desc != NULL)
 		{
-			if (new_tcp_conn_desc->seq_num + 1 == ack_seq_num)
+			if (new_tcp_conn_desc->snd_queue->nxt_snd + 1 == ack_seq_num)
 			{
 				tcp_conn_map_remove(tcp_listen_desc->back_log_i_map,src_ip,dst_ip,src_port,dst_port);
 				enqueue(tcp_listen_desc->back_log_c_queue,new_tcp_conn_desc);
@@ -348,6 +347,10 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	{
 		tcp_conn_desc->status = CLOSE_WAIT;
 		_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK,fin_num);
+		if (tcp_conn_desc->process_context !=NULL)
+		{
+			_awake(tcp_req_desc->process_context);
+		}
 	}
 	else if ((flags & FLG_ACK) 
 	    && tcp_conn_desc->status == LAST_ACK
@@ -548,7 +551,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		}
 		//indx = SLOT_WND(wnd_l_limit,tcp_queue->wnd_size);
 		indx = wnd_l_limit;
-		tcp_conn_desc->seq_num = tcp_queue->nxt_snd;
+		//tcp_conn_desc->seq_num = tcp_queue->nxt_snd;
 		tcp_queue->nxt_snd += data_to_send;
 	}
 	else if (tcp_conn_desc->duplicated_ack == 1 || tcp_conn_desc->duplicated_ack == 2)
@@ -562,7 +565,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		{
 			//indx = SLOT_WND(tcp_queue->nxt_snd,tcp_queue->buf_size);
 			indx = tcp_queue->nxt_snd;
-			tcp_conn_desc->seq_num = tcp_queue->nxt_snd;
+			//tcp_conn_desc->seq_num = tcp_queue->nxt_snd;
 			tcp_queue->nxt_snd += SMSS;
 			data_to_send = SMSS;
 		}
@@ -577,7 +580,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 
 		//indx = SLOT_WND(ack_seq_num,tcp_queue->wnd_size);
 		indx = ack_seq_num;
-		tcp_conn_desc->seq_num = ack_seq_num;
+		//tcp_conn_desc->seq_num = ack_seq_num;
 		flush_data(tcp_conn_desc,data_to_send,ack_num,indx);
 	
 		if (tcp_conn_desc->duplicated_ack > 3)
@@ -588,7 +591,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 
 			if (w_size >= SMSS && tcp_queue->cur >= (tcp_queue->nxt_snd + SMSS))
 			{
-				tcp_conn_desc->seq_num = tcp_queue->nxt_snd;
+				//tcp_conn_desc->seq_num = tcp_queue->nxt_snd;------------
 				tcp_queue->nxt_snd += SMSS;
 				data_to_send = SMSS;
 			}
@@ -611,13 +614,13 @@ EXIT:
 		}
 
 		//tcp_conn_desc->fin_num = tcp_conn_desc->seq_num;
-		send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,FLG_FIN | FLG_ACK,tcp_conn_desc->snd_queue->nxt_snd);
+		_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,ack_num,FLG_FIN | FLG_ACK,tcp_conn_desc->snd_queue->nxt_snd);
 		printk("fin from fix2 \n");
 	}
 }
 
 //NOTA:NON HA SENSO CONSERVARE IL SEQ_NUM SU tcp_conn_desc->seq_num.
-static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_num,u32 indx)--------------------------qui!!!!!!!!!!!!!!!!
+static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_num,u32 indx)
 {
 	u8 flags;
 	u32 data_len;
@@ -628,7 +631,7 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 	u32 seq_num;
 
 	tcp_queue = tcp_conn_desc->snd_queue;
-	seq_num = tcp_conn_desc->snd_queue->nxt_snd;
+	seq_num = tcp_conn_desc->snd_queue->nxt_snd - data_to_send;
 	if (data_to_send > 0)
 	{
 		flags = FLG_ACK;
@@ -644,16 +647,16 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 			offset = SLOT_WND(indx,TCP_SND_SIZE);
 			if (offset + SMSS <= TCP_SND_SIZE)
 			{
-				send_packet_tcp(tcp_conn_desc,tcp_queue->buf[offset],SMSS,ack_num,flags,seq_num);
+				_SEND_PACKET_TCP(tcp_conn_desc,tcp_queue->buf[offset],SMSS,ack_num,flags,seq_num);
 				seq_num += SMSS;
 			}
 			else 
 			{
 				len_1 = TCP_SND_SIZE - offset;
 				len_2 = SMSS - len_1;
-				send_packet_tcp(tcp_conn_desc,tcp_queue->buf[offset],len_1,ack_num,flags,seq_num);
+				_SEND_PACKET_TCP(tcp_conn_desc,tcp_queue->buf[offset],len_1,ack_num,flags,seq_num);
 				seq_num += len_1;
-				send_packet_tcp(tcp_conn_desc,tcp_queue->buf[0],len_2,ack_num,flags,seq_num);
+				_SEND_PACKET_TCP(tcp_conn_desc,tcp_queue->buf[0],len_2,ack_num,flags,seq_num);
 				seq_num += len_2;
 			}
 			data_to_send -= SMSS;
@@ -664,16 +667,16 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 			offset = SLOT_WND(indx,TCP_SND_SIZE);	
 			if (offset + data_to_send <= TCP_SND_SIZE)
 			{
-				send_packet_tcp(tcp_conn_desc,tcp_queue->buf[offset],data_to_send,ack_num,flags);
-				tcp_conn_desc->seq_num += data_to_send;
+				_SEND_PACKET_TCP(tcp_conn_desc,tcp_queue->buf[offset],data_to_send,ack_num,flags,seq_num);
+				seq_num += data_to_send;
 			}
 			else
 			{
 				len_1 = TCP_SND_SIZE - offset;
 				len_2 = data_to_send - len_1;
-				send_packet_tcp(tcp_conn_desc,tcp_queue->buf[offset],len_1,ack_num,flags,seq_num);
+				_SEND_PACKET_TCP(tcp_conn_desc,tcp_queue->buf[offset],len_1,ack_num,flags,seq_num);
 				seq_num += len_1;
-				send_packet_tcp(tcp_conn_desc,tcp_queue->buf[offset],len_2,ack_num,flags,seq_num);
+				_SEND_PACKET_TCP(tcp_conn_desc,tcp_queue->buf[offset],len_2,ack_num,flags,seq_num);
 				seq_num += len_2;
 			}
 		}
@@ -729,12 +732,14 @@ void pgybg_timer_handler(void* arg)
 {
 	u8 flags = 0;
 	u32 ack_num = 0;
+	u32 seq_num = 0;
 	t_tcp_conn_desc* tcp_conn_desc = NULL;
 
 	tcp_conn_desc = (t_tcp_conn_desc*) arg;
 	flags = FLG_ACK;
-	ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;				
-	send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,flags);
+	ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;
+	seq_num = tcp_conn_desc->snd_queue->nxt_snd;			
+	_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,ack_num,flags,seq_num);
 	if (tcp_conn_desc->pgybg_timer->ref != NULL)
 	{
 		ll_delete_node(tcp_conn_desc->pgybg_timer->ref);
@@ -743,6 +748,7 @@ void pgybg_timer_handler(void* arg)
 	tcp_conn_desc->pgybg_timer->val = 0;
 }
 
+/*
 int __send_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u32 ack_num,u8 flags)
 {
 	u16 chk;
@@ -800,15 +806,15 @@ int __send_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u32
 			    TCP_PROTOCOL);
 	return ret;
 }
+*/
 
-int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 seq_num,u32 wnd_size,u32 data_len,u32 ack_num,u8 flags)
+int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size,char* data,u32 data_len,u32 ack_num,u8 flags,u32 seq_num)
 {
 	u16 chk;
 	char* tcp_payload = NULL;
 	t_data_sckt_buf* data_sckt_buf = NULL;
 	int ret = NULL;
 	char* tcp_header = NULL;
-	t_tcp_rcv_queue* tcp_queue = NULL;
 	
 	data_sckt_buf = alloc_sckt(data_len + HEADER_ETH + HEADER_IP4 + HEADER_TCP);
 	data_sckt_buf->transport_hdr = data_sckt_buf->data + HEADER_ETH + HEADER_IP4;
@@ -816,8 +822,7 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 seq_num,
 	tcp_payload = data_sckt_buf->transport_hdr + HEADER_TCP;
 	kmemcpy(tcp_payload,data,data_len);
 	tcp_header = data_sckt_buf->transport_hdr;
-	tcp_queue = tcp_conn_desc->rcv_queue;
-	chk = SWAP_WORD(checksum_tcp((unsigned short*) tcp_header,tcp_conn_desc->src_ip,tcp_conn_desc->dst_ip,data_len));
+	chk = SWAP_WORD(checksum_tcp((unsigned short*) tcp_header,src_ip,dst_ip,data_len));
 	
 	tcp_header[0] = HI_16(src_port);                            //HI SRC PORT
 	tcp_header[1] = LOW_16(src_port);                           //LOW SRC PORT
@@ -848,8 +853,8 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 seq_num,
 	tcp_header[16] = HI_16(chk);
 	tcp_header[17] = LOW_16(chk);
 
-	tcp_conn_desc->last_sent_time = system.time;
-	tcp_conn_desc->last_ack_sent = ack_num;
+//	tcp_conn_desc->last_sent_time = system.time;
+//	tcp_conn_desc->last_ack_sent = ack_num;
 
 	ret = send_packet_ip4(data_sckt_buf,
 			    src_ip,

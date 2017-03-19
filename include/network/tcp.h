@@ -58,16 +58,19 @@
 #define DEFAULT_RTO 500
 #define SRTT_FACTOR 0.8
 
-#define _SEND_PACKET_TCP(tcp_conn_desc,data,data_len,ack_num,flags) \
-        send_packet_tcp(tcp_conn_desc->src_ip,                      \
-                        tcp_conn_desc->dst_ip                       \
-                        tcp_conn_desc->src_port                     \
-                        tcp_conn_desc->dst_port                     \
-                        tcp_conn_desc->rcv_queue->wnd_size          \
-                        data_len                                    \
-                        ack_num                                     \
-                        flags                                       \
-                        seq_num)
+#define _SEND_PACKET_TCP(tcp_conn_desc,data,data_len,ack_num,flags,seq_num) \
+        send_packet_tcp(tcp_conn_desc->src_ip,                              \
+                        tcp_conn_desc->dst_ip,                              \
+                        tcp_conn_desc->src_port,                            \
+                        tcp_conn_desc->dst_port,                            \
+                        tcp_conn_desc->rcv_queue->wnd_size,                 \
+                        data,                                               \
+                        data_len,                                           \
+                        ack_num,                                            \
+                        flags,                                              \
+                        seq_num);                                           \
+                        tcp_conn_desc->last_sent_time = system.time;        \
+	                tcp_conn_desc->last_ack_sent = ack_num;
 
 typedef struct s_tcp_snd_queue
 {
@@ -148,6 +151,7 @@ void rcv_packet_tcp(struct s_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,
 void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_data_len);
 void rtrsn_timer_handler(void* arg);
 void pgybg_timer_handler(void* arg);
-int send_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u32 ack_num,u8 flags);
+//int send_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u32 ack_num,u8 flags);
+int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size,char* data,u32 data_len,u32 ack_num,u8 flags,u32 seq_num);
 
 #endif

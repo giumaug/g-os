@@ -102,7 +102,7 @@ int connect_tcp(u32 dst_ip,u16 dst_port,t_socket* socket)
 	socket->tcp_conn_desc = tcp_conn_desc;
 	tcp_conn_map_put(tcp_req_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
 	//SYN NEED RETRASMISSION TIMEOUT MANAGEMENT ONLY.NO RETRY	
-	send_packet_tcp(tcp_conn_desc,NULL,0,0,FLG_SYN);
+	_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,0,FLG_SYN,tcp_conn_desc->first_seq_num);
 	CURRENT_PROCESS_CONTEXT(tcp_conn_desc->process_context);
 	_sleep();
 	RESTORE_IF_STATUS
@@ -113,24 +113,27 @@ void close_tcp(t_tcp_conn_desc* tcp_conn_desc)
 {
 	u8 flags = 0;
 	u32 ack_num = 0;
+	u32 seq_num = 0;
 
 	SAVE_IF_STATUS
 	CLI
-	flags = FLG_FIN;
+	flags = FLG_FIN | FLG_ACK;
+	seq_num = seq_num = tcp_conn_desc->snd_queue->nxt_snd;
+	ack_num = tcp_conn_desc->last_ack_sent;
 	printk("close_tcp called \n");
 
 	if (tcp_conn_desc->snd_queue->wnd_min == tcp_conn_desc->snd_queue->cur)
 	{
 		if (tcp_conn_desc->pgybg_timer->ref != NULL)
 		{
-			flags |= FLG_ACK;
 			ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;
 			ll_delete_node(tcp_conn_desc->pgybg_timer->ref);
 			tcp_conn_desc->pgybg_timer->ref = NULL;
 		}
 		//tcp_conn_desc->seq_num++;
 		//tcp_conn_desc->fin_num = tcp_conn_desc->seq_num;
-		send_packet_tcp(tcp_conn_desc,NULL,0,ack_num,flags);
+		flags |= FLG_ACK;
+		_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,ack_num,flags,seq_num);
 		printk("fin from fix1 \n");
 	}
 	if (tcp_conn_desc->status = ESTABILISHED)
@@ -149,7 +152,6 @@ void close_tcp(t_tcp_conn_desc* tcp_conn_desc)
 
 int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 {
-	int ret = 0;
 	u32 i = 0;
 	u32 len_1 = 0;
 	u32 len_2 = 0;
@@ -172,6 +174,10 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		enqueue(tcp_conn_desc->data_wait_queue,current_process_context);
 		_sleep();
 		available_data = tcp_queue->nxt_rcv - tcp_queue->wnd_min;
+		if (available_data == 0)
+		{
+			return 0;
+		}
 	}
 
 	if (available_data > 0 && available_data < data_len)
@@ -210,7 +216,7 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	tcp_queue->wnd_size += data_len;
 	tcp_queue->wnd_min += data_len;
 	RESTORE_IF_STATUS
-	return ret;
+	return data_len;
 }
 
 //Meglio scodare solo dentro la deferred queue,serve pure un meccanismo che
