@@ -197,6 +197,14 @@ void syscall_handler()
 	}
 	else if (syscall_num==33)
 	{
+ 		params[1]=_listen(system.network_desc->socket_desc,params[0]);
+	}
+	else if (syscall_num==34)
+	{
+ 		params[1]=_accept(system.network_desc->socket_desc,params[0]);
+	}
+	else if (syscall_num==35)
+	{
  		params[3]=_connect(system.network_desc->socket_desc,params[0],params[1],params[2]);
 	}
 	else if (syscall_num==101) 

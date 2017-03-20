@@ -22,6 +22,27 @@ int bind(int sockfd, const struct sockaddr *addr,socklen_t addrlen)
 	return  params[3];
 }
 
+int listen(int sockfd , int backlog)
+{
+	unsigned int params[2];
+
+	params[0] = sockfd;
+	SYSCALL(33,params);
+	return  params[1];
+}
+
+accept(int sockfd,struct sockaddr* address,int address_len)
+{
+	unsigned int params[4];
+
+	params[0] = sockfd;
+	params[1] = address;
+	params[2] = address_len;
+	SYSCALL(34,params);
+	return  params[3];
+
+}
+
 int recvfrom(int sockfd, void* data,size_t data_len,int flags,struct sockaddr* addr,socklen_t* addrlen)
 {
 	unsigned int params[6];

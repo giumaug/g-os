@@ -349,7 +349,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK,fin_num);
 		if (tcp_conn_desc->process_context !=NULL)
 		{
-			_awake(tcp_req_desc->process_context);
+			_awake(tcp_conn_desc->process_context);
 		}
 	}
 	else if ((flags & FLG_ACK) 
