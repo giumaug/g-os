@@ -188,7 +188,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	}
 	tcp_conn_desc = tcp_conn_map_get(tcp_desc->conn_map,src_ip,dst_ip,src_port,dst_port);
 	tcp_req_desc = tcp_conn_map_get(tcp_desc->req_map,dst_ip,system.network_desc->ip,dst_port,src_port);
-	tcp_listen_desc = tcp_conn_map_get(tcp_desc->listen_map,system.network_desc->ip,dst_port,0,0);
+	tcp_listen_desc = tcp_conn_map_get(tcp_desc->listen_map,system.network_desc->ip,0,dst_port,0);
 	if (tcp_req_desc == NULL && tcp_listen_desc == NULL && tcp_conn_desc != NULL )
 	{ 
 		goto EXIT;
@@ -254,7 +254,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		}
 		//IF new_tcp_conn_desc != NULL IS LOST SYNC
 		upd_max_adv_wnd(new_tcp_conn_desc,rcv_wmd_adv);
-		_SEND_PACKET_TCP(new_tcp_conn_desc,NULL,0,ack_num,FLG_SYN | FLG_ACK,tcp_req_desc->first_seq_num);
+		_SEND_PACKET_TCP(new_tcp_conn_desc,NULL,0,ack_num,FLG_SYN | FLG_ACK,new_tcp_conn_desc->first_seq_num);
 		goto EXIT;
 	}
 
@@ -273,6 +273,11 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 				new_tcp_conn_desc->status = ESTABILISHED;
 				new_tcp_conn_desc->rcv_wmd_adv = rcv_wmd_adv;
 				upd_max_adv_wnd(new_tcp_conn_desc,rcv_wmd_adv);
+				if (tcp_conn_desc->process_context !=NULL)
+				{
+					_awake(tcp_conn_desc->process_context);
+					tcp_conn_desc->process_context = NULL;
+				}		
 			}
 			goto EXIT;
 		}
