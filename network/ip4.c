@@ -60,6 +60,7 @@ int send_packet_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		else
 		{
 			dst_mac=lookup_mac(dst_ip);
+			printk("lookup %d \n",data_sckt_buf);
 		}
 		
 		if(dst_mac==NULL)
