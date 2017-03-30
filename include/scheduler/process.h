@@ -76,7 +76,7 @@ struct t_process_context
 	struct s_mem_reg* ustack_mem_reg;
 	t_elf_desc* elf_desc;
 	t_hashtable* socket_desc;
-	u32 next_fd;
+	u32 next_sd;
 };
 
 struct t_process_info 

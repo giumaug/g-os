@@ -44,13 +44,13 @@ t_socket_desc* socket_desc_init();
 void socket_desc_free(t_socket_desc* socket_desc);
 t_socket* socket_init(int type);
 void socket_free(t_socket* socket);
-int _open_socket(t_socket_desc* socket_desc,int type);
-int _bind(t_socket_desc* socket_desc,int sockfd,u32 src_ip,u32 src_port,u32 dst_ip,u16 dst_port);
-int _connect(t_socket_desc* socket_desc,int sockfd,u32 dst_ip,u16 dst_port);
-int _listen(t_socket_desc* socket_desc,int sockfd);
-int _accept(t_socket_desc* socket_desc,int sockfd);
-int _recvfrom(t_socket_desc* socket_desc,int sockfd,unsigned char* src_ip,unsigned char* src_port,void* data,u32 data_len);
-int _sendto(t_socket_desc* socket_desc,int sockfd,u32 dst_ip,u16 dst_port,void* data,u32 data_len);
-int _close_socket(t_socket_desc* socket_desc,int sockfd);
+int _open_socket(int type);
+int _bind(int sockfd,u32 src_ip,u32 src_port,u32 dst_ip,u16 dst_port);
+int _connect(int sockfd,u32 dst_ip,u16 dst_port);
+int _listen(int sockfd);
+int _accept(int sockfd);
+int _recvfrom(int sockfd,unsigned char* src_ip,unsigned char* src_port,void* data,u32 data_len);
+int _sendto(int sockfd,u32 dst_ip,u16 dst_port,void* data,u32 data_len);
+int _close_socket(int sockfd);
 
 #endif

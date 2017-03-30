@@ -83,6 +83,7 @@ t_tcp_conn_desc* tcp_conn_desc_int()
 	tcp_conn_desc->duplicated_ack = 0;
 	tcp_conn_desc->last_sent_time = 0;
 	tcp_conn_desc->flight_size = 0;
+	tcp_conn_desc->ref_count = 0;
 	return tcp_conn_desc;
 }
 
