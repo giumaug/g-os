@@ -1,6 +1,7 @@
 #include "network/ip4.h"
 
 static u16 ipv4_id=0;
+extern t_hashtable* arp_cache;
 
 int send_packet_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len,u8 protocol)
 {
@@ -76,31 +77,36 @@ int send_packet_ip4(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	}
 }
 
-void rcv_packet_ip4(t_data_sckt_buf* data_sckt_buf)
+void rcv_packet_ip4(t_data_sckt_buf* data_sckt_buf,t_mac_addr* src_mac)
 {
 	unsigned char* ip_row_packet;
 	u32 src_ip;
         u32 dst_ip;
 	u16 packet_len;
+	t_mac_addr* mac_addr = NULL;
 
 	data_sckt_buf->transport_hdr=data_sckt_buf->network_hdr+HEADER_IP4;
 	ip_row_packet=data_sckt_buf->network_hdr;
 	dst_ip=ip_row_packet[19]+((u32)ip_row_packet[18]<<8)+((u32)ip_row_packet[17]<<16)+((u32)ip_row_packet[16]<<24);
-
+	
 	if ((checksum(ip_row_packet,HEADER_IP4)==0) && dst_ip==LOCAL_IP)
 	{
+		src_ip = ip_row_packet[15]+((u32)ip_row_packet[14]<<8)+((u32)ip_row_packet[13]<<16)+((u32)ip_row_packet[12]<<24);	
+		mac_addr = hashtable_get(arp_cache,src_ip);
+		if (mac_addr == NULL)
+		{
+			hashtable_put(arp_cache,src_ip,src_mac);
+		}
 		if(ip_row_packet[9]==TCP_PROTOCOL)
 		{
 			//TCP
 			packet_len=ip_row_packet[3]+((u16)ip_row_packet[2]<<8)-HEADER_IP4-HEADER_TCP;
-			src_ip=ip_row_packet[15]+((u32)ip_row_packet[14]<<8)+((u32)ip_row_packet[13]<<16)+((u32)ip_row_packet[12]<<24);
 			data_sckt_buf->transport_hdr=data_sckt_buf->network_hdr+HEADER_IP4;
 			rcv_packet_tcp(data_sckt_buf,src_ip,dst_ip,packet_len);
 		}
 		else if(ip_row_packet[9]==UDP_PROTOCOL)
 		{
 			packet_len=ip_row_packet[3]+((u16)ip_row_packet[2]<<8)-HEADER_IP4-HEADER_UDP;
-			src_ip=ip_row_packet[15]+((u32)ip_row_packet[14]<<8)+((u32)ip_row_packet[13]<<16)+((u32)ip_row_packet[12]<<24);
 			data_sckt_buf->transport_hdr=data_sckt_buf->network_hdr+HEADER_IP4;
 			rcv_packet_udp(data_sckt_buf,src_ip,dst_ip,packet_len);
 		}

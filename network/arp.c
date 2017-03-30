@@ -1,6 +1,6 @@
 #include "network/network.h"
 
-static t_hashtable* arp_cache=NULL;
+t_hashtable* arp_cache=NULL;
 
 void arp_init()
 {
@@ -86,7 +86,7 @@ void send_packet_arp(t_mac_addr src_mac,t_mac_addr dst_mac,u32 src_ip,u32 dst_ip
 	arp_req[15]=0x1;                    //LOW HARD TYPE
 	arp_req[16]=0x8;                    //HIGH PORT TYPE
 	arp_req[17]=0x0;                    //LOW PORT TYPE
-    arp_req[18]=0x6;                    //HARD SIZE
+    	arp_req[18]=0x6;                    //HARD SIZE
 	arp_req[19]=0x4;                    //PORT SIZE
 	arp_req[20]=0x0;                    //HIGH OP TYPE
 	arp_req[21]=op_type;                //LOW OP TYPE
