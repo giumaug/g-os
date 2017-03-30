@@ -90,42 +90,43 @@ void socket_free(t_socket* socket)
 	 exception and interrupt path.
 */
 
-int _open_socket(t_socket_desc* socket_desc,int type) 
+int _open_socket(int type) 
 {
 	t_socket* socket = NULL;
+	struct t_process_context* process_context = NULL;
 
+	CURRENT_PROCESS_CONTEXT(process_context);
 	socket = socket_init(type);
 	socket->process_context = NULL;
 	socket->ip = NULL;
 	socket->port = NULL;
-	CURRENT_PROCESS_CONTEXT(socket->process_context);
 	socket->type = type;
-	SPINLOCK_LOCK(socket_desc->lock);
-	socket->sd = ++socket_desc->fd;
-	hashtable_put(socket_desc->sd_map,socket->sd,socket);
-	SPINLOCK_UNLOCK(socket_desc->lock);
+	socket->sd = ++process_context->next_sd;
+	hashtable_put(process_context->socket_desc,socket->sd,socket);
 	return socket->sd;
 }
 
-int _bind(t_socket_desc* socket_desc,int sockfd,u32 src_ip,u32 src_port,u32 dst_ip,u16 dst_port)
+int _bind(int sockfd,u32 src_ip,u32 src_port,u32 dst_ip,u16 dst_port)
 {
+	struct t_process_context* process_context = NULL;
 	t_tcp_conn_desc* tcp_conn_desc = NULL;
 	void* port;
 	t_socket* socket=NULL;
 	int ret=-1;
 	
-	socket = hashtable_get(socket_desc->sd_map,sockfd);
+	CURRENT_PROCESS_CONTEXT(process_context);
+	socket = hashtable_get(process_context->socket_desc,sockfd);
 	if (socket != NULL)
 	{
 		if (socket->type == 2)
 		{
-			//For udp map on port only.To be corrected!!!
-			if (hashtable_get(socket_desc->udp_map,src_port) == NULL)
-			{
-				socket->port = src_port;
-				hashtable_put(socket_desc->udp_map,src_port,socket);
-				ret = 0;
-			}
+//			UDP CODE REFACTOR NEEDED!!!!!
+//			if (hashtable_get(socket_desc->udp_map,src_port) == NULL)
+//			{
+//				socket->port = src_port;
+//				hashtable_put(socket_desc->udp_map,src_port,socket);
+//				ret = 0;
+//			}
 		}
 		if (socket->type == 1)
 		{
@@ -137,12 +138,14 @@ int _bind(t_socket_desc* socket_desc,int sockfd,u32 src_ip,u32 src_port,u32 dst_
 	return ret;
 }
 
-int _connect(t_socket_desc* socket_desc,int sockfd,u32 dst_ip,u16 dst_port)
+int _connect(int sockfd,u32 dst_ip,u16 dst_port)
 {
+	struct t_process_context* process_context = NULL;
 	t_socket* socket=NULL;
 	int ret=-1;
 
-	socket = hashtable_get(socket_desc->sd_map,sockfd);
+	CURRENT_PROCESS_CONTEXT(process_context);------------------------------------qui!!!!!!!
+	socket = hashtable_get(socket_desc,sockfd);
 	if (socket != NULL)
 	{
 		if (socket->type == 1)
@@ -153,12 +156,12 @@ int _connect(t_socket_desc* socket_desc,int sockfd,u32 dst_ip,u16 dst_port)
 	return ret;
 }
 
-int _listen(t_socket_desc* socket_desc,int sockfd)
+int _listen(t_hashtable* socket_desc,int sockfd)
 {
 	t_socket* socket=NULL;
 	int ret=-1;
 
-	socket = hashtable_get(socket_desc->sd_map,sockfd);
+	socket = hashtable_get(socket_desc,sockfd);
 	if (socket != NULL)
 	{
 		if (socket->type == 1)
@@ -169,14 +172,17 @@ int _listen(t_socket_desc* socket_desc,int sockfd)
 	return ret;
 }
 
-int _accept(t_socket_desc* socket_desc,int sockfd)
+int _accept(t_hashtable* socket_desc,int sockfd)
 {
 	t_socket* socket = NULL;
 	t_socket* new_socket = NULL;
-	t_tcp_conn_desc* new_tcp_conn_desc;
-	int ret=-1;
+	t_tcp_conn_desc* new_tcp_conn_desc = NULL;
+	struct t_process_context* process_context = NULL;
 
-	socket = hashtable_get(socket_desc->sd_map,sockfd);
+	int ret=-1;
+	CURRENT_PROCESS_CONTEXT(process_context);
+
+	socket = hashtable_get(socket_desc,sockfd);
 	if (socket != NULL)
 	{
 		if (socket->type == 1)
@@ -185,11 +191,11 @@ int _accept(t_socket_desc* socket_desc,int sockfd)
 			if (new_tcp_conn_desc != NULL)
 			{
 				new_socket = socket_init(1);
-				SPINLOCK_LOCK(socket_desc->lock);
-				socket->sd = ++socket_desc->fd;
-				SPINLOCK_UNLOCK(socket_desc->lock);
+				
+				new_socket->sd = ++process_context->next_sd;
+				hashtable_put(socket_desc,new_socket->sd,new_socket);
 				new_socket->tcp_conn_desc = new_tcp_conn_desc;
-				ret = socket->sd;
+				ret = new_socket->sd;
 			}
 		}
 	}

@@ -31,15 +31,15 @@ int main()
     	struct sockaddr_in ssock;
 	
 	ssock.sin_family = AF_INET;
-//	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=192;
-//	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=168;
-//	((unsigned char*) &(server_address.sin_addr.s_addr))[2]=124;
-//      ((unsigned char*) &(server_address.sin_addr.s_addr))[3]=101;
+	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=192;
+	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=168;
+	((unsigned char*) &(server_address.sin_addr.s_addr))[2]=124;
+        ((unsigned char*) &(server_address.sin_addr.s_addr))[3]=101;
 
-	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=172;
-	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=16;
-	((unsigned char*) &(server_address.sin_addr.s_addr))[2]=6;
-	((unsigned char*) &(server_address.sin_addr.s_addr))[3]=101;
+//	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=172;
+//	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=16;
+//	((unsigned char*) &(server_address.sin_addr.s_addr))[2]=6;
+//	((unsigned char*) &(server_address.sin_addr.s_addr))[3]=101;
 
 	((unsigned char*) &(server_address.sin_port))[0]=((unsigned char*) &(port))[1];
 	((unsigned char*) &(server_address.sin_port))[1]=((unsigned char*) &(port))[0];
@@ -68,18 +68,18 @@ int main()
 		if(fork() == 0) 
 		{
 			printf("figlio \n");
-			/* If we're the child, we can now read/write to the client on client_sockfd. The five second delay is just for this demonstration. */
-			int n= read_socket(client_sockfd, ch, 100);
-			printf("read = %d \n",n);
-			//recv(client_sockfd,&ch,5,0);
-			//sleep(5);
-			//ch++;
-			ch[n]='\0';
-			write_socket(client_sockfd, ch, n);
-			//send(client_sockfd,ch,n,0);
-			printf("sent %s \n",ch);
-			printf("..\n");
-			close_socket(client_sockfd);
+//			/*If we're the child,we can now read/write to the client on client_sockfd.The five second delay is just for this demonstration. */
+//			int n= read_socket(client_sockfd, ch, 100);
+//			printf("read = %d \n",n);
+//			//recv(client_sockfd,&ch,5,0);
+//			//sleep(5);
+//			//ch++;
+//			ch[n]='\0';
+//			write_socket(client_sockfd, ch, n);
+//			//send(client_sockfd,ch,n,0);
+//			printf("sent %s \n",ch);
+//			printf("..\n");
+//			close_socket(client_sockfd);
 			exit(0);
 		}
 
