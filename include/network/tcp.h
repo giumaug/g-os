@@ -108,7 +108,7 @@ typedef struct s_tcp_conn_desc
 	u32 max_adv_wnd;
 	t_tcp_rcv_queue* rcv_queue;
 	t_tcp_snd_queue* snd_queue;
-	u32 first_seq_num;
+	//u32 first_seq_num;
 	u32 src_ip;
 	u32 dst_ip;
 	u16 src_port;
@@ -126,7 +126,6 @@ typedef struct s_tcp_conn_desc
 	u32 flight_size;
 	u32 last_ack_sent;
 	//u32 syn_num;
-	u32 fin_num;
 }
 t_tcp_conn_desc;
 

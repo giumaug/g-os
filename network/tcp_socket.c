@@ -105,7 +105,7 @@ int connect_tcp(u32 dst_ip,u16 dst_port,t_socket* socket)
 	socket->tcp_conn_desc = tcp_conn_desc;
 	tcp_conn_map_put(tcp_req_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
 	//SYN NEED RETRASMISSION TIMEOUT MANAGEMENT ONLY.NO RETRY	
-	_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,0,FLG_SYN,tcp_conn_desc->first_seq_num);
+	_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,0,FLG_SYN,tcp_conn_desc->snd_queue->nxt_snd);
 	CURRENT_PROCESS_CONTEXT(tcp_conn_desc->process_context);
 	_sleep();
 	RESTORE_IF_STATUS
