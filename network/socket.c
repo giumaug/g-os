@@ -76,12 +76,10 @@ void socket_free(t_socket* socket)
 		printk("ref_count=%d \n",socket->tcp_conn_desc->ref_count);
 		if ((socket->tcp_conn_desc->status == ESTABILISHED || socket->tcp_conn_desc->status == CLOSE_WAIT) && socket->tcp_conn_desc->ref_count == 1)
 		{
-			socket->tcp_conn_desc->ref_count--;
 			close_tcp(socket->tcp_conn_desc);
 			kfree(socket);
 		}
 	}
-	kfree(socket);
 } 
 /* NOTE:_open_socket,_bind,_connect,_listen,_accept,_rcvfrom,_send_to,_close_socket,
 	 are free lock because process context keeps duplicated copy of socket.All possible
@@ -322,5 +320,30 @@ int _close_socket(int sockfd)
 		}
 	}
 	socket_free(socket);
+}
+
+t_hashtable* clone_socket_desc(t_hashtable* socket_desc,u32 data_size)
+{
+	t_hashtable* cloned_socket_desc = NULL;
+	t_socket* socket = NULL;
+	t_socket* cloned_socket = NULL;
+	u32 i = 0;
+
+	cloned_socket_desc = hashtable_init(socket_desc->size);
+	for (i=0;i < socket_desc->size;i++)
+	{
+		socket = hashtable_get(socket_desc,i);
+		if (socket != NULL)
+		{
+			cloned_socket = kmalloc(sizeof(t_socket));
+			kmemcpy(cloned_socket,socket,sizeof(t_socket));
+			hashtable_put(cloned_socket_desc,i,cloned_socket);
+			if (socket->tcp_conn_desc != NULL) 
+			{
+				socket->tcp_conn_desc->ref_count++;
+			}
+		}
+	}
+	return cloned_socket_desc;
 }
 

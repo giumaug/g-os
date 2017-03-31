@@ -80,6 +80,7 @@ int main()
 //			printf("sent %s \n",ch);
 //			printf("..\n");
 //			close_socket(client_sockfd);
+			while(1);
 			exit(0);
 		}
 

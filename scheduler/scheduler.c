@@ -309,50 +309,51 @@ void _exit(int status)
 
 int _fork(struct t_processor_reg processor_reg) 
 {
-	int i=0;
- 	struct t_process_context* child_process_context;
-	struct t_process_context* parent_process_context;
-	t_hashtable* child_file_desc;
-	t_hashtable* child_socket_desc;
-	char* kernel_stack_addr;
-	t_elf_desc* child_elf_desc;
+	int i = 0;
+ 	struct t_process_context* child_process_context = NULL;
+	struct t_process_context* parent_process_context = NULL;
+	t_hashtable* child_file_desc = NULL;
+	t_hashtable* child_socket_desc = NULL;
+	char* kernel_stack_addr = NULL;
+	t_elf_desc* child_elf_desc = NULL;
 	
-	child_process_context=kmalloc(sizeof(struct t_process_context));
+	child_process_context = kmalloc(sizeof(struct t_process_context));
 	SAVE_IF_STATUS
 	CLI
 	CURRENT_PROCESS_CONTEXT(parent_process_context);
 
 	kmemcpy(child_process_context,parent_process_context,sizeof(struct t_process_context));
-	child_process_context->processor_reg=processor_reg;
-	kernel_stack_addr=buddy_alloc_page(system.buddy_desc,KERNEL_STACK_SIZE);
-	child_process_context->phy_kernel_stack=FROM_VIRT_TO_PHY(kernel_stack_addr);
+	child_process_context->processor_reg = processor_reg;
+	kernel_stack_addr = buddy_alloc_page(system.buddy_desc,KERNEL_STACK_SIZE);
+	child_process_context->phy_kernel_stack = FROM_VIRT_TO_PHY(kernel_stack_addr);
 	kmemcpy(kernel_stack_addr,FROM_PHY_TO_VIRT(parent_process_context->phy_kernel_stack),KERNEL_STACK_SIZE);
 
-	child_process_context->pid=system.process_info->next_pid++;
-	child_process_context->parent=parent_process_context;
-	child_process_context->file_desc=hashtable_clone_map(parent_process_context->file_desc,sizeof(t_inode));
-	child_process_context->socket_desc=hashtable_clone_map(parent_process_context->socket_desc,sizeof(t_socket));
+	child_process_context->pid = system.process_info->next_pid++;
+	child_process_context->parent = parent_process_context;
+	child_process_context->file_desc = hashtable_clone_map(parent_process_context->file_desc,sizeof(t_inode));
+	child_process_context->socket_desc = hashtable_clone_map(parent_process_context->socket_desc,sizeof(t_socket));
+	child_process_context->socket_desc = clone_socket_desc(parent_process_context->socket_desc);
 
-	if (parent_process_context->process_type==USERSPACE_PROCESS)
+	if (parent_process_context->process_type == USERSPACE_PROCESS)
 	{	
-		child_elf_desc=kmalloc(sizeof(t_elf_desc));
+		child_elf_desc = kmalloc(sizeof(t_elf_desc));
 		kmemcpy(child_elf_desc,parent_process_context->elf_desc,sizeof(t_elf_desc));
 
-		child_process_context->elf_desc=child_elf_desc;
-		child_process_context->process_mem_reg=create_mem_reg(parent_process_context->process_mem_reg->start_addr,
+		child_process_context->elf_desc = child_elf_desc;
+		child_process_context->process_mem_reg = create_mem_reg(parent_process_context->process_mem_reg->start_addr,
 								      parent_process_context->process_mem_reg->end_addr);
 
-		child_process_context->heap_mem_reg=create_mem_reg(parent_process_context->heap_mem_reg->start_addr,
+		child_process_context->heap_mem_reg = create_mem_reg(parent_process_context->heap_mem_reg->start_addr,
 								   parent_process_context->heap_mem_reg->end_addr);
 
-		child_process_context->ustack_mem_reg=create_mem_reg(parent_process_context->ustack_mem_reg->start_addr,
+		child_process_context->ustack_mem_reg = create_mem_reg(parent_process_context->ustack_mem_reg->start_addr,
 								     parent_process_context->ustack_mem_reg->end_addr);	
 	}
 
 	ll_prepend(system.scheduler_desc->scheduler_queue[parent_process_context->curr_sched_queue_index],child_process_context);
 
 
-	child_process_context->page_dir=clone_vm_process(parent_process_context->page_dir,
+	child_process_context->page_dir = clone_vm_process(parent_process_context->page_dir,
 							 parent_process_context->process_type,
 							 FROM_VIRT_TO_PHY(kernel_stack_addr));
 
