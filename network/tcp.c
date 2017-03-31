@@ -251,6 +251,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			new_tcp_conn_desc->snd_queue->nxt_snd++;
 			new_tcp_conn_desc->status = SYN_RCVD;
 			new_tcp_conn_desc->rcv_queue->nxt_rcv = ack_num;
+			new_tcp_conn_desc->rcv_queue->wnd_min = ack_num;
 			new_tcp_conn_desc->rtrsn_timer->ref = ll_append(system.timer_list,new_tcp_conn_desc->rtrsn_timer);
 		}
 		//IF new_tcp_conn_desc != NULL IS LOST SYNC
@@ -273,6 +274,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 				enqueue(tcp_listen_desc->back_log_c_queue,new_tcp_conn_desc);
 				tcp_conn_map_put(tcp_desc->conn_map,src_ip,dst_ip,src_port,dst_port,new_tcp_conn_desc);
 				new_tcp_conn_desc->status = ESTABILISHED;
+				new_tcp_conn_desc->snd_queue->cur =  new_tcp_conn_desc->snd_queue->nxt_snd;
 				new_tcp_conn_desc->rcv_wmd_adv = rcv_wmd_adv;
 				upd_max_adv_wnd(new_tcp_conn_desc,rcv_wmd_adv);
 				if (tcp_listen_desc->process_context !=NULL)
