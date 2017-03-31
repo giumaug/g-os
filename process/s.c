@@ -68,18 +68,18 @@ int main()
 		if(fork() == 0) 
 		{
 			printf("figlio \n");
-//			/*If we're the child,we can now read/write to the client on client_sockfd.The five second delay is just for this demonstration. */
-//			int n= read_socket(client_sockfd, ch, 100);
-//			printf("read = %d \n",n);
-//			//recv(client_sockfd,&ch,5,0);
-//			//sleep(5);
-//			//ch++;
-//			ch[n]='\0';
-//			write_socket(client_sockfd, ch, n);
-//			//send(client_sockfd,ch,n,0);
-//			printf("sent %s \n",ch);
-//			printf("..\n");
-//			close_socket(client_sockfd);
+			/*If we're the child,we can now read/write to the client on client_sockfd.The five second delay is just for this demonstration. */
+			int n= read_socket(client_sockfd, ch, 100);
+			printf("read = %d \n",n);
+			//recv(client_sockfd,&ch,5,0);
+			//sleep(5);
+			//ch++;
+			ch[n]='\0';
+			write_socket(client_sockfd, ch, n);
+			//send(client_sockfd,ch,n,0);
+			printf("sent %s \n",ch);
+			printf("..\n");
+			close_socket(client_sockfd);
 			while(1);
 			exit(0);
 		}

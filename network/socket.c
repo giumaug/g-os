@@ -49,8 +49,12 @@ void socket_desc_free(t_socket_desc* socket_desc)
 t_socket* socket_init(int type)
 {
 	t_socket* socket=NULL;
-
+	
 	socket=kmalloc(sizeof(t_socket));
+	socket->port = NULL;
+	socket->ip = NULL;
+	socket->process_context = NULL;
+
 	if (type==2)
 	{
 		socket->udp_rx_queue=dc_new_queue(&free_sckt);
@@ -71,10 +75,11 @@ void socket_free(t_socket* socket)
 	}
 	else  if (socket->type == 1)
 	{
+		socket->tcp_conn_desc->ref_count--;
 		printk("---------\n");
 		printk("status=%d \n",socket->tcp_conn_desc->status);
 		printk("ref_count=%d \n",socket->tcp_conn_desc->ref_count);
-		if ((socket->tcp_conn_desc->status == ESTABILISHED || socket->tcp_conn_desc->status == CLOSE_WAIT) && socket->tcp_conn_desc->ref_count == 1)
+		if ((socket->tcp_conn_desc->status == ESTABILISHED || socket->tcp_conn_desc->status == CLOSE_WAIT) && socket->tcp_conn_desc->ref_count == 0)
 		{
 			close_tcp(socket->tcp_conn_desc);
 			kfree(socket);
@@ -191,7 +196,7 @@ int _accept(int sockfd)
 			if (new_tcp_conn_desc != NULL)
 			{
 				new_socket = socket_init(1);
-				
+				new_socket->type = 1;
 				new_socket->sd = ++process_context->next_sd;
 				hashtable_put(process_context->socket_desc,new_socket->sd,new_socket);
 				new_socket->tcp_conn_desc = new_tcp_conn_desc;
@@ -311,13 +316,6 @@ int _close_socket(int sockfd)
 	if (socket->type==2)
 	{
 //		hashtable_remove(socket_desc->udp_map,socket->port);
-	}
-	else
-	{
-		if(socket->tcp_conn_desc->ref_count > 1)
-		{
-			socket->tcp_conn_desc->ref_count--;
-		}
 	}
 	socket_free(socket);
 }
