@@ -303,6 +303,7 @@ void _exit(int status)
 		delete_mem_reg(current_process->ustack_mem_reg);
 	}
 	hashtable_free(current_process->file_desc);
+	hashtable_free(current_process->socket_desc);
 	RESTORE_IF_STATUS
 }
 
@@ -312,6 +313,7 @@ int _fork(struct t_processor_reg processor_reg)
  	struct t_process_context* child_process_context;
 	struct t_process_context* parent_process_context;
 	t_hashtable* child_file_desc;
+	t_hashtable* child_socket_desc;
 	char* kernel_stack_addr;
 	t_elf_desc* child_elf_desc;
 	
@@ -329,6 +331,7 @@ int _fork(struct t_processor_reg processor_reg)
 	child_process_context->pid=system.process_info->next_pid++;
 	child_process_context->parent=parent_process_context;
 	child_process_context->file_desc=hashtable_clone_map(parent_process_context->file_desc,sizeof(t_inode));
+	child_process_context->socket_desc=hashtable_clone_map(parent_process_context->socket_desc,sizeof(t_socket));
 
 	if (parent_process_context->process_type==USERSPACE_PROCESS)
 	{	
@@ -404,6 +407,7 @@ u32 _exec(char* path,char* argv[])
 
 	hashtable_free(current_process_context->file_desc);
 	current_process_context->file_desc=hashtable_init(PROCESS_INIT_FILE);
+	current_process_context->socket_desc=hashtable_init(PROCESS_INIT_SOCKET);
 
 	if (elf_loader_init(current_process_context->elf_desc,path)==-1)
 	{
