@@ -274,6 +274,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 				enqueue(tcp_listen_desc->back_log_c_queue,new_tcp_conn_desc);
 				tcp_conn_map_put(tcp_desc->conn_map,src_ip,dst_ip,src_port,dst_port,new_tcp_conn_desc);
 				new_tcp_conn_desc->status = ESTABILISHED;
+				new_tcp_conn_desc->snd_queue->nxt_snd++;
 				new_tcp_conn_desc->snd_queue->cur =  new_tcp_conn_desc->snd_queue->nxt_snd;
 				new_tcp_conn_desc->rcv_wmd_adv = rcv_wmd_adv;
 				upd_max_adv_wnd(new_tcp_conn_desc,rcv_wmd_adv);
@@ -302,7 +303,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 //START ACTIVE CLOSE
 //	FIN,ACK OR FIN AND ACK FROM SERVER
 	u32 fin_num = tcp_conn_desc->snd_queue->nxt_snd;
-	if (flags & (FLG_FIN | FLG_ACK) 
+	if ((flags & FLG_FIN) && (flags & FLG_ACK) 
 	    && tcp_conn_desc->status == FIN_WAIT_1)
 	{
 		//if (tcp_conn_desc->fin_num + 1 == ack_seq_num)

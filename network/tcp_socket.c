@@ -174,7 +174,7 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	printk("nxt=%d \n",tcp_queue->nxt_rcv);
 	while (available_data == 0)
 	{
-		enqueue(tcp_conn_desc->data_wait_queue,current_process_context);!!!!!!!!!!break point qui!!!
+		enqueue(tcp_conn_desc->data_wait_queue,current_process_context);
 		_sleep();
 		available_data = tcp_queue->nxt_rcv - tcp_queue->wnd_min;
 		if (available_data == 0)

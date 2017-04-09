@@ -257,7 +257,7 @@ int _recvfrom(int sockfd,unsigned char* src_ip,unsigned char* src_port,void* dat
 		}
 		else if (socket->type == 1)
 		{
-			dequeue_packet_tcp(socket->tcp_conn_desc,data,data_len);
+			read_data = dequeue_packet_tcp(socket->tcp_conn_desc,data,data_len);
 		}
 	}
 	return read_data;
