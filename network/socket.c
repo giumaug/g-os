@@ -82,8 +82,8 @@ void socket_free(t_socket* socket)
 		if ((socket->tcp_conn_desc->status == ESTABILISHED || socket->tcp_conn_desc->status == CLOSE_WAIT) && socket->tcp_conn_desc->ref_count == 0)
 		{
 			close_tcp(socket->tcp_conn_desc);
-			kfree(socket);
 		}
+		kfree(socket);
 	}
 } 
 /* NOTE:_open_socket,_bind,_connect,_listen,_accept,_rcvfrom,_send_to,_close_socket,

@@ -13,5 +13,10 @@ t_timer* timer_init(int val,void (*handler)(void*),void* handler_arg,void* ref)
 
 void timer_free(t_timer* timer)
 {
+	if (timer->ref != NULL)
+	{
+  		ll_delete_node(timer->ref);
+		timer->ref = NULL;
+	}
 	kfree(timer);
 }
