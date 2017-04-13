@@ -114,17 +114,23 @@ int connect_tcp(u32 dst_ip,u16 dst_port,t_socket* socket)
 
 void close_tcp(t_tcp_conn_desc* tcp_conn_desc)
 {
+	t_tcp_desc* tcp_desc = NULL;
 	u8 flags = 0;
 	u32 ack_num = 0;
-	u32 seq_num = 0;
+	u32 seq_num = 0;	
 
 	SAVE_IF_STATUS
 	CLI
+	tcp_desc = system.network_desc->tcp_desc;
 	flags = FLG_FIN | FLG_ACK;
 	seq_num = seq_num = tcp_conn_desc->snd_queue->nxt_snd;
 	ack_num = tcp_conn_desc->last_ack_sent;
 	printk("close_tcp called \n");
 
+	if (tcp_conn_desc->status = CLOSED)
+	{
+		tcp_conn_map_remove(tcp_desc->listen_map,tcp_conn_desc->src_ip,tcp_conn_desc->dst_ip,tcp_conn_desc->src_port,tcp_conn_desc->dst_port);
+	}
 	if (tcp_conn_desc->snd_queue->wnd_min == tcp_conn_desc->snd_queue->cur)
 	{
 		if (tcp_conn_desc->pgybg_timer->ref != NULL)

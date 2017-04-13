@@ -314,6 +314,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			//tcp_conn_desc->seq_num = tcp_conn_desc->fin_num + 1;
 			//_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK,(tcp_conn_desc->fin_num + 1));
 			_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK,(fin_num + 1));
+			tcp_conn_map_remove(tcp_desc->conn_map,tcp_conn_desc->src_ip,tcp_conn_desc->dst_ip,tcp_conn_desc->src_port,tcp_conn_desc->dst_port);
 			tcp_conn_desc_free(tcp_conn_desc);
 			goto EXIT;
 		}
@@ -341,6 +342,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		tcp_conn_desc->status = CLOSED;
 		//tcp_conn_desc->seq_num = tcp_conn_desc->fin_num + 1;
 		_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK,(fin_num + 1));
+		tcp_conn_map_remove(tcp_desc->conn_map,tcp_conn_desc->src_ip,tcp_conn_desc->dst_ip,tcp_conn_desc->src_port,tcp_conn_desc->dst_port);
 		tcp_conn_desc_free(tcp_conn_desc);
 		goto EXIT;
 	}
@@ -366,6 +368,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	    && tcp_conn_desc->status == LAST_ACK
 	    && (fin_num + 1) == ack_seq_num)
 	{
+		tcp_conn_map_remove(tcp_desc->conn_map,tcp_conn_desc->src_ip,tcp_conn_desc->dst_ip,tcp_conn_desc->src_port,tcp_conn_desc->dst_port);
 		tcp_conn_desc_free(tcp_conn_desc);
 		goto EXIT;
 	}
