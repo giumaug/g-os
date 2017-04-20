@@ -257,7 +257,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		//IF new_tcp_conn_desc != NULL IS LOST SYNC
 		upd_max_adv_wnd(new_tcp_conn_desc,rcv_wmd_adv);
 		_SEND_PACKET_TCP(new_tcp_conn_desc,NULL,0,ack_num,(FLG_SYN | FLG_ACK),new_tcp_conn_desc->snd_queue->nxt_snd);
-		printk("ack is %d \n",ack_num);
+//		printk("ack is %d \n",ack_num);
 		goto EXIT;
 	}
 
@@ -460,14 +460,12 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 		if (tcp_conn_desc->cwnd <= tcp_conn_desc->ssthresh)
 		{
 			tcp_conn_desc->cwnd +=SMSS;
-			//printk("using slow down \n");
 		}
 		else 
 		{
 			rtt = system.time - tcp_conn_desc->last_sent_time;
 			tcp_conn_desc->rto = rtt * SRTT_FACTOR * tcp_conn_desc->rto + (1 - SRTT_FACTOR);
 			tcp_conn_desc->cwnd += (SMSS * SMSS) / tcp_conn_desc->cwnd;
-			//printk("using congestion avoidance \n");
 		}
 	}
 	else if (++tcp_conn_desc->duplicated_ack == 3)
@@ -481,7 +479,6 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 	}
 	tcp_queue = tcp_conn_desc->snd_queue;
 	tcp_queue->wnd_size = min(tcp_conn_desc->cwnd,tcp_conn_desc->rcv_wmd_adv);
-	//printk("cwd is: %d \n",tcp_conn_desc->cwnd);
 }
 
 void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_data_len)
@@ -612,9 +609,9 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		}
 	}
 EXIT:
-	printk("buf index= %d \n",indx);
-	printk("cur is= %d \n",tcp_queue->cur);
-	printk("nxt_snd is= %d \n",tcp_queue->nxt_snd);
+//	printk("buf index= %d \n",indx);
+//	printk("cur is= %d \n",tcp_queue->cur);
+//	printk("nxt_snd is= %d \n",tcp_queue->nxt_snd);
 	flush_data(tcp_conn_desc,data_to_send,ack_num,indx);
 
 	//close connection with FIN flag both client and server	

@@ -54,7 +54,7 @@ int main()
 	listen(server_sockfd, 5);
 	//signal(SIGCHLD, SIG_IGN);
 	char ch[100];
-	while(1) 
+	//while(1) 
 	{
 		printf("server waiting\n");
 
@@ -73,12 +73,12 @@ int main()
 			printf("read = %d \n",n);
 			ch[n]='\0';
 			printf("data = %s \n",ch);
-			sleep(2000);
+			//sleep(2000);
 			write_socket(client_sockfd, ch, n);
 			//send(client_sockfd,ch,n,0);
 			printf("sent %s \n",ch);
 			printf("..\n");
-			sleep(2000);
+			//sleep(2000);
 			close_socket(client_sockfd);
 			exit(0);
 		}

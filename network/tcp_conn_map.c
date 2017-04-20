@@ -27,8 +27,6 @@ void tcp_conn_map_put(t_tcp_conn_map* tcp_conn_map,u16 src_ip,u16 dst_ip,u32 src
 
 	conn_id = dst_port | (src_port << 16);
 	cur_conn = hashtable_get(tcp_conn_map->conn_map,conn_id);
-        int a = NULL;
-	printk("aaa=%d \n",a);
 	if (cur_conn != NULL)
 	{
 		hashtable_put(tcp_conn_map->duplicate_key_map,conn_id,1);
