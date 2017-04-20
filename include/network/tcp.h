@@ -131,6 +131,7 @@ t_tcp_conn_desc;
 
 struct s_tcp_conn_map;
 
+//For evert s_tcp_conn_map struct src is this machine dst remote endpoint
 typedef struct s_tcp_desc
 {
 	struct s_tcp_conn_map* conn_map;		//ESTABILISHED CONNECTIONS MAP

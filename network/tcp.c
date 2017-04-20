@@ -188,7 +188,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	{
 		goto EXIT;
 	}
-	tcp_conn_desc = tcp_conn_map_get(tcp_desc->conn_map,src_ip,dst_ip,src_port,dst_port);
+	tcp_conn_desc = tcp_conn_map_get(tcp_desc->conn_map,dst_ip,src_ip,dst_port,src_port);
 	tcp_req_desc = tcp_conn_map_get(tcp_desc->req_map,dst_ip,system.network_desc->ip,dst_port,src_port);
 	tcp_listen_desc = tcp_conn_map_get(tcp_desc->listen_map,system.network_desc->ip,0,dst_port,0);
 	if (tcp_req_desc == NULL && tcp_listen_desc == NULL && tcp_conn_desc != NULL )
@@ -205,8 +205,8 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			ack_num = seq_num + 1;
 			tcp_req_desc->rcv_queue->nxt_rcv = ack_num;
 			_SEND_PACKET_TCP(tcp_req_desc,NULL,0,ack_num,FLG_ACK,++tcp_conn_desc->snd_queue->nxt_snd);
-			tcp_conn_map_remove(tcp_desc->req_map,src_ip,dst_ip,src_port,dst_port);
-			tcp_conn_map_put(tcp_desc->conn_map,src_ip,dst_ip,src_port,dst_port,tcp_req_desc);
+			tcp_conn_map_remove(tcp_desc->req_map,dst_ip,src_ip,dst_port,src_port);
+			tcp_conn_map_put(tcp_desc->conn_map,dst_ip,src_ip,dst_port,src_port,tcp_req_desc);
 			//ll_append(tcp_desc->tcp_conn_list,tcp_req_desc);
 			tcp_req_desc->status = ESTABILISHED;
 			upd_max_adv_wnd(tcp_req_desc,rcv_wmd_adv);
@@ -237,7 +237,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	//THREE WAY HANDSHAKE SYN FROM CLIENT TO SERVER
 	else if (flags & FLG_SYN && tcp_listen_desc != NULL)
 	{
-		new_tcp_conn_desc = tcp_conn_map_get(tcp_listen_desc->back_log_i_map,src_ip,dst_ip,src_port,dst_port);
+		new_tcp_conn_desc = tcp_conn_map_get(tcp_listen_desc->back_log_i_map,dst_ip,src_ip,dst_port,src_port);
 		if (new_tcp_conn_desc == NULL)
 		{
 			new_tcp_conn_desc = tcp_conn_desc_int();
@@ -245,7 +245,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			new_tcp_conn_desc->dst_ip = src_ip;
 			new_tcp_conn_desc->src_port = dst_port;
 			new_tcp_conn_desc->dst_port = src_port;
-			tcp_conn_map_put(tcp_listen_desc->back_log_i_map,src_ip,dst_ip,src_port,dst_port,new_tcp_conn_desc);
+			tcp_conn_map_put(tcp_listen_desc->back_log_i_map,dst_ip,src_ip,dst_port,src_port,new_tcp_conn_desc);
 			
 			ack_num = seq_num + 1;
 			new_tcp_conn_desc->snd_queue->nxt_snd++;
@@ -265,14 +265,14 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	//IF THERE IS AN ACK COULD BE LAST STEP OF THREE WAY HANDSHAKE OR REGULAR PACKET
 	else if (flags & FLG_ACK && tcp_listen_desc != NULL)
 	{
-		new_tcp_conn_desc = tcp_conn_map_get(tcp_listen_desc->back_log_i_map,src_ip,dst_ip,src_port,dst_port);
+		new_tcp_conn_desc = tcp_conn_map_get(tcp_listen_desc->back_log_i_map,dst_ip,src_ip,dst_port,src_port);
 		if (new_tcp_conn_desc != NULL)
 		{
 			if (new_tcp_conn_desc->snd_queue->nxt_snd + 1 == ack_seq_num)
 			{
-				tcp_conn_map_remove(tcp_listen_desc->back_log_i_map,src_ip,dst_ip,src_port,dst_port);
+				tcp_conn_map_remove(tcp_listen_desc->back_log_i_map,dst_ip,src_ip,dst_port,src_port);
 				enqueue(tcp_listen_desc->back_log_c_queue,new_tcp_conn_desc);
-				tcp_conn_map_put(tcp_desc->conn_map,src_ip,dst_ip,src_port,dst_port,new_tcp_conn_desc);
+				tcp_conn_map_put(tcp_desc->conn_map,dst_ip,src_ip,dst_port,src_port,new_tcp_conn_desc);
 				new_tcp_conn_desc->status = ESTABILISHED;
 				new_tcp_conn_desc->snd_queue->nxt_snd++;
 				new_tcp_conn_desc->snd_queue->cur =  new_tcp_conn_desc->snd_queue->nxt_snd;
@@ -287,7 +287,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			goto EXIT;
 		}
 	}
-	tcp_conn_desc = tcp_conn_map_get(tcp_desc->conn_map,src_ip,dst_ip,src_port,dst_port);
+	tcp_conn_desc = tcp_conn_map_get(tcp_desc->conn_map,dst_ip,src_ip,dst_port,src_port);
 	if (tcp_conn_desc == NULL) 
 	{
 		goto EXIT;
