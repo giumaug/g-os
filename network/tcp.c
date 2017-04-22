@@ -241,10 +241,10 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		if (new_tcp_conn_desc == NULL)
 		{
 			new_tcp_conn_desc = tcp_conn_desc_int();
-			new_tcp_conn_desc->src_ip = dst_ip;
-			new_tcp_conn_desc->dst_ip = src_ip;
-			new_tcp_conn_desc->src_port = dst_port;
-			new_tcp_conn_desc->dst_port = src_port;
+			new_tcp_conn_desc->src_ip = src_ip;
+			new_tcp_conn_desc->dst_ip = dst_ip;
+			new_tcp_conn_desc->src_port = src_port;
+			new_tcp_conn_desc->dst_port = dst_port;
 			tcp_conn_map_put(tcp_listen_desc->back_log_i_map,src_ip,dst_ip,src_port,dst_port,new_tcp_conn_desc);
 			
 			ack_num = seq_num + 1;
