@@ -1,5 +1,10 @@
 #include "network/socket.h"
 
+//NON SERVONO SOLO PER COMPILARE UDP 
+//static int free_port_search
+//t_socket_desc* socket_desc_init()
+//void socket_desc_free(t_socket_desc* socket_desc)
+
 static int free_port_search()
 {
 	int i;
@@ -9,7 +14,8 @@ static int free_port_search()
 	socket_desc=system.network_desc->socket_desc;
 	for (i=0;i<32767;i++)
 	{
-		if (socket_desc->udp_port_indx++>65535) {
+		if (socket_desc->udp_port_indx++>65535) 
+		{
 			
 			socket_desc->udp_port_indx=32767;
 		}
@@ -326,9 +332,11 @@ t_hashtable* clone_socket_desc(t_hashtable* socket_desc,u32 data_size)
 	t_socket* socket = NULL;
 	t_socket* cloned_socket = NULL;
 	u32 i = 0;
+	struct t_process_context* current_process_context = NULL;
 
+	CURRENT_PROCESS_CONTEXT(current_process_context);
 	cloned_socket_desc = hashtable_init(socket_desc->size);
-	for (i=0;i < socket_desc->size;i++)
+	for (i=0;i <= current_process_context->next_sd;i++)
 	{
 		socket = hashtable_get(socket_desc,i);
 		if (socket != NULL)
@@ -339,6 +347,8 @@ t_hashtable* clone_socket_desc(t_hashtable* socket_desc,u32 data_size)
 			if (socket->tcp_conn_desc != NULL) 
 			{
 				socket->tcp_conn_desc->ref_count++;
+				printk("ref count is %d \n",socket->tcp_conn_desc->ref_count);
+				printk("i is %d \n",i);
 			}
 		}
 	}

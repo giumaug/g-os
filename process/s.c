@@ -73,12 +73,12 @@ int main()
 			printf("read = %d \n",n);
 			ch[n]='\0';
 			printf("data = %s \n",ch);
-			sleep(2000);
+			//sleep(2000);
 			write_socket(client_sockfd, ch, n);
 			//send(client_sockfd,ch,n,0);
 			printf("sent %s \n",ch);
 			printf("..\n");
-			sleep(2000);
+			//sleep(2000);
 			close_socket(client_sockfd);
 			exit(0);
 		}
@@ -90,5 +90,6 @@ int main()
 			close_socket(client_sockfd);
 		}
 	}
+	exit(0);
 }
 

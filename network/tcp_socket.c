@@ -125,12 +125,13 @@ void close_tcp(t_tcp_conn_desc* tcp_conn_desc)
 	flags = FLG_FIN | FLG_ACK;
 	seq_num = seq_num = tcp_conn_desc->snd_queue->nxt_snd;
 	ack_num = tcp_conn_desc->last_ack_sent;
-	printk("close_tcp called \n");
 
 	if (tcp_conn_desc->status = CLOSED)
 	{
 		tcp_conn_map_remove(tcp_desc->listen_map,tcp_conn_desc->src_ip,tcp_conn_desc->dst_ip,tcp_conn_desc->src_port,tcp_conn_desc->dst_port);
 	}
+	printk("snd_wnd_min=%d \n",tcp_conn_desc->snd_queue->wnd_min);
+	printk("snd_cur=%d \n",tcp_conn_desc->snd_queue->cur);
 	if (tcp_conn_desc->snd_queue->wnd_min == tcp_conn_desc->snd_queue->cur)
 	{
 		if (tcp_conn_desc->pgybg_timer->ref != NULL)
@@ -176,8 +177,6 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 	tcp_queue = tcp_conn_desc->rcv_queue;
 	available_data = tcp_queue->nxt_rcv - tcp_queue->wnd_min;
-	printk("min=%d \n",tcp_queue->wnd_min);
-	printk("nxt=%d \n",tcp_queue->nxt_rcv);
 	while (available_data == 0)
 	{
 		enqueue(tcp_conn_desc->data_wait_queue,current_process_context);
@@ -194,7 +193,6 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		data_len = available_data;
 	}
 
-	printk("rcv is %d \n",tcp_queue->nxt_rcv);
 	low_index = SLOT_WND(tcp_queue->wnd_min,tcp_queue->buf_size);
 	hi_index = SLOT_WND((tcp_queue->wnd_min + data_len),tcp_queue->buf_size);
 

@@ -12,6 +12,7 @@
 #define TCP_MAP_SIZE 20
 #define UDP_MAP_SIZE 20
 
+//NON SERVE SOLO PER COMPILARE UDP
 typedef struct s_socket_desc
 {
 	t_hashtable* sd_map;
