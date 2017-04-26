@@ -300,6 +300,11 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	t_tcp_rcv_queue* tcp_queue = tcp_conn_desc->rcv_queue;
 	upd_max_adv_wnd(tcp_conn_desc,rcv_wmd_adv);
 
+	if (ack_seq_num == 8)
+	{
+		printk("qui!!! \n");
+	}
+
 //START ACTIVE CLOSE
 //	FIN,ACK OR FIN AND ACK FROM SERVER
 	u32 fin_num = tcp_conn_desc->snd_queue->nxt_snd;
@@ -335,6 +340,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	    	 && data_len > 0)
 	{
 		//TO CHECK RETRY SU FIN WITH WRONG ACK
+		printk("rrrr \n");
 	}
 	else if (flags & FLG_FIN && tcp_conn_desc->status == FIN_WAIT_2)
 	{
@@ -627,6 +633,12 @@ EXIT:
 		//tcp_conn_desc->fin_num = tcp_conn_desc->seq_num;
 		_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,ack_num,FLG_FIN | FLG_ACK,tcp_conn_desc->snd_queue->nxt_snd);
 		printk("fin from fix2 \n");
+		static pippo=0;
+		pippo++;
+		if (pippo==2) 
+		{
+			printk("ttt \n");
+		}		
 	}
 }
 
