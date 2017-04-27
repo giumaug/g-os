@@ -184,6 +184,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	flags = tcp_row_packet[13];
 	rcv_wmd_adv = GET_WORD(tcp_row_packet[14],tcp_row_packet[15]);
 
+	printk("ack is %d \n",ack_seq_num);
 	if (checksum_tcp((unsigned short*) tcp_row_packet,src_ip,dst_ip,data_len) !=0 )
 	{
 		goto EXIT;
@@ -333,6 +334,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	    	 && (fin_num + 1) == ack_seq_num)
 	{
 		tcp_conn_desc->status = FIN_WAIT_2;
+		printk("now wait2 \n");
 		goto EXIT;
 	}
 	else if (flags & FLG_ACK 
