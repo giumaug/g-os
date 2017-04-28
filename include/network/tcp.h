@@ -51,6 +51,7 @@
 #define LAST_ACK		6	
 #define TIME_WAIT		7
 #define CLOSED                  8
+#define FIN_WAIT_1_PENDING      9
 
 //timout=200 ms (quantum = 10 ms)
 #define PIGGYBACKING_TIMEOUT 20 

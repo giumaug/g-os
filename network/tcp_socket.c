@@ -149,7 +149,7 @@ void close_tcp(t_tcp_conn_desc* tcp_conn_desc)
 	if (tcp_conn_desc->status = ESTABILISHED)
 	{
 		//FIN from client to server
-		tcp_conn_desc->status = FIN_WAIT_1;
+		tcp_conn_desc->status = FIN_WAIT_1_PENDING;
 	}
 	else if (tcp_conn_desc->status = CLOSE_WAIT) {
 

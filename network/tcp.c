@@ -184,7 +184,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	flags = tcp_row_packet[13];
 	rcv_wmd_adv = GET_WORD(tcp_row_packet[14],tcp_row_packet[15]);
 
-	printk("ack is %d \n",ack_seq_num);
 	if (checksum_tcp((unsigned short*) tcp_row_packet,src_ip,dst_ip,data_len) !=0 )
 	{
 		goto EXIT;
@@ -293,18 +292,13 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	{
 		goto EXIT;
 	}
-	if (tcp_conn_desc->status != ESTABILISHED && tcp_conn_desc->status != FIN_WAIT_1 && tcp_conn_desc->status != FIN_WAIT_2)
+	if (tcp_conn_desc->status != ESTABILISHED && tcp_conn_desc->status != FIN_WAIT_1 && tcp_conn_desc->status != FIN_WAIT_2 && tcp_conn_desc->status != FIN_WAIT_1_PENDING)
 	{
 		goto EXIT;
 	}
 
 	t_tcp_rcv_queue* tcp_queue = tcp_conn_desc->rcv_queue;
 	upd_max_adv_wnd(tcp_conn_desc,rcv_wmd_adv);
-
-	if (ack_seq_num == 8)
-	{
-		printk("qui!!! \n");
-	}
 
 //START ACTIVE CLOSE
 //	FIN,ACK OR FIN AND ACK FROM SERVER
@@ -321,6 +315,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			//_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK,(tcp_conn_desc->fin_num + 1));
 			_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK,(fin_num + 1));
 			tcp_conn_map_remove(tcp_desc->conn_map,tcp_conn_desc->src_ip,tcp_conn_desc->dst_ip,tcp_conn_desc->src_port,tcp_conn_desc->dst_port);
+			
 			tcp_conn_desc_free(tcp_conn_desc);
 			goto EXIT;
 		}
@@ -334,7 +329,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	    	 && (fin_num + 1) == ack_seq_num)
 	{
 		tcp_conn_desc->status = FIN_WAIT_2;
-		printk("now wait2 \n");
 		goto EXIT;
 	}
 	else if (flags & FLG_ACK 
@@ -342,7 +336,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	    	 && data_len > 0)
 	{
 		//TO CHECK RETRY SU FIN WITH WRONG ACK
-		printk("rrrr \n");
 	}
 	else if (flags & FLG_FIN && tcp_conn_desc->status == FIN_WAIT_2)
 	{
@@ -624,8 +617,9 @@ EXIT:
 
 	//close connection with FIN flag both client and server	
 	//FIN needs retrasmission management only. No retry.
-	if (tcp_queue->wnd_min == tcp_queue->cur && tcp_conn_desc->status == FIN_WAIT_1 )
+	if (tcp_queue->wnd_min == tcp_queue->cur && tcp_conn_desc->status == FIN_WAIT_1_PENDING )
 	{
+		tcp_conn_desc->status = FIN_WAIT_1;
 		if (tcp_conn_desc->pgybg_timer->ref != NULL)
 		{
 			ll_delete_node(tcp_conn_desc->pgybg_timer->ref);
@@ -634,13 +628,7 @@ EXIT:
 
 		//tcp_conn_desc->fin_num = tcp_conn_desc->seq_num;
 		_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,ack_num,FLG_FIN | FLG_ACK,tcp_conn_desc->snd_queue->nxt_snd);
-		printk("fin from fix2 \n");
-		static pippo=0;
-		pippo++;
-		if (pippo==2) 
-		{
-			printk("ttt \n");
-		}		
+		printk("fin from fix2 \n");		
 	}
 }
 
