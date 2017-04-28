@@ -78,7 +78,7 @@ int main()
 			//send(client_sockfd,ch,n,0);
 			printf("sent %s \n",ch);
 			printf("..\n");
-			//sleep(2000);
+			sleep(2000);
 			close_socket(client_sockfd);
 			exit(0);
 		}
