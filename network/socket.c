@@ -82,8 +82,8 @@ void socket_free(t_socket* socket)
 	else  if (socket->type == 1)
 	{
 		socket->tcp_conn_desc->ref_count--;
-		printk("---------\n");
-		printk("status=%d \n",socket->tcp_conn_desc->status);
+		//printk("---------\n");
+		//printk("status=%d \n",socket->tcp_conn_desc->status);
 		printk("ref_count=%d \n",socket->tcp_conn_desc->ref_count);
 		if ((socket->tcp_conn_desc->status == ESTABILISHED || socket->tcp_conn_desc->status == CLOSE_WAIT) && socket->tcp_conn_desc->ref_count == 0)
 		{

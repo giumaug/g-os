@@ -101,7 +101,7 @@ int connect_tcp(u32 dst_ip,u16 dst_port,t_socket* socket)
 	tcp_conn_desc->src_port = src_port;
 	tcp_conn_desc->status = SYN_SENT;
 	tcp_conn_desc->rtrsn_timer->val = tcp_conn_desc->rto;
-	tcp_conn_desc->rtrsn_timer->ref = ll_append(system.timer_list,tcp_conn_desc->rtrsn_timer);
+	rtrsn_timer_set(tcp_conn_desc->rtrsn_timer,tcp_conn_desc->rto);
 	socket->tcp_conn_desc = tcp_conn_desc;
 	tcp_conn_map_put(tcp_req_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
 	//SYN NEED RETRASMISSION TIMEOUT MANAGEMENT ONLY.NO RETRY	
@@ -126,7 +126,7 @@ void close_tcp(t_tcp_conn_desc* tcp_conn_desc)
 	seq_num = seq_num = tcp_conn_desc->snd_queue->nxt_snd;
 	ack_num = tcp_conn_desc->last_ack_sent;
 
-	if (tcp_conn_desc->status = CLOSED)
+	if (tcp_conn_desc->status = CLOSED)???????????????????? qui!!!
 	{
 		tcp_conn_map_remove(tcp_desc->listen_map,tcp_conn_desc->src_ip,tcp_conn_desc->dst_ip,tcp_conn_desc->src_port,tcp_conn_desc->dst_port);
 	}
@@ -144,17 +144,29 @@ void close_tcp(t_tcp_conn_desc* tcp_conn_desc)
 		//tcp_conn_desc->fin_num = tcp_conn_desc->seq_num;
 		flags |= FLG_ACK;
 		_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,ack_num,flags,seq_num);
-		printk("fin from fix1 \n");
+		static pippo=0;
+		pippo++;
+		printk("fin from fix1 %d \n",pippo);
+		if (tcp_conn_desc->status == ESTABILISHED)
+		{
+			//FIN from client to server
+			tcp_conn_desc->status = FIN_WAIT_1;
+		}	
+		else if (tcp_conn_desc->status == CLOSE_WAIT) 
+		{
+			//FIN from server to client
+			tcp_conn_desc->status = LAST_ACK;
+		}
 	}
-	if (tcp_conn_desc->status = ESTABILISHED)
+	if (tcp_conn_desc->status == ESTABILISHED)
 	{
 		//FIN from client to server
 		tcp_conn_desc->status = FIN_WAIT_1_PENDING;
 	}
-	else if (tcp_conn_desc->status = CLOSE_WAIT) {
+	else if (tcp_conn_desc->status == CLOSE_WAIT) {
 
 		//FIN from server to client
-		tcp_conn_desc->status = LAST_ACK;
+		tcp_conn_desc->status = LAST_ACK_PENDING;
 	}
 	RESTORE_IF_STATUS
 	return;

@@ -52,6 +52,7 @@
 #define TIME_WAIT		7
 #define CLOSED                  8
 #define FIN_WAIT_1_PENDING      9
+#define LAST_ACK_PENDING       10
 
 //timout=200 ms (quantum = 10 ms)
 #define PIGGYBACKING_TIMEOUT 20 
@@ -152,7 +153,8 @@ void rcv_packet_tcp(struct s_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,
 void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_data_len);
 void rtrsn_timer_handler(void* arg);
 void pgybg_timer_handler(void* arg);
-//int send_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len,u32 ack_num,u8 flags);
 int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size,char* data,u32 data_len,u32 ack_num,u8 flags,u32 seq_num);
+void rtrsn_timer_set(t_timer* rtrsn_timer,long rto);
+void rtrsn_timer_reset(t_timer* rtrsn_timer);
 
 #endif
