@@ -126,7 +126,7 @@ void close_tcp(t_tcp_conn_desc* tcp_conn_desc)
 	seq_num = seq_num = tcp_conn_desc->snd_queue->nxt_snd;
 	ack_num = tcp_conn_desc->last_ack_sent;
 
-	if (tcp_conn_desc->status = CLOSED)???????????????????? qui!!!
+	if (tcp_conn_desc->status == CLOSED)
 	{
 		tcp_conn_map_remove(tcp_desc->listen_map,tcp_conn_desc->src_ip,tcp_conn_desc->dst_ip,tcp_conn_desc->src_port,tcp_conn_desc->dst_port);
 	}
@@ -147,6 +147,7 @@ void close_tcp(t_tcp_conn_desc* tcp_conn_desc)
 		static pippo=0;
 		pippo++;
 		printk("fin from fix1 %d \n",pippo);
+		printk("dddddd=%d \n",tcp_conn_desc->status);
 		if (tcp_conn_desc->status == ESTABILISHED)
 		{
 			//FIN from client to server

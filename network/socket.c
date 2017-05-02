@@ -323,6 +323,10 @@ int _close_socket(int sockfd)
 	{
 //		hashtable_remove(socket_desc->udp_map,socket->port);
 	}
+	if (sockfd == 1 )
+	{
+		printk("final!!! \n");--------------__!!!!
+	}
 	socket_free(socket);
 }
 

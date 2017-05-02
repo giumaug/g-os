@@ -288,13 +288,15 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	{
 		goto EXIT;
 	}
-	if (tcp_conn_desc->status != ESTABILISHED && 
-	    tcp_conn_desc->status != FIN_WAIT_1 && 
-	    tcp_conn_desc->status != FIN_WAIT_2 && 
-	    tcp_conn_desc->status != FIN_WAIT_1_PENDING)
-	{
-		goto EXIT;
-	}
+	
+//	if (tcp_conn_desc->status != ESTABILISHED && 
+//	    tcp_conn_desc->status != FIN_WAIT_1 && 
+//	    tcp_conn_desc->status != FIN_WAIT_2 && 
+//	    tcp_conn_desc->status != FIN_WAIT_1_PENDING)
+//	{
+//
+//		goto EXIT;
+//	}
 
 	t_tcp_rcv_queue* tcp_queue = tcp_conn_desc->rcv_queue;
 	upd_max_adv_wnd(tcp_conn_desc,rcv_wmd_adv);
