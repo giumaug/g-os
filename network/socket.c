@@ -73,6 +73,10 @@ t_socket* socket_init(int type)
 //CALLED AT THE END SO LOCK NOT REQUIRED
 void socket_free(t_socket* socket)
 {
+	if (socket->sd ==1)
+	{
+		printk("sddd \n");
+	}
 	if (socket->type == 2)
 	{
 		free_queue(socket->udp_rx_queue);
@@ -322,10 +326,6 @@ int _close_socket(int sockfd)
 	if (socket->type==2)
 	{
 //		hashtable_remove(socket_desc->udp_map,socket->port);
-	}
-	if (sockfd == 1 )
-	{
-		printk("final!!! \n");--------------__!!!!
 	}
 	socket_free(socket);
 }

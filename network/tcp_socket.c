@@ -147,7 +147,6 @@ void close_tcp(t_tcp_conn_desc* tcp_conn_desc)
 		static pippo=0;
 		pippo++;
 		printk("fin from fix1 %d \n",pippo);
-		printk("dddddd=%d \n",tcp_conn_desc->status);
 		if (tcp_conn_desc->status == ESTABILISHED)
 		{
 			//FIN from client to server

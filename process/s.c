@@ -54,7 +54,7 @@ int main()
 	listen(server_sockfd, 5);
 	//signal(SIGCHLD, SIG_IGN);
 	char ch[100];
-	//while(1) 
+	while(1) 
 	{
 		printf("server waiting\n");
 
@@ -90,8 +90,7 @@ int main()
 			close_socket(client_sockfd);
 		}
 	}
-	printf("closing socket %d \n",server_sockfd);
-	close(server_sockfd);
+	close_socket(server_sockfd);
 	exit(0);
 }
 
