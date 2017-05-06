@@ -97,6 +97,8 @@ void tcp_conn_desc_free(t_tcp_conn_desc* tcp_conn_desc)
 	timer_free(tcp_conn_desc->rtrsn_timer);
 	timer_free(tcp_conn_desc->pgybg_timer);
 	kfree(tcp_conn_desc);
+	printk("conn free!! %d\n",tcp_conn_desc->src_port);
+	printk("conn free!! %d\n",tcp_conn_desc->dst_port);
 }
 
 t_tcp_desc* tcp_init()
@@ -184,9 +186,14 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	flags = tcp_row_packet[13];
 	rcv_wmd_adv = GET_WORD(tcp_row_packet[14],tcp_row_packet[15]);
 
-	if (ack_seq_num == 7 )
+	if (ack_seq_num == 8 )
 	{
-		printk("!!! \n");-----------e' wait 1!!!!!! sull'ack
+		int static p=0;
+		p++;
+		if (p==2)
+		{
+			printk("!!! \n");
+		}
 	}
 
 	if (checksum_tcp((unsigned short*) tcp_row_packet,src_ip,dst_ip,data_len) !=0 )

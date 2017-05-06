@@ -130,8 +130,8 @@ void close_tcp(t_tcp_conn_desc* tcp_conn_desc)
 	{
 		tcp_conn_map_remove(tcp_desc->listen_map,tcp_conn_desc->src_ip,tcp_conn_desc->dst_ip,tcp_conn_desc->src_port,tcp_conn_desc->dst_port);
 	}
-	printk("snd_wnd_min=%d \n",tcp_conn_desc->snd_queue->wnd_min);
-	printk("snd_cur=%d \n",tcp_conn_desc->snd_queue->cur);
+	//printk("snd_wnd_min=%d \n",tcp_conn_desc->snd_queue->wnd_min);
+	//printk("snd_cur=%d \n",tcp_conn_desc->snd_queue->cur);
 	if (tcp_conn_desc->snd_queue->wnd_min == tcp_conn_desc->snd_queue->cur)
 	{
 		if (tcp_conn_desc->pgybg_timer->ref != NULL)

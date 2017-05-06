@@ -73,10 +73,6 @@ t_socket* socket_init(int type)
 //CALLED AT THE END SO LOCK NOT REQUIRED
 void socket_free(t_socket* socket)
 {
-	if (socket->sd ==1)
-	{
-		printk("sddd \n");
-	}
 	if (socket->type == 2)
 	{
 		free_queue(socket->udp_rx_queue);
@@ -88,7 +84,7 @@ void socket_free(t_socket* socket)
 		socket->tcp_conn_desc->ref_count--;
 		//printk("---------\n");
 		//printk("status=%d \n",socket->tcp_conn_desc->status);
-		printk("ref_count=%d \n",socket->tcp_conn_desc->ref_count);
+		//printk("ref_count=%d \n",socket->tcp_conn_desc->ref_count);
 		if ((socket->tcp_conn_desc->status == ESTABILISHED || socket->tcp_conn_desc->status == CLOSE_WAIT) && socket->tcp_conn_desc->ref_count == 0)
 		{
 			close_tcp(socket->tcp_conn_desc);
@@ -351,8 +347,8 @@ t_hashtable* clone_socket_desc(t_hashtable* socket_desc,u32 data_size)
 			if (socket->tcp_conn_desc != NULL) 
 			{
 				socket->tcp_conn_desc->ref_count++;
-				printk("ref count is %d \n",socket->tcp_conn_desc->ref_count);
-				printk("i is %d \n",i);
+				//printk("ref count is %d \n",socket->tcp_conn_desc->ref_count);
+				//printk("i is %d \n",i);
 			}
 		}
 	}
