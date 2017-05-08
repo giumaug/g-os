@@ -36,7 +36,9 @@ void tcp_conn_map_put(t_tcp_conn_map* tcp_conn_map,u16 src_ip,u16 dst_ip,u32 src
 	{
 		hashtable_put(tcp_conn_map->duplicate_key_map,conn_id,0);
 		hashtable_put(tcp_conn_map->conn_map,conn_id,tcp_conn_desc);
-	}	
+		printk("doppio!!! \n");
+	}
+	printk("tcp_conn_desc is %d \n",tcp_conn_desc);	---qui!!!
 }
 
 void tcp_conn_map_remove(t_tcp_conn_map* tcp_conn_map,u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port)
