@@ -274,6 +274,13 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			{
 				tcp_conn_map_remove(tcp_listen_desc->back_log_i_map,dst_ip,src_ip,dst_port,src_port);
 				enqueue(tcp_listen_desc->back_log_c_queue,new_tcp_conn_desc);
+                                dump_hashtable(tcp_desc->conn_map->conn_map);
+				int static pippo=0;
+				pippo++;
+				if (pippo==4)
+				{
+					printk("pippo is %d \n",pippo);
+				}
 				tcp_conn_map_put(tcp_desc->conn_map,dst_ip,src_ip,dst_port,src_port,new_tcp_conn_desc);
 				new_tcp_conn_desc->status = ESTABILISHED;
 				new_tcp_conn_desc->snd_queue->nxt_snd++;
@@ -459,6 +466,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	rcv_ack(tcp_conn_desc,ack_seq_num);
 	update_snd_window(tcp_conn_desc,ack_seq_num,data_len);
 EXIT:
+		dump_hashtable(tcp_desc->conn_map->conn_map);
 		free_sckt(data_sckt_buf);
 }
 	

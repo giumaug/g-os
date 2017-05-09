@@ -72,6 +72,7 @@ static void rehash(t_hashtable* hashtable)
 	t_hashtable* new_hashtable;
 	t_llist* chained_list;
 	
+	dump_hashtable(hashtable);
 	new_hashtable=hashtable_init((hashtable->size)*2);
     	for (i=0;i<hashtable->size;i++)
 	{
@@ -182,4 +183,33 @@ t_hashtable* hashtable_clone_map(t_hashtable* map,u32 data_size)
 		}
 	}
 	return cloned_map;
+}
+
+void dump_hashtable(t_hashtable* hashtable)
+{
+	u32 i;	
+	t_bucket_data* bucket_data;
+	t_llist_node* next;
+	t_llist_node* sentinel;
+	t_hashtable* new_hashtable;
+	t_llist* chained_list;
+	
+	printk("---------------------------start \n");
+    	for (i=0;i<hashtable->size;i++)
+	{
+		if (hashtable->bucket[i]!=NULL)
+		{
+			chained_list=hashtable->bucket[i];
+			sentinel=ll_sentinel(chained_list);
+			next=ll_first(chained_list);
+			while (next!=sentinel) 
+			{
+				bucket_data=next->val;
+				printk("val is %d \n",bucket_data->key);
+				printk("data is %d \n",bucket_data->value);
+				next=ll_next(next);
+			}
+		}
+	}
+	printk("---------------------------end \n");
 }
