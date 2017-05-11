@@ -186,14 +186,9 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	flags = tcp_row_packet[13];
 	rcv_wmd_adv = GET_WORD(tcp_row_packet[14],tcp_row_packet[15]);
 
-	if (ack_seq_num == 8 )
+	if (ack_seq_num == 13 )
 	{
-		int static p=0;
-		p++;
-		if (p==2)
-		{
-			printk("!!! \n");
-		}
+		printk("!!! \n");	
 	}
 
 	if (checksum_tcp((unsigned short*) tcp_row_packet,src_ip,dst_ip,data_len) !=0 )
