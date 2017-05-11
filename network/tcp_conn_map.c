@@ -8,6 +8,10 @@ t_tcp_conn_map* tcp_conn_map_init()
 	tcp_conn_map->conn_map = hashtable_init(TCP_CONN_MAP_SIZE);
 	tcp_conn_map->duplicate_conn_list = new_dllist();
 	tcp_conn_map->duplicate_key_map = hashtable_init(DPLC_CONN_MAP_SIZE);
+	tcp_conn_map->one_const = kmalloc(1);
+	tcp_conn_map->zero_const = kmalloc(1);
+	*tcp_conn_map->one_const = 1;
+	*tcp_conn_map->zero_const = 0;
 	return tcp_conn_map;
  }
 
@@ -16,6 +20,8 @@ void tcp_conn_map_free(t_tcp_conn_map* tcp_conn_map)
 		hashtable_free(tcp_conn_map->conn_map);
 		hashtable_free(tcp_conn_map->duplicate_key_map);
 		free_llist(tcp_conn_map->duplicate_conn_list);
+		kfree(tcp_conn_map->one_const);
+		kfree(tcp_conn_map->zero_const);
 		kfree(tcp_conn_map);
 }
 
@@ -29,13 +35,13 @@ void tcp_conn_map_put(t_tcp_conn_map* tcp_conn_map,u16 src_ip,u16 dst_ip,u32 src
 	cur_conn = hashtable_get(tcp_conn_map->conn_map,conn_id);
 	if (cur_conn != NULL)
 	{
-		hashtable_put(tcp_conn_map->duplicate_key_map,conn_id,1);
+		hashtable_put(tcp_conn_map->duplicate_key_map,conn_id,tcp_conn_map->one_const);
 		ll_append(tcp_conn_map->duplicate_conn_list,tcp_conn_desc);
 		printk("doppio!!! \n");
 	}
 	else 
 	{
-		hashtable_put(tcp_conn_map->duplicate_key_map,conn_id,0);
+		hashtable_put(tcp_conn_map->duplicate_key_map,conn_id,tcp_conn_map->zero_const);
 		hashtable_put(tcp_conn_map->conn_map,conn_id,tcp_conn_desc);
 	}
 	//printk("tcp_conn_desc is %d \n",tcp_conn_desc);
@@ -51,7 +57,7 @@ void tcp_conn_map_remove(t_tcp_conn_map* tcp_conn_map,u32 src_ip,u32 dst_ip,u16 
 	t_llist_node* next = NULL;
 	t_llist_node* remove_node = NULL;
 	u32 count = 0;
-	void* tmp = NULL;
+	unsigned char* tmp = NULL;
 	
 	conn_id = dst_port | (src_port << 16);
 	tcp_conn_desc = hashtable_get(tcp_conn_map->conn_map,conn_id);
@@ -61,7 +67,7 @@ void tcp_conn_map_remove(t_tcp_conn_map* tcp_conn_map,u32 src_ip,u32 dst_ip,u16 
 		return;
 	}
 	tmp = hashtable_get(tcp_conn_map->duplicate_key_map,conn_id);
-	if (tmp == 0)
+	if (*tmp == 0)
 	{
 		hashtable_remove(tcp_conn_map->conn_map,conn_id);
 		hashtable_remove(tcp_conn_map->duplicate_key_map,conn_id);
@@ -86,7 +92,7 @@ void tcp_conn_map_remove(t_tcp_conn_map* tcp_conn_map,u32 src_ip,u32 dst_ip,u16 
 		}
 		if (count == 1)
 		{
-			hashtable_put(tcp_conn_map->duplicate_key_map,conn_id,0);
+			hashtable_put(tcp_conn_map->duplicate_key_map,conn_id,tcp_conn_map->zero_const);
 		}
 		hashtable_remove(tcp_conn_map->conn_map,conn_id);
 		hashtable_put(tcp_conn_map->conn_map,conn_id,remove_node->val);
@@ -116,7 +122,7 @@ void tcp_conn_map_remove(t_tcp_conn_map* tcp_conn_map,u32 src_ip,u32 dst_ip,u16 
 		ll_delete_node(remove_node);
 		if (count == 1)
 		{
-			hashtable_put(tcp_conn_map->duplicate_key_map,conn_id,0);
+			hashtable_put(tcp_conn_map->duplicate_key_map,conn_id,tcp_conn_map->zero_const);
 		}
 	}
 }
@@ -128,7 +134,7 @@ t_tcp_conn_desc* tcp_conn_map_get(t_tcp_conn_map* tcp_conn_map,u32 src_ip,u32 ds
 	t_tcp_conn_desc* tcp_conn_desc = NULL;
 	t_llist_node* sentinel_node = NULL;
 	t_llist_node* next = NULL;
-	void* tmp = NULL;
+	unsigned char* tmp = NULL;
 	
 	conn_id = dst_port | (src_port << 16);
 	tcp_conn_desc = hashtable_get(tcp_conn_map->conn_map,conn_id);
@@ -138,7 +144,7 @@ t_tcp_conn_desc* tcp_conn_map_get(t_tcp_conn_map* tcp_conn_map,u32 src_ip,u32 ds
 		return NULL;
 	}
 	tmp = hashtable_get(tcp_conn_map->duplicate_key_map,conn_id);
-	if (tmp == 0)
+	if (*tmp == 0)
 	{
 		return tcp_conn_desc;
 	}

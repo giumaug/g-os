@@ -12,6 +12,8 @@ typedef struct s_tcp_conn_map
 	t_hashtable* conn_map;
 	t_hashtable* duplicate_key_map;
 	t_llist* duplicate_conn_list;
+	unsigned char* zero_const;
+	unsigned char* one_const;
 }
 t_tcp_conn_map;
 

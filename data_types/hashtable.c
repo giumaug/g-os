@@ -31,7 +31,7 @@ static void* hashtable_search(t_hashtable* hashtable,u32 key,int remove)
 	return NULL;
 }
 
-static void hashtable_free_bucket(t_llist** bucket,u32 size,void (*data_destructor)(void*))
+static void hashtable_free_bucket(t_llist** bucket,u32 size,void (*data_destructor)(void*),int remove)
 {
 	u32 i;
 	t_bucket_data* bucket_data;
@@ -45,18 +45,20 @@ static void hashtable_free_bucket(t_llist** bucket,u32 size,void (*data_destruct
 			{
 				next=ll_first(bucket[i]);
 				bucket_data=next->val;
-				if (data_destructor!=NULL)
+				if (remove == TRUE)
 				{
-					(*data_destructor)(bucket_data->value);
-				}
-				else 
-				{
-					kfree(bucket_data->value);
+					if (data_destructor!=NULL)
+					{
+						(*data_destructor)(bucket_data->value);
+					}
+					else 
+					{
+						kfree(bucket_data->value);
+					}
 				}
 				kfree(bucket_data);
     				ll_delete_node(next);
   			}
-			//kfree(bucket[i]);
 		}
 		free_llist(bucket[i]);
 	}
@@ -72,7 +74,6 @@ static void rehash(t_hashtable* hashtable)
 	t_hashtable* new_hashtable;
 	t_llist* chained_list;
 	
-	dump_hashtable(hashtable);
 	new_hashtable=hashtable_init((hashtable->size)*2);
     	for (i=0;i<hashtable->size;i++)
 	{
@@ -89,7 +90,7 @@ static void rehash(t_hashtable* hashtable)
 			}
 		}
 	}
-	hashtable_free_bucket(hashtable->bucket,hashtable->size,hashtable->data_destructor);
+	hashtable_free_bucket(hashtable->bucket,hashtable->size,hashtable->data_destructor,FALSE);
 	hashtable->bucket=new_hashtable->bucket;
 	hashtable->size=new_hashtable->size;
 	hashtable->elements=new_hashtable->elements;	
@@ -120,7 +121,7 @@ t_hashtable* dc_hashtable_init(u32 init_size,void (*data_destructor)(void*))
 
 void hashtable_free(t_hashtable* hashtable)
 {
-	hashtable_free_bucket(hashtable->bucket,hashtable->size,hashtable->data_destructor);
+	hashtable_free_bucket(hashtable->bucket,hashtable->size,hashtable->data_destructor,TRUE);
 	kfree(hashtable);
 }
 
@@ -185,7 +186,7 @@ t_hashtable* hashtable_clone_map(t_hashtable* map,u32 data_size)
 	return cloned_map;
 }
 
-void dump_hashtable(t_hashtable* hashtable)
+void _dump_hashtable(t_hashtable* hashtable)
 {
 	u32 i;	
 	t_bucket_data* bucket_data;
@@ -194,7 +195,7 @@ void dump_hashtable(t_hashtable* hashtable)
 	t_hashtable* new_hashtable;
 	t_llist* chained_list;
 	
-	printk("---------------------------start \n");
+	printk("---------------------------start %d \n",hashtable);
     	for (i=0;i<hashtable->size;i++)
 	{
 		if (hashtable->bucket[i]!=NULL)
