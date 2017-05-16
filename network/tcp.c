@@ -415,15 +415,16 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 						tcp_queue->wnd_size--;
 					}
 				}
+				//printk("win size=%d \n",tcp_queue->wnd_size);
 			}
 			else 
 			{
+				printk("!!!!!!!!!!!!!!!!!!!!! \n");
 	     			//gestire qui PIGGYBACKING_TIMEOUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 				len_1 = tcp_queue->wnd_size - low_index;
 				len_2 = data_len - len_1;
-				kmemcpy(tcp_queue->buf + low_index,data_sckt_buf->data,len_1);
-				kmemcpy(tcp_queue->buf,data_sckt_buf->data+len_1,len_2);
-
+				kmemcpy(tcp_queue->buf + low_index,data_sckt_buf->transport_hdr+HEADER_TCP,len_1);
+				kmemcpy(tcp_queue->buf,data_sckt_buf->transport_hdr+HEADER_TCP + len_1,len_2);
 				for (i = low_index;i < len_1;i++)
 				{
 					slot_state = bit_vector_get(tcp_queue->buf_state,i);
@@ -442,7 +443,12 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 						tcp_queue->wnd_size--;
 					}
 				}
+				//printk("win size++=%d \n",tcp_queue->wnd_size);
 			}
+		}
+		else
+		{
+			printk("buffer full!!!! \n");
 		}
 		update_rcv_window_and_ack(tcp_queue);
 		//wait queue inutile usare process_context
