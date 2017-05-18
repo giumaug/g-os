@@ -211,23 +211,23 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	if (low_index < hi_index) 
 	{
 		kmemcpy(data,(tcp_queue->buf + low_index),data_len);
-		for (i = low_index;i <= hi_index;i++)
+		for (i = low_index;i < hi_index;i++)
 		{
 			bit_vector_reset(tcp_queue->buf_state,i);
 		}
 	}
 	else 
 	{
-		len_1 = tcp_queue->wnd_size - low_index;
+		len_1 = tcp_queue->buf_size - low_index;
 		len_2 = data_len - len_1;
 		kmemcpy(data,(tcp_queue->buf + hi_index),len_1);
 		kmemcpy(data + len_1,(tcp_queue->buf + low_index),len_2);
 
-		for (i = low_index;i <= len_1;i++)
+		for (i = low_index ; i < (low_index + len_1) ; i++)
 		{
 			bit_vector_reset(tcp_queue->buf_state,i);
 		}
-		for (i = 0;i <= len_2;i++)
+		for (i = 0;i < len_2;i++)
 		{
 			bit_vector_reset(tcp_queue->buf_state,i);
 		}

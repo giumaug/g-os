@@ -421,11 +421,11 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			{
 				printk("!!!!!!!!!!!!!!!!!!!!! \n");
 	     			//gestire qui PIGGYBACKING_TIMEOUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-				len_1 = tcp_queue->wnd_size - low_index;
+				len_1 = tcp_queue->buf_size - low_index;
 				len_2 = data_len - len_1;
 				kmemcpy(tcp_queue->buf + low_index,data_sckt_buf->transport_hdr+HEADER_TCP,len_1);
 				kmemcpy(tcp_queue->buf,data_sckt_buf->transport_hdr+HEADER_TCP + len_1,len_2);
-				for (i = low_index;i < len_1;i++)
+				for (i = low_index ; i < (low_index + len_1) ; i++)
 				{
 					slot_state = bit_vector_get(tcp_queue->buf_state,i);
 					if (slot_state == 0)
