@@ -235,7 +235,10 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	}
 	tcp_queue->wnd_size += data_len;
 	tcp_queue->wnd_min += data_len;
-	//printk("win size++=%d \n",tcp_queue->wnd_size);
+	printk("win size++=%d \n",tcp_queue->wnd_size);
+	printk("tcp_queue->wnd_min=%d \n",tcp_queue->wnd_min);
+	printk("tcp_queue->nxt_rcv=%d \n",tcp_queue->nxt_rcv);
+
 	RESTORE_IF_STATUS
 	return data_len;
 }
