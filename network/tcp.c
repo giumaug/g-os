@@ -150,6 +150,8 @@ static void update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue)
 
 void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len)
 {
+	unsigned int mmax;//test
+	unsigned int diff;
 	t_tcp_desc* tcp_desc = NULL;
 	t_tcp_conn_desc* tcp_conn_desc = NULL;
 	unsigned char* tcp_row_packet = NULL;
@@ -397,6 +399,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 //END PASSIVE CLOSE
 	else if (data_len != 0)
 	{
+		printk("dddd \n");
 		wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
 		if (seq_num >= tcp_queue->wnd_min && seq_num + data_len <= wnd_max)
 		{
@@ -448,16 +451,22 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		}
 		else
 		{
-//			printk("buffer full!!!! \n");
+			printk("buffer full!!!! \n");
 //			printk("seq_num is %d \n",seq_num);
 //			printk("tcp_queue->wnd_min is %d \n",tcp_queue->wnd_min);
 //			printk("wnd_max is %d \n",wnd_max);
 //			_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,tcp_conn_desc->last_ack_sent,FLG_ACK,tcp_conn_desc->snd_queue->nxt_snd);
 //			goto EXIT;
-			process_context = dequeue(tcp_conn_desc->data_wait_queue);
-			if (process_context != NULL)
+//			process_context = dequeue(tcp_conn_desc->data_wait_queue);
+//			if (process_context != NULL)
+//			{
+//				_awake(process_context);
+//			}
+			mmax =tcp_queue->wnd_min + tcp_queue->wnd_size;
+			diff = mmax - tcp_queue->nxt_rcv;
+			if (mmax - diff != tcp_queue->wnd_size)
 			{
-				_awake(process_context);
+				printk("misalignment !!!! \n");
 			}
 			goto EXIT;
 		}
@@ -467,6 +476,12 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		if (process_context != NULL)
 		{
 			_awake(process_context);
+		}
+		mmax =tcp_queue->wnd_min + tcp_queue->wnd_size;
+		diff = mmax - tcp_queue->nxt_rcv;
+		if (mmax - diff != tcp_queue->wnd_size)
+		{
+			printk("misalignment !!!! \n");
 		}
 	}
 	rcv_ack(tcp_conn_desc,ack_seq_num);
@@ -513,7 +528,7 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 		tcp_conn_desc->cwnd = TCP_SND_SIZE;
 	}
 	tcp_queue = tcp_conn_desc->snd_queue;
-	tcp_queue->wnd_size = min(tcp_conn_desc->cwnd,tcp_conn_desc->rcv_wmd_adv);
+	//tcp_queue->wnd_size = min(tcp_conn_desc->cwnd,tcp_conn_desc->rcv_wmd_adv);------------okkio
 }
 
 void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_data_len)

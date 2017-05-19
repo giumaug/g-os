@@ -3,9 +3,14 @@
 
 t_bit_vector* bit_vector_init(u32 size)
 {
+	int i = 0;
 	t_bit_vector* bit_vector;
 
 	bit_vector = kmalloc((size/8)+1);
+	for (i=0 ; i < ((size/8)+1); i++)
+	{
+		bit_vector[i] = 0;
+	}
 	return bit_vector;
 }
 

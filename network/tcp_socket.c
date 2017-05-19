@@ -194,7 +194,10 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		enqueue(tcp_conn_desc->data_wait_queue,current_process_context);
 		_sleep();
 		available_data = tcp_queue->nxt_rcv - tcp_queue->wnd_min;
-		printk("available_data=%d \n",available_data);
+		printk("1---available_data=%d \n",available_data);
+		printk("1---win size++=%d \n",tcp_queue->wnd_size);
+		printk("1---tcp_queue->wnd_min=%d \n",tcp_queue->wnd_min);
+		printk("1---tcp_queue->nxt_rcv=%d \n",tcp_queue->nxt_rcv);
 		if (available_data == 0)
 		{
 			return 0;
@@ -235,9 +238,10 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	}
 	tcp_queue->wnd_size += data_len;
 	tcp_queue->wnd_min += data_len;
-	printk("win size++=%d \n",tcp_queue->wnd_size);
-	printk("tcp_queue->wnd_min=%d \n",tcp_queue->wnd_min);
-	printk("tcp_queue->nxt_rcv=%d \n",tcp_queue->nxt_rcv);
+	printk("2---available_data=%d \n",available_data);
+	printk("2---win size++=%d \n",tcp_queue->wnd_size);
+	printk("2---tcp_queue->wnd_min=%d \n",tcp_queue->wnd_min);
+	printk("2---tcp_queue->nxt_rcv=%d \n",tcp_queue->nxt_rcv);
 
 	RESTORE_IF_STATUS
 	return data_len;
