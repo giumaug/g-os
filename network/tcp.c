@@ -448,8 +448,17 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		}
 		else
 		{
-			printk("buffer full!!!! \n");
-			_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,tcp_conn_desc->last_ack_sent,FLG_ACK,tcp_conn_desc->snd_queue->nxt_snd);
+//			printk("buffer full!!!! \n");
+//			printk("seq_num is %d \n",seq_num);
+//			printk("tcp_queue->wnd_min is %d \n",tcp_queue->wnd_min);
+//			printk("wnd_max is %d \n",wnd_max);
+//			_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,tcp_conn_desc->last_ack_sent,FLG_ACK,tcp_conn_desc->snd_queue->nxt_snd);
+//			goto EXIT;
+			process_context = dequeue(tcp_conn_desc->data_wait_queue);
+			if (process_context != NULL)
+			{
+				_awake(process_context);
+			}
 			goto EXIT;
 		}
 		update_rcv_window_and_ack(tcp_queue);
