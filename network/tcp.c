@@ -133,8 +133,8 @@ static void update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue)
 
 	offset = 0;
 	index = tcp_queue->wnd_min;
-	wnd_max = index + tcp_queue->wnd_size;
-	while(index <= wnd_max)
+	wnd_max = index + tcp_queue->buf_size;
+	while(index < wnd_max)
 	{
 		state_index = SLOT_WND(index,tcp_queue->buf_size);
 		//u32 xxx = index % tcp_queue->buf_size;
@@ -462,9 +462,8 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 //			{
 //				_awake(process_context);
 //			}
-			mmax =tcp_queue->wnd_min + tcp_queue->wnd_size;
-			diff = mmax - tcp_queue->nxt_rcv;
-			if (mmax - diff != tcp_queue->wnd_size)
+			diff = 200 + tcp_queue->wnd_min - tcp_queue->nxt_rcv;
+			if (diff != tcp_queue->wnd_size)
 			{
 				printk("misalignment !!!! \n");
 			}
@@ -477,9 +476,8 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		{
 			_awake(process_context);
 		}
-		mmax =tcp_queue->wnd_min + tcp_queue->wnd_size;
-		diff = mmax - tcp_queue->nxt_rcv;
-		if (mmax - diff != tcp_queue->wnd_size)
+		diff = 200 + tcp_queue->wnd_min - tcp_queue->nxt_rcv;
+		if (diff != tcp_queue->wnd_size)
 		{
 			printk("misalignment !!!! \n");
 		}
