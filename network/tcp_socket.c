@@ -220,8 +220,8 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	{
 		len_1 = tcp_queue->buf_size - low_index;
 		len_2 = data_len - len_1;
-		kmemcpy(data,(tcp_queue->buf + hi_index),len_1);
-		kmemcpy(data + len_1,(tcp_queue->buf + low_index),len_2);
+		kmemcpy(data,(tcp_queue->buf + low_index),len_1);
+		kmemcpy(data + len_1,tcp_queue->buf,len_2);
 
 		for (i = low_index ; i < (low_index + len_1) ; i++)
 		{
