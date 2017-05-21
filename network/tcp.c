@@ -449,6 +449,8 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		else
 		{
 			printk("buffer full!!!! \n");
+			_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,tcp_conn_desc->last_ack_sent,FLG_ACK,tcp_conn_desc->snd_queue->nxt_snd);
+			goto EXIT;
 		}
 		update_rcv_window_and_ack(tcp_queue);
 		//wait queue inutile usare process_context
@@ -646,8 +648,6 @@ EXIT:
 			ll_delete_node(tcp_conn_desc->pgybg_timer->ref);
 			tcp_conn_desc->pgybg_timer->ref = NULL;
 		}
-
-		//tcp_conn_desc->fin_num = tcp_conn_desc->seq_num;
 		_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,ack_num,FLG_FIN | FLG_ACK,tcp_conn_desc->snd_queue->nxt_snd);
 		rtrsn_timer_set(tcp_conn_desc->rtrsn_timer,tcp_conn_desc->rto);
 		printk("fin from fix2 \n");		
