@@ -526,7 +526,7 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 		tcp_conn_desc->cwnd = TCP_SND_SIZE;
 	}
 	tcp_queue = tcp_conn_desc->snd_queue;
-	//tcp_queue->wnd_size = min(tcp_conn_desc->cwnd,tcp_conn_desc->rcv_wmd_adv);------------okkio
+	tcp_queue->wnd_size = min(tcp_conn_desc->cwnd,tcp_conn_desc->rcv_wmd_adv);
 }
 
 void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_data_len)
@@ -838,6 +838,15 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 	kmemcpy(tcp_payload,data,data_len);
 	tcp_header = data_sckt_buf->transport_hdr;
 	chk = SWAP_WORD(checksum_tcp((unsigned short*) tcp_header,src_ip,dst_ip,data_len));
+
+	//-------------HACK TO TEST PRODUCE DUPLICATED ACK!!!!!!!!!!!!
+	static int congestion_test = 0;
+	congestion_test++;
+	if (congestion_test >=100 && congestion_test <=105)
+	{
+		ack -= 5;
+	}
+	//------------END HACK
 	
 	tcp_header[0] = HI_16(src_port);                            //HI SRC PORT
 	tcp_header[1] = LOW_16(src_port);                           //LOW SRC PORT
@@ -868,8 +877,8 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 	tcp_header[16] = HI_16(chk);
 	tcp_header[17] = LOW_16(chk);
 
-//	tcp_conn_desc->last_sent_time = system.time;
-//	tcp_conn_desc->last_ack_sent = ack_num;
+	tcp_conn_desc->last_sent_time = system.time;
+	tcp_conn_desc->last_ack_sent = ack_num;
 
 	ret = send_packet_ip4(data_sckt_buf,
 			    src_ip,
