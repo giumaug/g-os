@@ -63,7 +63,7 @@ int main()
 	char ch[100];
 	while(1) 
 	{
-		printf("se2 server waiting\n");
+		printf("cot server waiting\n");
 
 		/* Accept connection. */
 
@@ -78,29 +78,21 @@ int main()
 			/*If we're the child,we can now read/write to the client on client_sockfd.The five second delay is just for this demonstration. */
 			index = 10;
 			//for (t=0;t<1000;t++)
-//			while(1)
-//			{
-//				for (i=0;i<index;i++)
-//				{
-//					buffer_2[i] = buffer_1[i];
-//				}
-//				buffer_2[index]='\0';
-//				write_socket(client_sockfd, buffer_2,index);
-//				index += 16;
-//				if (index >4000)
-//				{
-//					index=4000;
-//				}
-//			}
-			while (1)
+			while(1)
 			{
-				read_socket(client_sockfd,(void*)buffer_1,10);
-				buffer_1[10]='\0';
-				//sleep(1000);
-				write_socket(client_sockfd,(void*)buffer_1,11);
-				data_sent += 11;
-				printf("sent %d \n",data_sent);
-			}	
+				for (i=0;i<index;i++)
+				{
+					buffer_2[i] = buffer_1[i];
+				}
+				buffer_2[index]='\0';
+				write_socket(client_sockfd, buffer_2,index);
+				index += 16;
+				if (index >4000)
+				{
+					index=4000;
+				}
+				sleep(1000);
+			}
 //			printf("sent completed \n");
 			close_socket(client_sockfd);
 			exit(0);

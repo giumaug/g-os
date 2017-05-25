@@ -395,7 +395,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		//TO CHECK RETRY SU FIN WITH WRONG ACK
 		goto EXIT;
 	}
-	
 //END PASSIVE CLOSE
 	else if (data_len != 0)
 	{
@@ -482,6 +481,18 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			printk("misalignment !!!! \n");
 		}
 	}
+
+	//-------------HACK TO TEST PRODUCE DUPLICATED ACK!!!!!!!!!!!!
+	static int congestion_test = 0;
+	congestion_test++;
+	if (congestion_test >=10 && congestion_test <=15)
+	{
+		ack_seq_num -= tcp_conn_desc->last_seq_sent;
+		printk("forcing duplicated ack");
+		printk("ack is %d \n",ack_num);
+	}
+	//------------END HACK
+
 	rcv_ack(tcp_conn_desc,ack_seq_num);
 	update_snd_window(tcp_conn_desc,ack_seq_num,data_len);
 EXIT:
@@ -518,6 +529,7 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 	}
 	else if (++tcp_conn_desc->duplicated_ack == 3)
 	{
+		printk("duplicated ack!!! \n");
 		tcp_conn_desc->ssthresh = max(tcp_conn_desc->flight_size / 2,2 * SMSS);
 		tcp_conn_desc->cwnd+= SMSS;
 	}
@@ -839,15 +851,6 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 	tcp_header = data_sckt_buf->transport_hdr;
 	chk = SWAP_WORD(checksum_tcp((unsigned short*) tcp_header,src_ip,dst_ip,data_len));
 
-	//-------------HACK TO TEST PRODUCE DUPLICATED ACK!!!!!!!!!!!!
-	static int congestion_test = 0;
-	congestion_test++;
-	if (congestion_test >=100 && congestion_test <=105)
-	{
-		ack -= 5;
-	}
-	//------------END HACK
-	
 	tcp_header[0] = HI_16(src_port);                            //HI SRC PORT
 	tcp_header[1] = LOW_16(src_port);                           //LOW SRC PORT
 	tcp_header[2] = HI_16(dst_port);                            //HI DST PORT
@@ -877,8 +880,8 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 	tcp_header[16] = HI_16(chk);
 	tcp_header[17] = LOW_16(chk);
 
-	tcp_conn_desc->last_sent_time = system.time;
-	tcp_conn_desc->last_ack_sent = ack_num;
+//	tcp_conn_desc->last_sent_time = system.time;---da sistemare!!!!!!!!!!!!!!!!!
+//	tcp_conn_desc->last_ack_sent = ack_num;
 
 	ret = send_packet_ip4(data_sckt_buf,
 			    src_ip,

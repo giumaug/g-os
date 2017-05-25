@@ -73,7 +73,8 @@
                         flags,                                              \
                         seq_num);                                           \
                         tcp_conn_desc->last_sent_time = system.time;        \
-	                tcp_conn_desc->last_ack_sent = ack_num;
+	                tcp_conn_desc->last_ack_sent = ack_num;             \
+			tcp_conn_desc->last_seq_sent = seq_num;
 
 typedef struct s_tcp_snd_queue
 {
@@ -128,7 +129,8 @@ typedef struct s_tcp_conn_desc
 	u32 last_sent_time;
 	u32 flight_size;
 	u32 last_ack_sent;
-	//u32 syn_num;
+	//introsuced to test congestion only.
+	u32 last_seq_sent;
 }
 t_tcp_conn_desc;
 
