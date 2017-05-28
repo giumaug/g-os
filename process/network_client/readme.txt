@@ -1,8 +1,9 @@
 network test:
 
 su g-os
-1)ke2.c testa buffer(ping) e download
-2)se.c  testa server concorrente
+1)ke2.c testa buffer(ping)
+2)s  testa server concorrente
+3)cot download e test congestione
 
 su pc
 1)c1.c client di cot.c in download

@@ -130,8 +130,6 @@ void close_tcp(t_tcp_conn_desc* tcp_conn_desc)
 	{
 		tcp_conn_map_remove(tcp_desc->listen_map,tcp_conn_desc->src_ip,tcp_conn_desc->dst_ip,tcp_conn_desc->src_port,tcp_conn_desc->dst_port);
 	}
-	//printk("snd_wnd_min=%d \n",tcp_conn_desc->snd_queue->wnd_min);
-	//printk("snd_cur=%d \n",tcp_conn_desc->snd_queue->cur);
 	if (tcp_conn_desc->snd_queue->wnd_min == tcp_conn_desc->snd_queue->cur)
 	{
 		if (tcp_conn_desc->pgybg_timer->ref != NULL)
@@ -140,13 +138,8 @@ void close_tcp(t_tcp_conn_desc* tcp_conn_desc)
 			ll_delete_node(tcp_conn_desc->pgybg_timer->ref);
 			tcp_conn_desc->pgybg_timer->ref = NULL;
 		}
-		//tcp_conn_desc->seq_num++;
-		//tcp_conn_desc->fin_num = tcp_conn_desc->seq_num;
 		flags |= FLG_ACK;
 		_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,ack_num,flags,seq_num);
-		static pippo=0;
-		pippo++;
-		printk("fin from fix1 %d \n",pippo);
 		if (tcp_conn_desc->status == ESTABILISHED)
 		{
 			//FIN from client to server
@@ -194,10 +187,6 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		enqueue(tcp_conn_desc->data_wait_queue,current_process_context);
 		_sleep();
 		available_data = tcp_queue->nxt_rcv - tcp_queue->wnd_min;
-		//printk("1---available_data=%d \n",available_data);
-		//printk("1---win size++=%d \n",tcp_queue->wnd_size);
-		//printk("1---tcp_queue->wnd_min=%d \n",tcp_queue->wnd_min);
-		//printk("1---tcp_queue->nxt_rcv=%d \n",tcp_queue->nxt_rcv);
 		if (available_data == 0)
 		{
 			return 0;
@@ -238,10 +227,6 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	}
 	tcp_queue->wnd_size += data_len;
 	tcp_queue->wnd_min += data_len;
-	//printk("2---available_data=%d \n",available_data);
-	//printk("2---win size++=%d \n",tcp_queue->wnd_size);
-	//printk("2---tcp_queue->wnd_min=%d \n",tcp_queue->wnd_min);
-	//printk("2---tcp_queue->nxt_rcv=%d \n",tcp_queue->nxt_rcv);
 
 	RESTORE_IF_STATUS
 	return data_len;

@@ -78,20 +78,6 @@ int main()
 			/*If we're the child,we can now read/write to the client on client_sockfd.The five second delay is just for this demonstration. */
 			index = 10;
 			//for (t=0;t<1000;t++)
-//			while(1)
-//			{
-//				for (i=0;i<index;i++)
-//				{
-//					buffer_2[i] = buffer_1[i];
-//				}
-//				buffer_2[index]='\0';
-//				write_socket(client_sockfd, buffer_2,index);
-//				index += 16;
-//				if (index >4000)
-//				{
-//					index=4000;
-//				}
-//			}
 			while (1)
 			{
 				read_socket(client_sockfd,(void*)buffer_1,10);

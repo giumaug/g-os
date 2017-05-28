@@ -1,3 +1,4 @@
+//BASED ON RFC5681 AND RFC6298
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!IMPORTANTE VERIFICARE CHE LA STRUTTURA DATI COMPLESSIVA SIA SENSATA!!!!!!!!!!!!!!!!!!
 #include "network/tcp.h"
 #include "lib/lib.h"
@@ -66,7 +67,6 @@ t_tcp_conn_desc* tcp_conn_desc_int()
 	tcp_conn_desc->rtrsn_timer = timer_init(0,&rtrsn_timer_handler,tcp_conn_desc,NULL);
 	tcp_conn_desc->pgybg_timer = timer_init(0,&pgybg_timer_handler,tcp_conn_desc,NULL);
 	tcp_conn_desc->rto = DEFAULT_RTO;	
-	//tcp_conn_desc->first_seq_num = 0;
 	tcp_conn_desc->cwnd = SMSS;
 	tcp_conn_desc->ssthresh = WND_ADV;
 	tcp_conn_desc->rcv_wmd_adv = 0;
@@ -137,7 +137,6 @@ static void update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue)
 	while(index < wnd_max)
 	{
 		state_index = SLOT_WND(index,tcp_queue->buf_size);
-		//u32 xxx = index % tcp_queue->buf_size;
 		slot_state = bit_vector_get(tcp_queue->buf_state,state_index);
 		if (slot_state == 0)
 		{
@@ -211,7 +210,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			_SEND_PACKET_TCP(tcp_req_desc,NULL,0,ack_num,FLG_ACK,++tcp_conn_desc->snd_queue->nxt_snd);
 			tcp_conn_map_remove(tcp_desc->req_map,dst_ip,src_ip,dst_port,src_port);
 			tcp_conn_map_put(tcp_desc->conn_map,dst_ip,src_ip,dst_port,src_port,tcp_req_desc);
-			//ll_append(tcp_desc->tcp_conn_list,tcp_req_desc);
 			tcp_req_desc->status = ESTABILISHED;
 			upd_max_adv_wnd(tcp_req_desc,rcv_wmd_adv);
 			tcp_req_desc->rcv_queue->wnd_min = ack_num;
@@ -248,7 +246,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			new_tcp_conn_desc->rcv_queue->wnd_min = ack_num;
 			rtrsn_timer_set(new_tcp_conn_desc->rtrsn_timer,new_tcp_conn_desc->rto);
 		}
-		//IF new_tcp_conn_desc != NULL IS LOST SYNC
 		upd_max_adv_wnd(new_tcp_conn_desc,rcv_wmd_adv);
 		_SEND_PACKET_TCP(new_tcp_conn_desc,NULL,0,ack_num,(FLG_SYN | FLG_ACK),new_tcp_conn_desc->snd_queue->nxt_snd);
 //		printk("ack is %d \n",ack_num);
@@ -266,12 +263,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			{
 				tcp_conn_map_remove(tcp_listen_desc->back_log_i_map,dst_ip,src_ip,dst_port,src_port);
 				enqueue(tcp_listen_desc->back_log_c_queue,new_tcp_conn_desc);
-				int static pippo=0;
-				pippo++;
-				if (pippo==4)
-				{
-					printk("pippo is %d \n",pippo);
-				}
 				tcp_conn_map_put(tcp_desc->conn_map,dst_ip,src_ip,dst_port,src_port,new_tcp_conn_desc);
 				new_tcp_conn_desc->status = ESTABILISHED;
 				new_tcp_conn_desc->snd_queue->nxt_snd++;
@@ -294,15 +285,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		goto EXIT;
 	}
 	
-//	if (tcp_conn_desc->status != ESTABILISHED && 
-//	    tcp_conn_desc->status != FIN_WAIT_1 && 
-//	    tcp_conn_desc->status != FIN_WAIT_2 && 
-//	    tcp_conn_desc->status != FIN_WAIT_1_PENDING)
-//	{
-//
-//		goto EXIT;
-//	}
-
 	t_tcp_rcv_queue* tcp_queue = tcp_conn_desc->rcv_queue;
 	upd_max_adv_wnd(tcp_conn_desc,rcv_wmd_adv);
 
@@ -312,13 +294,11 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	if ((flags & FLG_FIN) && (flags & FLG_ACK) 
 	    && tcp_conn_desc->status == FIN_WAIT_1)
 	{
-		//if (tcp_conn_desc->fin_num + 1 == ack_seq_num)
 		if (fin_num + 1 == ack_seq_num)
 		{
 			//SHOULD BE CLOSE_WAIT AND SHOULD BE MANAGED 2MLS TIMER (TCP ILLUSTRATED PAG 590)
 			tcp_conn_desc->status = CLOSED;
 			//tcp_conn_desc->seq_num = tcp_conn_desc->fin_num + 1;
-			//_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK,(tcp_conn_desc->fin_num + 1));
 			_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK,(fin_num + 1));
 			tcp_conn_map_remove(tcp_desc->conn_map,
 					    tcp_conn_desc->src_ip,
@@ -353,7 +333,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	{
 		//SHOULD BE CLOSE_WAIT AND SHOULD BE MANAGED 2MLS TIMER (TCP ILLUSTRATED PAG 590)
 		tcp_conn_desc->status = CLOSED;
-		//tcp_conn_desc->seq_num = tcp_conn_desc->fin_num + 1;
 		_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK,(fin_num + 1));
 		rtrsn_timer_reset(tcp_conn_desc->rtrsn_timer);
 		tcp_conn_map_remove(tcp_desc->conn_map,tcp_conn_desc->src_ip,tcp_conn_desc->dst_ip,tcp_conn_desc->src_port,tcp_conn_desc->dst_port);
@@ -386,7 +365,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		rtrsn_timer_reset(tcp_conn_desc->rtrsn_timer);
 		tcp_conn_map_remove(tcp_desc->conn_map,tcp_conn_desc->src_ip,tcp_conn_desc->dst_ip,tcp_conn_desc->src_port,tcp_conn_desc->dst_port);
 		tcp_conn_desc_free(tcp_conn_desc);
-		printk("inside!!!!!! \n");
 		goto EXIT;
 	}
 	else if ((tcp_conn_desc->status == CLOSE_WAIT || tcp_conn_desc->status == LAST_ACK)
@@ -398,7 +376,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 //END PASSIVE CLOSE
 	else if (data_len != 0)
 	{
-		printk("dddd \n");
 		wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
 		if (seq_num >= tcp_queue->wnd_min && seq_num + data_len <= wnd_max)
 		{
@@ -417,11 +394,9 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 						tcp_queue->wnd_size--;
 					}
 				}
-				//printk("win size=%d \n",tcp_queue->wnd_size);
 			}
 			else 
 			{
-				printk("!!!!!!!!!!!!!!!!!!!!! \n");
 	     			//gestire qui PIGGYBACKING_TIMEOUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 				len_1 = tcp_queue->buf_size - low_index;
 				len_2 = data_len - len_1;
@@ -445,27 +420,11 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 						tcp_queue->wnd_size--;
 					}
 				}
-				//printk("win size++=%d \n",tcp_queue->wnd_size);
 			}
 		}
 		else
 		{
 			printk("buffer full!!!! \n");
-//			printk("seq_num is %d \n",seq_num);
-//			printk("tcp_queue->wnd_min is %d \n",tcp_queue->wnd_min);
-//			printk("wnd_max is %d \n",wnd_max);
-//			_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,tcp_conn_desc->last_ack_sent,FLG_ACK,tcp_conn_desc->snd_queue->nxt_snd);
-//			goto EXIT;
-//			process_context = dequeue(tcp_conn_desc->data_wait_queue);
-//			if (process_context != NULL)
-//			{
-//				_awake(process_context);
-//			}
-			diff = 200 + tcp_queue->wnd_min - tcp_queue->nxt_rcv;
-			if (diff != tcp_queue->wnd_size)
-			{
-				printk("misalignment !!!! \n");
-			}
 			goto EXIT;
 		}
 		update_rcv_window_and_ack(tcp_queue);
@@ -474,11 +433,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		if (process_context != NULL)
 		{
 			_awake(process_context);
-		}
-		diff = 200 + tcp_queue->wnd_min - tcp_queue->nxt_rcv;
-		if (diff != tcp_queue->wnd_size)
-		{
-			printk("misalignment !!!! \n");
 		}
 	}
 
@@ -585,8 +539,6 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		
 		if (tcp_queue->cur >= tcp_queue->wnd_min && tcp_queue->cur <= wnd_max)
 		{	
-			//in window
-			//occorre inizializzare seq_num!!!!!!!!!!!!!!!!!!
 			wnd_l_limit = tcp_queue->nxt_snd;
 			wnd_r_limit = tcp_queue->cur;
 		}
@@ -596,7 +548,8 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 			wnd_r_limit = wnd_max;
 		}
 		
-		//sender silly window avoidance		
+		//sender silly window avoidance
+		//implementation lacks receiver case!!! (this is sender case)		
 		w_size = wnd_r_limit - wnd_l_limit;
 		expected_ack = tcp_queue->nxt_snd - tcp_queue->wnd_min;
 		if (expected_ack == 0)
@@ -611,9 +564,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		{
 			data_to_send=w_size;
 		}
-		//indx = SLOT_WND(wnd_l_limit,tcp_queue->wnd_size);
 		indx = wnd_l_limit;
-		//tcp_conn_desc->seq_num = tcp_queue->nxt_snd;
 		tcp_queue->nxt_snd += data_to_send;
 	}
 	else if (tcp_conn_desc->duplicated_ack == 1 || tcp_conn_desc->duplicated_ack == 2)
@@ -625,9 +576,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		
 		if (w_size >= SMSS && (flight_size + SMSS <= flight_size_limit) && tcp_queue->cur >= (tcp_queue->nxt_snd + SMSS))
 		{
-			//indx = SLOT_WND(tcp_queue->nxt_snd,tcp_queue->buf_size);
 			indx = tcp_queue->nxt_snd;
-			//tcp_conn_desc->seq_num = tcp_queue->nxt_snd;
 			tcp_queue->nxt_snd += SMSS;
 			data_to_send = SMSS;
 		}
@@ -640,30 +589,25 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 			data_to_send = SMSS;
 		}
 
-		//indx = SLOT_WND(ack_seq_num,tcp_queue->wnd_size);
 		indx = ack_seq_num;
-		//tcp_conn_desc->seq_num = ack_seq_num;
 		flush_data(tcp_conn_desc,data_to_send,ack_num,indx);
 	
 		if (tcp_conn_desc->duplicated_ack > 3)
 		{
-			//indx = SLOT_WND(tcp_queue->nxt_snd,tcp_queue->wnd_size);
 			indx = tcp_queue->nxt_snd;
 			w_size = tcp_queue->wnd_min + tcp_queue->wnd_size - tcp_queue->nxt_snd;
 
 			if (w_size >= SMSS && tcp_queue->cur >= (tcp_queue->nxt_snd + SMSS))
 			{
-				//tcp_conn_desc->seq_num = tcp_queue->nxt_snd;------------
 				tcp_queue->nxt_snd += SMSS;
 				data_to_send = SMSS;
 			}
 		}
 	}
 EXIT:
-//	printk("buf index= %d \n",indx);
-//	printk("cur is= %d \n",tcp_queue->cur);
-//	printk("nxt_snd is= %d \n",tcp_queue->nxt_snd);
 	flush_data(tcp_conn_desc,data_to_send,ack_num,indx);
+	printk("win_size %d \n",tcp_queue->wnd_size);
+	printk("data sent %d \n",data_to_send);
 
 	//close connection with FIN flag both client and server	
 	//FIN needs retrasmission management only. No retry.
@@ -688,7 +632,6 @@ EXIT:
 	}
 }
 
-//NOTA:NON HA SENSO CONSERVARE IL SEQ_NUM SU tcp_conn_desc->seq_num.
 static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_num,u32 indx)
 {
 	u8 flags;
@@ -879,9 +822,6 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 	chk = SWAP_WORD(checksum_tcp((unsigned short*) tcp_header,src_ip,dst_ip,data_len));
 	tcp_header[16] = HI_16(chk);
 	tcp_header[17] = LOW_16(chk);
-
-//	tcp_conn_desc->last_sent_time = system.time;---da sistemare!!!!!!!!!!!!!!!!!
-//	tcp_conn_desc->last_ack_sent = ack_num;
 
 	ret = send_packet_ip4(data_sckt_buf,
 			    src_ip,
