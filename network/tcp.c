@@ -213,8 +213,10 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			tcp_req_desc->status = ESTABILISHED;
 			upd_max_adv_wnd(tcp_req_desc,rcv_wmd_adv);
 			tcp_req_desc->rcv_queue->wnd_min = ack_num;
+			tcp_req_desc->snd_queue->wnd_min = tcp_req_desc->snd_queue->nxt_snd;
 			rtrsn_timer_reset(tcp_req_desc->rtrsn_timer);
 			_awake(tcp_req_desc->process_context);
+			printk("1111111111 \n");
 		}
 		//RETRY
 		else if (tcp_conn_desc != NULL)
@@ -268,7 +270,9 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 				new_tcp_conn_desc->snd_queue->nxt_snd++;
 				new_tcp_conn_desc->snd_queue->cur =  new_tcp_conn_desc->snd_queue->nxt_snd;
 				new_tcp_conn_desc->rcv_wmd_adv = rcv_wmd_adv;
+				new_tcp_conn_desc->snd_queue->wnd_min = new_tcp_conn_desc->snd_queue->nxt_snd;
 				upd_max_adv_wnd(new_tcp_conn_desc,rcv_wmd_adv);
+				printk("2222 \n");
 				if (tcp_listen_desc->process_context !=NULL)
 				{
 					_awake(tcp_listen_desc->process_context);
@@ -514,11 +518,11 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 
 	tcp_queue = tcp_conn_desc->snd_queue;
 	ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;
+	data_to_send = 0;
 	
 	//trasmission with good ack
 	if (tcp_conn_desc->duplicated_ack == 0)
 	{
-		data_to_send = tcp_queue->cur - tcp_queue->nxt_snd;
 		if (ack_seq_num != 0)
 		{
 			word_to_ack = ack_seq_num - tcp_queue->wnd_min;
@@ -527,7 +531,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
 
 		//no data to send
-		if (data_to_send == 0)
+		if ((tcp_queue->cur - tcp_queue->nxt_snd) == 0)
 		{	
 			if (tcp_conn_desc->pgybg_timer->val == 0 && ack_num > tcp_conn_desc->last_ack_sent)
 			{
