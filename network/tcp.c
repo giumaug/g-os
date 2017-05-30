@@ -187,6 +187,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	flags = tcp_row_packet[13];
 	rcv_wmd_adv = GET_WORD(tcp_row_packet[14],tcp_row_packet[15]);
 
+	printk("ddd \n");
 	if (checksum_tcp((unsigned short*) tcp_row_packet,src_ip,dst_ip,data_len) !=0 )
 	{
 		goto EXIT;
@@ -445,9 +446,9 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	congestion_test++;
 	if (congestion_test >=10 && congestion_test <=15)
 	{
-		ack_seq_num -= tcp_conn_desc->last_seq_sent;
+		ack_seq_num = tcp_conn_desc->last_seq_sent - 10;
 		printk("forcing duplicated ack");
-		printk("ack is %d \n",ack_num);
+		printk("ack is %d \n",ack_seq_num);
 	}
 	//------------END HACK
 
@@ -471,6 +472,7 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 	{
 		if (tcp_conn_desc->duplicated_ack > 0)
 		{
+			printk("changed !!! \n");------breaak qui!!!!!
 			tcp_conn_desc->duplicated_ack = 0;
 			tcp_conn_desc->cwnd = tcp_conn_desc->ssthresh;
 		}
@@ -521,6 +523,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	data_to_send = 0;
 	
 	//trasmission with good ack
+	printk("---- %d \n",tcp_conn_desc->duplicated_ack);
 	if (tcp_conn_desc->duplicated_ack == 0)
 	{
 		if (ack_seq_num != 0)
@@ -556,6 +559,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		//implementation lacks receiver case!!! (this is sender case)		
 		w_size = wnd_r_limit - wnd_l_limit;
 		expected_ack = tcp_queue->nxt_snd - tcp_queue->wnd_min;
+		printk("expected ack= %d \n",expected_ack);
 		if (expected_ack == 0)
 		{
 			data_to_send=w_size;
@@ -573,6 +577,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	}
 	else if (tcp_conn_desc->duplicated_ack == 1 || tcp_conn_desc->duplicated_ack == 2)
 	{
+		printk(".... \n");
 		wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
 		w_size = wnd_max - tcp_queue->nxt_snd;
 		flight_size = tcp_queue->nxt_snd - 1 - tcp_queue->wnd_min;
