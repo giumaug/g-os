@@ -76,7 +76,7 @@ int main()
 		{
 			printf("figlio \n");
 			/*If we're the child,we can now read/write to the client on client_sockfd.The five second delay is just for this demonstration. */
-			index = 10;
+			index = 1500;
 			//for (t=0;t<1000;t++)
 			while(1)
 			{

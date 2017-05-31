@@ -446,7 +446,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	congestion_test++;
 	if (congestion_test >=10 && congestion_test <=15)
 	{
-		ack_seq_num = tcp_conn_desc->last_seq_sent - 10;
+		ack_seq_num = tcp_conn_desc->snd_queue->wnd_min - 10;
 		printk("forcing duplicated ack");
 		printk("ack is %d \n",ack_seq_num);
 	}
@@ -472,7 +472,7 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 	{
 		if (tcp_conn_desc->duplicated_ack > 0)
 		{
-			printk("changed !!! \n");------breaak qui!!!!!
+			printk("changed !!! \n");
 			tcp_conn_desc->duplicated_ack = 0;
 			tcp_conn_desc->cwnd = tcp_conn_desc->ssthresh;
 		}
@@ -491,7 +491,7 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 	{
 		printk("duplicated ack!!! \n");
 		tcp_conn_desc->ssthresh = max(tcp_conn_desc->flight_size / 2,2 * SMSS);
-		tcp_conn_desc->cwnd+= SMSS;
+		tcp_conn_desc->cwnd = tcp_conn_desc->ssthresh + 3 * SMSS;
 	}
 	if (tcp_conn_desc->cwnd > TCP_SND_SIZE) 
 	{
@@ -574,6 +574,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		}
 		indx = wnd_l_limit;
 		tcp_queue->nxt_snd += data_to_send;
+		1------------
 	}
 	else if (tcp_conn_desc->duplicated_ack == 1 || tcp_conn_desc->duplicated_ack == 2)
 	{
@@ -582,12 +583,14 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		w_size = wnd_max - tcp_queue->nxt_snd;
 		flight_size = tcp_queue->nxt_snd - 1 - tcp_queue->wnd_min;
 		flight_size_limit = tcp_conn_desc->cwnd + 2*SMSS;
+
 		
 		if (w_size >= SMSS && (flight_size + SMSS <= flight_size_limit) && tcp_queue->cur >= (tcp_queue->nxt_snd + SMSS))
 		{
 			indx = tcp_queue->nxt_snd;
 			tcp_queue->nxt_snd += SMSS;
 			data_to_send = SMSS;
+			2-----------------
 		}
 	}
 	else if (tcp_conn_desc->duplicated_ack == 3 || tcp_conn_desc->duplicated_ack > 3)
@@ -610,6 +613,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 			{
 				tcp_queue->nxt_snd += SMSS;
 				data_to_send = SMSS;
+				3----------------
 			}
 		}
 	}
