@@ -571,6 +571,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 			//no data inside window!!!!!!!
 			data_to_send = 0;
 			indx = tcp_queue->nxt_snd;
+			printk("no data inside window!!!!! \n");
 			goto EXIT;
 		}
 		
@@ -598,7 +599,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	{
 		printk(".... \n");
 		wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
-		w_size = wnd_max - tcp_queue->nxt_snd;
+		w_size = wnd_max - tcp_queue->nxt_snd;--------------------------------qui l'errore!!!!!!!!!!!!!!!!!
 		flight_size = tcp_queue->nxt_snd - 1 - tcp_queue->wnd_min;
 		flight_size_limit = tcp_conn_desc->cwnd + 2*SMSS;
 
@@ -829,6 +830,7 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 	if (retry >=20 && retry <=21)
 	{
 		printk("haqck!!!!! \n");
+		printk("dropping %d \n",seq_num);
 		return;
 	}
 	
