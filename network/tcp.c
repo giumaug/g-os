@@ -444,11 +444,15 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	//-------------HACK TO TEST PRODUCE DUPLICATED ACK!!!!!!!!!!!!
 	static int congestion_test = 0;
 	congestion_test++;
-	if (congestion_test >=10 && congestion_test <=15)
+	if (congestion_test >=10 && congestion_test <=150)
 	{
 		ack_seq_num = tcp_conn_desc->snd_queue->wnd_min - 10;
 		printk("forcing duplicated ack");
 		printk("ack is %d \n",ack_seq_num);
+		if (congestion_test == 149) 
+		{
+			printk("stop here!!! \n");
+		}
 	}
 	//------------END HACK
 
@@ -523,7 +527,9 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	data_to_send = 0;
 	
 	//trasmission with good ack
-	printk("---- %d \n",tcp_conn_desc->duplicated_ack);
+	printk("---duplicated ack %d \n",tcp_conn_desc->duplicated_ack);
+	printk("flight size %d \n",tcp_conn_desc->flight_size);
+	printk("still to send %d \n",(tcp_queue->cur - tcp_queue->nxt_snd));
 	if (tcp_conn_desc->duplicated_ack == 0)
 	{
 		if (ack_seq_num != 0)
@@ -558,7 +564,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		//sender silly window avoidance
 		//implementation lacks receiver case!!! (this is sender case)		
 		w_size = wnd_r_limit - wnd_l_limit;
-		expected_ack = tcp_queue->nxt_snd - tcp_queue->wnd_min;
+		expected_ack = tcp_queue->nxt_snd - tcp_queue->wnd_min;		
 		printk("expected ack= %d \n",expected_ack);
 		if (expected_ack == 0)
 		{
@@ -574,7 +580,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		}
 		indx = wnd_l_limit;
 		tcp_queue->nxt_snd += data_to_send;
-		1------------
+		tcp_conn_desc->flight_size = tcp_queue->nxt_snd - 1 - tcp_queue->wnd_min;
 	}
 	else if (tcp_conn_desc->duplicated_ack == 1 || tcp_conn_desc->duplicated_ack == 2)
 	{
@@ -590,7 +596,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 			indx = tcp_queue->nxt_snd;
 			tcp_queue->nxt_snd += SMSS;
 			data_to_send = SMSS;
-			2-----------------
+			tcp_conn_desc->flight_size = tcp_queue->nxt_snd - 1 - tcp_queue->wnd_min;
 		}
 	}
 	else if (tcp_conn_desc->duplicated_ack == 3 || tcp_conn_desc->duplicated_ack > 3)
@@ -606,6 +612,12 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	
 		if (tcp_conn_desc->duplicated_ack > 3)
 		{
+			int static pippo =0;
+			pippo++;
+			if (pippo == 2)
+			{
+				printk("qui!!!! \n");
+			}
 			indx = tcp_queue->nxt_snd;
 			w_size = tcp_queue->wnd_min + tcp_queue->wnd_size - tcp_queue->nxt_snd;
 
@@ -613,7 +625,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 			{
 				tcp_queue->nxt_snd += SMSS;
 				data_to_send = SMSS;
-				3----------------
+				tcp_conn_desc->flight_size = tcp_queue->nxt_snd - 1 - tcp_queue->wnd_min;
 			}
 		}
 	}

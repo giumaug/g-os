@@ -91,7 +91,7 @@ int main()
 				{
 					index=4000;
 				}
-				sleep(1000);
+				sleep(3000);
 			}
 //			printf("sent completed \n");
 			close_socket(client_sockfd);
