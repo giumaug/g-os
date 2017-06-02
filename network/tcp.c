@@ -486,10 +486,12 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 		}
 		else 
 		{
-			rtt = system.time - tcp_conn_desc->last_sent_time;
-			tcp_conn_desc->rto = rtt * SRTT_FACTOR * tcp_conn_desc->rto + (1 - SRTT_FACTOR);
 			tcp_conn_desc->cwnd += (SMSS * SMSS) / tcp_conn_desc->cwnd;
 		}
+		//At the moment rtt is not updated in case duplicated packets.
+		//Needed to be implemented Karm algorithm (see Tcp/ip Illustrated pag 621)
+		rtt = system.time - tcp_conn_desc->last_sent_time;
+		tcp_conn_desc->rto = rtt * SRTT_FACTOR * tcp_conn_desc->rto + (1 - SRTT_FACTOR);
 	}
 	else if (++tcp_conn_desc->duplicated_ack == 3)
 	{
@@ -536,6 +538,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	printk("still to send %d \n",(tcp_queue->cur - tcp_queue->nxt_snd));
         printk("win min %d \n", tcp_queue->wnd_min);
         printk("ack_seq_num %d \n",ack_seq_num);
+	printk("retry timesd is  %d \n" + tcp_conn_desc->rtrsn_timer->val);
 	if (tcp_conn_desc->duplicated_ack == 0)
 	{
 		if (ack_seq_num != 0)
@@ -599,7 +602,14 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	{
 		printk(".... \n");
 		wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
-		w_size = wnd_max - tcp_queue->nxt_snd;--------------------------------qui l'errore!!!!!!!!!!!!!!!!!
+		if (wnd_max > tcp_queue->nxt_snd)
+		{
+			w_size = wnd_max - tcp_queue->nxt_snd;
+		}
+		else
+		{
+			w_size = 0;
+		}
 		flight_size = tcp_queue->nxt_snd - 1 - tcp_queue->wnd_min;
 		flight_size_limit = tcp_conn_desc->cwnd + 2*SMSS;
 
