@@ -1,6 +1,14 @@
-losetup -o 1048576 /dev/loop3 ./disk.img
+cd /opt/virtutech/simics-3.0.31/workspace/
 
-qemu -monitor stdio -s -S -m 200M -monitor stdio -kernel ./kernel.bin
+losetup -o 1048576 /dev/loop5 ./disk.img
+
+cd /home/peppe/Desktop/qemu-2.5.0/build/i386-softmmu
+
+./qemu-system-i386 -s -S -m 500M -hda /opt/virtutech/simics-3.0.31/workspace/disk.img  -monitor stdio -device e1000,netdev=net0,mac=00:0C:29:10:64:B9 -netdev tap,id=net0,script=no,ifname=tap0
+
+fedora img
+./qemu-system-i386 -s -S -m 1000M -cdrom /home/peppe/Desktop/Fedora-13-i686-Live.iso  -monitor stdio -netdev tap,id=net0,ifname=tap0,script=no,downscript=no -device e1000,netdev=net0,mac=00:0c:29:10:64:b9
+
 gdb ./kernel.bin
 dentro gdb:
 target remote: 1234
