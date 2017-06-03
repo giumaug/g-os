@@ -35,15 +35,15 @@ int main()
     	struct sockaddr_in ssock;
 	
 	ssock.sin_family = AF_INET;
-//	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=192;
-//	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=168;
-//	((unsigned char*) &(server_address.sin_addr.s_addr))[2]=124;
-//      ((unsigned char*) &(server_address.sin_addr.s_addr))[3]=101;
+	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=192;
+	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=168;
+	((unsigned char*) &(server_address.sin_addr.s_addr))[2]=124;
+        ((unsigned char*) &(server_address.sin_addr.s_addr))[3]=101;
 
-	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=172;
-	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=16;
-	((unsigned char*) &(server_address.sin_addr.s_addr))[2]=6;
-	((unsigned char*) &(server_address.sin_addr.s_addr))[3]=101;
+//	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=172;
+//	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=16;
+//	((unsigned char*) &(server_address.sin_addr.s_addr))[2]=6;
+//	((unsigned char*) &(server_address.sin_addr.s_addr))[3]=101;
 
 	((unsigned char*) &(server_address.sin_port))[0]=((unsigned char*) &(port))[1];
 	((unsigned char*) &(server_address.sin_port))[1]=((unsigned char*) &(port))[0];
@@ -76,9 +76,10 @@ int main()
 		{
 			printf("figlio \n");
 			/*If we're the child,we can now read/write to the client on client_sockfd.The five second delay is just for this demonstration. */
-			index = 1500;
-			//for (t=0;t<1000;t++)
-			while(1)
+			index = 4000;
+			//sending abount 5M (1300)
+			for (t=0;t<1000;t++)
+			//while(1)
 			{
 				for (i=0;i<index;i++)
 				{
@@ -91,7 +92,7 @@ int main()
 				{
 					index=4000;
 				}
-				sleep(3000);
+				//sleep(3000);
 			}
 //			printf("sent completed \n");
 			close_socket(client_sockfd);

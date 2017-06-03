@@ -446,7 +446,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	congestion_test++;
 	if (congestion_test >=10 && congestion_test <=150)
 	{
-		ack_seq_num = tcp_conn_desc->snd_queue->wnd_min - 10;
+		//ack_seq_num = tcp_conn_desc->snd_queue->wnd_min - 10;
 		printk("forcing duplicated ack");
 		printk("ack is %d \n",ack_seq_num);
 		if (congestion_test == 149) 
