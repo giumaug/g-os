@@ -63,7 +63,7 @@ int main()
 	char ch[100];
 	while(1) 
 	{
-		printf("cot server waiting\n");
+		printf("cot server waiting...\n");
 
 		/* Accept connection. */
 
