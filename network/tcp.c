@@ -561,10 +561,17 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 			wnd_l_limit = tcp_queue->nxt_snd;
 			wnd_r_limit = tcp_queue->cur;
 		}
-		if (tcp_queue->cur >= wnd_max)
+		if (tcp_queue->cur >= wnd_max && tcp_queue->nxt_snd <= wnd_max)
 		{	
 			wnd_l_limit = tcp_queue->nxt_snd;
 			wnd_r_limit = wnd_max;
+		}
+		else
+		{
+			//no data inside window!!!!!!!
+			data_to_send = 0;
+			indx = tcp_queue->nxt_snd;
+			goto EXIT;
 		}
 		
 		//sender silly window avoidance
@@ -816,6 +823,14 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 	t_data_sckt_buf* data_sckt_buf = NULL;
 	int ret = NULL;
 	char* tcp_header = NULL;
+	static retry=1;
+
+	retry++;
+	if (retry >=20 && retry <=21)
+	{
+		printk("haqck!!!!! \n");
+		return;
+	}
 	
 	data_sckt_buf = alloc_sckt(data_len + HEADER_ETH + HEADER_IP4 + HEADER_TCP);
 	data_sckt_buf->transport_hdr = data_sckt_buf->data + HEADER_ETH + HEADER_IP4;

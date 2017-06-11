@@ -1,6 +1,10 @@
 #ifndef COMMON_H                
 #define COMMON_H
 
+#define HOME_PC
+//#define WORK_PC
+//#define AMAZON
+
 #define ARP_REQUEST_TIMEOUT   2000
 #define ARP_ATTEMPT 	      3
 #define NETWORK_PROTOCOL_TYPE 0x800
@@ -18,12 +22,24 @@
 #define UDP_PROTOCOL 	0x11
 #define ICMP_PROTOCOL	1
 
-#define LOCAL_IP	0xAC100665
-//#define LOCAL_IP 	0xAC1F28A1     
+#ifdef HOME_PC
+#define LOCAL_IP 	0xC0A87C65   
+#define LOCAL_NETMASK   0xFFFFFF00
+#define DEFAULT_GW_IP 0xC0A87C02
+#endif
+
+#ifdef WORK_PC
+#define LOCAL_IP	0xAC100665  
 #define LOCAL_NETMASK   0xFFFFFF00
 #define DEFAULT_GW_IP   0xAC100664
-//#define DEFAULT_GW_IP 0xAC1F289F
-  
+#endif
+
+#ifdef WORK_PC
+#define LOCAL_IP	0xAC100665  
+#define LOCAL_NETMASK   0xFFFFFF00
+#define DEFAULT_GW_IP   0xAC100664
+#endif
+
 #define LOW_32(data)			(data & 0xFFFF)
 #define HI_32(data)			((data>>16) & 0xFFFF)
 #define LOW_16(data) 			(data & 0xFF)
