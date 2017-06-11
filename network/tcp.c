@@ -442,18 +442,18 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	}
 
 	//-------------HACK TO TEST PRODUCE DUPLICATED ACK!!!!!!!!!!!!
-	static int congestion_test = 0;
-	congestion_test++;
-	if (congestion_test >=10 && congestion_test <=150)
-	{
-		//ack_seq_num = tcp_conn_desc->snd_queue->wnd_min - 10;
-		printk("forcing duplicated ack");
-		printk("ack is %d \n",ack_seq_num);
-		if (congestion_test == 149) 
-		{
-			printk("stop here!!! \n");
-		}
-	}
+//	static int congestion_test = 0;
+//	congestion_test++;
+//	if (congestion_test >=10 && congestion_test <=150)
+//	{
+//		//ack_seq_num = tcp_conn_desc->snd_queue->wnd_min - 10;
+//		printk("forcing duplicated ack");
+//		printk("ack is %d \n",ack_seq_num);
+//		if (congestion_test == 149) 
+//		{
+//			printk("stop here!!! \n");
+//		}
+//	}
 	//------------END HACK
 
 	rcv_ack(tcp_conn_desc,ack_seq_num);
@@ -472,7 +472,7 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 		rtrsn_timer_reset(tcp_conn_desc->rtrsn_timer);
 	}
 
-	if (tcp_conn_desc->snd_queue->wnd_min <= ack_seq_num)
+	if (tcp_conn_desc->snd_queue->wnd_min < ack_seq_num)
 	{
 		if (tcp_conn_desc->duplicated_ack > 0)
 		{
@@ -496,6 +496,10 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 		printk("duplicated ack!!! \n");
 		tcp_conn_desc->ssthresh = max(tcp_conn_desc->flight_size / 2,2 * SMSS);
 		tcp_conn_desc->cwnd = tcp_conn_desc->ssthresh + 3 * SMSS;
+	}
+	else
+	{
+		printk("here!!! \n");
 	}
 	if (tcp_conn_desc->cwnd > TCP_SND_SIZE) 
 	{
@@ -530,6 +534,8 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	printk("---duplicated ack %d \n",tcp_conn_desc->duplicated_ack);
 	printk("flight size %d \n",tcp_conn_desc->flight_size);
 	printk("still to send %d \n",(tcp_queue->cur - tcp_queue->nxt_snd));
+        printk("win min %d \n", tcp_queue->wnd_min);
+        printk("ack_seq_num %d \n",ack_seq_num);
 	if (tcp_conn_desc->duplicated_ack == 0)
 	{
 		if (ack_seq_num != 0)
@@ -565,7 +571,6 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		//implementation lacks receiver case!!! (this is sender case)		
 		w_size = wnd_r_limit - wnd_l_limit;
 		expected_ack = tcp_queue->nxt_snd - tcp_queue->wnd_min;		
-		printk("expected ack= %d \n",expected_ack);
 		if (expected_ack == 0)
 		{
 			data_to_send=w_size;
@@ -668,7 +673,8 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 	u32 seq_num;
 
 	tcp_queue = tcp_conn_desc->snd_queue;
-	seq_num = tcp_conn_desc->snd_queue->nxt_snd - data_to_send;
+	//seq_num = tcp_conn_desc->snd_queue->nxt_snd - data_to_send;
+	seq_num = indx;
 	if (data_to_send > 0)
 	{
 		flags = FLG_ACK;

@@ -10,7 +10,7 @@ all:	user_space_process.o                      \
 
 install:
 	mount /dev/loop5 /mnt
-	cp /home/peppe/Desktop/g-os/process/$(process) /mnt/$(path)
+	cp /home/ec2-user/g-os/process/$(process) /mnt/$(path)
 	umount /mnt   
 
 user_space_process.o: $(process).c $(process).h
