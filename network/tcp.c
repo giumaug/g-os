@@ -491,7 +491,12 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 		//At the moment rtt is not updated in case duplicated packets.
 		//Needed to be implemented Karm algorithm (see Tcp/ip Illustrated pag 621)
 		rtt = system.time - tcp_conn_desc->last_sent_time;
-		tcp_conn_desc->rto = rtt * SRTT_FACTOR * tcp_conn_desc->rto + (1 - SRTT_FACTOR);
+		tcp_conn_desc->rto = ((float)(SRTT_FACTOR * tcp_conn_desc->rto) + (( 1 - SRTT_FACTOR) * rtt));
+
+		printk("rtt= %d \n",rtt);
+		printk("rto= %d \n",tcp_conn_desc->rto);
+		printk("--- \n");--------qui forse rtt calcolato male!!!
+
 	}
 	else if (++tcp_conn_desc->duplicated_ack == 3)
 	{
@@ -533,12 +538,12 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	data_to_send = 0;
 	
 	//trasmission with good ack
-	printk("---duplicated ack %d \n",tcp_conn_desc->duplicated_ack);
-	printk("flight size %d \n",tcp_conn_desc->flight_size);
-	printk("still to send %d \n",(tcp_queue->cur - tcp_queue->nxt_snd));
-        printk("win min %d \n", tcp_queue->wnd_min);
-        printk("ack_seq_num %d \n",ack_seq_num);
-	printk("retry timesd is  %d \n" + tcp_conn_desc->rtrsn_timer->val);
+//	printk("---duplicated ack %d \n",tcp_conn_desc->duplicated_ack);
+//	printk("flight size %d \n",tcp_conn_desc->flight_size);
+//	printk("still to send %d \n",(tcp_queue->cur - tcp_queue->nxt_snd));
+//      printk("win min %d \n", tcp_queue->wnd_min);
+//      printk("ack_seq_num %d \n",ack_seq_num);
+//	printk("retry timesd is  %d \n",tcp_conn_desc->rtrsn_timer->val);
 	if (tcp_conn_desc->duplicated_ack == 0)
 	{
 		if (ack_seq_num != 0)
