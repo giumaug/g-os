@@ -71,9 +71,12 @@
                         ack_num,                                            \
                         flags,                                              \
                         seq_num);                                           \
-                        tcp_conn_desc->last_sent_time = system.time;        \
 	                tcp_conn_desc->last_ack_sent = ack_num;             \
-			tcp_conn_desc->last_seq_sent = seq_num;
+			if (tcp_conn_desc->last_seq_sent == 0)              \
+			{                                                   \
+				tcp_conn_desc->last_sent_time = system.time;\
+				tcp_conn_desc->last_seq_sent = seq_num;     \
+			}
 
 typedef struct s_tcp_snd_queue
 {

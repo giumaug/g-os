@@ -7,6 +7,9 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num);
 static u16 checksum_tcp(char* tcp_row_packet,u32 src_ip,u32 dst_ip,u16 data_len);
 static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_num,u32 indx);
 
+//TEST ONLY!!!!
+static u32 skipped_rtt = 0;
+
 static void upd_max_adv_wnd(t_tcp_conn_desc* tcp_conn_desc,u32 rcv_wmd_adv)
 {
 	tcp_conn_desc->rcv_wmd_adv = rcv_wmd_adv;
@@ -84,6 +87,9 @@ t_tcp_conn_desc* tcp_conn_desc_int()
 	tcp_conn_desc->last_sent_time = 0;
 	tcp_conn_desc->flight_size = 0;
 	tcp_conn_desc->ref_count = 1;
+	tcp_conn_desc->last_seq_sent = 0;
+	tcp_conn_desc->last_sent_time = 0;
+	tcp_conn_desc->last_ack_sent = 0;
 	return tcp_conn_desc;
 }
 
@@ -441,7 +447,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		}
 	}
 
-	//-------------HACK TO TEST PRODUCE DUPLICATED ACK!!!!!!!!!!!!
+	//-------------HACK TO TEST DUPLICATED ACK!!!!!!!!!!!!
 //	static int congestion_test = 0;
 //	congestion_test++;
 //	if (congestion_test >=10 && congestion_test <=150)
@@ -490,12 +496,19 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 		}
 		//At the moment rtt is not updated in case duplicated packets.
 		//Needed to be implemented Karm algorithm (see Tcp/ip Illustrated pag 621)
-		rtt = system.time - tcp_conn_desc->last_sent_time;
-		tcp_conn_desc->rto = ((float)(SRTT_FACTOR * tcp_conn_desc->rto) + (( 1 - SRTT_FACTOR) * rtt));
+		if (tcp_conn_desc->last_seq_sent < ack_seq_num)
+		{
+			rtt = system.time - tcp_conn_desc->last_sent_time;
+			tcp_conn_desc->rto = ((float)(SRTT_FACTOR * tcp_conn_desc->rto) + (( 1 - SRTT_FACTOR) * rtt));
+			tcp_conn_desc->last_seq_sent = 0;
+		}
+		else 
+		{
+			skipped_rtt++;
+		}
 
 		printk("rtt= %d \n",rtt);
 		printk("rto= %d \n",tcp_conn_desc->rto);
-		printk("--- \n");--------qui forse rtt calcolato male!!!
 
 	}
 	else if (++tcp_conn_desc->duplicated_ack == 3)
@@ -538,12 +551,12 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	data_to_send = 0;
 	
 	//trasmission with good ack
-//	printk("---duplicated ack %d \n",tcp_conn_desc->duplicated_ack);
-//	printk("flight size %d \n",tcp_conn_desc->flight_size);
-//	printk("still to send %d \n",(tcp_queue->cur - tcp_queue->nxt_snd));
-//      printk("win min %d \n", tcp_queue->wnd_min);
-//      printk("ack_seq_num %d \n",ack_seq_num);
-//	printk("retry timesd is  %d \n",tcp_conn_desc->rtrsn_timer->val);
+	printk("---duplicated ack %d \n",tcp_conn_desc->duplicated_ack);
+	printk("flight size %d \n",tcp_conn_desc->flight_size);
+	printk("still to send %d \n",(tcp_queue->cur - tcp_queue->nxt_snd));
+        printk("win min %d \n", tcp_queue->wnd_min);
+        printk("ack_seq_num %d \n",ack_seq_num);
+	printk("retry timesd is  %d \n",tcp_conn_desc->rtrsn_timer->val);
 	if (tcp_conn_desc->duplicated_ack == 0)
 	{
 		if (ack_seq_num != 0)
@@ -569,7 +582,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 			wnd_l_limit = tcp_queue->nxt_snd;
 			wnd_r_limit = tcp_queue->cur;
 		}
-		if (tcp_queue->cur >= wnd_max && tcp_queue->nxt_snd <= wnd_max)
+		else if (tcp_queue->cur >= wnd_max && tcp_queue->nxt_snd <= wnd_max)
 		{	
 			wnd_l_limit = tcp_queue->nxt_snd;
 			wnd_r_limit = wnd_max;
@@ -580,6 +593,10 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 			data_to_send = 0;
 			indx = tcp_queue->nxt_snd;
 			printk("no data inside window!!!!! \n");
+			//printk("min= %d \n",tcp_queue->wnd_min);
+			//printk("cur= %d \n",tcp_queue->cur);
+			//printk("wnd_max= %d \n",wnd_max);
+			//printk("snd= %d \n",tcp_queue->nxt_snd);
 			goto EXIT;
 		}
 		
