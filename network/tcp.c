@@ -473,13 +473,9 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 	t_tcp_snd_queue* tcp_queue = NULL;
 	u32 rtt = 0;
 
-	if (tcp_conn_desc->snd_queue->nxt_snd == ack_seq_num)
-	{
-		rtrsn_timer_reset(tcp_conn_desc->rtrsn_timer);
-	}
-
 	if (tcp_conn_desc->snd_queue->wnd_min < ack_seq_num)
 	{
+		rtrsn_timer_reset(tcp_conn_desc->rtrsn_timer);
 		if (tcp_conn_desc->duplicated_ack > 0)
 		{
 			printk("changed !!! \n");
@@ -509,6 +505,9 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 
 		printk("rtt= %d \n",rtt);
 		printk("rto= %d \n",tcp_conn_desc->rto);
+		printk("snd= %d \n",tcp_conn_desc->snd_queue->nxt_snd);
+		printk("ack= %d \n",ack_seq_num);
+		
 
 	}
 	else if (++tcp_conn_desc->duplicated_ack == 3)
@@ -770,6 +769,7 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 
 void rtrsn_timer_set(t_timer* rtrsn_timer,long rto)
 {
+	printk("set \n");
 	if (rtrsn_timer->ref == NULL)
 	{
 		rtrsn_timer->val = rto;//aggiungere implenetazione rto
@@ -785,6 +785,7 @@ void rtrsn_timer_reset(t_timer* rtrsn_timer)
 {
 	if (rtrsn_timer->ref != NULL)
 	{
+		printk("reset \n");
 		ll_delete_node(rtrsn_timer->ref);
 		rtrsn_timer->ref = NULL;
 		rtrsn_timer->val = 0;
@@ -801,9 +802,12 @@ void rtrsn_timer_handler(void* arg)
 	if (tcp_conn_desc->status == ESTABILISHED)
 	{
 		tcp_conn_desc->rto *= 2;
-		tcp_conn_desc->rtrsn_timer->val = tcp_conn_desc->rto;
+		tcp_conn_desc->rto = min(tcp_conn_desc->rto , DEFAULT_RTO);
+		//tcp_conn_desc->rtrsn_timer->val = tcp_conn_desc->rto;
 		tcp_conn_desc->cwnd = SMSS;
 		tcp_conn_desc->snd_queue->nxt_snd =  tcp_conn_desc->snd_queue->wnd_min;
+		tcp_conn_desc->snd_queue->wnd_size = min(tcp_conn_desc->cwnd,tcp_conn_desc->rcv_wmd_adv);
+		update_snd_window(tcp_conn_desc,0,1);
 	}
 	else if (tcp_conn_desc->status == SYN_SENT)
 	{
@@ -859,8 +863,16 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 	static retry=1;
 
 	retry++;
-	if (retry >=20 && retry <=21)
+	if ((retry ==20 || retry ==22 || retry ==23 || retry ==25 || retry ==27 || retry ==29) || 
+	    (retry >=150 && retry <=160) || 
+	    (retry >=200 && retry <=220))
+
+//	if ((retry >=20 && retry <=25) || (retry >=150 && retry <=160) || (retry >=200 && retry <=220)) 
 	{
+		if (retry >=150) 
+		{
+			printk("qq \n");
+		}
 		printk("haqck!!!!! \n");
 		printk("dropping %d \n",seq_num);
 		return;
