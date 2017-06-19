@@ -277,4 +277,5 @@ int enqueue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		update_snd_window(tcp_conn_desc,0,1);
 	}
 	RESTORE_IF_STATUS
+	return 0;
 }

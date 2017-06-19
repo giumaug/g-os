@@ -193,7 +193,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	flags = tcp_row_packet[13];
 	rcv_wmd_adv = GET_WORD(tcp_row_packet[14],tcp_row_packet[15]);
 
-	printk("ddd \n");
 	if (checksum_tcp((unsigned short*) tcp_row_packet,src_ip,dst_ip,data_len) !=0 )
 	{
 		goto EXIT;
@@ -503,10 +502,10 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 			skipped_rtt++;
 		}
 
-		printk("rtt= %d \n",rtt);
-		printk("rto= %d \n",tcp_conn_desc->rto);
-		printk("snd= %d \n",tcp_conn_desc->snd_queue->nxt_snd);
-		printk("ack= %d \n",ack_seq_num);
+//		printk("rtt= %d \n",rtt);
+//		printk("rto= %d \n",tcp_conn_desc->rto);
+//		printk("snd= %d \n",tcp_conn_desc->snd_queue->nxt_snd);
+//		printk("ack= %d \n",ack_seq_num);
 		
 
 	}
@@ -550,12 +549,12 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	data_to_send = 0;
 	
 	//trasmission with good ack
-	printk("---duplicated ack %d \n",tcp_conn_desc->duplicated_ack);
-	printk("flight size %d \n",tcp_conn_desc->flight_size);
-	printk("still to send %d \n",(tcp_queue->cur - tcp_queue->nxt_snd));
-        printk("win min %d \n", tcp_queue->wnd_min);
-        printk("ack_seq_num %d \n",ack_seq_num);
-	printk("retry timesd is  %d \n",tcp_conn_desc->rtrsn_timer->val);
+//	printk("---duplicated ack %d \n",tcp_conn_desc->duplicated_ack);
+//	printk("flight size %d \n",tcp_conn_desc->flight_size);
+//	printk("still to send %d \n",(tcp_queue->cur - tcp_queue->nxt_snd));
+//      printk("win min %d \n", tcp_queue->wnd_min);
+//      printk("ack_seq_num %d \n",ack_seq_num);
+//	printk("retry timesd is  %d \n",tcp_conn_desc->rtrsn_timer->val);
 	if (tcp_conn_desc->duplicated_ack == 0)
 	{
 		if (ack_seq_num != 0)
@@ -675,8 +674,8 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	}
 EXIT:
 	flush_data(tcp_conn_desc,data_to_send,ack_num,indx);
-	printk("win_size %d \n",tcp_queue->wnd_size);
-	printk("data sent %d \n",data_to_send);
+//	printk("win_size %d \n",tcp_queue->wnd_size);
+//	printk("data sent %d \n",data_to_send);
 
 	//close connection with FIN flag both client and server	
 	//FIN needs retrasmission management only. No retry.
@@ -769,7 +768,6 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 
 void rtrsn_timer_set(t_timer* rtrsn_timer,long rto)
 {
-	printk("set \n");
 	if (rtrsn_timer->ref == NULL)
 	{
 		rtrsn_timer->val = rto;//aggiungere implenetazione rto
@@ -785,7 +783,6 @@ void rtrsn_timer_reset(t_timer* rtrsn_timer)
 {
 	if (rtrsn_timer->ref != NULL)
 	{
-		printk("reset \n");
 		ll_delete_node(rtrsn_timer->ref);
 		rtrsn_timer->ref = NULL;
 		rtrsn_timer->val = 0;
@@ -803,10 +800,10 @@ void rtrsn_timer_handler(void* arg)
 	{
 		tcp_conn_desc->rto *= 2;
 		tcp_conn_desc->rto = min(tcp_conn_desc->rto , DEFAULT_RTO);
-		//tcp_conn_desc->rtrsn_timer->val = tcp_conn_desc->rto;
 		tcp_conn_desc->cwnd = SMSS;
 		tcp_conn_desc->snd_queue->nxt_snd =  tcp_conn_desc->snd_queue->wnd_min;
 		tcp_conn_desc->snd_queue->wnd_size = min(tcp_conn_desc->cwnd,tcp_conn_desc->rcv_wmd_adv);
+		tcp_conn_desc->duplicated_ack = 0;
 		update_snd_window(tcp_conn_desc,0,1);
 	}
 	else if (tcp_conn_desc->status == SYN_SENT)

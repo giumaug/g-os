@@ -304,7 +304,8 @@ int _sendto(int sockfd,u32 dst_ip,u16 dst_port,void* data,u32 data_len)
 		}
 		else if (socket->type==1)
 		{
-			enqueue_packet_tcp(socket->tcp_conn_desc,data,data_len);
+			ret = enqueue_packet_tcp(socket->tcp_conn_desc,data,data_len);
+			ret = -1;
 		}
 	}
 	return ret;

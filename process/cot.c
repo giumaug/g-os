@@ -18,6 +18,7 @@ int main()
 	struct sockaddr_in server_address;
 	struct sockaddr_in client_address;
 	unsigned int data_sent = 0;
+	int ret = -1;
 
 //-----------------------------LINUX--------------------------------------------
 //	server_address.sin_family = AF_INET;//
@@ -61,6 +62,7 @@ int main()
 	listen(server_sockfd, 5);
 	//signal(SIGCHLD, SIG_IGN);
 	char ch[100];
+
 	while(1) 
 	{
 		printf("cot server waiting...++\n");
@@ -86,7 +88,21 @@ int main()
 					buffer_2[i] = buffer_1[i];
 				}
 				buffer_2[index]='\0';
-				write_socket(client_sockfd, buffer_2,index);
+				ret = write_socket(client_sockfd, buffer_2,index);
+				printf("------------------------ret is %d \n",ret);
+				while (ret !=0 )
+				{
+					ret = write_socket(client_sockfd, buffer_2,index);
+					sleep(300);
+					if (ret==0)
+					{
+						printf("zero \n");
+					}
+					else if (ret == -1)
+					{
+						printf("uno \n");
+					}					
+				}
 				index += 16;
 				if (index >4000)
 				{
