@@ -92,14 +92,16 @@ int main()
 				while (ret !=0 )
 				{
 					printf("----------retry \n");
-					ret = write_socket(client_sockfd, buffer_2,index);					
+					ret = write_socket(client_sockfd, buffer_2,index);	
+					sleep(100);				
 				}
 				index += 16;
 				if (index >4000)
 				{
 					index=4000;
 				}
-				//sleep(300);
+				//sleep(100);
+				printf("tissssssssssssss %d \n",t);
 			}
 //			printf("sent completed \n");
 			close_socket(client_sockfd);
