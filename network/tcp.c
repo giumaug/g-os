@@ -495,6 +495,7 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 		{
 			rtt = system.time - tcp_conn_desc->last_sent_time;
 			tcp_conn_desc->rto = ((float)(SRTT_FACTOR * tcp_conn_desc->rto) + (( 1 - SRTT_FACTOR) * rtt));
+			tcp_conn_desc->rto = min(tcp_conn_desc->rto , DEFAULT_RTO);
 			tcp_conn_desc->last_seq_sent = 0;
 		}
 		else 
@@ -502,10 +503,10 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 			skipped_rtt++;
 		}
 
-//		printk("rtt= %d \n",rtt);
-//		printk("rto= %d \n",tcp_conn_desc->rto);
-//		printk("snd= %d \n",tcp_conn_desc->snd_queue->nxt_snd);
-//		printk("ack= %d \n",ack_seq_num);
+		printk("rtt= %d \n",rtt);
+		printk("rto= %d \n",tcp_conn_desc->rto);
+		printk("snd= %d \n",tcp_conn_desc->snd_queue->nxt_snd);
+		printk("ack= %d \n",ack_seq_num);
 		
 
 	}
@@ -549,12 +550,12 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	data_to_send = 0;
 	
 	//trasmission with good ack
-//	printk("---duplicated ack %d \n",tcp_conn_desc->duplicated_ack);
-//	printk("flight size %d \n",tcp_conn_desc->flight_size);
-//	printk("still to send %d \n",(tcp_queue->cur - tcp_queue->nxt_snd));
-//      printk("win min %d \n", tcp_queue->wnd_min);
-//      printk("ack_seq_num %d \n",ack_seq_num);
-//	printk("retry timesd is  %d \n",tcp_conn_desc->rtrsn_timer->val);
+	printk("---duplicated ack %d \n",tcp_conn_desc->duplicated_ack);
+	printk("flight size %d \n",tcp_conn_desc->flight_size);
+	printk("still to send %d \n",(tcp_queue->cur - tcp_queue->nxt_snd));
+        printk("win min %d \n", tcp_queue->wnd_min);
+        printk("ack_seq_num %d \n",ack_seq_num);
+	printk("retry timesd is  %d \n",tcp_conn_desc->rtrsn_timer->val);
 	if (tcp_conn_desc->duplicated_ack == 0)
 	{
 		if (ack_seq_num != 0)
@@ -674,8 +675,9 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	}
 EXIT:
 	flush_data(tcp_conn_desc,data_to_send,ack_num,indx);
-//	printk("win_size %d \n",tcp_queue->wnd_size);
-//	printk("data sent %d \n",data_to_send);
+	printk("win_size %d \n",tcp_queue->wnd_size);
+	printk("data sent %d \n",data_to_send);
+	printk("rto is %d \n",tcp_conn_desc->rto);
 
 	//close connection with FIN flag both client and server	
 	//FIN needs retrasmission management only. No retry.
@@ -776,6 +778,10 @@ void rtrsn_timer_set(t_timer* rtrsn_timer,long rto)
 	else
 	{
 		rtrsn_timer->val = rto;
+	}
+	if (rtrsn_timer->val > 500)
+	{
+		printk("iiii \n");
 	}
 }
 

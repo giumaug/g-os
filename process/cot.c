@@ -89,19 +89,10 @@ int main()
 				}
 				buffer_2[index]='\0';
 				ret = write_socket(client_sockfd, buffer_2,index);
-				printf("------------------------ret is %d \n",ret);
 				while (ret !=0 )
 				{
-					ret = write_socket(client_sockfd, buffer_2,index);
-					sleep(300);
-					if (ret==0)
-					{
-						printf("zero \n");
-					}
-					else if (ret == -1)
-					{
-						printf("uno \n");
-					}					
+					printf("----------retry \n");
+					ret = write_socket(client_sockfd, buffer_2,index);					
 				}
 				index += 16;
 				if (index >4000)
