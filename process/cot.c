@@ -91,7 +91,6 @@ int main()
 				ret = write_socket(client_sockfd, buffer_2,index);
 				while (ret !=0 )
 				{
-					printf("----------retry \n");
 					ret = write_socket(client_sockfd, buffer_2,index);	
 					sleep(100);				
 				}
@@ -101,7 +100,6 @@ int main()
 					index=4000;
 				}
 				//sleep(100);
-				printf("tissssssssssssss %d \n",t);
 			}
 //			printf("sent completed \n");
 			close_socket(client_sockfd);

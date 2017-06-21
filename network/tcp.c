@@ -103,8 +103,8 @@ void tcp_conn_desc_free(t_tcp_conn_desc* tcp_conn_desc)
 	timer_free(tcp_conn_desc->rtrsn_timer);
 	timer_free(tcp_conn_desc->pgybg_timer);
 	kfree(tcp_conn_desc);
-	printk("conn free!! %d\n",tcp_conn_desc->src_port);
-	printk("conn free!! %d\n",tcp_conn_desc->dst_port);
+//	printk("conn free!! %d\n",tcp_conn_desc->src_port);
+//	printk("conn free!! %d\n",tcp_conn_desc->dst_port);
 }
 
 t_tcp_desc* tcp_init()
@@ -222,7 +222,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			tcp_req_desc->snd_queue->wnd_min = tcp_req_desc->snd_queue->nxt_snd;
 			rtrsn_timer_reset(tcp_req_desc->rtrsn_timer);
 			_awake(tcp_req_desc->process_context);
-			printk("1111111111 \n");
 		}
 		//RETRY
 		else if (tcp_conn_desc != NULL)
@@ -278,7 +277,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 				new_tcp_conn_desc->rcv_wmd_adv = rcv_wmd_adv;
 				new_tcp_conn_desc->snd_queue->wnd_min = new_tcp_conn_desc->snd_queue->nxt_snd;
 				upd_max_adv_wnd(new_tcp_conn_desc,rcv_wmd_adv);
-				printk("2222 \n");
 				if (tcp_listen_desc->process_context !=NULL)
 				{
 					_awake(tcp_listen_desc->process_context);
@@ -503,16 +501,16 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 			skipped_rtt++;
 		}
 
-		printk("rtt= %d \n",rtt);
-		printk("rto= %d \n",tcp_conn_desc->rto);
-		printk("snd= %d \n",tcp_conn_desc->snd_queue->nxt_snd);
-		printk("ack= %d \n",ack_seq_num);
+//		printk("rtt= %d \n",rtt);
+//		printk("rto= %d \n",tcp_conn_desc->rto);
+//		printk("snd= %d \n",tcp_conn_desc->snd_queue->nxt_snd);
+//		printk("ack= %d \n",ack_seq_num);
 		
 
 	}
 	else if (++tcp_conn_desc->duplicated_ack == 3)
 	{
-		printk("duplicated ack!!! \n");
+//		printk("duplicated ack!!! \n");
 		tcp_conn_desc->ssthresh = max(tcp_conn_desc->flight_size / 2,2 * SMSS);
 		tcp_conn_desc->cwnd = tcp_conn_desc->ssthresh + 3 * SMSS;
 	}
@@ -592,10 +590,10 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 			data_to_send = 0;
 			indx = tcp_queue->nxt_snd;
 			printk("no data inside window!!!!! \n");
-			//printk("min= %d \n",tcp_queue->wnd_min);
-			//printk("cur= %d \n",tcp_queue->cur);
-			//printk("wnd_max= %d \n",wnd_max);
-			//printk("snd= %d \n",tcp_queue->nxt_snd);
+			printk("min= %d \n",tcp_queue->wnd_min);
+			printk("cur= %d \n",tcp_queue->cur);
+			printk("wnd_max= %d \n",wnd_max);
+			printk("snd= %d \n",tcp_queue->nxt_snd);
 			goto EXIT;
 		}
 		
@@ -621,7 +619,6 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	}
 	else if (tcp_conn_desc->duplicated_ack == 1 || tcp_conn_desc->duplicated_ack == 2)
 	{
-		printk(".... \n");
 		wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
 		if (wnd_max > tcp_queue->nxt_snd)
 		{
@@ -656,12 +653,6 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	
 		if (tcp_conn_desc->duplicated_ack > 3)
 		{
-			int static pippo =0;
-			pippo++;
-			if (pippo == 2)
-			{
-				printk("qui!!!! \n");
-			}
 			indx = tcp_queue->nxt_snd;
 			w_size = tcp_queue->wnd_min + tcp_queue->wnd_size - tcp_queue->nxt_snd;
 
@@ -698,7 +689,7 @@ EXIT:
 		}
 		_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,ack_num,FLG_FIN | FLG_ACK,tcp_conn_desc->snd_queue->nxt_snd);
 		rtrsn_timer_set(tcp_conn_desc->rtrsn_timer,tcp_conn_desc->rto);
-		printk("fin from fix2 \n");		
+//		printk("fin from fix2 \n");		
 	}
 }
 
@@ -778,10 +769,6 @@ void rtrsn_timer_set(t_timer* rtrsn_timer,long rto)
 	else
 	{
 		rtrsn_timer->val = rto;
-	}
-	if (rtrsn_timer->val > 500)
-	{
-		printk("iiii \n");
 	}
 }
 
