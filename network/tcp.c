@@ -615,6 +615,10 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		}
 		indx = wnd_l_limit;
 		tcp_queue->nxt_snd += data_to_send;
+		if (data_to_send < SMSS) 
+		{
+			printk("check needed!!! \n");
+		}
 		tcp_conn_desc->flight_size = tcp_queue->nxt_snd - 1 - tcp_queue->wnd_min;
 	}
 	else if (tcp_conn_desc->duplicated_ack == 1 || tcp_conn_desc->duplicated_ack == 2)
@@ -642,7 +646,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	}
 	else if (tcp_conn_desc->duplicated_ack == 3 || tcp_conn_desc->duplicated_ack > 3)
 	{
-		data_to_send = tcp_queue->nxt_snd - 1 - ack_seq_num;
+		data_to_send = tcp_queue->nxt_snd - 1 - ack_seq_num;// era -1
 		if (data_to_send > SMSS) 
 		{
 			data_to_send = SMSS;
@@ -859,7 +863,7 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 
 //	if ((retry >=20 && retry <=25) || (retry >=150 && retry <=160) || (retry >=200 && retry <=220)) 
 	{
-		if (retry >=150) 
+		if (retry >=200) 
 		{
 			printk("qq \n");
 		}
