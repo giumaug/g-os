@@ -11,6 +11,12 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 static u32 skipped_rtt = 0;
 static retry=1;
 
+static int tcpdump_val[100][100];
+static int tcpdump_desc[100][100];
+static int tcpdump_index = 0;
+//1 receive ack
+//2 send packet
+
 static void upd_max_adv_wnd(t_tcp_conn_desc* tcp_conn_desc,u32 rcv_wmd_adv)
 {
 	tcp_conn_desc->rcv_wmd_adv = rcv_wmd_adv;
@@ -472,6 +478,9 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 	t_tcp_snd_queue* tcp_queue = NULL;
 	u32 rtt = 0;
 
+	tcpdump_desc[tcpdump_index++]=1;
+	tcpdump_desc[tcpdump_index++]=ack_seq_num;
+
 	if (tcp_conn_desc->snd_queue->wnd_min < ack_seq_num)
 	{
 		if (tcp_conn_desc->snd_queue->nxt_snd == ack_seq_num)
@@ -901,6 +910,9 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 //		printk("dropping %d \n",seq_num);
 //		return;
 //	}
+
+	tcpdump_desc[tcpdump_index++]=2;
+	tcpdump_desc[tcpdump_index++]=seq_num;
 	
 	data_sckt_buf = alloc_sckt(data_len + HEADER_ETH + HEADER_IP4 + HEADER_TCP);
 	data_sckt_buf->transport_hdr = data_sckt_buf->data + HEADER_ETH + HEADER_IP4;
