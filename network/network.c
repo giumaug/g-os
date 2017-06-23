@@ -1,8 +1,5 @@
 #include "network/network.h"
 
-extern ss_sent;
-
-
 //ONLY ONE INSTANCE FOR ALL POSSIBLE INTERFACES!!!!!
 t_network_desc* network_init()
 {
@@ -33,7 +30,6 @@ void network_free(t_network_desc* network_desc)
 
 void equeue_packet(t_network_desc* network_desc)
 {
-	int ff =0;
 	t_sckt_buf_desc* sckt_buf_desc;
 	t_data_sckt_buf* data_sckt_buf;
 	void* frame;
@@ -46,14 +42,7 @@ void equeue_packet(t_network_desc* network_desc)
 		frame_len=data_sckt_buf->data_len;
 		send_packet_i8254x(network_desc->dev,frame,frame_len);
 		free_sckt(data_sckt_buf);
-		printk("..... \n");
-		ff++;
 	}
-	if (ff != ss_sent && ff!=0)
-	{
-		printk("eeeee \n");
-	}
-        ss_sent = 0;
 }
 
 void dequeue_packet(t_network_desc* network_desc)
@@ -66,10 +55,6 @@ void dequeue_packet(t_network_desc* network_desc)
 	{	
 		rcv_packet_mac(data_sckt_buf);
 		i++;
-	}
-	if (i>0)
-	{
-		//printk("dequeue p=%d \n",i);
 	}
 }
 

@@ -18,8 +18,6 @@ static int attempt=0;
 //1 receive ack
 //2 send packet
 
-int ss_sent = 0;
-
 static void upd_max_adv_wnd(t_tcp_conn_desc* tcp_conn_desc,u32 rcv_wmd_adv)
 {
 	tcp_conn_desc->rcv_wmd_adv = rcv_wmd_adv;
@@ -550,7 +548,6 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 	}
 	else
 	{
-		printk("here!!! \n");
 		attempt++;
 	}
 //	if (tcp_conn_desc->snd_queue->wnd_min == ack_seq_num)
@@ -705,8 +702,17 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		if (tcp_conn_desc->duplicated_ack > 3)
 		{
 			indx = tcp_queue->nxt_snd;
-			w_size = tcp_queue->wnd_min + tcp_queue->wnd_size - tcp_queue->nxt_snd;
-
+			data_to_send = 0;
+			wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
+			if (wnd_max > tcp_queue->nxt_snd)
+			{
+				w_size = wnd_max - tcp_queue->nxt_snd;
+			}
+			else
+			{
+				w_size = 0;
+			}
+		
 			if (w_size >= SMSS && tcp_queue->cur >= (tcp_queue->nxt_snd + SMSS))
 			{
 				tcp_queue->nxt_snd += SMSS;
@@ -717,11 +723,11 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	}
 EXIT:
 	flush_data(tcp_conn_desc,data_to_send,ack_num,indx);
-//	printk("win min... %d \n", tcp_queue->wnd_min);
-//	printk("win_size %d \n",tcp_queue->wnd_size);
-//	printk("data sent %d \n",data_to_send);
-	//printk("rto is %d \n",tcp_conn_desc->rto);
-        //printk("nxt_snd %d \n", tcp_queue->nxt_snd);
+	printk("win min... %d \n", tcp_queue->wnd_min);
+	printk("win_size %d \n",tcp_queue->wnd_size);
+	printk("data sent %d \n",data_to_send);
+	printk("rto is %d \n",tcp_conn_desc->rto);
+        printk("nxt_snd %d \n", tcp_queue->nxt_snd);
 
 	//close connection with FIN flag both client and server	
 	//FIN needs retrasmission management only. No retry.
@@ -904,29 +910,24 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 	char* tcp_header = NULL;
 
 	retry++;
-	if (retry > 10)
-	{
-		printk("dd \n");
-	}
-        ss_sent++;
-//	if ((retry ==20 || retry ==22 || retry ==23 || retry ==25 || retry ==27 || retry ==29) || 
-//	    (retry >=150 && retry <=160) || 
-//	    (retry >=200 && retry <=220) ||
-//	    (retry >=500 && retry <=520) ||
-//	    (retry ==620 || retry ==622 || retry ==623 || retry ==625 || retry ==627 || retry ==629 || retry==635 || retry==636 || retry==637 || retry==640))
-//
+	if ((retry ==20 || retry ==22 || retry ==23 || retry ==25 || retry ==27 || retry ==29) || 
+	    (retry >=150 && retry <=160) || 
+	    (retry >=200 && retry <=220) ||
+	    (retry >=500 && retry <=520) ||
+	    (retry ==620 || retry ==622 || retry ==623 || retry ==625 || retry ==627 || retry ==629 || retry==635 || retry==636 || retry==637 || retry==640) ||
+            (retry >=700 && retry <=720))
 //	{
 //
 //	if ((retry >=20 && retry <=25) || (retry >=150 && retry <=160) || (retry >=200 && retry <=220)) 
-//	{
-//		if (retry >=200) 
-//		{
-//			printk("qq \n");
-//	}
-//		printk("haqck!!!!! \n");
-//		printk("dropping %d \n",seq_num);
-//		return;
-//	}
+	{
+		if (retry >=200) 
+		{
+			printk("qq \n");
+	}
+		printk("haqck!!!!! \n");
+		printk("dropping %d \n",seq_num);
+		return;
+	}
 
 	printk("sent packet %d \n",seq_num);
         //tcpdump_index++;
