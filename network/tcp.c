@@ -9,7 +9,7 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 
 //TEST ONLY!!!!
 static u32 skipped_rtt = 0;
-static retry=1;
+static u32 retry=1;
 static int attempt=0;
 
 //int tcpdump_val[100];
@@ -723,11 +723,13 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	}
 EXIT:
 	flush_data(tcp_conn_desc,data_to_send,ack_num,indx);
+	printk("--------------------\n");
 	printk("win min... %d \n", tcp_queue->wnd_min);
 	printk("win_size %d \n",tcp_queue->wnd_size);
 	printk("data sent %d \n",data_to_send);
 	printk("rto is %d \n",tcp_conn_desc->rto);
         printk("nxt_snd %d \n", tcp_queue->nxt_snd);
+	printk("--------------------\n");
 
 	//close connection with FIN flag both client and server	
 	//FIN needs retrasmission management only. No retry.
@@ -901,6 +903,8 @@ void pgybg_timer_handler(void* arg)
 	tcp_conn_desc->pgybg_timer->val = 0;
 }
 
+unsigned int _rand();
+
 int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size,char* data,u32 data_len,u32 ack_num,u8 flags,u32 seq_num)
 {
 	u16 chk;
@@ -909,25 +913,36 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 	int ret = NULL;
 	char* tcp_header = NULL;
 
-	retry++;
-	if ((retry ==20 || retry ==22 || retry ==23 || retry ==25 || retry ==27 || retry ==29) || 
-	    (retry >=150 && retry <=160) || 
-	    (retry >=200 && retry <=220) ||
-	    (retry >=500 && retry <=520) ||
-	    (retry ==620 || retry ==622 || retry ==623 || retry ==625 || retry ==627 || retry ==629 || retry==635 || retry==636 || retry==637 || retry==640) ||
-            (retry >=700 && retry <=720))
-//	{
-//
-//	if ((retry >=20 && retry <=25) || (retry >=150 && retry <=160) || (retry >=200 && retry <=220)) 
+	u32 rand_num = (_rand() % 10 + 1);
+        if (rand_num == 1 && seq_num < 3898693)
 	{
-		if (retry >=200) 
+		retry++;
+		if (retry>300) 
 		{
-			printk("qq \n");
-	}
-		printk("haqck!!!!! \n");
-		printk("dropping %d \n",seq_num);
+			printk("sssssssssss \n");
+		}
 		return;
 	}
+
+//	retry++;
+//	if ((retry ==20 || retry ==22 || retry ==23 || retry ==25 || retry ==27 || retry ==29) || 
+//	    (retry >=150 && retry <=160) || 
+//	    (retry >=200 && retry <=220) ||
+//	    (retry >=500 && retry <=520) ||
+//	    (retry ==620 || retry ==622 || retry ==623 || retry ==625 || retry ==627 || retry ==629 || retry==635 || retry==636 || retry==637 || retry==640) ||
+//            (retry >=700 && retry <=720))
+////	{
+////
+////	if ((retry >=20 && retry <=25) || (retry >=150 && retry <=160) || (retry >=200 && retry <=220)) 
+//	{
+//		if (retry >=200) 
+//		{
+//			printk("qq \n");
+//	}
+//		printk("haqck!!!!! \n");
+//		printk("dropping %d \n",seq_num);
+//		return;
+//	}
 
 	printk("sent packet %d \n",seq_num);
         //tcpdump_index++;
@@ -1011,4 +1026,12 @@ static u16 checksum_tcp(char* tcp_row_packet,u32 src_ip,u32 dst_ip,u16 data_len)
 	chk_final[3]=HI_16(~chk);
 	u16 xxx=checksum(chk_final,4);
 	return checksum(chk_final,4);
+}
+#define RAND_MAX 4294967294
+
+unsigned int _rand()
+{
+	static u32 seed;
+        seed = seed * 1103515245 + 12345;
+        return (seed % ((unsigned int)RAND_MAX + 1));
 }
