@@ -9,6 +9,7 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 
 //TEST ONLY!!!!
 static u32 skipped_rtt = 0;
+static retry=1;
 
 static void upd_max_adv_wnd(t_tcp_conn_desc* tcp_conn_desc,u32 rcv_wmd_adv)
 {
@@ -64,6 +65,7 @@ t_tcp_conn_desc* tcp_conn_desc_int()
 {
 	t_tcp_conn_desc* tcp_conn_desc;
 
+	retry=1;
 	tcp_conn_desc = kmalloc(sizeof(t_tcp_conn_desc));
 	tcp_conn_desc->rcv_queue = tcp_rcv_queue_init(TCP_RCV_SIZE);
 	tcp_conn_desc->snd_queue = tcp_snd_queue_init(TCP_SND_SIZE);
@@ -472,7 +474,7 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 
 	if (tcp_conn_desc->snd_queue->wnd_min < ack_seq_num)
 	{
-		if (tcp_conn_desc->snd_queue->wnd_min == ack_seq_num)
+		if (tcp_conn_desc->snd_queue->nxt_snd == ack_seq_num)
 		{
 			rtrsn_timer_reset(tcp_conn_desc->rtrsn_timer);
 		}
@@ -524,6 +526,10 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 	else
 	{
 		printk("here!!! \n");
+	}
+	if (tcp_conn_desc->duplicated_ack >=1 && retry>165)
+	{
+		printk("here2!! \n");
 	}
 	if (tcp_conn_desc->cwnd > TCP_SND_SIZE) 
 	{
@@ -879,15 +885,15 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 	t_data_sckt_buf* data_sckt_buf = NULL;
 	int ret = NULL;
 	char* tcp_header = NULL;
-	static retry=1;
 
 	retry++;
 	if ((retry ==20 || retry ==22 || retry ==23 || retry ==25 || retry ==27 || retry ==29) || 
 	    (retry >=150 && retry <=160) || 
 	    (retry >=200 && retry <=220))
+	{
 
 //	if ((retry >=20 && retry <=25) || (retry >=150 && retry <=160) || (retry >=200 && retry <=220)) 
-	{
+//	{
 		if (retry >=200) 
 		{
 			printk("qq \n");

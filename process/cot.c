@@ -65,6 +65,7 @@ int main()
 
 	while(1) 
 	{
+		check_free_mem();
 		printf("cot server waiting...++\n");
 
 		/* Accept connection. */
