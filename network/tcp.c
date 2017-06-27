@@ -478,9 +478,14 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 		{
 			rtrsn_timer_reset(tcp_conn_desc->rtrsn_timer);
 		}
-		else
+		else if (tcp_conn_desc->snd_queue->nxt_snd > ack_seq_num)
 		{
 			rtrsn_timer_set(tcp_conn_desc->rtrsn_timer,tcp_conn_desc->rto);
+		}
+		else if (tcp_conn_desc->snd_queue->nxt_snd < ack_seq_num)
+		{
+			rtrsn_timer_set(tcp_conn_desc->rtrsn_timer,tcp_conn_desc->rto);
+			tcp_conn_desc->snd_queue->nxt_snd = ack_seq_num;
 		}
 		if (tcp_conn_desc->duplicated_ack > 0)
 		{
@@ -527,7 +532,7 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 	{
 		printk("here!!! \n");
 	}
-	if (tcp_conn_desc->duplicated_ack >=1 && retry>165)
+	if (tcp_conn_desc->duplicated_ack >=10)
 	{
 		printk("here2!! \n");
 	}

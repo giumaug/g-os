@@ -57,7 +57,7 @@
 //timout=200 ms (quantum = 10 ms)
 #define PIGGYBACKING_TIMEOUT 20 
 //3 sec should be 300
-#define DEFAULT_RTO 500
+#define DEFAULT_RTO 100
 #define SRTT_FACTOR 0.8
 
 #define _SEND_PACKET_TCP(tcp_conn_desc,data,data_len,ack_num,flags,seq_num) \
