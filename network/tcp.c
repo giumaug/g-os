@@ -524,18 +524,17 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 	}
 	else if (++tcp_conn_desc->duplicated_ack == 3)
 	{
-//		printk("duplicated ack!!! \n");
 		tcp_conn_desc->ssthresh = max(tcp_conn_desc->flight_size / 2,2 * SMSS);
 		tcp_conn_desc->cwnd = tcp_conn_desc->ssthresh + 3 * SMSS;
 	}
-	else
-	{
-		printk("here!!! \n");
-	}
-	if (tcp_conn_desc->duplicated_ack >=10)
-	{
-		printk("here2!! \n");
-	}
+//	else
+//	{
+//		printk("here!!! \n");
+//	}
+//	if (tcp_conn_desc->snd_queue->wnd_min == ack_seq_num)
+//	{
+//		printk("here2!! \n");
+//	}
 	if (tcp_conn_desc->cwnd > TCP_SND_SIZE) 
 	{
 		tcp_conn_desc->cwnd = TCP_SND_SIZE;
@@ -730,8 +729,6 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 	u32 len_2;
 	u32 offset;
 	u32 seq_num;
-	u32 real_sent = 0;
-        u32 init_data_to_send = data_to_send;
 
 	tcp_queue = tcp_conn_desc->snd_queue;
 	//seq_num = tcp_conn_desc->snd_queue->nxt_snd - data_to_send;
@@ -751,7 +748,6 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 			offset = SLOT_WND(indx,TCP_SND_SIZE);
 			if (offset + SMSS <= TCP_SND_SIZE)
 			{
-				real_sent += SMSS;
 				_SEND_PACKET_TCP(tcp_conn_desc,tcp_queue->buf[offset],SMSS,ack_num,flags,seq_num);
 				seq_num += SMSS;
 			}
@@ -759,10 +755,8 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 			{
 				len_1 = TCP_SND_SIZE - offset;
 				len_2 = SMSS - len_1;
-				real_sent += len_1;
 				_SEND_PACKET_TCP(tcp_conn_desc,tcp_queue->buf[offset],len_1,ack_num,flags,seq_num);
 				seq_num += len_1;
-				real_sent += len_2;
 				_SEND_PACKET_TCP(tcp_conn_desc,tcp_queue->buf[0],len_2,ack_num,flags,seq_num);
 				seq_num += len_2;
 			}
@@ -774,7 +768,6 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 			offset = SLOT_WND(indx,TCP_SND_SIZE);	
 			if (offset + data_to_send <= TCP_SND_SIZE)
 			{
-				real_sent += data_to_send;
 				_SEND_PACKET_TCP(tcp_conn_desc,tcp_queue->buf[offset],data_to_send,ack_num,flags,seq_num);
 				seq_num += data_to_send;
 			}
@@ -782,20 +775,14 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 			{
 				len_1 = TCP_SND_SIZE - offset;
 				len_2 = data_to_send - len_1;
-				real_sent += len_1;
 				_SEND_PACKET_TCP(tcp_conn_desc,tcp_queue->buf[offset],len_1,ack_num,flags,seq_num);
 				seq_num += len_1;
-				real_sent += len_2;
 				_SEND_PACKET_TCP(tcp_conn_desc,tcp_queue->buf[offset],len_2,ack_num,flags,seq_num);
 				seq_num += len_2;
 			}
 		}
 		//timer RFC6298
 		rtrsn_timer_set(tcp_conn_desc->rtrsn_timer,tcp_conn_desc->rto);
-		if (real_sent != init_data_to_send)
-		{
-			printk("problem!!! \n");
-		}
 	}
 }
 
@@ -894,7 +881,10 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 	retry++;
 	if ((retry ==20 || retry ==22 || retry ==23 || retry ==25 || retry ==27 || retry ==29) || 
 	    (retry >=150 && retry <=160) || 
-	    (retry >=200 && retry <=220))
+	    (retry >=200 && retry <=220) ||
+	    (retry >=500 && retry <=520) ||
+	    (retry ==620 || retry ==622 || retry ==623 || retry ==625 || retry ==627 || retry ==629 || retry==635 || retry==636 || retry==637 || retry==640))
+
 	{
 
 //	if ((retry >=20 && retry <=25) || (retry >=150 && retry <=160) || (retry >=200 && retry <=220)) 
