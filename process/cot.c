@@ -93,7 +93,9 @@ int main()
 				while (ret !=0 )
 				{
 					ret = write_socket(client_sockfd, buffer_2,index);	
-					sleep(100);				
+					sleep(100);
+					//printf("mmmmmmmmmmmmmmmmmmmmm \n");
+				
 				}
 				index += 16;
 				if (index >4000)

@@ -527,10 +527,10 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 		tcp_conn_desc->ssthresh = max(tcp_conn_desc->flight_size / 2,2 * SMSS);
 		tcp_conn_desc->cwnd = tcp_conn_desc->ssthresh + 3 * SMSS;
 	}
-//	else
-//	{
-//		printk("here!!! \n");
-//	}
+	else
+	{
+		printk("here!!! \n");
+	}
 //	if (tcp_conn_desc->snd_queue->wnd_min == ack_seq_num)
 //	{
 //		printk("here2!! \n");
@@ -565,12 +565,13 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	data_to_send = 0;
 	
 	//trasmission with good ack
-	printk("---duplicated ack %d \n",tcp_conn_desc->duplicated_ack);
+//	printk("---duplicated ack %d \n",tcp_conn_desc->duplicated_ack);
 	printk("flight size %d \n",tcp_conn_desc->flight_size);
-	printk("still to send %d \n",(tcp_queue->cur - tcp_queue->nxt_snd));
-        printk("win min %d \n", tcp_queue->wnd_min);
-        printk("ack_seq_num %d \n",ack_seq_num);
-	printk("retry timesd is  %d \n",tcp_conn_desc->rtrsn_timer->val);
+//	printk("still to send %d \n",(tcp_queue->cur - tcp_queue->nxt_snd));
+//      printk("win min %d \n", tcp_queue->wnd_min);
+        printk("nxt_snd %d \n", tcp_queue->nxt_snd);
+//      printk("ack_seq_num %d \n",ack_seq_num);
+//	printk("retry timesd is  %d \n",tcp_conn_desc->rtrsn_timer->val);
 	if (tcp_conn_desc->duplicated_ack == 0)
 	{
 		if (ack_seq_num != 0)
@@ -879,24 +880,24 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 	char* tcp_header = NULL;
 
 	retry++;
-	if ((retry ==20 || retry ==22 || retry ==23 || retry ==25 || retry ==27 || retry ==29) || 
-	    (retry >=150 && retry <=160) || 
-	    (retry >=200 && retry <=220) ||
-	    (retry >=500 && retry <=520) ||
-	    (retry ==620 || retry ==622 || retry ==623 || retry ==625 || retry ==627 || retry ==629 || retry==635 || retry==636 || retry==637 || retry==640))
-
-	{
-
-//	if ((retry >=20 && retry <=25) || (retry >=150 && retry <=160) || (retry >=200 && retry <=220)) 
+//	if ((retry ==20 || retry ==22 || retry ==23 || retry ==25 || retry ==27 || retry ==29) || 
+//	    (retry >=150 && retry <=160) || 
+//	    (retry >=200 && retry <=220) ||
+//	    (retry >=500 && retry <=520) ||
+//	    (retry ==620 || retry ==622 || retry ==623 || retry ==625 || retry ==627 || retry ==629 || retry==635 || retry==636 || retry==637 || retry==640))
+//
 //	{
-		if (retry >=200) 
-		{
-			printk("qq \n");
-		}
-		printk("haqck!!!!! \n");
-		printk("dropping %d \n",seq_num);
-		return;
-	}
+//
+////	if ((retry >=20 && retry <=25) || (retry >=150 && retry <=160) || (retry >=200 && retry <=220)) 
+////	{
+//		if (retry >=200) 
+//		{
+//			printk("qq \n");
+//		}
+//		printk("haqck!!!!! \n");
+//		printk("dropping %d \n",seq_num);
+//		return;
+//	}
 	
 	data_sckt_buf = alloc_sckt(data_len + HEADER_ETH + HEADER_IP4 + HEADER_TCP);
 	data_sckt_buf->transport_hdr = data_sckt_buf->data + HEADER_ETH + HEADER_IP4;

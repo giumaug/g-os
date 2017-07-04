@@ -1,9 +1,9 @@
 #ifndef COMMON_H                
 #define COMMON_H
 
-#define HOME_PC
+//#define HOME_PC
 //#define WORK_PC
-//#define AMAZON
+#define AMAZON
 
 #define ARP_REQUEST_TIMEOUT   2000
 #define ARP_ATTEMPT 	      3
@@ -34,7 +34,7 @@
 #define DEFAULT_GW_IP   0xAC100664
 #endif
 
-#ifdef WORK_PC
+#ifdef AMAZON
 #define LOCAL_IP	0xAC100665  
 #define LOCAL_NETMASK   0xFFFFFF00
 #define DEFAULT_GW_IP   0xAC100664
