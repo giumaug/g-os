@@ -114,6 +114,7 @@ void tcp_conn_desc_free(t_tcp_conn_desc* tcp_conn_desc)
 	kfree(tcp_conn_desc);
 //	printk("conn free!! %d\n",tcp_conn_desc->src_port);
 //	printk("conn free!! %d\n",tcp_conn_desc->dst_port);
+	printk("attempt %d \n",attempt);
 }
 
 t_tcp_desc* tcp_init()
@@ -588,7 +589,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 //	printk("still to send %d \n",(tcp_queue->cur - tcp_queue->nxt_snd));
 //      printk("win min %d \n", tcp_queue->wnd_min);
 //      printk("nxt_snd %d \n", tcp_queue->nxt_snd);
-        printk("ack_seq_num %d \n",ack_seq_num);
+        //printk("ack_seq_num %d \n",ack_seq_num);
 //	printk("retry timesd is  %d \n",tcp_conn_desc->rtrsn_timer->val);
 	if (tcp_conn_desc->duplicated_ack == 0)
 	{
@@ -596,7 +597,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		{
 			word_to_ack = ack_seq_num - tcp_queue->wnd_min;
 			tcp_queue->wnd_min = tcp_queue->wnd_min + word_to_ack;
-			 printk("setting win min to %d \n", tcp_queue->wnd_min);
+			 //printk("setting win min to %d \n", tcp_queue->wnd_min);
 		}
 		wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
 
@@ -660,7 +661,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		tcp_queue->nxt_snd += data_to_send;
 		if (data_to_send < SMSS && data_to_send > 0) 
 		{
-			printk("check needed!!! \n");
+			//printk("check needed!!! \n");
 		}
 		tcp_conn_desc->flight_size = tcp_queue->nxt_snd - 1 - tcp_queue->wnd_min;
 	}
@@ -909,16 +910,16 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 //
 //	{
 //
-////	if ((retry >=20 && retry <=25) || (retry >=150 && retry <=160) || (retry >=200 && retry <=220)) 
-////	{
-//		if (retry >=200) 
-//		{
-//			printk("qq \n");
-//		}
-//		printk("haqck!!!!! \n");
-//		printk("dropping %d \n",seq_num);
-//		return;
-//	}
+	if ((retry >=20 && retry <=25) || (retry >=150 && retry <=160) || (retry >=200 && retry <=220)) 
+	{
+		if (retry >=200) 
+		{
+			printk("qq \n");
+	}
+		printk("haqck!!!!! \n");
+		printk("dropping %d \n",seq_num);
+		return;
+	}
 
         //tcpdump_index++;
         //int ii = tcpdump_index % 100;
