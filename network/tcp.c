@@ -10,10 +10,11 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 //TEST ONLY!!!!
 static u32 skipped_rtt = 0;
 static retry=1;
+static int attempt=0;
 
-static int tcpdump_val[100][100];
-static int tcpdump_desc[100][100];
-static int tcpdump_index = 0;
+//int tcpdump_val[100];
+//int tcpdump_desc[100];
+//int tcpdump_index = 0;
 //1 receive ack
 //2 send packet
 
@@ -211,6 +212,10 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	if (tcp_req_desc == NULL && tcp_listen_desc == NULL && tcp_conn_desc != NULL )
 	{ 
 		goto EXIT;
+	}
+	if (flags & 4)
+	{
+		printk("reset!!!! \n");
 	}
 	
 	//THREE WAY HANDSHAKE SYN + ACK FROM SERVER TO CLIENT
@@ -478,8 +483,10 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 	t_tcp_snd_queue* tcp_queue = NULL;
 	u32 rtt = 0;
 
-	tcpdump_desc[tcpdump_index++]=1;
-	tcpdump_desc[tcpdump_index++]=ack_seq_num;
+        //tcpdump_index++;
+        //int ii = tcpdump_index % 100;
+	//tcpdump_val[ii]=1;
+	//tcpdump_desc[ii]=ack_seq_num;
 
 	if (tcp_conn_desc->snd_queue->wnd_min < ack_seq_num)
 	{
@@ -535,10 +542,12 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 	{
 		tcp_conn_desc->ssthresh = max(tcp_conn_desc->flight_size / 2,2 * SMSS);
 		tcp_conn_desc->cwnd = tcp_conn_desc->ssthresh + 3 * SMSS;
+		attempt++;
 	}
 	else
 	{
 		printk("here!!! \n");
+		attempt++;
 	}
 //	if (tcp_conn_desc->snd_queue->wnd_min == ack_seq_num)
 //	{
@@ -911,8 +920,10 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 //		return;
 //	}
 
-	tcpdump_desc[tcpdump_index++]=2;
-	tcpdump_desc[tcpdump_index++]=seq_num;
+        //tcpdump_index++;
+        //int ii = tcpdump_index % 100;
+	//tcpdump_val[ii]=2;
+	//tcpdump_desc[ii]=seq_num;
 	
 	data_sckt_buf = alloc_sckt(data_len + HEADER_ETH + HEADER_IP4 + HEADER_TCP);
 	data_sckt_buf->transport_hdr = data_sckt_buf->data + HEADER_ETH + HEADER_IP4;

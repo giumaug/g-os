@@ -4,6 +4,10 @@
 #include "asm.h"
 #include "lib/lib.h"
 
+extern int tcpdump_val[100];
+extern int tcpdump_desc[100];
+extern int tcpdump_index;
+
 extern struct t_llist* kbc_wait_queue;
 extern unsigned int *master_page_dir;
 
