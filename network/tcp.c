@@ -18,6 +18,8 @@ static int attempt=0;
 //1 receive ack
 //2 send packet
 
+int ss_sent = 0;
+
 static void upd_max_adv_wnd(t_tcp_conn_desc* tcp_conn_desc,u32 rcv_wmd_adv)
 {
 	tcp_conn_desc->rcv_wmd_adv = rcv_wmd_adv;
@@ -489,6 +491,7 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 	//tcpdump_val[ii]=1;
 	//tcpdump_desc[ii]=ack_seq_num;
 
+	printk("ack packet %d \n",ack_seq_num);
 	if (tcp_conn_desc->snd_queue->wnd_min < ack_seq_num)
 	{
 		if (tcp_conn_desc->snd_queue->nxt_snd == ack_seq_num)
@@ -539,7 +542,7 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 		
 
 	}
-	else if ((++tcp_conn_desc->duplicated_ack) == 3)
+	else if ((++(tcp_conn_desc->duplicated_ack)) == 3)
 	{
 		tcp_conn_desc->ssthresh = max(tcp_conn_desc->flight_size / 2,2 * SMSS);
 		tcp_conn_desc->cwnd = tcp_conn_desc->ssthresh + 3 * SMSS;
@@ -768,7 +771,7 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 
 		while (data_to_send >= SMSS)
 		{
-			offset = SLOT_WND(indx,TCP_SND_SIZE);
+			offset = SLOT_WND(seq_num,TCP_SND_SIZE);
 			if (offset + SMSS <= TCP_SND_SIZE)
 			{
 				_SEND_PACKET_TCP(tcp_conn_desc,tcp_queue->buf[offset],SMSS,ack_num,flags,seq_num);
@@ -784,11 +787,10 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 				seq_num += len_2;
 			}
 			data_to_send -= SMSS;
-			offset += SMSS;
 		}
 		if (data_to_send > 0)
 		{
-			offset = SLOT_WND(indx,TCP_SND_SIZE);	
+			offset = SLOT_WND(seq_num,TCP_SND_SIZE);	
 			if (offset + data_to_send <= TCP_SND_SIZE)
 			{
 				_SEND_PACKET_TCP(tcp_conn_desc,tcp_queue->buf[offset],data_to_send,ack_num,flags,seq_num);
@@ -800,7 +802,7 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 				len_2 = data_to_send - len_1;
 				_SEND_PACKET_TCP(tcp_conn_desc,tcp_queue->buf[offset],len_1,ack_num,flags,seq_num);
 				seq_num += len_1;
-				_SEND_PACKET_TCP(tcp_conn_desc,tcp_queue->buf[offset],len_2,ack_num,flags,seq_num);
+				_SEND_PACKET_TCP(tcp_conn_desc,tcp_queue->buf[0],len_2,ack_num,flags,seq_num);
 				seq_num += len_2;
 			}
 		}
@@ -902,6 +904,11 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 	char* tcp_header = NULL;
 
 	retry++;
+	if (retry > 10)
+	{
+		printk("dd \n");
+	}
+        ss_sent++;
 //	if ((retry ==20 || retry ==22 || retry ==23 || retry ==25 || retry ==27 || retry ==29) || 
 //	    (retry >=150 && retry <=160) || 
 //	    (retry >=200 && retry <=220) ||
@@ -910,17 +917,18 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 //
 //	{
 //
-	if ((retry >=20 && retry <=25) || (retry >=150 && retry <=160) || (retry >=200 && retry <=220)) 
-	{
-		if (retry >=200) 
-		{
-			printk("qq \n");
-	}
-		printk("haqck!!!!! \n");
-		printk("dropping %d \n",seq_num);
-		return;
-	}
+//	if ((retry >=20 && retry <=25) || (retry >=150 && retry <=160) || (retry >=200 && retry <=220)) 
+//	{
+//		if (retry >=200) 
+//		{
+//			printk("qq \n");
+//	}
+//		printk("haqck!!!!! \n");
+//		printk("dropping %d \n",seq_num);
+//		return;
+//	}
 
+	printk("sent packet %d \n",seq_num);
         //tcpdump_index++;
         //int ii = tcpdump_index % 100;
 	//tcpdump_val[ii]=2;
