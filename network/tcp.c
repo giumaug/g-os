@@ -704,8 +704,17 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	
 		if (tcp_conn_desc->duplicated_ack > 3)
 		{
+			data_to_send = 0;
 			indx = tcp_queue->nxt_snd;
-			w_size = tcp_queue->wnd_min + tcp_queue->wnd_size - tcp_queue->nxt_snd;
+			wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
+                 	if (wnd_max > tcp_queue->nxt_snd)
+                  	{
+                         	w_size = wnd_max - tcp_queue->nxt_snd;
+                  	}
+                 	else
+                  	{	
+                        	w_size = 0;
+                  	}
 
 			if (w_size >= SMSS && tcp_queue->cur >= (tcp_queue->nxt_snd + SMSS))
 			{
