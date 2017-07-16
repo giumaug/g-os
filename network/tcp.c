@@ -203,6 +203,8 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	flags = tcp_row_packet[13];
 	rcv_wmd_adv = GET_WORD(tcp_row_packet[14],tcp_row_packet[15]);
 
+	printk("src port is: %d \n",src_port);
+
 	if (checksum_tcp((unsigned short*) tcp_row_packet,src_ip,dst_ip,data_len) !=0 )
 	{
 		goto EXIT;
@@ -567,7 +569,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	u32 wnd_max;
 	u32 word_to_ack;
 	u32 expected_ack;
-	u32 indx = 0;
+	u32 indx = 3;
 	t_tcp_snd_queue* tcp_queue = NULL;
 	u8 flags = 0;
 	u32 ack_num;
@@ -591,6 +593,10 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 //      printk("nxt_snd %d \n", tcp_queue->nxt_snd);
         //printk("ack_seq_num %d \n",ack_seq_num);
 //	printk("retry timesd is  %d \n",tcp_conn_desc->rtrsn_timer->val);
+	if (tcp_conn_desc->duplicated_ack > 0 && ack_seq_num == 0)
+	{
+		return;
+	}
 	if (tcp_conn_desc->duplicated_ack == 0)
 	{
 		if (ack_seq_num != 0)
@@ -728,6 +734,18 @@ EXIT:
 	printk("win_size %d \n",tcp_queue->wnd_size);
 	printk("data sent %d \n",data_to_send);
 	printk("rto is %d \n",tcp_conn_desc->rto);
+	if (tcp_conn_desc->rtrsn_timer != NULL)
+	{
+		printk("timer is: %d \n",tcp_conn_desc->rtrsn_timer->val);
+		if (tcp_conn_desc->rtrsn_timer->val == 0)
+		{
+			printk("bug!!! \n");
+		}
+	}
+	else
+	{
+		printk("timer not set!!! \n");
+	}
         printk("nxt_snd %d \n", tcp_queue->nxt_snd);
 	printk("--------------------\n");
 
@@ -782,16 +800,16 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 			offset = SLOT_WND(seq_num,TCP_SND_SIZE);
 			if (offset + SMSS <= TCP_SND_SIZE)
 			{
-				_SEND_PACKET_TCP(tcp_conn_desc,tcp_queue->buf[offset],SMSS,ack_num,flags,seq_num);
+				_SEND_PACKET_TCP(tcp_conn_desc,tcp_queue->buf + offset,SMSS,ack_num,flags,seq_num);
 				seq_num += SMSS;
 			}
 			else 
 			{
 				len_1 = TCP_SND_SIZE - offset;
 				len_2 = SMSS - len_1;
-				_SEND_PACKET_TCP(tcp_conn_desc,tcp_queue->buf[offset],len_1,ack_num,flags,seq_num);
+				_SEND_PACKET_TCP(tcp_conn_desc,tcp_queue->buf + offset,len_1,ack_num,flags,seq_num);
 				seq_num += len_1;
-				_SEND_PACKET_TCP(tcp_conn_desc,tcp_queue->buf[0],len_2,ack_num,flags,seq_num);
+				_SEND_PACKET_TCP(tcp_conn_desc,tcp_queue->buf,len_2,ack_num,flags,seq_num);
 				seq_num += len_2;
 			}
 			data_to_send -= SMSS;
@@ -801,16 +819,16 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 			offset = SLOT_WND(seq_num,TCP_SND_SIZE);	
 			if (offset + data_to_send <= TCP_SND_SIZE)
 			{
-				_SEND_PACKET_TCP(tcp_conn_desc,tcp_queue->buf[offset],data_to_send,ack_num,flags,seq_num);
+				_SEND_PACKET_TCP(tcp_conn_desc,tcp_queue->buf + offset,data_to_send,ack_num,flags,seq_num);
 				seq_num += data_to_send;
 			}
 			else
 			{
 				len_1 = TCP_SND_SIZE - offset;
 				len_2 = data_to_send - len_1;
-				_SEND_PACKET_TCP(tcp_conn_desc,tcp_queue->buf[offset],len_1,ack_num,flags,seq_num);
+				_SEND_PACKET_TCP(tcp_conn_desc,tcp_queue->buf + offset,len_1,ack_num,flags,seq_num);
 				seq_num += len_1;
-				_SEND_PACKET_TCP(tcp_conn_desc,tcp_queue->buf[0],len_2,ack_num,flags,seq_num);
+				_SEND_PACKET_TCP(tcp_conn_desc,tcp_queue->buf,len_2,ack_num,flags,seq_num);
 				seq_num += len_2;
 			}
 		}
@@ -834,6 +852,7 @@ void rtrsn_timer_set(t_timer* rtrsn_timer,long rto)
 
 void rtrsn_timer_reset(t_timer* rtrsn_timer)
 {
+	printk("reset_timer \n");
 	if (rtrsn_timer->ref != NULL)
 	{
 		ll_delete_node(rtrsn_timer->ref);
@@ -913,16 +932,16 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 	int ret = NULL;
 	char* tcp_header = NULL;
 
-	u32 rand_num = (_rand() % 10 + 1);
-        if (rand_num == 1 && seq_num < 3898693)
-	{
-		retry++;
-		if (retry>300) 
-		{
-			printk("sssssssssss \n");
-		}
-		return;
-	}
+//	u32 rand_num = (_rand() % 10 + 1);
+//        if (rand_num == 1 && seq_num < 3898693)
+//	{
+//		retry++;
+//		if (retry>300) 
+//		{
+//			printk("sssssssssss \n");
+//		}
+//		return;
+//	}
 
 //	retry++;
 //	if ((retry ==20 || retry ==22 || retry ==23 || retry ==25 || retry ==27 || retry ==29) || 
@@ -945,6 +964,11 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 //	}
 
 	printk("sent packet %d \n",seq_num);
+	printk("data is %d \n",data);
+	if (seq_num == 0)
+	{
+		printk("ops!!! \n");
+	}
         //tcpdump_index++;
         //int ii = tcpdump_index % 100;
 	//tcpdump_val[ii]=2;

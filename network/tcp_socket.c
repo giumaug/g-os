@@ -261,15 +261,15 @@ int enqueue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 			cur_index = SLOT_WND(tcp_queue->cur,tcp_queue->buf_size);
 			if ((tcp_queue->buf_size - cur_index) > data_len)
 			{
-				kmemcpy(tcp_queue->buf[cur_index],data,data_len);
+				kmemcpy(tcp_queue->buf + cur_index,data,data_len);
 				tcp_queue->cur += data_len;
 			}
 			else
 			{
 				len_1 = tcp_queue->buf_size - cur_index;
 				len_2 = data_len - len_1;
-				kmemcpy(tcp_queue->buf[cur_index],data,len_1);
-				kmemcpy(tcp_queue->buf[0],data,len_2);
+				kmemcpy(tcp_queue->buf + cur_index,data,len_1);
+				kmemcpy(tcp_queue->buf,data,len_2);
 				tcp_queue->cur += data_len;
 			}
 		}
