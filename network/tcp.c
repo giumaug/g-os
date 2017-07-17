@@ -701,6 +701,10 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		{
 			data_to_send = SMSS;
 		}
+		if (data_to_send == 0) 
+		{
+			printk("......\n");
+		}
 
 		indx = ack_seq_num;
 		flush_data(tcp_conn_desc,data_to_send,ack_num,indx);
@@ -729,11 +733,12 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	}
 EXIT:
 	flush_data(tcp_conn_desc,data_to_send,ack_num,indx);
-	printk("--------------------\n");
-	printk("win min... %d \n", tcp_queue->wnd_min);
-	printk("win_size %d \n",tcp_queue->wnd_size);
-	printk("data sent %d \n",data_to_send);
-	printk("rto is %d \n",tcp_conn_desc->rto);
+	//printk("--------------------\n");
+	//printk("win min... %d \n", tcp_queue->wnd_min);
+	//printk("win_size %d \n",tcp_queue->wnd_size);
+	//printk("data sent %d \n",data_to_send);
+	printk("duplicated_ack %d \n",tcp_conn_desc->duplicated_ack);
+	//printk("rto is %d \n",tcp_conn_desc->rto);
 	if (tcp_conn_desc->rtrsn_timer != NULL)
 	{
 		printk("timer is: %d \n",tcp_conn_desc->rtrsn_timer->val);
@@ -746,8 +751,8 @@ EXIT:
 	{
 		printk("timer not set!!! \n");
 	}
-        printk("nxt_snd %d \n", tcp_queue->nxt_snd);
-	printk("--------------------\n");
+        //printk("nxt_snd %d \n", tcp_queue->nxt_snd);
+	//printk("--------------------\n");
 
 	//close connection with FIN flag both client and server	
 	//FIN needs retrasmission management only. No retry.
@@ -932,16 +937,16 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 	int ret = NULL;
 	char* tcp_header = NULL;
 
-//	u32 rand_num = (_rand() % 10 + 1);
-//        if (rand_num == 1 && seq_num < 3898693)
-//	{
-//		retry++;
-//		if (retry>300) 
-//		{
-//			printk("sssssssssss \n");
-//		}
-//		return;
-//	}
+	u32 rand_num = (_rand() % 10 + 1);
+        if (rand_num == 1 && seq_num < 3898693)
+	{
+		retry++;
+		if (retry>300) 
+		{
+			printk("sssssssssss \n");
+		}
+		return;
+	}
 
 //	retry++;
 //	if ((retry ==20 || retry ==22 || retry ==23 || retry ==25 || retry ==27 || retry ==29) || 
@@ -952,12 +957,8 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 //            (retry >=700 && retry <=720))
 ////	{
 ////
-////	if ((retry >=20 && retry <=25) || (retry >=150 && retry <=160) || (retry >=200 && retry <=220)) 
+//	if ((retry >=20 && retry <=25) || (retry >=150 && retry <=160) || (retry >=200 && retry <=220)) 
 //	{
-//		if (retry >=200) 
-//		{
-//			printk("qq \n");
-//	}
 //		printk("haqck!!!!! \n");
 //		printk("dropping %d \n",seq_num);
 //		return;
