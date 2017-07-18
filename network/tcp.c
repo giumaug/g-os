@@ -203,8 +203,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	flags = tcp_row_packet[13];
 	rcv_wmd_adv = GET_WORD(tcp_row_packet[14],tcp_row_packet[15]);
 
-	printk("src port is: %d \n",src_port);
-
 	if (checksum_tcp((unsigned short*) tcp_row_packet,src_ip,dst_ip,data_len) !=0 )
 	{
 		goto EXIT;
@@ -506,6 +504,7 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num)
 		{
 			rtrsn_timer_set(tcp_conn_desc->rtrsn_timer,tcp_conn_desc->rto);
 			tcp_conn_desc->snd_queue->nxt_snd = ack_seq_num;
+			printk("finestra???? \n");
 		}
 		if (tcp_conn_desc->duplicated_ack > 0)
 		{
@@ -615,6 +614,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 				tcp_conn_desc->pgybg_timer->val = PIGGYBACKING_TIMEOUT;
 				tcp_conn_desc->pgybg_timer->ref = ll_append(system.timer_list,tcp_conn_desc->pgybg_timer);
 			}
+			printk("----1 \n");
 			goto EXIT;
 		}
 		
@@ -696,16 +696,17 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	}
 	else if (tcp_conn_desc->duplicated_ack == 3 || tcp_conn_desc->duplicated_ack > 3)
 	{
-		data_to_send = tcp_queue->nxt_snd - ack_seq_num;// era -1
-		if (data_to_send > SMSS) 
-		{
-			data_to_send = SMSS;
-		}
-		if (data_to_send == 0) 
-		{
-			printk("......\n");
-		}
+//		data_to_send = tcp_queue->nxt_snd - ack_seq_num;// era -1
+//		if (data_to_send > SMSS) 
+//		{
+//			data_to_send = SMSS;
+//		}
+//		if (data_to_send == 0) 
+//		{
+//			printk("......\n");
+//		}
 
+		data_to_send = SMSS;
 		indx = ack_seq_num;
 		flush_data(tcp_conn_desc,data_to_send,ack_num,indx);
 	
@@ -734,8 +735,9 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 EXIT:
 	flush_data(tcp_conn_desc,data_to_send,ack_num,indx);
 	//printk("--------------------\n");
-	//printk("win min... %d \n", tcp_queue->wnd_min);
-	//printk("win_size %d \n",tcp_queue->wnd_size);
+	printk("win min... %d \n", tcp_queue->wnd_min);
+	printk("nxt_snd... %d \n", tcp_queue->nxt_snd);
+	printk("win_size %d \n",tcp_queue->wnd_size);
 	//printk("data sent %d \n",data_to_send);
 	printk("duplicated_ack %d \n",tcp_conn_desc->duplicated_ack);
 	//printk("rto is %d \n",tcp_conn_desc->rto);
