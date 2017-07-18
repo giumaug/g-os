@@ -654,22 +654,24 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		if (expected_ack == 0)
 		{
 			data_to_send=w_size;
+			tcp_queue->nxt_snd += data_to_send;
 		}
 		else if (w_size >= SMSS)
 		{
 			data_to_send = w_size - (w_size % SMSS);
+			tcp_queue->nxt_snd += data_to_send;
 		}
 		else if (w_size >= tcp_conn_desc->max_adv_wnd/2)
 		{
 			data_to_send=w_size;
+			tcp_queue->nxt_snd += data_to_send;
 		}
 		indx = wnd_l_limit;
-		tcp_queue->nxt_snd += data_to_send;
 		if (data_to_send < SMSS && data_to_send > 0) 
 		{
 			//printk("check needed!!! \n");
 		}
-		tcp_conn_desc->flight_size = tcp_queue->nxt_snd - 1 - tcp_queue->wnd_min;
+		tcp_conn_desc->flight_size = tcp_queue->nxt_snd - tcp_queue->wnd_min;
 	}
 	else if (tcp_conn_desc->duplicated_ack == 1 || tcp_conn_desc->duplicated_ack == 2)
 	{
@@ -681,8 +683,9 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		else
 		{
 			w_size = 0;
+			printk("+++ \n");
 		}
-		flight_size = tcp_queue->nxt_snd - 1 - tcp_queue->wnd_min;
+		flight_size = tcp_queue->nxt_snd - tcp_queue->wnd_min;
 		flight_size_limit = tcp_conn_desc->cwnd + 2*SMSS;
 
 		
@@ -691,7 +694,15 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 			indx = tcp_queue->nxt_snd;
 			tcp_queue->nxt_snd += SMSS;
 			data_to_send = SMSS;
-			tcp_conn_desc->flight_size = tcp_queue->nxt_snd - 1 - tcp_queue->wnd_min;
+			tcp_conn_desc->flight_size = tcp_queue->nxt_snd - tcp_queue->wnd_min;
+		}
+		else if (w_size >= SMSS)
+		{
+			printk("ops !!! \n");
+			printk("w_size = %d \n",w_size);
+			printk("flight_size = %d \n",flight_size);
+			printk("flight_size_limit = %d \n",flight_size_limit);
+			printk("cur is %d \n",tcp_queue->cur);
 		}
 	}
 	else if (tcp_conn_desc->duplicated_ack == 3 || tcp_conn_desc->duplicated_ack > 3)
@@ -728,7 +739,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 			{
 				tcp_queue->nxt_snd += SMSS;
 				data_to_send = SMSS;
-				tcp_conn_desc->flight_size = tcp_queue->nxt_snd - 1 - tcp_queue->wnd_min;
+				tcp_conn_desc->flight_size = tcp_queue->nxt_snd - tcp_queue->wnd_min;
 			}
 		}
 	}
