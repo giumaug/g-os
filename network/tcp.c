@@ -592,7 +592,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 //      printk("nxt_snd %d \n", tcp_queue->nxt_snd);
         //printk("ack_seq_num %d \n",ack_seq_num);
 //	printk("retry timesd is  %d \n",tcp_conn_desc->rtrsn_timer->val);
-	if (tcp_conn_desc->duplicated_ack > 0 && ack_seq_num == 0)
+	if (tcp_conn_desc->duplicated_ack > 2 && ack_seq_num == 0)
 	{
 		return;
 	}
@@ -703,6 +703,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 			printk("flight_size = %d \n",flight_size);
 			printk("flight_size_limit = %d \n",flight_size_limit);
 			printk("cur is %d \n",tcp_queue->cur);
+			printk("cur addr is %d \n",&tcp_queue->cur);
 		}
 	}
 	else if (tcp_conn_desc->duplicated_ack == 3 || tcp_conn_desc->duplicated_ack > 3)
