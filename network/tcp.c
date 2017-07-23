@@ -739,7 +739,7 @@ EXIT:
 	printk("win min... %d \n", tcp_queue->wnd_min);
 	printk("nxt_snd... %d \n", tcp_queue->nxt_snd);
 	printk("win_size %d \n",tcp_queue->wnd_size);
-	//printk("data sent %d \n",data_to_send);
+	printk("data sent %d \n",data_to_send);
 	printk("duplicated_ack %d \n",tcp_conn_desc->duplicated_ack);
 	//printk("rto is %d \n",tcp_conn_desc->rto);
 	if (tcp_conn_desc->rtrsn_timer != NULL)
