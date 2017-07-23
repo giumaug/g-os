@@ -89,7 +89,8 @@ void kfree(void *address)
 	SAVE_IF_STATUS
 	CLI	
 	
-	if (collect_mem==1) 
+	if (true) 
+	//if (collect_mem==1) 
 	{
 		collect_mem_free(address);
 		if (address==0xc1da375a) 
