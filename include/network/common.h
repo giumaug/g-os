@@ -2,8 +2,8 @@
 #define COMMON_H
 
 //#define HOME_PC
-//#define WORK_PC
-#define AMAZON
+#define WORK_PC
+//#define AMAZON
 
 #define ARP_REQUEST_TIMEOUT   2000
 #define ARP_ATTEMPT 	      3
