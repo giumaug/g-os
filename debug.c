@@ -110,16 +110,23 @@ void collect_mem_alloc(unsigned int page_addr)
 
 	CURRENT_PROCESS_CONTEXT(current_process);
 
-//	if (page_addr==3425300480)
-//	{
-//		printk("aa\n");
-//	}
 	collected_mem[collected_mem_index++]=page_addr;
 	if (collected_mem_index>14999)
 	{
 		panic();
 	}
 	allocated_block++;
+	int i=0;
+	if (collected_mem_index==10000)
+	{
+		for (i=6000;i<=9000;i++)
+		{
+			if (collected_mem[i]!=0)
+			{
+				printk("mem check!!!! \n");
+			}
+		}	
+	}
 }
 
 void collect_mem_free(unsigned int page_addr)
@@ -130,11 +137,6 @@ void collect_mem_free(unsigned int page_addr)
 
 	CURRENT_PROCESS_CONTEXT(current_process);
 	
-//	if (page_addr==3425300480)
-//	{
-//		printk("bb\n");
-//	}
-
 	for (i=0;i<collected_mem_index;i++)
 	{
 		if (collected_mem[i]==page_addr)

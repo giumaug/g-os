@@ -49,6 +49,7 @@ t_data_sckt_buf* alloc_sckt(u16 data_len)
 	data=kmalloc(data_len);
 	data_sckt_buf->data=data;
 	data_sckt_buf->data_len=data_len;
+	//collect_mem_alloc(data_sckt_buf);
 	return data_sckt_buf;
 }
 
@@ -57,6 +58,7 @@ t_data_sckt_buf* alloc_void_sckt()
 	t_data_sckt_buf* data_sckt_buf=kmalloc(sizeof(t_data_sckt_buf));
 	data_sckt_buf->data=NULL;
 	data_sckt_buf->data_len=0;
+	//collect_mem_alloc(data_sckt_buf);
 	return data_sckt_buf;
 }
 
@@ -66,6 +68,7 @@ void free_sckt(t_data_sckt_buf* data_sckt_buf)
 	{
 		kfree(data_sckt_buf->data);
 	}
+	//collect_mem_free(data_sckt_buf);
 	kfree(data_sckt_buf);
 }
 

@@ -845,12 +845,15 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 	}
 }
 
+static int xxx =0;
+
 void rtrsn_timer_set(t_timer* rtrsn_timer,long rto)
 {
 	if (rtrsn_timer->ref == NULL)
 	{
 		rtrsn_timer->val = rto;//aggiungere implenetazione rto
 		rtrsn_timer->ref = ll_append(system.timer_list,rtrsn_timer);
+		xxx++;
 	}
 	else
 	{
@@ -864,6 +867,7 @@ void rtrsn_timer_reset(t_timer* rtrsn_timer)
 	if (rtrsn_timer->ref != NULL)
 	{
 		ll_delete_node(rtrsn_timer->ref);
+		xxx--;
 		rtrsn_timer->ref = NULL;
 		rtrsn_timer->val = 0;
 	}
@@ -940,11 +944,12 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 	int ret = NULL;
 	char* tcp_header = NULL;
 	
-//	static count =11;
-//	if ((count++ % 10)==0 )
-//	{
-//		check_free_mem();
-//	}
+	static int count =1;
+	count++;
+	if (count == 100 || count == 10000 || count == 20000 || count == 50000)
+	{
+		check_free_mem();
+	}
 
 //	u32 rand_num = (_rand() % 10 + 1);
 //        if (rand_num == 1 && seq_num < 3898693)
