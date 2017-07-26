@@ -47,7 +47,6 @@ t_data_sckt_buf* alloc_sckt(u16 data_len)
 	char* data;
 	t_data_sckt_buf* data_sckt_buf=kmalloc(sizeof(t_data_sckt_buf));
 	data=kmalloc(data_len);
-	collect_mem_alloc(data);
 	data_sckt_buf->data=data;
 	data_sckt_buf->data_len=data_len;
 	//collect_mem_alloc(data_sckt_buf);

@@ -96,6 +96,10 @@ void rcv_packet_ip4(t_data_sckt_buf* data_sckt_buf,t_mac_addr* src_mac)
 		{
 			hashtable_put(arp_cache,src_ip,src_mac);
 		}
+		else
+		{
+			kfree(src_mac);
+		}
 		if(ip_row_packet[9]==TCP_PROTOCOL)
 		{
 			//TCP

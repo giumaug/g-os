@@ -117,9 +117,9 @@ void collect_mem_alloc(unsigned int page_addr)
 	}
 	allocated_block++;
 	int i=0;
-	if (collected_mem_index==10000)
+	if (collected_mem_index==3000)
 	{
-		for (i=6000;i<=9000;i++)
+		for (i=1000;i<=2000;i++)
 		{
 			if (collected_mem[i]!=0)
 			{
