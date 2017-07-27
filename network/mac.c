@@ -34,12 +34,10 @@ void rcv_packet_mac(t_data_sckt_buf* data_sckt_buf)
 
 	data_sckt_buf->network_hdr=data_sckt_buf->mac_hdr+HEADER_ETH;
 	mac_row_packet = data_sckt_buf->mac_hdr;
-	src_mac=kmalloc(sizeof(t_mac_addr));
-	
-	src_mac->hi = GET_WORD(mac_row_packet[6],mac_row_packet[7]);
-	src_mac->mi = GET_WORD(mac_row_packet[8],mac_row_packet[9]);
-	src_mac->lo = GET_WORD(mac_row_packet[10],mac_row_packet[11]);
-//	protocol_type=GET_WORD(data_sckt_buf->mac_hdr[12],data_sckt_buf->mac_hdr[13]);
+//	src_mac=kmalloc(sizeof(t_mac_addr));
+//	src_mac->hi = GET_WORD(mac_row_packet[6],mac_row_packet[7]);
+//	src_mac->mi = GET_WORD(mac_row_packet[8],mac_row_packet[9]);
+//	src_mac->lo = GET_WORD(mac_row_packet[10],mac_row_packet[11]);
 	protocol_type = GET_WORD(mac_row_packet[12],mac_row_packet[13]);
 	
 	if (protocol_type == ARP_PROTOCOL_TYPE)
@@ -47,7 +45,11 @@ void rcv_packet_mac(t_data_sckt_buf* data_sckt_buf)
 		rcv_packet_arp(data_sckt_buf);
 	}
 	else
-	{ 
+	{
+		src_mac=kmalloc(sizeof(t_mac_addr));
+		src_mac->hi = GET_WORD(mac_row_packet[6],mac_row_packet[7]);
+		src_mac->mi = GET_WORD(mac_row_packet[8],mac_row_packet[9]);
+		src_mac->lo = GET_WORD(mac_row_packet[10],mac_row_packet[11]); 
 		rcv_packet_ip4(data_sckt_buf,src_mac);
 	}
 }

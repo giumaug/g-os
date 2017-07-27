@@ -83,6 +83,7 @@ void rcv_packet_ip4(t_data_sckt_buf* data_sckt_buf,t_mac_addr* src_mac)
         u32 dst_ip;
 	u16 packet_len;
 	t_mac_addr* mac_addr = NULL;
+	static int cache_count=0;
 
 	data_sckt_buf->transport_hdr=data_sckt_buf->network_hdr+HEADER_IP4;
 	ip_row_packet=data_sckt_buf->network_hdr;
@@ -95,6 +96,7 @@ void rcv_packet_ip4(t_data_sckt_buf* data_sckt_buf,t_mac_addr* src_mac)
 		if (mac_addr == NULL)
 		{
 			hashtable_put(arp_cache,src_ip,src_mac);
+			cache_count++;
 		}
 		else
 		{
