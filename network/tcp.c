@@ -946,7 +946,8 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 	
 	static int count =1;
 	count++;
-	if (count == 20 || count == 1000000)
+	//if (count == 20 || count == 1000000)
+	if (count == 20 || count == 200000)
 	{
 		check_free_mem();
 	}

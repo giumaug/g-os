@@ -123,5 +123,6 @@ void rcv_packet_ip4(t_data_sckt_buf* data_sckt_buf,t_mac_addr* src_mac)
 	else 
 	{
 		free_sckt(data_sckt_buf);
+		kfree(src_mac);
 	}
 }
