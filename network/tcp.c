@@ -489,7 +489,7 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 data_len)
 	//tcpdump_val[ii]=1;
 	//tcpdump_desc[ii]=ack_seq_num;
 
-	printk("ack packet %d \n",ack_seq_num);
+//	printk("ack packet %d \n",ack_seq_num);
 	if (tcp_conn_desc->snd_queue->wnd_min <= ack_seq_num)
 	{
 		if (tcp_conn_desc->snd_queue->wnd_min < ack_seq_num)
@@ -506,11 +506,9 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 data_len)
 			{
 				rtrsn_timer_set(tcp_conn_desc->rtrsn_timer,tcp_conn_desc->rto);
 				tcp_conn_desc->snd_queue->nxt_snd = ack_seq_num;
-				printk("finestra???? \n");
 			}
 			if (tcp_conn_desc->duplicated_ack > 0)
 			{
-				printk("changed !!! \n");
 				tcp_conn_desc->duplicated_ack = 0;
 				tcp_conn_desc->cwnd = tcp_conn_desc->ssthresh;
 			}
@@ -617,7 +615,6 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 				tcp_conn_desc->pgybg_timer->val = PIGGYBACKING_TIMEOUT;
 				tcp_conn_desc->pgybg_timer->ref = ll_append(system.timer_list,tcp_conn_desc->pgybg_timer);
 			}
-			printk("----1 \n");
 			goto EXIT;
 		}
 		
@@ -686,7 +683,6 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		else
 		{
 			w_size = 0;
-			printk("+++ \n");
 		}
 		flight_size = tcp_queue->nxt_snd - tcp_queue->wnd_min;
 		flight_size_limit = tcp_conn_desc->cwnd + 2*SMSS;
@@ -736,15 +732,14 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 EXIT:
 	flush_data(tcp_conn_desc,data_to_send,ack_num,indx);
 	//printk("--------------------\n");
-	printk("win min... %d \n", tcp_queue->wnd_min);
-	printk("nxt_snd... %d \n", tcp_queue->nxt_snd);
-	printk("win_size %d \n",tcp_queue->wnd_size);
-	printk("data sent %d \n",data_to_send);
-	printk("duplicated_ack %d \n",tcp_conn_desc->duplicated_ack);
+	//printk("win min... %d \n", tcp_queue->wnd_min);
+	//printk("nxt_snd... %d \n", tcp_queue->nxt_snd);
+	//printk("win_size %d \n",tcp_queue->wnd_size);
+	//printk("data sent %d \n",data_to_send);
+	//printk("duplicated_ack %d \n",tcp_conn_desc->duplicated_ack);
 	//printk("rto is %d \n",tcp_conn_desc->rto);
 	if (tcp_conn_desc->rtrsn_timer != NULL)
 	{
-		printk("timer is: %d \n",tcp_conn_desc->rtrsn_timer->val);
 		if (tcp_conn_desc->rtrsn_timer->val == 0)
 		{
 			//printk("bug!!! \n");
@@ -752,7 +747,7 @@ EXIT:
 	}
 	else
 	{
-		printk("timer not set!!! \n");
+
 	}
         //printk("nxt_snd %d \n", tcp_queue->nxt_snd);
 	//printk("--------------------\n");
@@ -863,7 +858,6 @@ void rtrsn_timer_set(t_timer* rtrsn_timer,long rto)
 
 void rtrsn_timer_reset(t_timer* rtrsn_timer)
 {
-	printk("reset_timer \n");
 	if (rtrsn_timer->ref != NULL)
 	{
 		ll_delete_node(rtrsn_timer->ref);
@@ -878,7 +872,6 @@ void rtrsn_timer_handler(void* arg)
 	t_tcp_conn_desc* tcp_conn_desc = NULL;
 	u32 ack_num = 0;
 
-	printk("rtrsn_timer_handler called \n");
 	tcp_conn_desc = (t_tcp_conn_desc*) arg;
 	if (tcp_conn_desc->status == ESTABILISHED)
 	{
@@ -978,13 +971,7 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 //		printk("dropping %d \n",seq_num);
 //		return;
 //	}
-
-	printk("sent packet %d \n",seq_num);
-	printk("data is %d \n",data);
-	if (seq_num == 0)
-	{
-		printk("ops!!! \n");
-	}
+	
         //tcpdump_index++;
         //int ii = tcpdump_index % 100;
 	//tcpdump_val[ii]=2;
