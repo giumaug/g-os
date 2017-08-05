@@ -81,7 +81,7 @@ int main()
 			/*If we're the child,we can now read/write to the client on client_sockfd.The five second delay is just for this demonstration. */
 			index = 4000;
 			//sending abount 5M (1300)
-			for (t=0;t<1000000;t++) //1000
+			for (t=0;t<300000;t++) //1000
 			//while(1)
 			{
 				for (i=0;i<index;i++)
