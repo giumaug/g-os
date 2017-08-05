@@ -29,10 +29,11 @@ int main()
 //------------------------------------------------------------------------------
 
 //-----------------G-OS---------------------------------------------------------
+	int rt =0;	
 	int msg_len;
 	int index = 16;
 	int i,t;
-	unsigned int port=21846;
+	unsigned int port=21847;
     	struct sockaddr_in ssock;
 	
 	ssock.sin_family = AF_INET;
@@ -81,7 +82,8 @@ int main()
 			/*If we're the child,we can now read/write to the client on client_sockfd.The five second delay is just for this demonstration. */
 			index = 4000;
 			//sending abount 5M (1300)
-			for (t=0;t<300000;t++) //1000
+			rt =0;
+			for (t=0;t<4000;t++) //1000
 			//while(1)
 			{
 				for (i=0;i<index;i++)
@@ -93,8 +95,9 @@ int main()
 				while (ret !=0 )
 				{
 					ret = write_socket(client_sockfd, buffer_2,index);	
-					sleep(100);
-					//printf("mmmmmmmmmmmmmmmmmmmmm \n");
+					sleep(20);
+					rt++;
+					printf("retry=%d \n",rt);
 				
 				}
 				index += 16;

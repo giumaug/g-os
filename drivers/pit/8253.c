@@ -150,7 +150,12 @@ exit_handler:;
 	static struct t_process_context _old_process_context;                                              
 	static struct t_process_context _new_process_context;	                                            
 	static struct t_processor_reg _processor_reg;                                                       
-	static unsigned int _action2;                                                               
+	static unsigned int _action2;  
+	xxx++;
+	if (xxx==10) 
+	{
+		printk("ddd \n");
+	}                                                             
                                                                                                             
 	CLI                                                                        
 	_action2=is_schedule;                                                                                   

@@ -971,14 +971,6 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 //		printk("dropping %d \n",seq_num);
 //		return;
 //	}
-
-//	printk("sent packet %d \n",seq_num);
-//	printk("data is %d \n",data);
-	
-        //tcpdump_index++;
-        //int ii = tcpdump_index % 100;
-	//tcpdump_val[ii]=2;
-	//tcpdump_desc[ii]=seq_num;
 	
 	data_sckt_buf = alloc_sckt(data_len + HEADER_ETH + HEADER_IP4 + HEADER_TCP);
 	data_sckt_buf->transport_hdr = data_sckt_buf->data + HEADER_ETH + HEADER_IP4;
