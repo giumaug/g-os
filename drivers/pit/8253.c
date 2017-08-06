@@ -6,11 +6,11 @@
 #include "drivers/pic/8259A.h" 
 
 #define K_STACK 0x1FFFFB
-
-static int xxx=1;
-
+extern go;
 extern index_2;
 extern unsigned int proc[100];
+static int p0=0;
+static int p2=0;
 
 void init_pit()
 {	
@@ -100,7 +100,22 @@ void int_handler_pit()
 	{	
 		process_context=system.process_info->current_process->val;
 		process_context->sleep_time-=QUANTUM_DURATION;
+
+		if (go==1)
+		{
+			//printk("pid= %d \n",process_context->pid);
+		}
+
+		if (process_context->pid==0 && go==1)
+		{
+			p0++;
+		}
+		if (process_context->pid==2 && go==1)
+		{
+			p2++;
+		}
 		
+
 		if (process_context->sleep_time>1000) 	
 		{
 			process_context->sleep_time=1000;
@@ -151,12 +166,7 @@ exit_handler:;
 	static struct t_process_context _new_process_context;	                                            
 	static struct t_processor_reg _processor_reg;                                                       
 	static unsigned int _action2;  
-	xxx++;
-	if (xxx==10) 
-	{
-		printk("ddd \n");
-	}                                                             
-                                                                                                            
+	                                                                                                                                                             
 	CLI                                                                        
 	_action2=is_schedule;                                                                                   
 	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;                                  
@@ -166,6 +176,7 @@ exit_handler:;
 	{                                                                                           
 		schedule(&_current_process_context,&_processor_reg);	                          
 		_new_process_context=*(struct t_process_context*)(system.process_info->current_process->val);
+		//printk("new is %d \n",_new_process_context.pid);
 		_processor_reg=_new_process_context.processor_reg;                              
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))                                                          
 		DO_STACK_FRAME(_processor_reg.esp-8); 

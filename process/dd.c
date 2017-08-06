@@ -19,7 +19,7 @@ int main()
 	const char path[] = "/usr/src/kernels/g-os/network/tcp.c";
 	
 	printf(".......\n");
-	for (f=0;f<3000000000;f++);
+	//for (f=0;f<3000000000;f++);
 
 	while (1)
 	{

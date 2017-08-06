@@ -95,7 +95,7 @@ int main()
 				while (ret !=0 )
 				{
 					ret = write_socket(client_sockfd, buffer_2,index);	
-					sleep(20);
+					sleep(600);
 					rt++;
 					printf("retry=%d \n",rt);
 				

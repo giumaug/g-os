@@ -221,6 +221,10 @@ void _awake(struct t_process_context *new_process)
 
 	SAVE_IF_STATUS
 	CLI
+	if (new_process->pid==2)
+	{
+		//printk("qui!! \n");
+	}
 	new_process->sleep_time=(system.time-new_process->sleep_time>=1000) ? 1000 : (system.time-new_process->sleep_time);
 	new_process->proc_status=RUNNING;
 	adjust_sched_queue(new_process);
@@ -274,6 +278,7 @@ void _exit(int status)
 	{
 		while(1)
 		{
+			//current_process->tick=1;
 			asm("sti;hlt");
 		}
 	}
