@@ -161,6 +161,12 @@ void int_handler_pit()
 exit_handler:;
 //	EXIT_INT_HANDLER(is_schedule,processor_reg);
 
+	if (system.force_scheduling == 1 && is_schedule == 0)
+	{
+		is_schedule = 1;
+	}
+	system.force_scheduling = 0;
+
 	static struct t_process_context _current_process_context;                                          
 	static struct t_process_context _old_process_context;                                              
 	static struct t_process_context _new_process_context;	                                            

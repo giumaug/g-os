@@ -83,7 +83,7 @@ int main()
 			index = 4000;
 			//sending abount 5M (1300)
 			rt =0;
-			for (t=0;t<4000;t++) //1000
+			for (t=0;t<13000;t++) //1000
 			//while(1)
 			{
 				for (i=0;i<index;i++)
@@ -95,9 +95,9 @@ int main()
 				while (ret !=0 )
 				{
 					ret = write_socket(client_sockfd, buffer_2,index);	
-					sleep(600);
+					sleep(10);
 					rt++;
-					printf("retry=%d \n",rt);
+					//printf("retry=%d \n",rt);
 				
 				}
 				index += 16;

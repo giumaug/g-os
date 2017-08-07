@@ -36,6 +36,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
       		/* Something went not according to specs. Print an error */
    	}
  	CLI
+	system.force_scheduling = 0;
 	system.process_info = &process_info;
 	system.buddy_desc = &buddy_desc;
 	system.scheduler_desc = &scheduler_desc;

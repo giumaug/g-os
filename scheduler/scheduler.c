@@ -229,6 +229,7 @@ void _awake(struct t_process_context *new_process)
 	new_process->proc_status=RUNNING;
 	adjust_sched_queue(new_process);
 	ll_prepend(system.scheduler_desc->scheduler_queue[new_process->curr_sched_queue_index],new_process);
+	system.force_scheduling = 1;
 	RESTORE_IF_STATUS
 }
 
@@ -278,7 +279,7 @@ void _exit(int status)
 	{
 		while(1)
 		{
-			//current_process->tick=1;
+			current_process->tick=1;
 			asm("sti;hlt");
 		}
 	}

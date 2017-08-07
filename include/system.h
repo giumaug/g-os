@@ -69,6 +69,7 @@ typedef struct s_system
 	struct s_network_desc* network_desc;
 	unsigned int panic;
 	t_llist* timer_list;
+	u8 force_scheduling;
 }
 t_system;
 
