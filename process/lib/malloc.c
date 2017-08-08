@@ -90,7 +90,7 @@ static void init_malloc()
 void* _malloc(unsigned int mem_size) 
 {		
 	int i;	
-	void *mem_add;
+	void *mem_add = NULL;
 
 	for (i=0;i<POOL_NUM;i++)
 	{
@@ -109,6 +109,7 @@ void* _malloc(unsigned int mem_size)
 	{
 		mem_add=-1;
 	}
+	printf("ret is : %d \n",mem_add);
 	return mem_add;
 }
 
