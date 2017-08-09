@@ -89,7 +89,7 @@ void process_request(int client_sockfd)
 	char get[100];
 	char path[100];
 	char content_len[10];
-    	char* io_buffer = NULL;
+//    	char* io_buffer;
 	t_stat stat_data;
 //	struct stat stat_data;
 	int index = 4;
@@ -97,7 +97,7 @@ void process_request(int client_sockfd)
 	int i = 0;
 	const char http_header_1[] = "HTTP/1.1 200 OK\nConnection: close\nContent-Type: ";
 	const char http_header_2[] = ";\nContent-Disposition: inline;charset=utf-8\nContent-Length: ";
-	const char root_path[] = "/usr/src/kernels";
+	const char root_path[] = "/home/peppe/Scrivania/tcp";
 	const char text[] = "text/plain";
 	const char html[] = "text/html";
 	char http_header[200];
@@ -107,6 +107,8 @@ void process_request(int client_sockfd)
 	int http_header_len = 0;
 	int http_body_len = 0;
 	int root_path_len = 0;
+	int b_read = 0;
+	int b_to_read = 0;
 
 	http_header_len = sizeof(http_header);
 	root_path_len = sizeof(root_path) - 1;
@@ -167,22 +169,10 @@ void process_request(int client_sockfd)
 //	sprintf( content_len, "%d", http_body_len - 1);
 
 	io_buffer = malloc(http_body_len);
-	http_response = malloc((http_body_len + http_header_len));
-
-	printf("http_response = %d \n",http_response);
-	printf("io_buffer = %d \n",io_buffer);
-	printf("http_body_len= %d \n",http_body_len);
-	printf("(http_body_len + http_header_len)= %d \n",(http_body_len + http_header_len));
-
-	char* _io_buffer = malloc(22545);
-	char* _http_response = malloc((22545));
-
-	printf("http_response = %d \n",_http_response);
-	printf("io_buffer = %d \n",_io_buffer);
+	http_response = malloc(http_body_len + http_header_len);
 
 	printf("start open \n");
 	f = open(path, O_RDWR | O_APPEND);
-	printf("path is %s \n",path);
 	printf("end open \n");
 	if (f == -1)
 	{
@@ -191,10 +181,14 @@ void process_request(int client_sockfd)
 		free(http_response);
 		return;
 	}
-	printf("start read \n");
-	read(f,io_buffer,http_body_len);
-	printf("end read \n");
-	close(f);
+//	printf("start read \n");
+//	while (http_body_len > to_read)
+//	{
+//		read = read(f,io_buffer,http_body_len);
+//		http_body_len -= to_read;
+//	}
+//	printf("end read \n");
+//	close(f);
 	
 	for (i=0;i < http_header_len; i++)
 	{
@@ -210,17 +204,36 @@ void process_request(int client_sockfd)
 	http_response[http_header_len + index++] = '\n';
 	http_response[http_header_len + index++] = '\n';
 
-	http_header_len += index;
-	for(i = 0;i < http_body_len;i++)
+	printf("start open \n");
+	f = open(path, O_RDWR | O_APPEND);
+	printf("end open \n");
+	if (f == -1)
 	{
-		http_response[http_header_len + i] = io_buffer[i];
+		printf("file not found\n");
+		free(io_buffer);
+		free(http_response);
+		return;
 	}
+	printf("start read \n");
+	while (http_body_len > to_read)
+	{
+		b_read = read(f,io_buffer,b_to_read);
+		http_body_len -= to_read;
+		write_socket(client_sockfd,http_response,read);
+	}
+	printf("end read \n");
+	close(f);
 	
-	http_response[http_header_len + http_body_len -1] = '\0';
-	write_socket(client_sockfd,http_response,(http_header_len + http_body_len - 1));
-	//write(client_sockfd,http_response,(http_header_len + http_body_len - 1));
-	//printf("content is %s \n",http_response);
+//	http_header_len += index;
+//	for(i = 0;i < http_body_len;i++)
+//	{
+//		http_response[http_header_len + i] = io_buffer[i];
+//	}
+//	http_response[http_header_len + http_body_len -1] = '\0';
+//	//write_socket(client_sockfd,http_response,(http_header_len + http_body_len));
+//	write(client_sockfd,http_response,(http_header_len + http_body_len - 1));
+//	//printf("content is %s \n",http_response);
 	free(io_buffer);
 	free(http_response);
-	//sleep(1);
+	sleep(100);
 }

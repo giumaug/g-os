@@ -109,7 +109,6 @@ void* _malloc(unsigned int mem_size)
 	{
 		mem_add=-1;
 	}
-	printf("ret is : %d \n",mem_add);
 	return mem_add;
 }
 
