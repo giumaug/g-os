@@ -35,15 +35,15 @@ int main()
 	struct sockaddr_in ssock;
 	
 	ssock.sin_family = AF_INET;
-	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=192;
-	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=168;
-	((unsigned char*) &(server_address.sin_addr.s_addr))[2]=124;
-        ((unsigned char*) &(server_address.sin_addr.s_addr))[3]=101;
-
-//	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=172;
-//	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=16;
-//	((unsigned char*) &(server_address.sin_addr.s_addr))[2]=6;
+//	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=192;
+//	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=168;
+//	((unsigned char*) &(server_address.sin_addr.s_addr))[2]=124;
 //      ((unsigned char*) &(server_address.sin_addr.s_addr))[3]=101;
+
+	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=172;
+	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=16;
+	((unsigned char*) &(server_address.sin_addr.s_addr))[2]=6;
+        ((unsigned char*) &(server_address.sin_addr.s_addr))[3]=101;
 
 	((unsigned char*) &(server_address.sin_port))[0]=((unsigned char*) &(port))[1];
 	((unsigned char*) &(server_address.sin_port))[1]=((unsigned char*) &(port))[0];
@@ -89,15 +89,15 @@ void process_request(int client_sockfd)
 	char get[100];
 	char path[100];
 	char content_len[10];
-//    	char* io_buffer;
+    	char* io_buffer;
 	t_stat stat_data;
-//	struct stat stat_data;
+	//struct stat stat_data;
 	int index = 4;
 	int f = 0;
 	int i = 0;
 	const char http_header_1[] = "HTTP/1.1 200 OK\nConnection: close\nContent-Type: ";
 	const char http_header_2[] = ";\nContent-Disposition: inline;charset=utf-8\nContent-Length: ";
-	const char root_path[] = "/home/peppe/Scrivania/tcp";
+	const char root_path[] = "/usr/src/kernels/g-os";
 	const char text[] = "text/plain";
 	const char html[] = "text/html";
 	char http_header[200];
@@ -108,7 +108,7 @@ void process_request(int client_sockfd)
 	int http_body_len = 0;
 	int root_path_len = 0;
 	int b_read = 0;
-	int b_to_read = 0;
+	int b_to_read = 4000;
 
 	http_header_len = sizeof(http_header);
 	root_path_len = sizeof(root_path) - 1;
@@ -166,9 +166,9 @@ void process_request(int client_sockfd)
 	printf("end stat \n");
 	http_body_len = stat_data.st_size + 1;
 	itoa(http_body_len,content_len,10);
-//	sprintf( content_len, "%d", http_body_len - 1);
+        //sprintf( content_len, "%d", http_body_len - 1);
 
-	io_buffer = malloc(http_body_len);
+	io_buffer = malloc(b_to_read);
 	http_response = malloc(http_body_len + http_header_len);
 
 	printf("start open \n");
@@ -203,6 +203,7 @@ void process_request(int client_sockfd)
 	index -= 2;
 	http_response[http_header_len + index++] = '\n';
 	http_response[http_header_len + index++] = '\n';
+	b_read = http_header_len + index;
 
 	printf("start open \n");
 	f = open(path, O_RDWR | O_APPEND);
@@ -214,15 +215,27 @@ void process_request(int client_sockfd)
 		free(http_response);
 		return;
 	}
+	//http_response[b_read] = '\0';
 	printf("start read \n");
-	while (http_body_len > to_read)
+	write_socket(client_sockfd,http_response,b_read);
+	http_body_len--;
+	while (http_body_len > 0)
 	{
+		printf(".........\n");
+		if (http_body_len - b_read < 0)
+		{
+			b_to_read = http_body_len;
+		}
 		b_read = read(f,io_buffer,b_to_read);
-		http_body_len -= to_read;
-		write_socket(client_sockfd,http_response,read);
+		write_socket(client_sockfd,io_buffer,b_read);
+		printf("val is %d \n",b_read);
+		printf("http_body_len=%d \n",http_body_len);
+		//printf("io_buffer=%s \n",io_buffer);
 	}
+	write_socket(client_sockfd,'\0',1);
 	printf("end read \n");
 	close(f);
+	close(client_sockfd);
 	
 //	http_header_len += index;
 //	for(i = 0;i < http_body_len;i++)
@@ -235,5 +248,5 @@ void process_request(int client_sockfd)
 //	//printf("content is %s \n",http_response);
 	free(io_buffer);
 	free(http_response);
-	sleep(100);
+	sleep(1);
 }
