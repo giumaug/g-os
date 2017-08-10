@@ -19,15 +19,15 @@ int main()
 	const char path[] = "/usr/src/kernels/g-os/network/tcp.c";
 	
 	printf(".......\n");
-	for (f=0;f<3000000000;f++);
+	//for (f=0;f<3000000000;f++);
 
-	while (1)
+	//while (1)
 	{
 		printf("start stat \n");
 		stat(path,&stat_data);
-		printf("end stat \n");
+		printf("end stat %d  \n",stat_data.st_size);
 
-		io_buffer = malloc(stat_data.st_size + 10);
+		io_buffer = malloc(stat_data.st_size + 1);
 		printf("start open \n");
 		f = open(path, O_RDWR | O_APPEND);
 		printf("end open \n");
@@ -38,7 +38,30 @@ int main()
 			return;
 		}
 		printf("start read \n");
-		read(f,io_buffer,stat_data.st_size + 1);
+		read(f,io_buffer,10);
+		io_buffer[10] = '\0';
+		printf("xxx= %s \n",io_buffer);	
+		read(f,io_buffer,10);	
+		io_buffer[10] = '\0';
+		printf("xxx= %s \n",io_buffer);
+		read(f,io_buffer,10);
+		io_buffer[10] = '\0';
+		printf("xxx= %s \n",io_buffer);	
+		read(f,io_buffer,10);	
+		io_buffer[10] = '\0';
+		printf("xxx= %s \n",io_buffer);		
+		read(f,io_buffer,10);
+		io_buffer[10] = '\0';
+		printf("xxx= %s \n",io_buffer);	
+		read(f,io_buffer,10);	
+		io_buffer[10] = '\0';
+		printf("xxx= %s \n",io_buffer);
+		read(f,io_buffer,10);
+		io_buffer[10] = '\0';
+		printf("xxx= %s \n",io_buffer);	
+		read(f,io_buffer,10);	
+		io_buffer[10] = '\0';
+		printf("xxx= %s \n",io_buffer);		
 		printf("end read \n");
 		free(io_buffer);
 		close(f);
