@@ -70,6 +70,7 @@ typedef struct s_system
 	unsigned int panic;
 	t_llist* timer_list;
 	u8 force_scheduling;
+	int collect_mem;//for debug memeory
 }
 t_system;
 

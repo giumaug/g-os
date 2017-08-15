@@ -35,39 +35,36 @@ int main()
 	struct sockaddr_in ssock;
 	
 	ssock.sin_family = AF_INET;
-//	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=192;
-//	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=168;
-//	((unsigned char*) &(server_address.sin_addr.s_addr))[2]=124;
-//      ((unsigned char*) &(server_address.sin_addr.s_addr))[3]=101;
-
-	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=172;
-	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=16;
-	((unsigned char*) &(server_address.sin_addr.s_addr))[2]=6;
+	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=192;
+	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=168;
+	((unsigned char*) &(server_address.sin_addr.s_addr))[2]=124;
         ((unsigned char*) &(server_address.sin_addr.s_addr))[3]=101;
+
+//	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=172;
+//	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=16;
+//	((unsigned char*) &(server_address.sin_addr.s_addr))[2]=6;
+//      ((unsigned char*) &(server_address.sin_addr.s_addr))[3]=101;
 
 	((unsigned char*) &(server_address.sin_port))[0]=((unsigned char*) &(port))[1];
 	((unsigned char*) &(server_address.sin_port))[1]=((unsigned char*) &(port))[0];
 //------------------------------------------------------------------------------
 	
+	int request_count = 0;
 	server_sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	bind(server_sockfd, (struct sockaddr *)&server_address,server_len);
-
-	/* Create a connection queue, ignore child exit details and wait forclients. */
-
 	listen(server_sockfd, 5);
-	//signal(SIGCHLD, SIG_IGN);
 	char ch[100];
 	while(1) 
 	{
 		printf("http server waiting\n");
-
+		check_free_mem();
 		client_len = sizeof(client_address);
 		client_sockfd = accept(server_sockfd,(struct sockaddr *)&client_address, &client_len);
 
-		printf("accepted request \n");
+		printf("accepted request %d \n",request_count++);
 		if(fork() == 0) 
 		{
-			process_request(client_sockfd);
+			//process_request(client_sockfd);
 			close_socket(client_sockfd);
 			//close(client_sockfd);
 			exit(0);
@@ -108,7 +105,7 @@ void process_request(int client_sockfd)
 	int http_body_len = 0;
 	int root_path_len = 0;
 	int b_read = 0;
-	int b_to_read = 4000;
+	int b_to_read = 4096;
 
 	http_header_len = sizeof(http_header);
 	root_path_len = sizeof(root_path) - 1;
@@ -161,35 +158,13 @@ void process_request(int client_sockfd)
 	while (http_header_2[i++] != '\0');
 	http_header_len = index - 1;
 	
-	printf("start stat \n");
 	stat(path,&stat_data);
-	printf("end stat \n");
 	http_body_len = stat_data.st_size + 1;
 	itoa(http_body_len,content_len,10);
         //sprintf( content_len, "%d", http_body_len - 1);
 
 	io_buffer = malloc(b_to_read);
 	http_response = malloc(http_body_len + http_header_len);
-
-	printf("start open \n");
-	f = open(path, O_RDWR | O_APPEND);
-	printf("end open \n");
-	if (f == -1)
-	{
-		printf("file not found\n");
-		free(io_buffer);
-		free(http_response);
-		return;
-	}
-//	printf("start read \n");
-//	while (http_body_len > to_read)
-//	{
-//		read = read(f,io_buffer,http_body_len);
-//		http_body_len -= to_read;
-//	}
-//	printf("end read \n");
-//	close(f);
-	
 	for (i=0;i < http_header_len; i++)
 	{
 		http_response[i] = http_header[i];
@@ -205,9 +180,7 @@ void process_request(int client_sockfd)
 	http_response[http_header_len + index++] = '\n';
 	b_read = http_header_len + index;
 
-	printf("start open \n");
 	f = open(path, O_RDWR | O_APPEND);
-	printf("end open \n");
 	if (f == -1)
 	{
 		printf("file not found\n");
@@ -215,13 +188,10 @@ void process_request(int client_sockfd)
 		free(http_response);
 		return;
 	}
-	//http_response[b_read] = '\0';
-	printf("start read \n");
 	write_socket(client_sockfd,http_response,b_read);
 	http_body_len--;
 	while (http_body_len > 0)
 	{
-		printf(".........\n");
 		if (http_body_len - b_read < 0)
 		{
 			b_to_read = http_body_len;
@@ -229,26 +199,14 @@ void process_request(int client_sockfd)
 		b_read = read(f,io_buffer,b_to_read);
 		write_socket(client_sockfd,io_buffer,b_read);
 		http_body_len -= b_read;
-		printf("val is %d \n",b_read);
-		printf("http_body_len=%d \n",http_body_len);
+		//printf("val is %d \n",b_read);
+		//printf("http_body_len=%d \n",http_body_len);
 		io_buffer[b_read] = '\0';
-		printf("io_buffer=%s \n",io_buffer);
+		//printf("io_buffer=%s \n",io_buffer);
 	}
 	write_socket(client_sockfd,'\0',1);
-	printf("end read \n");
 	close(f);
-	close(client_sockfd);
 	
-//	http_header_len += index;
-//	for(i = 0;i < http_body_len;i++)
-//	{
-//		http_response[http_header_len + i] = io_buffer[i];
-//	}
-//	http_response[http_header_len + http_body_len -1] = '\0';
-//	//write_socket(client_sockfd,http_response,(http_header_len + http_body_len));
-//	write(client_sockfd,http_response,(http_header_len + http_body_len - 1));
-//	//printf("content is %s \n",http_response);
 	free(io_buffer);
 	free(http_response);
-	sleep(1);
 }

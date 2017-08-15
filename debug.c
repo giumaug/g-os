@@ -111,15 +111,19 @@ void collect_mem_alloc(unsigned int page_addr)
 	CURRENT_PROCESS_CONTEXT(current_process);
 
 	collected_mem[collected_mem_index++]=page_addr;
+	if (collected_mem_index==559)
+	{
+		printk("to check... \n");
+	}
 	if (collected_mem_index>14999)
 	{
 		panic();
 	}
 	allocated_block++;
 	int i=0;
-	if (collected_mem_index==3000)
+	if (collected_mem_index>=400)
 	{
-		for (i=1000;i<=2000;i++)
+		for (i=300;i<=350;i++)
 		{
 			if (collected_mem[i]!=0)
 			{

@@ -161,6 +161,110 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count)
 	return byte_read;
 }
 
+int _read_mod(t_ext2* ext2,int fd, void* buf,u32 count)
+{
+	struct t_process_context* current_process_context;
+	u32 i;
+	u32 block_offset;
+	u32 first_inode_block;
+	u32 first_data_offset;
+	u32 last_inode_block;
+	u32 inode_block;
+	u32 lba;
+	u32 indirect_lba;
+	u32 allocated_indirect_block;
+	u32 sector_count;
+	u32 byte_to_read;
+	u32 byte_read;
+	u32 byte_count;
+	t_inode* inode;
+	char* iob_indirect_block;
+	char* iob_data_block;
+
+	byte_read=0;
+	byte_to_read=count;
+	iob_indirect_block=kmalloc(BLOCK_SIZE);
+	iob_data_block=kmalloc(BLOCK_SIZE);
+
+	CURRENT_PROCESS_CONTEXT(current_process_context)
+	inode=hashtable_get(current_process_context->file_desc,fd);
+	if (inode==NULL)
+	{
+		return -1;
+	}
+	first_inode_block=inode->file_offset/BLOCK_SIZE;
+	first_data_offset=inode->file_offset%BLOCK_SIZE;
+	last_inode_block=(inode->file_offset+(count-1))/BLOCK_SIZE;
+//	if (first_inode_block == last_inode_block)
+//	{
+//		last_inode_block++;
+//	}
+	allocated_indirect_block=0;
+	for (i=first_inode_block;i<=last_inode_block;i++)
+	{
+		if (i>11)
+		{
+			if (!allocated_indirect_block)
+			{
+				indirect_lba=FROM_BLOCK_TO_LBA(inode->i_block[12]);
+        			sector_count=BLOCK_SIZE/SECTOR_SIZE;
+				READ(sector_count,indirect_lba,iob_indirect_block);
+				allocated_indirect_block=1;
+			}
+			READ_DWORD(&iob_indirect_block[4*(i-12)],inode_block);
+			lba=FROM_BLOCK_TO_LBA(inode_block);
+		}
+		else
+		{
+			lba=FROM_BLOCK_TO_LBA(inode->i_block[i]);
+		}
+		if (byte_to_read>=BLOCK_SIZE)
+		{
+			if (first_data_offset == 0)
+			{
+				byte_count=BLOCK_SIZE;
+				byte_to_read-=BLOCK_SIZE;
+			}
+			else
+			{
+				byte_count = BLOCK_SIZE - first_data_offset;
+				byte_to_read -= (BLOCK_SIZE - first_data_offset);
+			}	
+		}
+		else
+		{
+			if (first_data_offset == 0)
+			{
+				byte_count=byte_to_read;
+				byte_to_read=0;
+			}
+			else 
+			{
+				if (BLOCK_SIZE - first_data_offset > byte_to_read)
+				{
+					byte_count=byte_to_read;
+					byte_to_read=0;
+				}
+				else
+				{
+					byte_count = BLOCK_SIZE - first_data_offset;
+					byte_to_read -= (BLOCK_SIZE - first_data_offset);
+				}
+			}
+		}
+        	sector_count=BLOCK_SIZE/SECTOR_SIZE;
+		READ(sector_count,lba,iob_data_block);
+		kmemcpy(buf,iob_data_block+first_data_offset,byte_count);
+		inode->file_offset+=byte_count;
+		buf+=byte_count;
+		byte_read+=byte_count;
+		first_data_offset = 0;
+	}
+	kfree(iob_indirect_block);
+	kfree(iob_data_block);
+	return byte_read;
+}
+
 int _write(t_ext2* ext2,int fd, const void *buf,u32 count)
 {
 	u32 i;	

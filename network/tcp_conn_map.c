@@ -31,6 +31,7 @@ void tcp_conn_map_put(t_tcp_conn_map* tcp_conn_map,u16 src_ip,u16 dst_ip,u32 src
 	t_tcp_conn_desc* new_conn;
 	u32 conn_id;
 
+	system.collect_mem=1;
 	conn_id = dst_port | (src_port << 16);
 	cur_conn = hashtable_get(tcp_conn_map->conn_map,conn_id);
 	if (cur_conn != NULL)
@@ -45,6 +46,7 @@ void tcp_conn_map_put(t_tcp_conn_map* tcp_conn_map,u16 src_ip,u16 dst_ip,u32 src
 		hashtable_put(tcp_conn_map->conn_map,conn_id,tcp_conn_desc);
 	}
 	//printk("tcp_conn_desc is %d \n",tcp_conn_desc);
+	system.collect_mem=0;
 }
 
 void tcp_conn_map_remove(t_tcp_conn_map* tcp_conn_map,u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port)
@@ -59,11 +61,13 @@ void tcp_conn_map_remove(t_tcp_conn_map* tcp_conn_map,u32 src_ip,u32 dst_ip,u16 
 	u32 count = 0;
 	unsigned char* tmp = NULL;
 	
+	system.collect_mem=1;
 	conn_id = dst_port | (src_port << 16);
 	tcp_conn_desc = hashtable_get(tcp_conn_map->conn_map,conn_id);
 
 	if (tcp_conn_desc == NULL)
 	{
+		system.collect_mem=0;
 		return;
 	}
 	tmp = hashtable_get(tcp_conn_map->duplicate_key_map,conn_id);
@@ -71,6 +75,7 @@ void tcp_conn_map_remove(t_tcp_conn_map* tcp_conn_map,u32 src_ip,u32 dst_ip,u16 
 	{
 		hashtable_remove(tcp_conn_map->conn_map,conn_id);
 		hashtable_remove(tcp_conn_map->duplicate_key_map,conn_id);
+		system.collect_mem=0;
 		return;
 	}
 	else if (tcp_conn_desc->src_ip == src_ip && tcp_conn_desc->dst_ip == dst_ip && tcp_conn_desc->src_port == src_port && tcp_conn_desc->dst_port == dst_port)
@@ -125,6 +130,7 @@ void tcp_conn_map_remove(t_tcp_conn_map* tcp_conn_map,u32 src_ip,u32 dst_ip,u16 
 			hashtable_put(tcp_conn_map->duplicate_key_map,conn_id,tcp_conn_map->zero_const);
 		}
 	}
+	system.collect_mem=0;
 }
 
 t_tcp_conn_desc* tcp_conn_map_get(t_tcp_conn_map* tcp_conn_map,u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port)
@@ -136,20 +142,24 @@ t_tcp_conn_desc* tcp_conn_map_get(t_tcp_conn_map* tcp_conn_map,u32 src_ip,u32 ds
 	t_llist_node* next = NULL;
 	unsigned char* tmp = NULL;
 	
+	system.collect_mem=1;
 	conn_id = dst_port | (src_port << 16);
 	tcp_conn_desc = hashtable_get(tcp_conn_map->conn_map,conn_id);
 
 	if (tcp_conn_desc == NULL)
 	{
+		system.collect_mem=0;
 		return NULL;
 	}
 	tmp = hashtable_get(tcp_conn_map->duplicate_key_map,conn_id);
 	if (*tmp == 0)
 	{
+		system.collect_mem=0;
 		return tcp_conn_desc;
 	}
 	else if (tcp_conn_desc->src_ip == src_ip && tcp_conn_desc->dst_ip == dst_ip && tcp_conn_desc->src_port == src_port && tcp_conn_desc->dst_port == dst_port)
 	{
+		system.collect_mem=0;
 		return tcp_conn_desc;
 	}
 	else
@@ -168,9 +178,11 @@ t_tcp_conn_desc* tcp_conn_map_get(t_tcp_conn_map* tcp_conn_map,u32 src_ip,u32 ds
 			   	    tcp_conn_desc->src_port == src_port && 
 			    	    tcp_conn_desc->dst_port == dst_port)
 				{
+					system.collect_mem=0;
 					return tcp_conn_desc;
 				}
 			}
 		}
 	}
+	system.collect_mem=0;
 }

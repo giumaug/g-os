@@ -68,13 +68,9 @@ void* kmalloc(unsigned int mem_size)
 		panic();
 	}
 
-	if (collect_mem==1) 
+	if (collect_mem==1 && system.collect_mem==2) 
 	{
 		collect_mem_alloc(mem_add);
-		if (mem_add==0xc1da375a) 
-		{
-			//printk("ss \n");
-		}
 	}	
 
 	RESTORE_IF_STATUS
@@ -89,14 +85,9 @@ void kfree(void *address)
 	SAVE_IF_STATUS
 	CLI	
 	
-	if (1) 
-	//if (collect_mem==1) 
+	if (collect_mem==1 && system.collect_mem==2) 
 	{
 		collect_mem_free(address);
-		if (address==0xc1da375a) 
-		{
-			//printk("ssr \n");
-		}
 	}
 
 	pool_index=0;
@@ -118,6 +109,8 @@ unsigned int kfree_mem()
 	for (i=0;i<POOL_NUM;i++)
 	{
 		free_mem_list[i]=a_fixed_size_desc[i].current_free_block;
+		int xx = a_fixed_size_desc[i].current_free_block;
+		//printk("val is %d \n",xx);
 		tot+=a_fixed_size_desc[i].current_free_block;
 	}
 	return tot;
