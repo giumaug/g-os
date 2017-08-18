@@ -73,7 +73,6 @@ t_tcp_conn_desc* tcp_conn_desc_int()
 	t_tcp_conn_desc* tcp_conn_desc;
 
 	retry=1;
-	system.collect_mem=2;
 	tcp_conn_desc = kmalloc(sizeof(t_tcp_conn_desc));
 	tcp_conn_desc->rcv_queue = tcp_rcv_queue_init(TCP_RCV_SIZE);
 	tcp_conn_desc->snd_queue = tcp_snd_queue_init(TCP_SND_SIZE);
@@ -100,13 +99,11 @@ t_tcp_conn_desc* tcp_conn_desc_int()
 	tcp_conn_desc->last_seq_sent = 0;
 	tcp_conn_desc->last_sent_time = 0;
 	tcp_conn_desc->last_ack_sent = 0;
-	system.collect_mem=3;
 	return tcp_conn_desc;
 }
 
 void tcp_conn_desc_free(t_tcp_conn_desc* tcp_conn_desc)
 {
-	system.collect_mem=2;
 	tcp_rcv_queue_free(tcp_conn_desc->rcv_queue);
 	tcp_snd_queue_free(tcp_conn_desc->snd_queue);
 	tcp_conn_map_free(tcp_conn_desc->back_log_i_map);
@@ -118,7 +115,6 @@ void tcp_conn_desc_free(t_tcp_conn_desc* tcp_conn_desc)
 //	printk("conn free!! %d\n",tcp_conn_desc->src_port);
 //	printk("conn free!! %d\n",tcp_conn_desc->dst_port);
 	printk("attempt %d \n",attempt);
-	system.collect_mem=3;
 }
 
 t_tcp_desc* tcp_init()

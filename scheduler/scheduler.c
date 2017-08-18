@@ -341,7 +341,6 @@ int _fork(struct t_processor_reg processor_reg)
 	child_process_context->pid = system.process_info->next_pid++;
 	child_process_context->parent = parent_process_context;
 	child_process_context->file_desc = hashtable_clone_map(parent_process_context->file_desc,sizeof(t_inode));
-	child_process_context->socket_desc = hashtable_clone_map(parent_process_context->socket_desc,sizeof(t_socket));
 	child_process_context->socket_desc = clone_socket_desc(parent_process_context->socket_desc);
 
 	if (parent_process_context->process_type == USERSPACE_PROCESS)
@@ -406,7 +405,7 @@ u32 _exec(char* path,char* argv[])
 
 	if (current_process_context->pid >1)
 	{
-		collect_mem=1;
+		//collect_mem=1;
 	}
 	
 

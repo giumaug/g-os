@@ -5,6 +5,7 @@
 #include "virtual_memory/vm.h"
 #include "debug.h"
 
+extern int pippo;
 extern unsigned int collect_mem;
 extern unsigned int collected_mem[15000];
 extern unsigned int collected_mem_index;
@@ -52,6 +53,7 @@ void* kmalloc(unsigned int mem_size)
 {		
 	int i;	
 	void *mem_add;
+	struct t_process_context* process_context;
 	SAVE_IF_STATUS
 	CLI	
 	//SPINLOCK_LOCK
@@ -67,12 +69,7 @@ void* kmalloc(unsigned int mem_size)
 	{
 		panic();
 	}
-
-	if (collect_mem==1 && system.collect_mem==2) 
-	{
-		collect_mem_alloc(mem_add);
-	}	
-
+	
 	RESTORE_IF_STATUS
 	return mem_add;
 }
@@ -85,11 +82,6 @@ void kfree(void *address)
 	SAVE_IF_STATUS
 	CLI	
 	
-	if (collect_mem==1 && system.collect_mem==2) 
-	{
-		collect_mem_free(address);
-	}
-
 	pool_index=0;
 	while ((pool_index+1)*MEM_TO_POOL<(address-VIRT_MEM_START_ADDR-POOL_START_ADDR))
 	{

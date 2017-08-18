@@ -2,6 +2,7 @@
 #include "memory_manager/general.h"
 #include "debug.h"
 
+unsigned int pippo;
 extern unsigned int free_mem_list[POOL_NUM];
 
 unsigned int proc[100];
@@ -52,6 +53,7 @@ void check_free_mem()
 	printk("AGE=%d \n",age++);
 	//collected_mem_index=0;
 	//allocated_block=0;
+	pippo=0;
 }
 
 void check_process_context()
@@ -111,19 +113,16 @@ void collect_mem_alloc(unsigned int page_addr)
 	CURRENT_PROCESS_CONTEXT(current_process);
 
 	collected_mem[collected_mem_index++]=page_addr;
-	if (collected_mem_index==559)
-	{
-		printk("to check... \n");
-	}
+	
 	if (collected_mem_index>14999)
 	{
 		panic();
 	}
 	allocated_block++;
 	int i=0;
-	if (collected_mem_index>=400)
+	if (collected_mem_index>=130)
 	{
-		for (i=300;i<=350;i++)
+		for (i=50;i<=100;i++) //350
 		{
 			if (collected_mem[i]!=0)
 			{

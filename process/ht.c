@@ -64,7 +64,7 @@ int main()
 		printf("accepted request %d \n",request_count++);
 		if(fork() == 0) 
 		{
-			//process_request(client_sockfd);
+			process_request(client_sockfd);
 			close_socket(client_sockfd);
 			//close(client_sockfd);
 			exit(0);
