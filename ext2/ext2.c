@@ -85,7 +85,7 @@ int _close(t_ext2* ext2,int fd)
 	return ret;
 }
 
-int _read(t_ext2* ext2,int fd, void* buf,u32 count)
+int _read_orig(t_ext2* ext2,int fd, void* buf,u32 count)
 {
 	struct t_process_context* current_process_context;
 	u32 i;
@@ -161,7 +161,7 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count)
 	return byte_read;
 }
 
-int _read_mod(t_ext2* ext2,int fd, void* buf,u32 count)
+int _read(t_ext2* ext2,int fd, void* buf,u32 count)
 {
 	struct t_process_context* current_process_context;
 	u32 i;

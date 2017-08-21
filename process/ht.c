@@ -159,7 +159,8 @@ void process_request(int client_sockfd)
 	http_header_len = index - 1;
 	
 	stat(path,&stat_data);
-	http_body_len = stat_data.st_size + 1;
+	//http_body_len = stat_data.st_size + 1;
+	http_body_len = stat_data.st_size;
 	itoa(http_body_len,content_len,10);
         //sprintf( content_len, "%d", http_body_len - 1);
 
@@ -189,22 +190,23 @@ void process_request(int client_sockfd)
 		return;
 	}
 	write_socket(client_sockfd,http_response,b_read);
-	http_body_len--;
+	//http_body_len--;
+	printf("body len is %d \n",http_body_len);
 	while (http_body_len > 0)
 	{
-		if (http_body_len - b_read < 0)
+		if (http_body_len - b_to_read < 0)
 		{
 			b_to_read = http_body_len;
 		}
 		b_read = read(f,io_buffer,b_to_read);
 		write_socket(client_sockfd,io_buffer,b_read);
 		http_body_len -= b_read;
-		//printf("val is %d \n",b_read);
-		//printf("http_body_len=%d \n",http_body_len);
+		printf("val is %d \n",b_read);
+		printf("http_body_len= %d \n",http_body_len);
 		io_buffer[b_read] = '\0';
 		//printf("io_buffer=%s \n",io_buffer);
 	}
-	write_socket(client_sockfd,'\0',1);
+	//write_socket(client_sockfd,'\0',1);
 	close(f);
 	
 	free(io_buffer);

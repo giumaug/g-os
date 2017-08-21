@@ -473,8 +473,11 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 //	}
 	//------------END HACK
 
-	rcv_ack(tcp_conn_desc,ack_seq_num,data_len);
-	//update_snd_window(tcp_conn_desc,ack_seq_num,data_len);
+	//CHECK DUPLICATE ACK DEFINITION RFC5681
+	if (tcp_conn_desc->snd_queue->nxt_snd - tcp_conn_desc->snd_queue->wnd_min > 0)
+	{	
+		rcv_ack(tcp_conn_desc,ack_seq_num,data_len);
+	}
 EXIT:
 		free_sckt(data_sckt_buf);
 }
@@ -483,11 +486,6 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 data_len)
 {
 	t_tcp_snd_queue* tcp_queue = NULL;
 	u32 rtt = 0;
-
-        //tcpdump_index++;
-        //int ii = tcpdump_index % 100;
-	//tcpdump_val[ii]=1;
-	//tcpdump_desc[ii]=ack_seq_num;
 
 //	printk("ack packet %d \n",ack_seq_num);
 	if (tcp_conn_desc->snd_queue->wnd_min <= ack_seq_num)
