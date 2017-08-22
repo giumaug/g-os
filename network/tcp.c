@@ -211,7 +211,8 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	tcp_req_desc = tcp_conn_map_get(tcp_desc->req_map,dst_ip,system.network_desc->ip,dst_port,src_port);
 	tcp_listen_desc = tcp_conn_map_get(tcp_desc->listen_map,system.network_desc->ip,0,dst_port,0);
 	if (tcp_req_desc == NULL && tcp_listen_desc == NULL && tcp_conn_desc != NULL )
-	{ 
+	{
+		printk("no connection !!!!!! \n"); 
 		goto EXIT;
 	}
 	if (flags & 4)
@@ -282,6 +283,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		{
 			if (new_tcp_conn_desc->snd_queue->nxt_snd + 1 == ack_seq_num)
 			{
+				printk("estabilished %d \n",src_port);
 				tcp_conn_map_remove(tcp_listen_desc->back_log_i_map,dst_ip,src_ip,dst_port,src_port);
 				enqueue(tcp_listen_desc->back_log_c_queue,new_tcp_conn_desc);
 				tcp_conn_map_put(tcp_desc->conn_map,dst_ip,src_ip,dst_port,src_port,new_tcp_conn_desc);
@@ -455,6 +457,10 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		if (process_context != NULL)
 		{
 			_awake(process_context);
+		}
+		else
+		{
+			printk("oooo \n");
 		}
 	}
 
@@ -673,6 +679,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	}
 	else if (tcp_conn_desc->duplicated_ack == 1 || tcp_conn_desc->duplicated_ack == 2)
 	{
+		printk("duplicated ack!!! \n");
 		wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
 		if (wnd_max > tcp_queue->nxt_snd)
 		{
@@ -870,6 +877,8 @@ void rtrsn_timer_handler(void* arg)
 	t_tcp_conn_desc* tcp_conn_desc = NULL;
 	u32 ack_num = 0;
 
+
+	printk("timeout !!!\n ");
 	tcp_conn_desc = (t_tcp_conn_desc*) arg;
 	if (tcp_conn_desc->status == ESTABILISHED)
 	{
