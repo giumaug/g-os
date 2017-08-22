@@ -970,6 +970,8 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 	tcp_header = data_sckt_buf->transport_hdr;
 	chk = SWAP_WORD(checksum_tcp((unsigned short*) tcp_header,src_ip,dst_ip,data_len));
 
+	if (seq_num>=3) return;
+
 	tcp_header[0] = HI_16(src_port);                            //HI SRC PORT
 	tcp_header[1] = LOW_16(src_port);                           //LOW SRC PORT
 	tcp_header[2] = HI_16(dst_port);                            //HI DST PORT
