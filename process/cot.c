@@ -37,10 +37,10 @@ int main()
     	struct sockaddr_in ssock;
 	
 	ssock.sin_family = AF_INET;
-	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=192;
-	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=168;
-        ((unsigned char*) &(server_address.sin_addr.s_addr))[2]=124;
-        ((unsigned char*) &(server_address.sin_addr.s_addr))[3]=101;
+	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=34;
+	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=253;
+        ((unsigned char*) &(server_address.sin_addr.s_addr))[2]=28;
+        ((unsigned char*) &(server_address.sin_addr.s_addr))[3]=130;
 
 //	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=172;
 //	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=16;
@@ -83,7 +83,7 @@ int main()
 			index = 4000;
 			//sending abount 5M (1300)
 			rt =0;
-			for (t=0;t<13000;t++) //1000
+			for (t=0;t<260000;t++) //1000
 			//while(1)
 			{
 				for (i=0;i<index;i++)

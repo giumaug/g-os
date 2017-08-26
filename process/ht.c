@@ -35,10 +35,10 @@ int main()
 	struct sockaddr_in ssock;
 	
 	ssock.sin_family = AF_INET;
-	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=192;
-	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=168;
-	((unsigned char*) &(server_address.sin_addr.s_addr))[2]=124;
-        ((unsigned char*) &(server_address.sin_addr.s_addr))[3]=101;
+	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=79;
+	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=12;
+	((unsigned char*) &(server_address.sin_addr.s_addr))[2]=212;
+        ((unsigned char*) &(server_address.sin_addr.s_addr))[3]=127;
 
 //	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=172;
 //	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=16;
@@ -57,11 +57,11 @@ int main()
 	while(1) 
 	{
 		printf("http server waiting\n");
-		check_free_mem();
+		//check_free_mem();
 		client_len = sizeof(client_address);
 		client_sockfd = accept(server_sockfd,(struct sockaddr *)&client_address, &client_len);
 
-		printf("accepted request %d \n",request_count++);
+		//printf("accepted request %d \n",request_count++);
 		if(fork() == 0) 
 		{
 			process_request(client_sockfd);
