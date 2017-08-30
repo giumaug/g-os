@@ -150,6 +150,10 @@ void int_handler_pit()
 		{
 			(*timer->handler)(timer->handler_arg);
 		}
+//		if (timer->id == 2)
+//		{
+//			printk(".... \n");
+//		}
 		node = ll_next(node);
 	}
 

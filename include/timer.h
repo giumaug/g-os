@@ -9,6 +9,7 @@ typedef struct s_timer
 	void (*handler)(void*);
 	void* handler_arg;
 	void* ref;
+	int id;
 }
 t_timer;
 

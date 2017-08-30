@@ -61,7 +61,7 @@ int main()
 		client_len = sizeof(client_address);
 		client_sockfd = accept(server_sockfd,(struct sockaddr *)&client_address, &client_len);
 
-		//printf("accepted request %d \n",request_count++);
+		printf("accepted request %d \n",request_count++);
 		if(fork() == 0) 
 		{
 			process_request(client_sockfd);
@@ -190,8 +190,7 @@ void process_request(int client_sockfd)
 		return;
 	}
 	write_socket(client_sockfd,http_response,b_read);
-	//http_body_len--;
-	printf("body len is %d \n",http_body_len);
+	//printf("body len is %d \n",http_body_len);
 	while (http_body_len > 0)
 	{
 		if (http_body_len - b_to_read < 0)
@@ -201,8 +200,8 @@ void process_request(int client_sockfd)
 		b_read = read(f,io_buffer,b_to_read);
 		write_socket(client_sockfd,io_buffer,b_read);
 		http_body_len -= b_read;
-		printf("val is %d \n",b_read);
-		printf("http_body_len= %d \n",http_body_len);
+		//printf("val is %d \n",b_read);
+		//printf("http_body_len= %d \n",http_body_len);
 		io_buffer[b_read] = '\0';
 		//printf("io_buffer=%s \n",io_buffer);
 	}

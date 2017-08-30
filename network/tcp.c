@@ -400,6 +400,12 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 //END PASSIVE CLOSE
 	else if (data_len != 0)
 	{
+		if (tcp_conn_desc->pgybg_timer->val == 0)
+		{
+			tcp_conn_desc->pgybg_timer->val = PIGGYBACKING_TIMEOUT;
+			tcp_conn_desc->pgybg_timer->ref = ll_append(system.timer_list,tcp_conn_desc->pgybg_timer);
+			tcp_conn_desc->pgybg_timer->id = 2;
+		}
 		wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
 		if (seq_num >= tcp_queue->wnd_min && seq_num + data_len <= wnd_max)
 		{
@@ -447,8 +453,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			}
 		}
 		else
-		{
-//			printk("buffer full!!!! \n");
+		{	
 			goto EXIT;
 		}
 		update_rcv_window_and_ack(tcp_queue);
@@ -460,7 +465,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		}
 		else
 		{
-			printk("oooo \n");
+
 		}
 	}
 
@@ -611,16 +616,16 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		}
 		wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
 
-		//no data to send
-		if ((tcp_queue->cur - tcp_queue->nxt_snd) == 0)
-		{	
-			if (tcp_conn_desc->pgybg_timer->val == 0 && ack_num > tcp_conn_desc->last_ack_sent)
-			{
-				tcp_conn_desc->pgybg_timer->val = PIGGYBACKING_TIMEOUT;
-				tcp_conn_desc->pgybg_timer->ref = ll_append(system.timer_list,tcp_conn_desc->pgybg_timer);
-			}
-			goto EXIT;
-		}
+//		//no data to send
+//		if ((tcp_queue->cur - tcp_queue->nxt_snd) == 0)
+//		{	
+//			if (tcp_conn_desc->pgybg_timer->val == 0 && ack_num > tcp_conn_desc->last_ack_sent)
+//			{
+//				tcp_conn_desc->pgybg_timer->val = PIGGYBACKING_TIMEOUT;
+//				tcp_conn_desc->pgybg_timer->ref = ll_append(system.timer_list,tcp_conn_desc->pgybg_timer);
+//			}
+//			goto EXIT;
+//		}
 		
 		if (tcp_queue->cur >= tcp_queue->wnd_min && tcp_queue->cur <= wnd_max)
 		{	
@@ -880,7 +885,7 @@ void rtrsn_timer_handler(void* arg)
 
 	printk("timeout !!!\n ");
 	tcp_conn_desc = (t_tcp_conn_desc*) arg;
-	if (tcp_conn_desc->status == ESTABILISHED)
+	if (tcp_conn_desc->status == ESTABILISHED || tcp_conn_desc->status == FIN_WAIT_1_PENDING)
 	{
 		tcp_conn_desc->rto *= 2;
 		tcp_conn_desc->rto = min(tcp_conn_desc->rto , DEFAULT_RTO);
@@ -921,6 +926,7 @@ void pgybg_timer_handler(void* arg)
 	u32 seq_num = 0;
 	t_tcp_conn_desc* tcp_conn_desc = NULL;
 
+	printk("piggy timeout !!!\n ");
 	tcp_conn_desc = (t_tcp_conn_desc*) arg;
 	flags = FLG_ACK;
 	ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;
@@ -978,8 +984,6 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 	kmemcpy(tcp_payload,data,data_len);
 	tcp_header = data_sckt_buf->transport_hdr;
 	chk = SWAP_WORD(checksum_tcp((unsigned short*) tcp_header,src_ip,dst_ip,data_len));
-
-	if (seq_num>=3) return;
 
 	tcp_header[0] = HI_16(src_port);                            //HI SRC PORT
 	tcp_header[1] = LOW_16(src_port);                           //LOW SRC PORT

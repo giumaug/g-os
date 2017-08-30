@@ -55,7 +55,7 @@
 #define LAST_ACK_PENDING       10
 
 //timout=200 ms (quantum = 10 ms)
-#define PIGGYBACKING_TIMEOUT 20 
+#define PIGGYBACKING_TIMEOUT 20
 //3 sec should be 300
 #define DEFAULT_RTO 100
 #define SRTT_FACTOR 0.8
