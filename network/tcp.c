@@ -908,8 +908,8 @@ void rtrsn_timer_handler(void* arg)
 	}
 	else if (tcp_conn_desc->status == FIN_WAIT_1)
 	{
-		//send_packet_tcp(tcp_conn_desc,NULL,0,0,FLG_FIN);
 		tcp_conn_desc->rtrsn_timer->val = tcp_conn_desc->rto;
+		_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,tcp_conn_desc->last_ack_sent,FLG_FIN | FLG_ACK,tcp_conn_desc->last_seq_sent);
 	}
 	else if (tcp_conn_desc->status == LAST_ACK)
 	{
