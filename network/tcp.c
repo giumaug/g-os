@@ -251,6 +251,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	//THREE WAY HANDSHAKE SYN FROM CLIENT TO SERVER
 	else if (flags & FLG_SYN && tcp_listen_desc != NULL)
 	{
+		ack_num = seq_num + 1;
 		new_tcp_conn_desc = tcp_conn_map_get(tcp_listen_desc->back_log_i_map,dst_ip,src_ip,dst_port,src_port);
 		if (new_tcp_conn_desc == NULL)
 		{
@@ -261,7 +262,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			new_tcp_conn_desc->dst_port = src_port;
 			tcp_conn_map_put(tcp_listen_desc->back_log_i_map,dst_ip,src_ip,dst_port,src_port,new_tcp_conn_desc);
 			
-			ack_num = seq_num + 1;
 			new_tcp_conn_desc->snd_queue->nxt_snd++;
 			new_tcp_conn_desc->status = SYN_RCVD;
 			new_tcp_conn_desc->rcv_queue->nxt_rcv = ack_num;
