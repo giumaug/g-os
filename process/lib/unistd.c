@@ -96,3 +96,14 @@ int chdir(char* path)
 	SYSCALL(26,params);
 	return  params[1];	
 }
+
+int lseek(int fd,int offset,int whence)
+{
+	unsigned int params[4];
+
+	params[0] = fd;
+	params[1] = offset;
+	params[2] = whence;	
+	SYSCALL(36,params);
+	return params[3];	
+}

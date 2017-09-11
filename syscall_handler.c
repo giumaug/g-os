@@ -128,6 +128,12 @@ void syscall_handler()
 		params[3]=_write(system.root_fs,(void*)params[0],params[1],params[2]);
 		on_exit_action=1;  
 	}
+
+	else if (syscall_num == 36)
+	{
+		params[3] = _seek(system.root_fs,params[0],params[1],params[2]);
+		on_exit_action=1; 
+	}
 	
 	else if (syscall_num==22)
 	{

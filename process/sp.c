@@ -32,20 +32,27 @@ int main()
 	int rt =0;	
 	int msg_len;
 	int index = 16;
-	int i,t;
+	int i,t,f;
 	unsigned int port=21846;
     	struct sockaddr_in ssock;
-	
-	ssock.sin_family = AF_INET;
-	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=34;
-	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=253;
-        ((unsigned char*) &(server_address.sin_addr.s_addr))[2]=28;
-        ((unsigned char*) &(server_address.sin_addr.s_addr))[3]=130;
+	const char path[] = "/usr/src/kernels/g-os/network/tcp.c";
+	char* io_buffer;
+	int current_len;
+	int file_len;
+	t_stat stat_data;
+	int b_read;
+	int b_to_read = 4096;
 
-//	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=172;
-//	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=16;
-//	((unsigned char*) &(server_address.sin_addr.s_addr))[2]=6;
-//	((unsigned char*) &(server_address.sin_addr.s_addr))[3]=101;
+	ssock.sin_family = AF_INET;
+//	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=34;
+//	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=253;
+//      ((unsigned char*) &(server_address.sin_addr.s_addr))[2]=28;
+//      ((unsigned char*) &(server_address.sin_addr.s_addr))[3]=130;
+
+	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=172;
+	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=16;
+	((unsigned char*) &(server_address.sin_addr.s_addr))[2]=6;
+	((unsigned char*) &(server_address.sin_addr.s_addr))[3]=101;
 
 	((unsigned char*) &(server_address.sin_port))[0]=((unsigned char*) &(port))[1];
 	((unsigned char*) &(server_address.sin_port))[1]=((unsigned char*) &(port))[0];
@@ -57,56 +64,48 @@ int main()
 	}	
 	server_sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	bind(server_sockfd, (struct sockaddr *)&server_address,server_len);
-
-	/* Create a connection queue, ignore child exit details and wait forclients. */
-
 	listen(server_sockfd, 5);
-	//signal(SIGCHLD, SIG_IGN);
-	char ch[100];
 
 	while(1) 
 	{
 		check_free_mem();
-		printf("cot server waiting...++\n");
-
-		/* Accept connection. */
+		printf("server waiting...\n");
 
 		client_len = sizeof(client_address);
 		client_sockfd = accept(server_sockfd,(struct sockaddr *)&client_address, &client_len);
 
-		/* Fork to create a process for this client and perform a test to see whether we're the parent or the child. */	
 		printf("accepted \n");
 		if(fork() == 0) 
 		{
-			printf("figlio \n");
+			f = open(path, O_RDWR | O_APPEND);
+			if (f == -1)
+			{
+				printf("file not found\n");
+				return;
+			}
+			stat(path,&stat_data);
+			file_len = stat_data.st_size;
+			io_buffer = malloc(file_len);
+			printf("file len is %d \n",file_len);
 			for (t=0;t<260000;t++) ////????
 			{
-				while (http_body_len > 0)
+				current_len = file_len;
+				while (current_len > 0)
 				{
-					if (http_body_len - b_to_read < 0)
+					if (current_len - b_to_read < 0)
 					{
-						b_to_read = http_body_len;
+						b_to_read = current_len;
 					}
 					b_read = read(f,io_buffer,b_to_read);
 					write_socket(client_sockfd,io_buffer,b_read);
-					http_body_len -= b_read;
-					//printf("val is %d \n",b_read);
-					//printf("http_body_len= %d \n",http_body_len);
+					current_len -= b_read;
 					io_buffer[b_read] = '\0';
-					//printf("io_buffer=%s \n",io_buffer);
 				}
-				seek(0);
-			}-----------------qui!!!!!!!!!!!!!!
-
-
-
-//			printf("sent completed \n");
+				lseek(f,0,SEEK_SET);
+			}
 			close_socket(client_sockfd);
 			exit(0);
 		}
-
-		/* Otherwise, we must be the parent and our work for this client is finished. */
-
 		else 
 		{
 			close_socket(client_sockfd);
