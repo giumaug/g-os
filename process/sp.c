@@ -87,22 +87,33 @@ int main()
 			file_len = stat_data.st_size;
 			io_buffer = malloc(file_len);
 			printf("file len is %d \n",file_len);
-			for (t=0;t<260000;t++) ////????
+			b_to_read = file_len;
+			for (t=0;t<100;t++) 
 			{
 				current_len = file_len;
 				while (current_len > 0)
 				{
 					if (current_len - b_to_read < 0)
 					{
-						b_to_read = current_len;
+						//b_to_read = current_len;
 					}
 					b_read = read(f,io_buffer,b_to_read);
-					write_socket(client_sockfd,io_buffer,b_read);
+					printf("b_read is %d \n",b_read);
+					//ret = write_socket(client_sockfd,io_buffer,b_read);
+					ret = 0;
+					while (ret !=0 )
+					{
+						//ret = write_socket(client_sockfd, buffer_2,index);	
+						sleep(10);
+						rt++;
+						//printf("retry=%d \n",rt);
+					}				
 					current_len -= b_read;
 					io_buffer[b_read] = '\0';
 				}
 				lseek(f,0,SEEK_SET);
 			}
+			printf("rt=%d \n",rt);
 			close_socket(client_sockfd);
 			exit(0);
 		}
