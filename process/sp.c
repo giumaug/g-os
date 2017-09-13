@@ -42,6 +42,7 @@ int main()
 	t_stat stat_data;
 	int b_read;
 	int b_to_read = 4096;
+	int tt=0;
 
 	ssock.sin_family = AF_INET;
 //	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=34;
@@ -99,6 +100,7 @@ int main()
 					}
 					b_read = read(f,io_buffer,b_to_read);
 					printf("b_read is %d \n",b_read);
+					printf("count= %d \n",tt);
 					//ret = write_socket(client_sockfd,io_buffer,b_read);
 					ret = 0;
 					while (ret !=0 )

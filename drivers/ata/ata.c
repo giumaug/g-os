@@ -63,6 +63,7 @@ void int_handler_ata()
 	}
 	if (go==1) 
 	{
+	 	system.force_scheduling = 1;
 		//printk("leaving ata \n");
 	}
 	system.device_desc->status=DEVICE_IDLE;
