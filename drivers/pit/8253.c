@@ -108,14 +108,14 @@ void int_handler_pit()
 
 		if (go==1)
 		{
-			printk("pid= %d \n",process_context->pid);
+			//printk("pid= %d \n",process_context->pid);
 		}
 
 		if (process_context->pid==0 && go==1)
 		{
 			p0++;
 		}
-		if (process_context->pid==2 && go==1)
+		if (process_context->pid==3 && go==1)
 		{
 			p2++;
 		}
@@ -191,6 +191,10 @@ exit_handler:;
 	{                                                                                           
 		schedule(&_current_process_context,&_processor_reg);	                          
 		_new_process_context=*(struct t_process_context*)(system.process_info->current_process->val);
+		if (go==1)
+		{
+			//printk("pid= %d \n",_new_process_context.pid);
+		}
 		//printk("new is %d \n",_new_process_context.pid);
 		_processor_reg=_new_process_context.processor_reg;                              
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))                                                          

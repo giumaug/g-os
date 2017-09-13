@@ -63,7 +63,7 @@ void int_handler_ata()
 	}
 	if (go==1) 
 	{
-		printk("leaving ata \n");
+		//printk("leaving ata \n");
 	}
 	system.device_desc->status=DEVICE_IDLE;
 	enable_irq_line(14);
