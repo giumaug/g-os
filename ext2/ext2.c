@@ -2,7 +2,6 @@
 #include "ext2/ext2_utils_1.h"
 #include "ext2/ext2_utils_2.h"
 
-int go=0;
 void init_ext2(t_ext2 *ext2,t_device_desc* device_desc)
 {	
 	t_group_block* group_block;
@@ -23,7 +22,6 @@ void free_ext2(t_ext2* ext2)
 
 int _open(t_ext2* ext2,const char* fullpath, int flags)
 {
-	go=0;
 	u32 fd;
 	u32 ret_code;
 	struct t_process_context* current_process_context;
@@ -34,13 +32,6 @@ int _open(t_ext2* ext2,const char* fullpath, int flags)
 
 	inode=kmalloc(sizeof(t_inode));
 	CURRENT_PROCESS_CONTEXT(current_process_context);
-
-	if (current_process_context->pid==2)
-	{
-		go=1;
-		printk("cont \n");
-	}
-
 	fd=current_process_context->next_fd++;
 	//current_process_context->file_desc=kmalloc(sizeof(t_hashtable));
 	//hashtable_init(current_process_context->file_desc,10);

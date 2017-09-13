@@ -49,6 +49,11 @@ void int_handler_pit()
 
 	system.time+=QUANTUM_DURATION;
 
+	if (system.int_path_count>1)
+	{
+		printk("ops!!!! \n");
+	}
+
 	if (system.int_path_count>0)
 	{
 		goto exit_handler;
@@ -103,7 +108,7 @@ void int_handler_pit()
 
 		if (go==1)
 		{
-			//printk("pid= %d \n",process_context->pid);
+			printk("pid= %d \n",process_context->pid);
 		}
 
 		if (process_context->pid==0 && go==1)

@@ -7,6 +7,7 @@
 extern int tcpdump_val[100];
 extern int tcpdump_desc[100];
 extern int tcpdump_index;
+int go = 0;
 
 extern struct t_llist* kbc_wait_queue;
 extern unsigned int *master_page_dir;
@@ -343,6 +344,11 @@ int _fork(struct t_processor_reg processor_reg)
 	child_process_context->file_desc = hashtable_clone_map(parent_process_context->file_desc,sizeof(t_inode));
 	child_process_context->socket_desc = clone_socket_desc(parent_process_context->socket_desc);
 
+	if (child_process_context->pid == 3) {
+
+		go = 1;
+	}
+
 	if (parent_process_context->process_type == USERSPACE_PROCESS)
 	{	
 		child_elf_desc = kmalloc(sizeof(t_elf_desc));
@@ -407,8 +413,6 @@ u32 _exec(char* path,char* argv[])
 	{
 		//collect_mem=1;
 	}
-	
-
 	if (current_process_context->elf_desc==NULL)
 	{
 		elf_desc=kmalloc(sizeof(t_elf_desc));
