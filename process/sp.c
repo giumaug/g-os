@@ -89,7 +89,7 @@ int main()
 			io_buffer = malloc(file_len);
 			printf("file len is %d \n",file_len);
 			b_to_read = file_len;
-			for (t=0;t<100;t++) 
+			for (t=0;t<1000;t++) 
 			{
 				current_len = file_len;
 				while (current_len > 0)
@@ -99,8 +99,8 @@ int main()
 						//b_to_read = current_len;
 					}
 					b_read = read(f,io_buffer,b_to_read);
-					printf("b_read is %d \n",b_read);
-					printf("count= %d \n",tt);
+					//printf("b_read is %d \n",b_read);
+					printf("count= %d \n",t);
 					//ret = write_socket(client_sockfd,io_buffer,b_read);
 					ret = 0;
 					while (ret !=0 )

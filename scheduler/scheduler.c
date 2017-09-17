@@ -281,13 +281,11 @@ void _exit(int status)
 		while(1)
 		{
 			current_process->tick=1;
-			if (go ==1 && system.force_scheduling ==1) 
+			while(go ==1 && system.force_scheduling ==1) 
 			{
-				while (1)
-				{
-					current_process->tick=1;
-					SUSPEND
-				}				
+				printk("..\n");
+				current_process->tick=1;
+				SUSPEND			
 			}
 			asm("sti;hlt");
 		}

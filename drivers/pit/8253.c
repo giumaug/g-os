@@ -49,6 +49,10 @@ void int_handler_pit()
 
 	system.time+=QUANTUM_DURATION;
 
+	if (go == 1)
+	{
+		printk("int in \n");
+	}
 	if (system.int_path_count>1)
 	{
 		printk("ops!!!! \n");
@@ -108,7 +112,7 @@ void int_handler_pit()
 
 		if (go==1)
 		{
-			//printk("pid= %d \n",process_context->pid);
+			printk("pid= %d \n",process_context->pid);
 		}
 
 		if (process_context->pid==0 && go==1)
@@ -170,7 +174,7 @@ void int_handler_pit()
 exit_handler:;
 //	EXIT_INT_HANDLER(is_schedule,processor_reg);
 
-	if (system.force_scheduling == 1 && is_schedule == 0)
+	if (system.force_scheduling == 1 && is_schedule == 0 && system.int_path_count == 0)
 	{
 		is_schedule = 1;
 	}
@@ -186,14 +190,19 @@ exit_handler:;
 	_action2=is_schedule;                                                                                   
 	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;                                  
 	_old_process_context=_current_process_context;                                                      
-	_processor_reg=processor_reg;                             
+	_processor_reg=processor_reg; 
+	if (go == 1)
+	{
+		printk("int out \n");
+	}                            
 	if (_action2>0)                                                                                      
 	{                                                                                           
 		schedule(&_current_process_context,&_processor_reg);	                          
 		_new_process_context=*(struct t_process_context*)(system.process_info->current_process->val);
 		if (go==1)
 		{
-			//printk("pid= %d \n",_new_process_context.pid);
+			//printk("new pid= %d \n",_new_process_context.pid);
+			//printk("int out \n");
 		}
 		//printk("new is %d \n",_new_process_context.pid);
 		_processor_reg=_new_process_context.processor_reg;                              
