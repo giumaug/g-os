@@ -86,6 +86,10 @@ void schedule(struct t_process_context *current_process_context,struct t_process
 			{
 				do_context_switch(current_process_context,processor_reg,next_process_context);	
 				system.process_info->current_process=next;
+				if (go==1)
+				{
+					printk("pid= %d \n",next_process_context->pid);	
+				}
 				if (current_process_context->proc_status==RUNNING)
 				{
 					adjust_sched_queue(current_process_context);

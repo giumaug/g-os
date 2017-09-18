@@ -62,13 +62,13 @@ void int_handler_ata()
 	}
 	if (go==1) 
 	{
-		printk("in \n");
+		//printk("in \n");
 	 	system.force_scheduling = 1;
-		//printk("leaving ata \n");
+		printk("leaving ata \n");
 	}
 	system.device_desc->status=DEVICE_IDLE;
 	enable_irq_line(14);
-	printk("out \n");
+	//printk("out %d \n",system.int_path_count);
 	ENABLE_PREEMPTION
 	EXIT_INT_HANDLER(0,processor_reg)
 }

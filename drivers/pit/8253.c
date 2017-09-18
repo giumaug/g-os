@@ -51,7 +51,7 @@ void int_handler_pit()
 
 	if (go == 1)
 	{
-		printk("int in \n");
+		//printk("int in \n");
 	}
 	if (system.int_path_count>1)
 	{
@@ -113,6 +113,10 @@ void int_handler_pit()
 		if (go==1)
 		{
 			printk("pid= %d \n",process_context->pid);
+			if (process_context->pid > 3)
+			{
+				printk("problem!!!! \n");
+			}
 		}
 
 		if (process_context->pid==0 && go==1)
@@ -193,7 +197,7 @@ exit_handler:;
 	_processor_reg=processor_reg; 
 	if (go == 1)
 	{
-		printk("int out \n");
+		//printk("int out \n");
 	}                            
 	if (_action2>0)                                                                                      
 	{                                                                                           
