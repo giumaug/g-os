@@ -53,7 +53,7 @@ void int_handler_pit()
 	{
 		//printk("int in \n");
 	}
-	if (system.int_path_count>1)
+	if (system.int_path_count>0)
 	{
 		printk("ops!!!! \n");
 	}

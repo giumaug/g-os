@@ -288,6 +288,7 @@ void _exit(int status)
 			while(go ==1 && system.force_scheduling ==1) 
 			{
 				printk("..\n");
+				//asm("int $0x20");
 				current_process->tick=1;
 				SUSPEND			
 			}
