@@ -88,7 +88,8 @@ void schedule(struct t_process_context *current_process_context,struct t_process
 				system.process_info->current_process=next;
 				if (go==1)
 				{
-					printk("pid= %d \n",next_process_context->pid);	
+					printk("current pid= %d \n",current_process_context->pid);
+					printk("switching to pid= %d \n",next_process_context->pid);	
 				}
 				if (current_process_context->proc_status==RUNNING)
 				{

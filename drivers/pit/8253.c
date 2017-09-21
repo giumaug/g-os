@@ -198,7 +198,11 @@ exit_handler:;
 	if (go == 1)
 	{
 		//printk("int out \n");
-	}                            
+	}       
+	if (go == 1)
+	{
+		printk("action is %d \n",_action2);
+	}                     
 	if (_action2>0)                                                                                      
 	{                                                                                           
 		schedule(&_current_process_context,&_processor_reg);	                          
@@ -207,6 +211,10 @@ exit_handler:;
 		{
 			//printk("new pid= %d \n",_new_process_context.pid);
 			//printk("int out \n");
+			if (_new_process_context.pid == _old_process_context.pid == 0)
+			{
+				printk("ddddd \n");
+			}
 		}
 		//printk("new is %d \n",_new_process_context.pid);
 		_processor_reg=_new_process_context.processor_reg;                              
