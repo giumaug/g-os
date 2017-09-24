@@ -48,16 +48,6 @@ void int_handler_pit()
 	SWITCH_DS_TO_KERNEL_MODE
 
 	system.time+=QUANTUM_DURATION;
-
-	if (go == 1)
-	{
-		//printk("int in \n");
-	}
-	if (system.int_path_count>0)
-	{
-		printk("ops!!!! \n");
-	}
-
 	if (system.int_path_count>0)
 	{
 		goto exit_handler;
@@ -109,26 +99,19 @@ void int_handler_pit()
 	{	
 		process_context=system.process_info->current_process->val;
 		process_context->sleep_time-=QUANTUM_DURATION;
-
-		if (go==1)
-		{
-			printk("pid= %d \n",process_context->pid);
-			if (process_context->pid > 3)
-			{
-				printk("problem!!!! \n");
-			}
-		}
-
-		if (process_context->pid==0 && go==1)
-		{
-			p0++;
-		}
-		if (process_context->pid==3 && go==1)
-		{
-			p2++;
-		}
-		
-
+//		if (go==1)
+//		{
+//			printk("pid= %d \n",process_context->pid);
+//		}
+//
+//		if (process_context->pid==0 && go==1)
+//		{
+//			p0++;
+//		}
+//		if (process_context->pid==3 && go==1)
+//		{
+//			p2++;
+//		}
 		if (process_context->sleep_time>1000) 	
 		{
 			process_context->sleep_time=1000;
@@ -163,10 +146,6 @@ void int_handler_pit()
 		{
 			(*timer->handler)(timer->handler_arg);
 		}
-//		if (timer->id == 2)
-//		{
-//			printk(".... \n");
-//		}
 		node = ll_next(node);
 	}
 
@@ -194,52 +173,39 @@ exit_handler:;
 	_action2=is_schedule;                                                                                   
 	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;                                  
 	_old_process_context=_current_process_context;                                                      
-	_processor_reg=processor_reg; 
-	if (go == 1)
-	{
-		//printk("int out \n");
-	}       
-	if (go == 1)
-	{
-		printk("action is %d \n",_action2);
-	}                     
+	_processor_reg=processor_reg;                     
 	if (_action2>0)                                                                                      
 	{                                                                                           
 		schedule(&_current_process_context,&_processor_reg);	                          
 		_new_process_context=*(struct t_process_context*)(system.process_info->current_process->val);
-		if (go==1)
+//		if (go==1)
+//		{
+//			printk("new pid= %d \n",_new_process_context.pid);
+//			if (_new_process_context.pid == _old_process_context.pid && _old_process_context.pid == 0)
+//			{
+//				printk("ddddd \n");
+//			}
+//		}
+		if (_new_process_context.pid != _old_process_context.pid)
 		{
-			//printk("new pid= %d \n",_new_process_context.pid);
-			//printk("int out \n");
-			if (_new_process_context.pid == _old_process_context.pid == 0)
-			{
-				printk("ddddd \n");
-			}
-		}
-		//printk("new is %d \n",_new_process_context.pid);
-		_processor_reg=_new_process_context.processor_reg;                              
-		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))                                                          
+				_processor_reg=_new_process_context.processor_reg;
+		}                             
+		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))                                   
 		DO_STACK_FRAME(_processor_reg.esp-8); 
 		if (_action2==2)                                                                              
 		{                                                                         
 			DO_STACK_FRAME(_processor_reg.esp-8); 	                                
-//			free_vm_process(_old_process_context.page_dir,INIT_VM_USERSPACE);
 			free_vm_process(&_old_process_context);
-//			if (_old_process_context.phy_add_space!=NULL)
-//			{
-//				buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_add_space));
-//				buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_user_stack));
-//			}
 			buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_kernel_stack)); 	                         
 		}      
 		RESTORE_PROCESSOR_REG                                                                       
-		EXIT_SYSCALL_HANDLER                                                                        
+		EXIT_SYSCALL_HANDLER                                                                       
 	}                                                                                                   
 	else                                                                                                
 	{   
 		DO_STACK_FRAME(_processor_reg.esp-8);                                                                                  
-		RESTORE_PROCESSOR_REG                                                                       
-		RET_FROM_INT_HANDLER                                                                        
+		RESTORE_PROCESSOR_REG
+		//TO FIX: SHOULD BE REPLACED BY  EXIT_SYSCALL_HANDLER                                                                      
+		RET_FROM_INT_HANDLER                                                                      
 	}
 }
-

@@ -46,13 +46,6 @@ void int_handler_ata()
 	EOI_TO_MASTER_PIC
 	STI
 
-//	static unsigned int* xx;
-//	xx=0xBFFFEC18;
-//	if ((*xx)==0xcc27a000)
-//	{
-//		printk("got!! \n");
-//	}
-
 	io_request=system.device_desc->serving_request;
 	process_context=io_request->process_context;
 
@@ -62,13 +55,10 @@ void int_handler_ata()
 	}
 	if (go==1) 
 	{
-		//printk("in \n");
 	 	system.force_scheduling = 1;
-		printk("leaving ata \n");
 	}
 	system.device_desc->status=DEVICE_IDLE;
 	enable_irq_line(14);
-	//printk("out %d \n",system.int_path_count);
 	ENABLE_PREEMPTION
 	EXIT_INT_HANDLER(0,processor_reg)
 }

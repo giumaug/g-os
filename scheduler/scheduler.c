@@ -58,10 +58,9 @@ void init_scheduler()
 }
 
 //SCHEDULE SHOULD BE OUTSIDE SLEEP PAUSE ECC... TO AVOID PROPAGATION OF PROCESSOR_REG.THIS
-//REQUIRE SOME LOT OF REFACTORING ON CODE 
+//REQUIRE SOME REFACTORING ON CODE 
 void schedule(struct t_process_context *current_process_context,struct t_processor_reg *processor_reg)
 {
-//	struct t_process_context* current_process_context;
 	struct t_process_context* next_process_context;
 	t_llist_node* node;
 	t_llist_node* next;
@@ -86,11 +85,11 @@ void schedule(struct t_process_context *current_process_context,struct t_process
 			{
 				do_context_switch(current_process_context,processor_reg,next_process_context);	
 				system.process_info->current_process=next;
-				if (go==1)
-				{
-					printk("current pid= %d \n",current_process_context->pid);
-					printk("switching to pid= %d \n",next_process_context->pid);	
-				}
+//				if (go==1)
+//				{
+//					printk("current pid= %d \n",current_process_context->pid);
+//					printk("switching to pid= %d \n",next_process_context->pid);	
+//				}
 				if (current_process_context->proc_status==RUNNING)
 				{
 					adjust_sched_queue(current_process_context);
@@ -286,13 +285,12 @@ void _exit(int status)
 		while(1)
 		{
 			current_process->tick=1;
-			while(go ==1 && system.force_scheduling ==1) 
-			{
-				printk("..\n");
-				//asm("int $0x20");
-				current_process->tick=1;
-				SUSPEND			
-			}
+//			while(go ==1 && system.force_scheduling ==1) 
+//			{
+//				//printk("..\n");
+//   				current_process->tick=1;
+//				SUSPEND			
+//			}
 			asm("sti;hlt");
 		}
 	}
