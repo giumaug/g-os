@@ -28,5 +28,7 @@ tcpdump host 172.16.1.2
 
 ./qemu-system-i386 -s -S -m 1000M -cdrom /home/peppe/Desktop/Fedora-13-i686-Live.iso  -monitor stdio -netdev tap,id=net0,ifname=tap0,script=no,downscript=no -device e1000,netdev=net0,mac=00:0c:29:10:64:b9
 
+./qemu-system-i386 -m 1000M -hda /home/peppe/Desktop/ubuntu-16.04-server-cloudimg-i386-disk1.img  -monitor stdio -netdev tap,id=net0,ifname=tap0,script=no,downscript=no -device e1000,netdev=net0,mac=00:0c:29:10:64:b9
+
 
 
