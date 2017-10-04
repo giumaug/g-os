@@ -380,19 +380,26 @@ read_group_block(t_ext2 *ext2,u32 group_block_number,t_group_block* group_block)
 	
 	READ(1,lba,io_buffer);
 	//u32
-	group_block->bg_block_bitmap=io_buffer[0+sector_offset];
+	//group_block->bg_block_bitmap=io_buffer[0+sector_offset];
+	READ_DWORD(&io_buffer[0+sector_offset],group_block->bg_block_bitmap);
 	//u32
-	group_block->bg_inode_bitmap=io_buffer[4+sector_offset];
+	//group_block->bg_inode_bitmap=io_buffer[4+sector_offset];
+	READ_DWORD(&io_buffer[4+sector_offset],group_block->bg_inode_bitmap);
 	//u32
-	group_block->bg_inode_table=io_buffer[8+sector_offset];
+	//group_block->bg_inode_table=io_buffer[8+sector_offset];
+	READ_DWORD(&io_buffer[8+sector_offset],group_block->bg_inode_table);
 	//u16
-	group_block->bg_free_blocks_count=io_buffer[12+sector_offset];
+	//group_block->bg_free_blocks_count=io_buffer[12+sector_offset];
+	READ_WORD(&io_buffer[12+sector_offset],group_block->bg_free_blocks_count);
 	//u16
-	group_block->bg_free_inodes_count=io_buffer[14+sector_offset];
+	//group_block->bg_free_inodes_count=io_buffer[14+sector_offset];
+	READ_WORD(&io_buffer[14+sector_offset],group_block->bg_free_inodes_count);
 	//u16
-	group_block->bg_used_dirs_count=io_buffer[16+sector_offset];
+	//group_block->bg_used_dirs_count=io_buffer[16+sector_offset];
+	READ_WORD(&io_buffer[16+sector_offset],group_block->bg_used_dirs_count);
 	//u16
-	group_block->bg_pad=io_buffer[18+sector_offset];
+	//group_block->bg_pad=io_buffer[18+sector_offset];
+	READ_WORD(&io_buffer[18+sector_offset],group_block->bg_pad);
 	//u32[3]
 	kmemcpy(group_block->bg_reserved,&io_buffer[20+sector_offset],3);  
 	kfree(io_buffer);
