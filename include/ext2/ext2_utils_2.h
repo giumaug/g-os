@@ -424,12 +424,12 @@ void static read_inode(t_ext2* ext2,t_inode* inode)
 	read_group_block(ext2,group_number,group_block);
 
 	i_number = inode->i_number - (group_number * ext2->superblock->s_inodes_per_group) - 1;
-	inode_table_offset=(inode->i_number-1)*128/BLOCK_SIZE;
+	//inode_table_offset=(inode->i_number-1)*128/BLOCK_SIZE;
+	inode_table_offset = i_number *128 / BLOCK_SIZE;
 	inode_offset=(inode->i_number-1)*128%BLOCK_SIZE;
-	i_number = inode->i_number - (group_number * ext2->superblock->s_inodes_per_group) - 1;
 
 	//lba=ext2->partition_start_sector+(inode_table_offset+group_block->bg_inode_table)*(BLOCK_SIZE/SECTOR_SIZE);
-	lba=ext2->partition_start_sector+(group_block->bg_inode_table)*(BLOCK_SIZE/SECTOR_SIZE);
+	lba = ext2->partition_start_sector + (inode_table_offset + group_block->bg_inode_table) * (BLOCK_SIZE/SECTOR_SIZE);
 	sector_count=BLOCK_SIZE/SECTOR_SIZE;
 	READ(sector_count,lba,io_buffer);
 
