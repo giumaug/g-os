@@ -1,1 +1,7 @@
-to do....
+1) bximage
+2) losetup -o 1048576 /dev/loop7 ./c.img
+3) mkfs.ext2 /dev/loop7
+4) install grub using qemu live cd
+4.1) mount /dev/sda1 /mnt
+4.2) grub-install --root-directory=/mmnt /dev/sda
+4.3) umount /mnt

@@ -7,6 +7,6 @@ ubuntu server
 ./qemu-system-i386 -m 1000M -hda /home/peppe/Desktop/ubuntu-16.04-server-cloudimg-i386-disk1.img  -monitor stdio -netdev tap,id=net0,ifname=tap0,script=no,downscript=no -device e1000,netdev=net0,mac=00:0c:29:10:64:b9
 
 fedora
-./qemu-system-i386 -m 1000M -cdrom /home/peppe/Desktop/Fedora-13-i686-Live.iso  -monitor stdio -device e1000,netdev=net0,mac=00:0C:29:10:64:B9 -netdev tap,id=net0,script=no,ifname=tap0
+./qemu-system-i386 -m 1000M -cdrom /home/peppe/Desktop/Fedora-13-i686-Live.iso  -monitor stdio -device e1000,netdev=net0,mac=00:0C:29:10:64:B9 -netdev tap,id=net0,script=no,ifname=tap0 -boot d -hda /opt/virtutech/simics-3.0.31/workspace/c.img
 
 

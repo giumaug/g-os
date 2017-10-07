@@ -425,6 +425,7 @@ void static read_inode(t_ext2* ext2,t_inode* inode)
 	inode_table_offset=(inode->i_number-1)*128/BLOCK_SIZE;
 	inode_offset=(inode->i_number-1)*128%BLOCK_SIZE;
 	lba=ext2->partition_start_sector+(inode_table_offset+group_block->bg_inode_table)*(BLOCK_SIZE/SECTOR_SIZE);
+	lba += 512;
 	sector_count=BLOCK_SIZE/SECTOR_SIZE;
 	READ(sector_count,lba,io_buffer);
 
