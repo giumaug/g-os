@@ -31,7 +31,7 @@ int main()
 	}
 	stat(path,&stat_data);
 	file_len = stat_data.st_size;
-	io_buffer = malloc(file_len);
+	io_buffer = malloc(b_to_read);
 	file_len = 31457280;
 	printf("file len is... %d \n",file_len);
 	current_len = file_len;

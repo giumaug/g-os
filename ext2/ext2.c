@@ -163,19 +163,28 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count)
 	u32 inode_block;
 	u32 lba;
 	u32 indirect_lba;
-	u32 allocated_indirect_block;
 	u32 sector_count;
 	u32 byte_to_read;
 	u32 byte_read;
 	u32 byte_count;
 	t_inode* inode;
-	char* iob_indirect_block;
+	char* iob_indirect_block_1 = NULL;
+	char* iob_indirect_block_2_1 = NULL;
+	char* iob_indirect_block_2_2 = NULL;
 	char* iob_data_block;
 
 	byte_read=0;
 	byte_to_read=count;
 	iob_indirect_block=kmalloc(BLOCK_SIZE);
 	iob_data_block=kmalloc(BLOCK_SIZE);
+
+	static _count = 0;
+	_count++;
+	printk("count=%d \n",_count);
+	if (_count >= 75)
+	{
+		printk("ops!!! \n");
+	}
 
 	CURRENT_PROCESS_CONTEXT(current_process_context)
 	inode=hashtable_get(current_process_context->file_desc,fd);
@@ -186,24 +195,45 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count)
 	first_inode_block=inode->file_offset/BLOCK_SIZE;
 	first_data_offset=inode->file_offset%BLOCK_SIZE;
 	last_inode_block=(inode->file_offset+(count-1))/BLOCK_SIZE;
-//	if (first_inode_block == last_inode_block)
-//	{
-//		last_inode_block++;
-//	}
-	allocated_indirect_block=0;
+	
 	for (i=first_inode_block;i<=last_inode_block;i++)
 	{
-		if (i>11)
+		if (i > INDIRECT_0_LIMIT && i <= INDIRECT_1_LIMIT)
 		{
-			if (!allocated_indirect_block)
+			if (!allocated_indirect_block_1)
 			{
-				indirect_lba=FROM_BLOCK_TO_LBA(inode->i_block[12]);
-        			sector_count=BLOCK_SIZE/SECTOR_SIZE;
+				indirect_lba = FROM_BLOCK_TO_LBA(inode->i_block[12]);
+        			sector_count = BLOCK_SIZE/SECTOR_SIZE;
 				READ(sector_count,indirect_lba,iob_indirect_block);
-				allocated_indirect_block=1;
+				allocated_indirect_block_1 = 1;
 			}
-			READ_DWORD(&iob_indirect_block[4*(i-12)],inode_block);
-			lba=FROM_BLOCK_TO_LBA(inode_block);
+			READ_DWORD(&iob_indirect_block[4*(i - INDIRECT_1_LIMIT - 1)],inode_block_data);
+			lba = FROM_BLOCK_TO_LBA(inode_block_data);
+		}
+		else if (i > INDIRECT_1_LIMIT  && i <= INDIRECT_2_LIMIT)
+		{
+			if (iob_indirect_block_2_1 == NULL)
+			{
+				iob_indirect_block_2_1 = kmalloc(BLOCK_SIZE);
+				indirect_lba = FROM_BLOCK_TO_LBA(inode->i_block[13]);
+        			sector_count = BLOCK_SIZE/SECTOR_SIZE;
+				READ(sector_count,indirect_lba,iob_indirect_block_2_1);
+			}
+			second_block = (i - INDIRECT_2_LIMIT - 1) / (BLOCK_SIZE / 4);
+			second_block_offset = (i - INDIRECT_2_LIMIT - 1) % (BLOCK_SIZE /4);
+			READ_DWORD(&iob_indirect_block_2_1[second_block],inode_block_ind_1);
+			if (iob_indirect_block_2_2[inode_block_ind_1] == NULL)
+			{
+				iob_indirect_block_2_2[inode_block_ind_1] = kmalloc(BLOCK_SIZE);
+				indirect_lba = FROM_BLOCK_TO_LBA(inode_block);
+				READ(sector_count,indirect_lba,iob_indirect_block_2_2[inode_block_ind_1]);
+			}
+			READ_DWORD(&iob_indirect_block_2_2[inode_block_ind_1],inode_block_data);
+			lba = FROM_BLOCK_TO_LBA(inode_block_data);
+		}
+		else if ( i > INDIRECT_2_LIMIT  && i <= INDIRECT_3_LIMIT )
+		{
+			//TO DO
 		}
 		else
 		{

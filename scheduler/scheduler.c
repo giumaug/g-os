@@ -287,7 +287,7 @@ void _exit(int status)
 			current_process->tick=1;
 			while(go ==1 && system.force_scheduling ==1) 
 			{
-				printk("..\n");
+				//printk("..\n");
    				current_process->tick=1;
 				SUSPEND			
 			}

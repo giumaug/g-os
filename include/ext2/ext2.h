@@ -23,6 +23,11 @@
 #define SEEK_CUR 1
 #define SEEK_END 2
 
+#define INDIRECT_0_LIMIT = 11
+#define INDIRECT_1_LIMIT = ((BLOCK_SIZE / 4) + 11)
+#define INDIRECT_2_LIMIT = (BLOCK_SIZE / 4)(BLOCK_SIZE / 4) + (BLOCK_SIZE / 4) + 11
+#define INDIRECT_3_LIMIT = (BLOCK_SIZE / 4)(BLOCK_SIZE / 4)(BLOCK_SIZE / 4) + (BLOCK_SIZE / 4)(BLOCK_SIZE / 2) + (BLOCK_SIZE / 4)+11
+
 #define FROM_BLOCK_TO_LBA(block_num) ext2->partition_start_sector+block_num*BLOCK_SIZE/SECTOR_SIZE
 
 #define BLOCK_SECTOR_ADDRESS(group_block_index,block)    ext2->partition_start_sector                                         \
