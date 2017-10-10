@@ -186,8 +186,16 @@ typedef struct s_inode
 	u32 osd2_1;
 	u32 osd2_2;
 	u32 osd2_3;
+	t_indirect_block* indirect_block;
 }
 t_inode;
+
+struct s_indirect_block
+{
+	char* block;
+	t_indirect_block* block_map;
+}
+t_indirect_block;
 
 struct s_stat 
 {             
