@@ -2,6 +2,9 @@
 #include "ext2/ext2_utils_1.h"
 #include "ext2/ext2_utils_2.h"
 
+static void indirect_block_free(t_indirect_block* indirect_block);
+static t_indirect_block* indirect_block_init();
+
 void init_ext2(t_ext2 *ext2,t_device_desc* device_desc)
 {	
 	t_group_block* group_block;
@@ -66,9 +69,10 @@ int _close(t_ext2* ext2,int fd)
 
 	CURRENT_PROCESS_CONTEXT(current_process_context)
 	inode=hashtable_remove(current_process_context->file_desc,fd);
-	if (inode!=NULL)
+	if (inode != NULL)
 	{
-		ret=0;
+		ret = 0;
+		indirect_block_free(inode->indirect_block);
 		kfree(inode);
 	}
 	//AT THE MOMENT READ ONLY	
@@ -162,9 +166,25 @@ static t_indirect_block* indirect_block_init()
 	indirect_block->block_map = kmalloc(BLOCK_SIZE * sizeof(t_indirect_block));
 	for (i = 0 ;i <  BLOCK_SIZE; i++)
 	{
-		indirect_block->block_map[i] = 0;
+		indirect_block->block_map[i] = NULL;
 	}
 	return indirect_block;
+}
+
+static void indirect_block_free(t_indirect_block* indirect_block)
+{
+	int i = 0;
+
+	for (i = 0 ;i <  BLOCK_SIZE; i++)
+	{
+		if (indirect_block->block_map[i] != NULL)
+		{
+			indirect_block_free(indirect_block->block_map[i]);
+		}
+	}
+	kfree(indirect_block->block_map);
+	kfree(indirect_block->block);
+	kfree(indirect_block);
 }
 
 int _read(t_ext2* ext2,int fd, void* buf,u32 count)
@@ -183,11 +203,12 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count)
 	u32 byte_read;
 	u32 byte_count;
 	t_inode* inode;
+	u32 inode_block_data; 
 	char* iob_data_block;
 
 	byte_read=0;
 	byte_to_read=count;
-	iob_indirect_block=kmalloc(BLOCK_SIZE);
+//	iob_indirect_block=kmalloc(BLOCK_SIZE);
 	iob_data_block=kmalloc(BLOCK_SIZE);
 
 	static _count = 0;
@@ -214,7 +235,7 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count)
 		{
 			if (inode->indirect_block == NULL)
 			{
-				inode->indirect_block = .............qui!!! 1)
+				inode->indirect_block = indirect_block_init();
 				indirect_lba = FROM_BLOCK_TO_LBA(inode->i_block[12]);
         			sector_count = BLOCK_SIZE/SECTOR_SIZE;
 				READ(sector_count,indirect_lba,inode->indirect_block->block);
@@ -228,37 +249,19 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count)
 			second_block_offset = (i - INDIRECT_2_LIMIT - 1) % (BLOCK_SIZE /4);
 			if (inode->indirect_block == NULL)
 			{
-				indirect_lba = FROM_BLOCK_TO_LBA(inode->i_block[12]);
+				inode->indirect_block = indirect_block_init();
+				indirect_lba = FROM_BLOCK_TO_LBA(inode->i_block[13]);
         			sector_count = BLOCK_SIZE/SECTOR_SIZE;
 				READ(sector_count,indirect_lba,inode->indirect_block->block);
 			}
 			if (inode->indirect_block->block_map[second_block] == NULL)
 			{
-				inode->indirect_block->block_map[second_block] = .....................qui
-			}
-
-
-
-
-
-
-			if (indirect_lba,inode->indirect_block->block_map)
-			{
-				inode->iob_indirect_block_2_1 = kmalloc(BLOCK_SIZE);
-				indirect_lba = FROM_BLOCK_TO_LBA(inode->i_block[13]);
+				inode->indirect_block->block_map[second_block] = indirect_block_init();
+				indirect_lba = FROM_BLOCK_TO_LBA(inode->indirect_block->block[second_block]);
         			sector_count = BLOCK_SIZE/SECTOR_SIZE;
-				READ(sector_count,indirect_lba,inode->iob_indirect_block_2_1);
+				READ(sector_count,indirect_lba,inode->indirect_block->block_map[second_block]->block);	
 			}
-			second_block = (i - INDIRECT_2_LIMIT - 1) / (BLOCK_SIZE / 4);
-			second_block_offset = (i - INDIRECT_2_LIMIT - 1) % (BLOCK_SIZE /4);
-			READ_DWORD(&inode->iob_indirect_block_2_1[second_block],inode_block_ind_1);
-			if (inode->iob_indirect_block_2_2[inode_block_ind_1] == NULL)
-			{
-				inode->iob_indirect_block_2_2[inode_block_ind_1] = kmalloc(BLOCK_SIZE);
-				indirect_lba = FROM_BLOCK_TO_LBA(inode_block);
-				READ(sector_count,indirect_lba,inode->iob_indirect_block_2_2[inode_block_ind_1]);
-			}
-			READ_DWORD(&inode->iob_indirect_block_2_2[inode_block_ind_1],inode_block_data);
+			READ_DWORD(&inode->indirect_block->block_map[second_block]->block[second_block_offset],inode_block_data);
 			lba = FROM_BLOCK_TO_LBA(inode_block_data);
 		}
 		else if ( i > INDIRECT_2_LIMIT  && i <= INDIRECT_3_LIMIT )

@@ -23,10 +23,10 @@
 #define SEEK_CUR 1
 #define SEEK_END 2
 
-#define INDIRECT_0_LIMIT = 11
-#define INDIRECT_1_LIMIT = ((BLOCK_SIZE / 4) + 11)
-#define INDIRECT_2_LIMIT = (BLOCK_SIZE / 4)(BLOCK_SIZE / 4) + (BLOCK_SIZE / 4) + 11
-#define INDIRECT_3_LIMIT = (BLOCK_SIZE / 4)(BLOCK_SIZE / 4)(BLOCK_SIZE / 4) + (BLOCK_SIZE / 4)(BLOCK_SIZE / 2) + (BLOCK_SIZE / 4)+11
+#define INDIRECT_0_LIMIT  11
+#define INDIRECT_1_LIMIT  ((BLOCK_SIZE / 4) + 11)
+#define INDIRECT_2_LIMIT  (BLOCK_SIZE / 4)(BLOCK_SIZE / 4) + (BLOCK_SIZE / 4) + 11
+#define INDIRECT_3_LIMIT  (BLOCK_SIZE / 4)(BLOCK_SIZE / 4)(BLOCK_SIZE / 4) + (BLOCK_SIZE / 4)(BLOCK_SIZE / 2) + (BLOCK_SIZE / 4)+11
 
 #define FROM_BLOCK_TO_LBA(block_num) ext2->partition_start_sector+block_num*BLOCK_SIZE/SECTOR_SIZE
 
@@ -153,15 +153,23 @@ typedef struct s_group_block
 }
 t_group_block;
 
+typedef struct s_indirect_block
+{
+	char* block;
+	struct s_indirect_block** block_map;
+}
+t_indirect_block;
+
 typedef struct s_inode
 {
 	u16 i_number;
-	u32* indirect_block;
+//	u32* indirect_block;
 	u32 last_block_num;
 	u32 last_file_block_num;
 	u32 file_offset;
 	u32 preallocated_block_count;
 	u32 first_preallocated_block;
+	struct s_indirect_block* indirect_block;
 
 	//disk fields
   	u16 i_mode;
@@ -186,16 +194,8 @@ typedef struct s_inode
 	u32 osd2_1;
 	u32 osd2_2;
 	u32 osd2_3;
-	t_indirect_block* indirect_block;
 }
 t_inode;
-
-struct s_indirect_block
-{
-	char* block;
-	t_indirect_block* block_map;
-}
-t_indirect_block;
 
 struct s_stat 
 {             
