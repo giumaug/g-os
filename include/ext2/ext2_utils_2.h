@@ -89,6 +89,7 @@ static void free_indirect_block(t_ext2* ext2,t_inode* i_node)
 	kfree(io_buffer);
 }
 
+//BROKEN!!!!!!!!!!!!!!!
 static u32 read_indirect_block(t_inode* inode,u32 key)
 {
 	if (key>=0 && key<=11)
@@ -97,10 +98,13 @@ static u32 read_indirect_block(t_inode* inode,u32 key)
 	}
 	else
 	{
-		return inode->indirect_block[key-12];
+		//NOT WORKING AFTER NEW INDIRECT BLOCK LOGIC!!!!
+		//return inode->indirect_block[key-12];
+		return 0;
 	} 
 }
 
+//BROKEN!!!!!!!!!!!!!!!
 static void write_indirect_block(t_inode* inode,u32 key,u32 value)
 {
 	if (key>=0 && key<=11)
@@ -109,7 +113,8 @@ static void write_indirect_block(t_inode* inode,u32 key,u32 value)
 	}
 	else
 	{
-		inode->indirect_block[key-12]=value;
+		//NOT WORKING AFTER NEW INDIRECT BLOCK LOGIC!!!!
+		//inode->indirect_block[key-12]=value;
 	}
 }
 

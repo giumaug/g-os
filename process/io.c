@@ -26,7 +26,7 @@ int main()
 	f = open(path, O_RDWR | O_APPEND);
 	if (f == -1)
 	{
-		printf("file not found\n");
+		printf("file not found...++..\n");
 		return;
 	}
 	stat(path,&stat_data);

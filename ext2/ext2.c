@@ -205,6 +205,8 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count)
 	t_inode* inode;
 	u32 inode_block_data; 
 	char* iob_data_block;
+	u32 second_block;
+	u32 second_block_offset;
 
 	byte_read=0;
 	byte_to_read=count;
