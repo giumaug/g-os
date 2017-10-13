@@ -215,12 +215,7 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count)
 
 	static _count = 0;
 	_count++;
-	printk("count=%d \n",_count);
-	if (_count >= 75)
-	{
-		printk("ops!!! \n");
-	}
-
+	
 	CURRENT_PROCESS_CONTEXT(current_process_context)
 	inode=hashtable_get(current_process_context->file_desc,fd);
 	if (inode==NULL)
@@ -242,7 +237,7 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count)
         			sector_count = BLOCK_SIZE/SECTOR_SIZE;
 				READ(sector_count,indirect_lba,inode->indirect_block->block);
 			}
-			READ_DWORD(&inode->indirect_block->block[4*(i - INDIRECT_1_LIMIT - 1)],inode_block_data);
+			READ_DWORD(&inode->indirect_block->block[4*(i - INDIRECT_0_LIMIT - 1)],inode_block_data);
 			lba = FROM_BLOCK_TO_LBA(inode_block_data);
 		}
 		else if (i > INDIRECT_1_LIMIT  && i <= INDIRECT_2_LIMIT)

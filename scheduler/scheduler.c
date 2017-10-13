@@ -354,7 +354,7 @@ int _fork(struct t_processor_reg processor_reg)
 	child_process_context->file_desc = hashtable_clone_map(parent_process_context->file_desc,sizeof(t_inode));
 	child_process_context->socket_desc = clone_socket_desc(parent_process_context->socket_desc);
 
-	if (child_process_context->pid == 3) {
+	if (child_process_context->pid == 2) {
 
 		go = 1;
 	}

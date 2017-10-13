@@ -38,8 +38,8 @@ int main()
 	while (current_len > 0)
 	{
 		b_read = read(f,io_buffer,b_to_read);
-		printf("count= %d \n",t++);
-		printf("b_read is %d \n",b_read);
+		//printf("count= %d \n",t++);
+		//printf("b_read is %d \n",b_read);
 		current_len -= b_read;
 	}
 	close(f);
