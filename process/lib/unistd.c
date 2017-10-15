@@ -107,3 +107,10 @@ int lseek(int fd,int offset,int whence)
 	SYSCALL(36,params);
 	return params[3];	
 }
+
+void read_test()
+{
+	unsigned int params[1];
+	SYSCALL(105,params);
+
+}

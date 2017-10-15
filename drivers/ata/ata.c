@@ -6,6 +6,9 @@
 static int race=0;
 int test=0;
 extern go;
+int start_count=0;
+int count=0;
+int count_1 = 0;
 
 void static int_handler_ata();
 
@@ -38,6 +41,7 @@ void int_handler_ata()
 	struct t_processor_reg processor_reg;
 	t_io_request* io_request;
 	struct t_process_context* process_context;
+	struct t_process_context* current_process_context;
 
 	SAVE_PROCESSOR_REG
 	disable_irq_line(14);
@@ -46,16 +50,26 @@ void int_handler_ata()
 	EOI_TO_MASTER_PIC
 	STI
 
+	if (start_count == 1)
+	{
+		count++;
+	}
+	if (start_count == 0 && count > 0)
+	{
+		printk("stop!! \n");
+	}
 	io_request=system.device_desc->serving_request;
 	process_context=io_request->process_context;
+	CURRENT_PROCESS_CONTEXT(current_process_context);
 
 	if (system.device_desc->status!=POOLING_MODE)
 	{
 		sem_up(&io_request->device_desc->sem);
 	}
-	if (go==1) 
+	if (go == 1 && current_process_context->pid == process_context->pid) 
 	{
 	 	system.force_scheduling = 1;
+		count_1++;
 	}
 	system.device_desc->status=DEVICE_IDLE;
 	enable_irq_line(14);

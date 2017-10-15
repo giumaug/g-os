@@ -233,5 +233,6 @@ int _mkdir(t_ext2* ext2,const char* fullpath);
 int _chdir(t_ext2* ext2,char* path);
 int _stat(t_ext2* ext2,char* pathname,t_stat* stat);
 void _break();
+void _read_test(t_ext2* ext2);
 
 #endif

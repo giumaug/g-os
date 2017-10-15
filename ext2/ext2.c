@@ -2,6 +2,8 @@
 #include "ext2/ext2_utils_1.h"
 #include "ext2/ext2_utils_2.h"
 
+extern start_count;
+
 static void indirect_block_free(t_indirect_block* indirect_block);
 static t_indirect_block* indirect_block_init();
 
@@ -185,6 +187,35 @@ static void indirect_block_free(t_indirect_block* indirect_block)
 	kfree(indirect_block->block_map);
 	kfree(indirect_block->block);
 	kfree(indirect_block);
+}
+
+void _read_test(t_ext2* ext2)
+{
+	int i;
+	int lba;
+	int sector_count;
+	char* iob_data_block;
+	char* buf;
+	u32 cons_block;
+	u32 first_block;
+	u32 last_block;
+	
+	first_block = 3000;
+	last_block = 33720;
+	cons_block = 1;
+	buf = kmalloc(1024 * cons_block);
+	iob_data_block = kmalloc(1024 * cons_block);
+	start_count=1;	
+
+	for (i = first_block;i <= last_block;i += cons_block)
+	{
+		lba = i * (BLOCK_SIZE / SECTOR_SIZE);
+		//printk("lba is: %d \n",lba);
+		sector_count=(BLOCK_SIZE * cons_block) / SECTOR_SIZE;
+		READ(sector_count,lba,iob_data_block);
+		kmemcpy(buf,iob_data_block,(1024 * cons_block));
+	}
+	start_count = 0;
 }
 
 int _read(t_ext2* ext2,int fd, void* buf,u32 count)

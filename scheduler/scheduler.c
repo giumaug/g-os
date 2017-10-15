@@ -282,7 +282,7 @@ void _exit(int status)
 	
 	if (current_process->pid==0)
 	{
-		while(1)
+		while(1) 
 		{
 			current_process->tick=1;
 			while(go ==1 && system.force_scheduling ==1) 

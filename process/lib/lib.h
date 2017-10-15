@@ -106,6 +106,7 @@ int read(int fd, void *buf, int count);
 int write(int fd, void *buf, int count);
 int chdir(char* path);
 int lseek(int fd,int offset,int whence);
+void read_test();
 
 //stat.h
 int mkdir(const char *fullpath);

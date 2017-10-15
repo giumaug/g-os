@@ -230,6 +230,10 @@ void syscall_handler()
 	{
 		debug_network(params[0],params[1]);
 	}
+	else if (syscall_num==105)
+	{
+		_read_test(system.root_fs);
+	}
 	else
 	{
 		panic();
