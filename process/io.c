@@ -22,16 +22,10 @@ int main()
 	int b_read,f;
 	int b_to_read = 4096;
 	int t = 0;
-
-//	for (t=0;t<60000;t++)
-//	{
-//		check_free_mem();
-//	}
-
+	
 	printf("---------start performance check---------- \n");
 	read_test();
 	printf("---------end performance check------------ \n");
-
 
 	f = open(path, O_RDWR | O_APPEND);
 	if (f == -1)

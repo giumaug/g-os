@@ -356,7 +356,7 @@ int _fork(struct t_processor_reg processor_reg)
 
 	if (child_process_context->pid == 2) {
 
-		go = 1;
+		//go = 1;
 	}
 
 	if (parent_process_context->process_type == USERSPACE_PROCESS)

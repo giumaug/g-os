@@ -50,10 +50,12 @@ void int_handler_ata()
 	EOI_TO_MASTER_PIC
 	STI
 
+	int sche;
 	if (start_count == 1)
 	{
 		count++;
 	}
+	
 	if (start_count == 0 && count > 0)
 	{
 		printk("stop!! \n");
@@ -66,15 +68,18 @@ void int_handler_ata()
 	{
 		sem_up(&io_request->device_desc->sem);
 	}
-	if (go == 1 && current_process_context->pid == process_context->pid) 
+	sche=0;
+	if (current_process_context->pid != process_context->pid) 
+//	if (go == 1) 
 	{
-	 	system.force_scheduling = 1;
+		sche=1;
+	 	//system.force_scheduling = 1;
 		count_1++;
 	}
 	system.device_desc->status=DEVICE_IDLE;
 	enable_irq_line(14);
 	ENABLE_PREEMPTION
-	EXIT_INT_HANDLER(0,processor_reg)
+	EXIT_INT_HANDLER(sche,processor_reg)
 }
 
 static unsigned int _read_write_28_ata(t_io_request* io_request)
@@ -84,6 +89,7 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	t_io_request* pending_request;
 	t_llist_node* node;
 	int k=0;
+	int s;
 	
 	device_desc=io_request->device_desc;
 	//Entrypoint mutual exclusion region
@@ -93,6 +99,7 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	device_desc->status=DEVICE_BUSY;
 	system.device_desc->serving_request=io_request;
 	
+        //out(2, 0x3F6);
 	out(0xE0 | (io_request->lba >> 24),0x1F6);
 	//io_request->sector_count=2;
 	out((unsigned char)io_request->sector_count,0x1F2);
@@ -100,8 +107,10 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	out((unsigned char)(io_request->lba >> 8),0x1F4);
 	out((unsigned char)(io_request->lba >> 16),0x1F5);
 	out(io_request->command,0x1F7);
-	//out(0xc4,0x1F7);
-
+//	if (io_request->command==READ_28) 
+//	{
+//		out(0xc4,0x1F7);
+//	}
 	for (k=0;k<1000;k++);
 
 	//to fix
@@ -119,13 +128,15 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	{
 		//semaphore to avoid race with interrupt handler
 		sem_down(&device_desc->sem);
+
+		while ((in(0x1F7)&0x83)!=0);
+
 		if ((in(0x1F7)&1))
 		{
 			device_desc->status=DEVICE_IDLE;
 			panic();
 			return -1;
 		}
-	
 		if (io_request->command==READ_28)
 		{
 			for (i=0;i<512;i+=2)

@@ -99,19 +99,19 @@ void int_handler_pit()
 	{	
 		process_context=system.process_info->current_process->val;
 		process_context->sleep_time-=QUANTUM_DURATION;
-//		if (go==1)
-//		{
-//			printk("pid= %d \n",process_context->pid);
-//		}
-//
-//		if (process_context->pid==0 && go==1)
-//		{
-//			p0++;
-//		}
-//		if (process_context->pid==3 && go==1)
-//		{
-//			p2++;
-//		}
+		if (go==1)
+		{
+			//printk("pid= %d \n",process_context->pid);
+		}
+
+		if (process_context->pid==0 && go==1)
+		{
+			p0++;
+		}
+		if (process_context->pid==2 && go==1)
+		{
+			p2++;
+		}
 		if (process_context->sleep_time>1000) 	
 		{
 			process_context->sleep_time=1000;
