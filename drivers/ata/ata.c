@@ -4,11 +4,6 @@
 #include "drivers/ata/ata.h"
 
 static int race=0;
-int test=0;
-extern go;
-int start_count=0;
-int count=0;
-int count_1 = 0;
 
 void static int_handler_ata();
 
@@ -50,16 +45,6 @@ void int_handler_ata()
 	EOI_TO_MASTER_PIC
 	STI
 
-	int sche;
-	if (start_count == 1)
-	{
-		count++;
-	}
-	
-	if (start_count == 0 && count > 0)
-	{
-		printk("stop!! \n");
-	}
 	io_request=system.device_desc->serving_request;
 	process_context=io_request->process_context;
 	CURRENT_PROCESS_CONTEXT(current_process_context);
@@ -68,21 +53,80 @@ void int_handler_ata()
 	{
 		sem_up(&io_request->device_desc->sem);
 	}
-	sche=0;
 	if (current_process_context->pid != process_context->pid) 
-//	if (go == 1) 
 	{
-		sche=1;
-	 	//system.force_scheduling = 1;
-		count_1++;
+	 	system.force_scheduling = 1;
 	}
 	system.device_desc->status=DEVICE_IDLE;
 	enable_irq_line(14);
 	ENABLE_PREEMPTION
-	EXIT_INT_HANDLER(sche,processor_reg)
+	EXIT_INT_HANDLER(0,processor_reg)
 }
 
 static unsigned int _read_write_28_ata(t_io_request* io_request)
+{
+	int i;
+	t_device_desc* device_desc;
+	t_io_request* pending_request;
+	t_llist_node* node;
+	int k=0;
+	int s;
+	
+	device_desc=io_request->device_desc;
+	//Entrypoint mutual exclusion region
+	sem_down(&device_desc->mutex);
+	device_desc->status=DEVICE_BUSY;
+	system.device_desc->serving_request=io_request;
+	
+	out(0xE0 | (io_request->lba >> 24),0x1F6);
+	out((unsigned char)io_request->sector_count,0x1F2);
+	out((unsigned char)io_request->lba,0x1F3);
+	out((unsigned char)(io_request->lba >> 8),0x1F4);
+	out((unsigned char)(io_request->lba >> 16),0x1F5);
+	out(io_request->command,0x1F7);
+	
+	for (k=0;k<1000;k++);
+
+	//to fix
+	if (io_request->command==WRITE_28)
+	{
+		for (i=0;i<256;i++)
+		{  
+			//out(*(char*)io_request->io_buffer++,0x1F0); 
+			outw((unsigned short)57,0x1F0);
+		}
+	}
+	
+	//one interrupt for each block
+	for (k=0;k<io_request->sector_count;k++)
+	{
+		//semaphore to avoid race with interrupt handler
+		sem_down(&device_desc->sem);
+
+		if ((in(0x1F7)&1))
+		{
+			device_desc->status=DEVICE_IDLE;
+			panic();
+			return -1;
+		}
+		if (io_request->command==READ_28)
+		{
+			for (i=0;i<512;i+=2)
+			{  
+				unsigned short val=inw(0x1F0);
+				((char*)io_request->io_buffer)[i+(512*k)]=(val&0xff);
+				((char*)io_request->io_buffer)[i+1+(512*k)]=(val>>0x8);
+			}
+		i=0;
+		}
+	}
+	//Endpoint mutual exclusion region
+	sem_up(&device_desc->mutex);	
+	return 0;
+}
+
+//MODIFIED VERSION TO TEST PERFORMANCE WITH MULTISECTORE READS (SEE _read_test(t_ext2* ext2) in ext2.c)
+static unsigned int ___read_write_28_ata(t_io_request* io_request)
 {
 	int i;
 	t_device_desc* device_desc;
@@ -99,18 +143,18 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	device_desc->status=DEVICE_BUSY;
 	system.device_desc->serving_request=io_request;
 	
-        //out(2, 0x3F6);
+        out(2, 0x3F6);
 	out(0xE0 | (io_request->lba >> 24),0x1F6);
 	//io_request->sector_count=2;
 	out((unsigned char)io_request->sector_count,0x1F2);
 	out((unsigned char)io_request->lba,0x1F3);
 	out((unsigned char)(io_request->lba >> 8),0x1F4);
 	out((unsigned char)(io_request->lba >> 16),0x1F5);
-	out(io_request->command,0x1F7);
-//	if (io_request->command==READ_28) 
-//	{
-//		out(0xc4,0x1F7);
-//	}
+	//out(io_request->command,0x1F7);
+	if (io_request->command==READ_28) 
+	{
+		out(0xc4,0x1F7);
+	}
 	for (k=0;k<1000;k++);
 
 	//to fix

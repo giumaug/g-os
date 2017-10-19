@@ -240,6 +240,12 @@ void syscall_handler()
 	}
 //	EXIT_INT_HANDLER(on_exit_action,processor_reg)
 
+	if (system.force_scheduling == 1 && on_exit_action == 0 && system.int_path_count == 0)                                     
+	{                                                                                                                       
+		on_exit_action = 1;                                                                                                     
+	}                                                                                                                       
+	system.force_scheduling = 0;   
+
 	static struct t_process_context _current_process_context;                                          
 	static struct t_process_context _old_process_context;                                              
 	static struct t_process_context _new_process_context;	                                            

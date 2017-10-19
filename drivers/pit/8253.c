@@ -99,19 +99,19 @@ void int_handler_pit()
 	{	
 		process_context=system.process_info->current_process->val;
 		process_context->sleep_time-=QUANTUM_DURATION;
-		if (go==1)
-		{
-			//printk("pid= %d \n",process_context->pid);
-		}
-
-		if (process_context->pid==0 && go==1)
-		{
-			p0++;
-		}
-		if (process_context->pid==2 && go==1)
-		{
-			p2++;
-		}
+//		if (go==1)
+//		{
+//			//printk("pid= %d \n",process_context->pid);
+//		}
+//
+//		if (process_context->pid==0 && go==1)
+//		{
+//			p0++;
+//		}
+//		if (process_context->pid==2 && go==1)
+//		{
+//			p2++;
+//		}
 		if (process_context->sleep_time>1000) 	
 		{
 			process_context->sleep_time=1000;
@@ -178,14 +178,6 @@ exit_handler:;
 	{                                                                                           
 		schedule(&_current_process_context,&_processor_reg);	                          
 		_new_process_context=*(struct t_process_context*)(system.process_info->current_process->val);
-//		if (go==1)
-//		{
-//			printk("new pid= %d \n",_new_process_context.pid);
-//			if (_new_process_context.pid == _old_process_context.pid && _old_process_context.pid == 0)
-//			{
-//				printk("ddddd \n");
-//			}
-//		}
 		if (_new_process_context.pid != _old_process_context.pid)
 		{
 				_processor_reg=_new_process_context.processor_reg;
