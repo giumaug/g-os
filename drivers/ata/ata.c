@@ -60,7 +60,49 @@ void int_handler_ata()
 	system.device_desc->status=DEVICE_IDLE;
 	enable_irq_line(14);
 	ENABLE_PREEMPTION
-	EXIT_INT_HANDLER(0,processor_reg)
+//	EXIT_INT_HANDLER(0,processor_reg)
+	int action = 0;
+	static struct t_process_context _current_process_context;                                                  		
+	static struct t_process_context _old_process_context;                                                      		
+	static struct t_process_context _new_process_context;	                                                   		
+	static struct t_processor_reg _processor_reg;                                                              		
+	static unsigned int _action2;                                                                              		
+                                                                                                                   		
+	CLI                                                                                                        		
+	_action2=action;                                                                                           		
+	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;             		
+	_old_process_context=_current_process_context;                                                             		
+	_processor_reg=processor_reg;                                                                              		
+	if (system.force_scheduling == 1 && action == 0 && system.int_path_count == 0)                                          
+	{                                                                                                                       
+		_action2 = 1;                                                                                                   
+	}                                                                                                                       
+	system.force_scheduling = 0;                                                                                            
+                                                                                                                                
+	if (_action2>0)                                                                                            		
+	{                                                                                                          		
+		schedule(&_current_process_context,&_processor_reg);                                               		
+		_new_process_context=*(struct t_process_context*)system.process_info->current_process->val;         		
+		if (_new_process_context.pid != _old_process_context.pid)                                                       
+		{                                                                                                               
+				_processor_reg=_new_process_context.processor_reg;                                              
+		}                                                                                                               
+		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))                  		
+		DO_STACK_FRAME(_processor_reg.esp-8);                                                              		
+		if (_action2==2)                                                                                   		
+		{                                                                                                  		
+			DO_STACK_FRAME(_processor_reg.esp-8);                                                      		
+			free_vm_process(&_old_process_context);                                                               	
+			buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_kernel_stack));             
+		}                                                                                                  		
+		RESTORE_PROCESSOR_REG                                                                              		
+		EXIT_SYSCALL_HANDLER                                                                               		
+	}                                                                                                          		
+	else                                                                                                       		
+	{                                                                                                            		
+		RESTORE_PROCESSOR_REG                                                                              		
+		RET_FROM_INT_HANDLER                                                                               		
+	}    
 }
 
 static unsigned int _read_write_28_ata(t_io_request* io_request)

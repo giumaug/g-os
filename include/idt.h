@@ -22,12 +22,6 @@ void set_idt_entry(int entry,struct t_i_desc* i_desc);
 
 #define EXIT_INT_HANDLER(action,processor_reg)                                                                                  \
                                                                                                                                 \
-	if (system.force_scheduling == 1 && action == 0 && system.int_path_count == 0)                                          \
-	{                                                                                                                       \
-		action = 1;                                                                                                     \
-	}                                                                                                                       \
-	system.force_scheduling = 0;                                                                  		                \
-                                                                                                                   		\
 	static struct t_process_context _current_process_context;                                                  		\
 	static struct t_process_context _old_process_context;                                                      		\
 	static struct t_process_context _new_process_context;	                                                   		\
@@ -39,6 +33,12 @@ void set_idt_entry(int entry,struct t_i_desc* i_desc);
 	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;             		\
 	_old_process_context=_current_process_context;                                                             		\
 	_processor_reg=processor_reg;                                                                              		\
+	if (system.force_scheduling == 1 && action == 0 && system.int_path_count == 0)                                          \
+	{                                                                                                                       \
+		_action2 = 1;                                                                                                   \
+	}                                                                                                                       \
+	system.force_scheduling = 0;                                                                                            \
+                                                                                                                                \
 	if (_action2>0)                                                                                            		\
 	{                                                                                                          		\
 		schedule(&_current_process_context,&_processor_reg);                                               		\
@@ -62,7 +62,7 @@ void set_idt_entry(int entry,struct t_i_desc* i_desc);
 	{                                                                                                            		\
 		RESTORE_PROCESSOR_REG                                                                              		\
 		RET_FROM_INT_HANDLER                                                                               		\
-	}
+	}                                                                                                                       \
          
 #endif
 
