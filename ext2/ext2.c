@@ -198,9 +198,10 @@ void _read_test(t_ext2* ext2)
 	u32 first_block;
 	u32 last_block;
 	
+/*
 	first_block = 3000;
 	last_block = 33720;
-	cons_block = 1;
+	cons_block = 32;
 	buf = kmalloc(1024 * cons_block);
 	iob_data_block = kmalloc(1024 * cons_block);	
 
@@ -212,6 +213,8 @@ void _read_test(t_ext2* ext2)
 		READ(sector_count,lba,iob_data_block);
 		kmemcpy(buf,iob_data_block,(1024 * cons_block));
 	}
+*/
+	return;	
 }
 
 int _read(t_ext2* ext2,int fd, void* buf,u32 count)
@@ -280,7 +283,6 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count)
 			}
 			if (inode->indirect_block->block_map[second_block] == NULL)
 			{
-				printk("indi...\n");
 				inode->indirect_block->block_map[second_block] = indirect_block_init();
 				indirect_lba = FROM_BLOCK_TO_LBA(inode->indirect_block->block[second_block]);
         			sector_count = BLOCK_SIZE/SECTOR_SIZE;

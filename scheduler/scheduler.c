@@ -81,15 +81,10 @@ void schedule(struct t_process_context *current_process_context,struct t_process
 		while(next!=sentinel_node && !stop)
 		{
 			next_process_context=next->val;
-			if (current_process_context->pid!=next_process_context->pid)
+			if (current_process_context->pid!=next_process_context->pid && next_process_context->pid!=0)
 			{
 				do_context_switch(current_process_context,processor_reg,next_process_context);	
 				system.process_info->current_process=next;
-//				if (go==1)
-//				{
-//					printk("current pid= %d \n",current_process_context->pid);
-//					printk("switching to pid= %d \n",next_process_context->pid);	
-//				}
 				if (current_process_context->proc_status==RUNNING)
 				{
 					adjust_sched_queue(current_process_context);
@@ -114,6 +109,27 @@ void schedule(struct t_process_context *current_process_context,struct t_process
 			}	
 		}
 		index++; 
+	}
+	if (stop == 0)
+	{
+		if (current_process_context->proc_status == RUNNING)
+		{
+			adjust_sched_queue(current_process_context);
+		}
+		else 
+		{
+			do_context_switch(current_process_context,processor_reg,system.process_info->process_0);	
+			system.process_info->current_process = system.process_info->process_0;
+			if (current_process_context->proc_status==SLEEPING)
+			{
+				ll_delete_node(node);	
+			}
+			else if (current_process_context->proc_status==EXITING)
+			{
+				kfree(current_process_context);
+				ll_delete_node(node);
+			}
+		}
 	}
 }
 
@@ -245,19 +261,6 @@ void _pause()
 
 	SAVE_IF_STATUS
 	CLI
-/*
-	unsigned int* xxx;
-	unsigned int* zzz;	
-	unsigned int* yyy;
-	unsigned int* kkk;
-	CURRENT_PROCESS_CONTEXT(current_process);
-	xxx=FROM_PHY_TO_VIRT(((unsigned int*) current_process->page_dir)[767]);
-	yyy=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) current_process->page_dir)[767]));
-        zzz=FROM_PHY_TO_VIRT(yyy[1019]);
-
-	kkk=0xBFFFB000;
-	*kkk=1;
-*/
 	pause_queue=system.process_info->pause_queue;
 	current_process=system.process_info->current_process->val;
 	ll_prepend(pause_queue,current_process);	
@@ -284,20 +287,14 @@ void _exit(int status)
 	{
 		while(1) 
 		{
-			current_process->tick=1;
-			while(system.force_scheduling == 1) 
-			{
-   				current_process->tick=1;
-				SUSPEND			
-			}
+//			current_process->tick=1;
+//			while(system.force_scheduling == 1) 
+//			{
+//   				current_process->tick=1;
+//				SUSPEND			
+//			}
 			asm("sti;hlt");
 		}
-//		while(1) 
-//		{
-//			current_process->tick=1;
-//			SUSPEND
-//			asm("sti;hlt");
-//		}
 	}
 	current_process->proc_status=EXITING;
 	sentinel=ll_sentinel(system.process_info->pause_queue);
@@ -347,7 +344,10 @@ int _fork(struct t_processor_reg processor_reg)
 	SAVE_IF_STATUS
 	CLI
 	CURRENT_PROCESS_CONTEXT(parent_process_context);
-
+	if (parent_process_context->pid == 0)
+	{
+		system.process_info->process_0 = system.process_info->current_process;
+	}
 	kmemcpy(child_process_context,parent_process_context,sizeof(struct t_process_context));
 	child_process_context->processor_reg = processor_reg;
 	kernel_stack_addr = buddy_alloc_page(system.buddy_desc,KERNEL_STACK_SIZE);
@@ -358,11 +358,6 @@ int _fork(struct t_processor_reg processor_reg)
 	child_process_context->parent = parent_process_context;
 	child_process_context->file_desc = hashtable_clone_map(parent_process_context->file_desc,sizeof(t_inode));
 	child_process_context->socket_desc = clone_socket_desc(parent_process_context->socket_desc);
-
-	if (child_process_context->pid == 2) {
-
-		//go = 1;
-	}
 
 	if (parent_process_context->process_type == USERSPACE_PROCESS)
 	{	
@@ -379,23 +374,10 @@ int _fork(struct t_processor_reg processor_reg)
 		child_process_context->ustack_mem_reg = create_mem_reg(parent_process_context->ustack_mem_reg->start_addr,
 								     parent_process_context->ustack_mem_reg->end_addr);	
 	}
-
 	ll_prepend(system.scheduler_desc->scheduler_queue[parent_process_context->curr_sched_queue_index],child_process_context);
-
-
 	child_process_context->page_dir = clone_vm_process(parent_process_context->page_dir,
 							 parent_process_context->process_type,
 							 FROM_VIRT_TO_PHY(kernel_stack_addr));
-
-//	static unsigned int* xxx;
-//	static unsigned int zzz;	
-//	static unsigned int* yyy;
-//	static unsigned int* kkk;
-//	
-//	xxx=FROM_PHY_TO_VIRT(((unsigned int*) parent_process_context->page_dir)[767]);
-//	yyy=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) parent_process_context->page_dir)[767]));
-//      zzz=FROM_PHY_TO_VIRT(yyy[1019]);
-//	zzz=yyy[1019];
 
 	RESTORE_IF_STATUS
 	return child_process_context->pid;

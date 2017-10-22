@@ -29,215 +29,216 @@ void syscall_handler()
 	t_console_desc *console_desc=current_process_context->console_desc;
 	syscall_num=processor_reg.eax;
 	params=processor_reg.ecx;
-	if (syscall_num==1) 
+
+	switch (syscall_num) 
 	{
+		case 1:
 		params[0]=_fork(processor_reg);
-	}
-	else if (syscall_num==2)
-	{ 
+		break;
+	
+		case 2:
 		params[1]=_malloc(params[0]);
-	}
-	else if (syscall_num==3)
-	{ 
+		break;	
+
+		case 3:
 		_free(params[0]);
-	}
-	else if (syscall_num==150)
-	{ 
+		break;
+	
+		case 150:
 		params[1]=_bigMalloc(params[0]);
-	}
-	else if (syscall_num==151)
-	{ 
-		_bigFree(params[0]);
-	}
-	else if (syscall_num==4)
-	{ 
+		break;
+	
+		case 151:
+	 	_bigFree(params[0]);
+		break;	
+
+		case 4:
 		_write_char(console_desc,params[0]);
-	}
-	else if (syscall_num==5)
-	{ 
+		break;	
+
+		case 5:
 		data=_read_char(console_desc);
 		*((char*)params[0])=data;	
 		if (data==NULL)
 		{
 			on_exit_action=1; 
 		}
-	}
-	else if (syscall_num==6)
-	{ 
+		break;
+	
+		case 6:
 		_echo_char(console_desc,params[0]);
-	}
-	else if (syscall_num==7)
-	{ 
-		_enable_cursor(console_desc);	
-	}
-	else if (syscall_num==8)
-	{ 
+		break;	
+
+		case 7:
+		_enable_cursor(console_desc);
+		break;	
+	
+		case 8:
 		_disable_cursor(console_desc);
-	}
-	else if (syscall_num==9)
-	{ 
-		_update_cursor(console_desc);	
-	}
-	else if (syscall_num==10)
-	{
+		break;
+	
+		case 9:
+		_update_cursor(console_desc);
+		break;	
+	
+		case 10:
 		_delete_char(console_desc);
-	}
-	else if (syscall_num==11)
-	{
+		break;
+	
+		case 11:
 		_pause();	
-		on_exit_action=1; 
-	}
-	else if (syscall_num==12)
-	{
+		on_exit_action=1;
+		break; 
+	
+		case 12:
 		_awake(params[0]);
-	}
-	else if (syscall_num==13)
-	{
+		break;
+
+		case 13:
 		_exit(params[0]);
 		on_exit_action=2;
-	}
-	else if (syscall_num==14) 
-	{
-		params[2]=_exec(params[0],params[1]); 
-	}
-	else if (syscall_num==15) 
-	{
+		break;
+	
+		case 14: 
+		params[2]=_exec(params[0],params[1]);
+		break; 
+	
+		case 15:
 		_sleep_time(params[0]);	
-		on_exit_action=1; 
-	}
-	else if (syscall_num==18) 
-	{
+		on_exit_action=1;
+		break; 
+	
+		case 18: 
 		params[2]=_open(system.root_fs,(char*) params[0],params[1]); 
-		on_exit_action=1; 
-	}
+		on_exit_action=1;
+		break; 
 
-	else if (syscall_num==19) 
-	{
+		case 19: 
 		params[1]=_close(system.root_fs,params[0]);
 		on_exit_action=1; 
-	}
+		break;
 
-	else if (syscall_num==20) 
-	{
+		case 20: 
 		params[3]=_read(system.root_fs,params[0],params[1],params[2]); 
 		on_exit_action=1; 
-	}
+		break;
 
-	else if (syscall_num==21) 
-	{
+		case 21: 
 		params[3]=_write(system.root_fs,(void*)params[0],params[1],params[2]);
 		on_exit_action=1;  
-	}
+		break;
 
-	else if (syscall_num == 36)
-	{
+		case 36:
 		params[3] = _seek(system.root_fs,params[0],params[1],params[2]);
 		on_exit_action=1; 
-	}
+		break;
 	
-	else if (syscall_num==22)
-	{
+		case 22:
 		params[1]=_rm(system.root_fs,(char*)params[0]);
 		on_exit_action=1; 
-	}
+		break;
 
-	else if (syscall_num==23) 
-	{
+		case 23: 
 		params[1]=_mkdir(system.root_fs,params[0]);
 		on_exit_action=1; 
-	}
-	//syscall 24 and 25 test only
-	else if (syscall_num==24) 
-	{
-		t_io_request* io_request;
-		io_request=kmalloc(sizeof(t_io_request));
-		io_request->device_desc=system.device_desc;
-		io_request->sector_count=params[0];
-		io_request->lba=params[1];
-		io_request->io_buffer=params[2];
-		io_request->process_context=current_process_context;
-		_read_28_ata(io_request);
-		kfree(io_request);
-	}
-	else if (syscall_num==25) 
-	{
-		t_io_request* io_request;
-		io_request=kmalloc(sizeof(t_io_request));
-		io_request->device_desc=system.device_desc;
-		io_request->sector_count=params[0];
-		io_request->lba=params[1];
-		io_request->io_buffer=params[2];
-		io_request->process_context=current_process_context;
-		_write_28_ata(io_request);
-		kfree(io_request);
-	}
-	else if (syscall_num==26) 
-	{
-		params[1]=_chdir(system.root_fs,(char*) params[0]); 
-		on_exit_action=1; 	
-	}
-	else if (syscall_num==27)
-	{
-		params[2]=_stat(system.root_fs,(char*) params[0],params[1]); 	
-	}
+		break;
 
-	else if (syscall_num==28)
-	{
- 		params[1]=_open_socket(params[0]); 
-	}
-	else if (syscall_num==29)
-	{
+		//syscall 24 and 25 test only
+		case 24:
+		{ 
+			//NEEDED NEW SCOPE TO DECLARE VARIABLE
+			t_io_request* io_request;
+			io_request=kmalloc(sizeof(t_io_request));
+			io_request->device_desc=system.device_desc;
+			io_request->sector_count=params[0];
+			io_request->lba=params[1];
+			io_request->io_buffer=params[2];
+			io_request->process_context=current_process_context;
+			_read_28_ata(io_request);
+			kfree(io_request);
+		}
+		break;
+	
+		case 25:
+		{ 
+			t_io_request* io_request;
+			io_request=kmalloc(sizeof(t_io_request));
+			io_request->device_desc=system.device_desc;
+			io_request->sector_count=params[0];
+			io_request->lba=params[1];
+			io_request->io_buffer=params[2];
+			io_request->process_context=current_process_context;
+			_write_28_ata(io_request);
+			kfree(io_request);
+		}
+		break;
+	
+		case 26: 
+		params[1]=_chdir(system.root_fs,(char*) params[0]); 
+		on_exit_action=1;
+		break; 	
+	
+		case 27:
+		params[2]=_stat(system.root_fs,(char*) params[0],params[1]); 	
+		break;
+
+		case 28:
+ 		params[1]=_open_socket(params[0]);
+		break; 
+	
+		case 29:
  		params[5]=_bind(params[0],params[1],params[2],params[3],params[4]);
-	}
-	else if (syscall_num==30)
-	{
+		break;	
+
+		case 30:
  		params[5]=_recvfrom(params[0],params[1],params[2],params[3],params[4]);
-	}
-	else if (syscall_num==31)
-	{
+		break;
+	
+		case 31:
  		params[5]=_sendto(params[0],params[1],params[2],params[3],params[4]);
-	}
-	else if (syscall_num==32)
-	{
+		break;
+	
+		case 32:
  		params[1]=_close_socket(params[0]);
-	}
-	else if (syscall_num==33)
-	{
+		break;
+	
+		case 33:
  		params[1]=_listen(params[0]);
-	}
-	else if (syscall_num==34)
-	{
+		break;
+	
+		case 34:
  		params[3]=_accept(params[0]);
-	}
-	else if (syscall_num==35)
-	{
+		break;
+	
+		case 35:
  		params[3]=_connect(params[0],params[1],params[2]);
-	}
-	else if (syscall_num==101) 
-	{
-		on_exit_action=1; 
-	}
-	else if (syscall_num==102) 
-	{
+		break;
+	
+		case 101: 
+		on_exit_action=1;
+		break;
+	
+		case 102:
 		_flush_ata_pending_request();
-	}
-	//DEBUG WRAPPER
-	else if (syscall_num==103)
-	{
+		break;
+	
+		//DEBUG WRAPPER
+		case 103:
 		check_free_mem();
-	}
-	else if (syscall_num==104)
-	{
+		break;
+	
+		case 104:
 		debug_network(params[0],params[1]);
-	}
-	else if (syscall_num==105)
-	{
+		break;
+	
+		case 105:
 		_read_test(system.root_fs);
-	}
-	else
-	{
+		break;
+	
+		default:
 		panic();
 	}
+
 //	EXIT_INT_HANDLER(on_exit_action,processor_reg)
 
 	if (system.force_scheduling == 1 && on_exit_action == 0 && system.int_path_count == 0)                                     

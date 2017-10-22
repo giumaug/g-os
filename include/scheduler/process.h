@@ -83,6 +83,7 @@ struct t_process_info
 {
 	t_llist* process_context_list;
 	t_llist_node* current_process;
+	t_llist_node* process_0;
 	unsigned int next_pid;
 	struct t_tss tss;	
 	t_llist* pause_queue;

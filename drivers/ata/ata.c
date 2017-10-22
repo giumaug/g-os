@@ -168,7 +168,7 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 }
 
 //MODIFIED VERSION TO TEST PERFORMANCE WITH MULTISECTORE READS (SEE _read_test(t_ext2* ext2) in ext2.c)
-static unsigned int ___read_write_28_ata(t_io_request* io_request)
+static unsigned int __read_write_28_ata(t_io_request* io_request)
 {
 	int i;
 	t_device_desc* device_desc;
@@ -213,7 +213,7 @@ static unsigned int ___read_write_28_ata(t_io_request* io_request)
 	for (k=0;k<io_request->sector_count;k++)
 	{
 		//semaphore to avoid race with interrupt handler
-		sem_down(&device_desc->sem);
+		//sem_down(&device_desc->sem);
 
 		while ((in(0x1F7)&0x83)!=0);
 
