@@ -9,6 +9,7 @@ u32 static find_free_block(char* io_buffer,u32 prealloc);
 void static read_inode(t_ext2* ext2,t_inode* inode);
 u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode);
 
+//BROKEN!!!!!!!!!!!!!!!
 static void fill_group_hash(t_ext2* ext2,t_llist* group_list,t_hashtable* group_hash,u32 start_block,u32 end_block,t_inode* i_node)
 {
 	u32 i;
@@ -23,7 +24,8 @@ static void fill_group_hash(t_ext2* ext2,t_llist* group_list,t_hashtable* group_
 	}
 	else if (start_block>=12 && end_block<=1033)
 	{
-		inode_block=i_node->indirect_block;
+		//NOT WORKING AFTER NEW INDIRECT BLOCK LOGIC!!!!
+		//inode_block=i_node->indirect_block;
 	}
 
 	for (i=start_block;i<=end_block;i++)

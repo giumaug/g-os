@@ -72,7 +72,14 @@ int _close(t_ext2* ext2,int fd)
 	if (inode != NULL)
 	{
 		ret = 0;
-		indirect_block_free(inode->indirect_block);
+		if (inode->indirect_block_1 != NULL)
+		{
+			indirect_block_free(inode->indirect_block_1);
+		}
+		if (inode->indirect_block_2 != NULL)
+		{
+			indirect_block_free(inode->indirect_block_2);
+		}
 		kfree(inode);
 	}
 	//AT THE MOMENT READ ONLY	
@@ -260,35 +267,35 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count)
 	{
 		if (i > INDIRECT_0_LIMIT && i <= INDIRECT_1_LIMIT)
 		{
-			if (inode->indirect_block == NULL)
+			if (inode->indirect_block_1 == NULL)
 			{
-				inode->indirect_block = indirect_block_init();
+				inode->indirect_block_1 = indirect_block_init();
 				indirect_lba = FROM_BLOCK_TO_LBA(inode->i_block[12]);
         			sector_count = BLOCK_SIZE/SECTOR_SIZE;
-				READ(sector_count,indirect_lba,inode->indirect_block->block);
+				READ(sector_count,indirect_lba,inode->indirect_block_1->block);
 			}
-			READ_DWORD(&inode->indirect_block->block[4*(i - INDIRECT_0_LIMIT - 1)],inode_block_data);
+			READ_DWORD(&inode->indirect_block_1->block[4*(i - INDIRECT_0_LIMIT - 1)],inode_block_data);
 			lba = FROM_BLOCK_TO_LBA(inode_block_data);
 		}
 		else if (i > INDIRECT_1_LIMIT  && i <= INDIRECT_2_LIMIT)
 		{
 			second_block = (i - INDIRECT_2_LIMIT - 1) / (BLOCK_SIZE / 4);
 			second_block_offset = (i - INDIRECT_2_LIMIT - 1) % (BLOCK_SIZE /4);
-			if (inode->indirect_block == NULL)
+			if (inode->indirect_block_2 == NULL)
 			{
-				inode->indirect_block = indirect_block_init();
+				inode->indirect_block_2 = indirect_block_init();
 				indirect_lba = FROM_BLOCK_TO_LBA(inode->i_block[13]);
         			sector_count = BLOCK_SIZE/SECTOR_SIZE;
-				READ(sector_count,indirect_lba,inode->indirect_block->block);
+				READ(sector_count,indirect_lba,inode->indirect_block_2->block);
 			}
-			if (inode->indirect_block->block_map[second_block] == NULL)
+			if (inode->indirect_block_2->block_map[second_block] == NULL)
 			{
-				inode->indirect_block->block_map[second_block] = indirect_block_init();
-				indirect_lba = FROM_BLOCK_TO_LBA(inode->indirect_block->block[second_block]);
+				inode->indirect_block_2->block_map[second_block] = indirect_block_init();
+				indirect_lba = FROM_BLOCK_TO_LBA(inode->indirect_block_2->block[second_block]);
         			sector_count = BLOCK_SIZE/SECTOR_SIZE;
-				READ(sector_count,indirect_lba,inode->indirect_block->block_map[second_block]->block);	
+				READ(sector_count,indirect_lba,inode->indirect_block_2->block_map[second_block]->block);	
 			}
-			READ_DWORD(&inode->indirect_block->block_map[second_block]->block[second_block_offset],inode_block_data);
+			READ_DWORD(&inode->indirect_block_2->block_map[second_block]->block[second_block_offset],inode_block_data);
 			lba = FROM_BLOCK_TO_LBA(inode_block_data);
 		}
 		else if ( i > INDIRECT_2_LIMIT  && i <= INDIRECT_3_LIMIT )

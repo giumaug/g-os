@@ -25,11 +25,6 @@ int main()
 	
 	printf("---------start performance check---------- \n");
 	//read_test();
-	for (t=0;t<10000000;t++)
-	{
-		//printf("count is %d \n",t);
-		read_test();
-	}
 	printf("---------end performance check------------ \n");
 
 	f = open(path, O_RDWR | O_APPEND);
@@ -52,5 +47,6 @@ int main()
 		current_len -= b_read;
 	}
 	close(f);
+	check_free_mem();
 	exit(0);	
 }
