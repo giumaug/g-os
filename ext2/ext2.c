@@ -33,9 +33,11 @@ int _open(t_ext2* ext2,const char* fullpath, int flags)
 	char path[NAME_MAX];
 	char filename[NAME_MAX];
 
-	inode=kmalloc(sizeof(t_inode));
+	inode = kmalloc(sizeof(t_inode));
+	inode->indirect_block_1 = NULL;
+	inode->indirect_block_2 = NULL;
 	CURRENT_PROCESS_CONTEXT(current_process_context);
-	fd=current_process_context->next_fd++;
+	fd = current_process_context->next_fd++;
 	//current_process_context->file_desc=kmalloc(sizeof(t_hashtable));
 	//hashtable_init(current_process_context->file_desc,10);
 
@@ -46,8 +48,8 @@ int _open(t_ext2* ext2,const char* fullpath, int flags)
 	}
 	else if (flags & (O_APPEND | O_RDWR))
 	{
-		ret_code=lookup_inode(fullpath,ext2,inode);		
-		if (ret_code==-1)
+		ret_code = lookup_inode(fullpath,ext2,inode);		
+		if (ret_code == -1)
 		{
 			return -1;
 		}
@@ -57,7 +59,7 @@ int _open(t_ext2* ext2,const char* fullpath, int flags)
 	{
 		return -1;
 	}
-	inode->file_offset=0;
+	inode->file_offset = 0;
 	return fd;
 }
 
@@ -252,7 +254,12 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count)
 
 	static _count = 0;
 	_count++;
-	
+	printk("count is %d \n",_count);
+	if (_count == 7695 || _count == 7696) 
+	{
+		printk("...\n");
+	}
+
 	CURRENT_PROCESS_CONTEXT(current_process_context)
 	inode=hashtable_get(current_process_context->file_desc,fd);
 	if (inode==NULL)
