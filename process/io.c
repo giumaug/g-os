@@ -14,7 +14,7 @@ int main()
 {
 	//const char path[] = "/home/ubuntu/sample.txt";
 	//const char path[] = "/sample.txt";
-	const char path[] = "/io";
+	const char path[] = "/hhh";
 	char* io_buffer;
 	int current_len;
 	int file_len;
@@ -37,7 +37,8 @@ int main()
 	stat(path,&stat_data);
 	file_len = stat_data.st_size;
 	io_buffer = malloc(b_to_read);
-	file_len = 31457280;
+	//file_len = 31457280;
+	file_len = 
 	printf("file len is... %d \n",file_len);
 	current_len = file_len;
 	while (current_len > 0)

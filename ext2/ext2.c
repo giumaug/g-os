@@ -274,6 +274,7 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count)
 	{
 		if (i > INDIRECT_0_LIMIT && i <= INDIRECT_1_LIMIT)
 		{
+			printk("1....\n");
 			if (inode->indirect_block_1 == NULL)
 			{
 				inode->indirect_block_1 = indirect_block_init();
@@ -286,6 +287,7 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count)
 		}
 		else if (i > INDIRECT_1_LIMIT  && i <= INDIRECT_2_LIMIT)
 		{
+			printk("2....\ n");
 			second_block = (i - INDIRECT_2_LIMIT - 1) / (BLOCK_SIZE / 4);
 			second_block_offset = (i - INDIRECT_2_LIMIT - 1) % (BLOCK_SIZE /4);
 			if (inode->indirect_block_2 == NULL)
