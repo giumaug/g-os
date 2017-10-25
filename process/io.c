@@ -28,17 +28,18 @@ int main()
 	//read_test();
 	printf("---------end performance check------------ \n");
 
-	f = open(path, O_RDWR | O_APPEND);
+	//f = open(path, O_RDWR | O_APPEND);
 	if (f == -1)
 	{
 		printf("file not found...++..\n");
 		return;
 	}
+/*
 	stat(path,&stat_data);
 	file_len = stat_data.st_size;
 	io_buffer = malloc(b_to_read);
 	//file_len = 31457280;
-	file_len = 
+	file_len = 239;
 	printf("file len is... %d \n",file_len);
 	current_len = file_len;
 	while (current_len > 0)
@@ -48,7 +49,9 @@ int main()
 		//printf("b_read is %d \n",b_read);
 		current_len -= b_read;
 	}
-	close(f);
+*/
+	//close(f);
+//	free(io_buffer);
 	check_free_mem();
 	exit(0);	
 }

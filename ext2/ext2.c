@@ -207,7 +207,7 @@ void _read_test(t_ext2* ext2)
 	u32 first_block;
 	u32 last_block;
 	
-/*
+
 	first_block = 3000;
 	last_block = 33720;
 	cons_block = 32;
@@ -222,7 +222,6 @@ void _read_test(t_ext2* ext2)
 		READ(sector_count,lba,iob_data_block);
 		kmemcpy(buf,iob_data_block,(1024 * cons_block));
 	}
-*/
 	return;	
 }
 
