@@ -233,6 +233,9 @@ int _rm(t_ext2* ext2,char* fullpath);
 int _mkdir(t_ext2* ext2,const char* fullpath);
 int _chdir(t_ext2* ext2,char* path);
 int _stat(t_ext2* ext2,char* pathname,t_stat* stat);
+t_inode* inode_clone(t_inode* inode);
+t_inode* inode_init();
+int static inode_free(t_inode* inode);
 void _break();
 void _read_test(t_ext2* ext2);
 

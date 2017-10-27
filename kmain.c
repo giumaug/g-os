@@ -87,7 +87,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	system.process_info->pause_queue = new_dllist();
 	process_context->phy_kernel_stack = FROM_VIRT_TO_PHY(buddy_alloc_page(system.buddy_desc,KERNEL_STACK_SIZE));
 	process_context->process_type = KERNEL_THREAD;
-	process_context->file_desc = hashtable_init(PROCESS_INIT_FILE);
+	process_context->file_desc = hashtable_init(PROCESS_INIT_FILE,&inode_free);
 	process_context->socket_desc = hashtable_init(PROCESS_INIT_SOCKET);
 	process_context->next_sd = 0;
 	 

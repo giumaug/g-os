@@ -356,7 +356,10 @@ int _fork(struct t_processor_reg processor_reg)
 
 	child_process_context->pid = system.process_info->next_pid++;
 	child_process_context->parent = parent_process_context;
-	child_process_context->file_desc = hashtable_clone_map(parent_process_context->file_desc,sizeof(t_inode));
+//	child_process_context->file_desc = hashtable_clone_map(parent_process_context->file_desc,sizeof(t_inode));
+//	TEMPORARY TRICK.CORRECT SOLUTION IS TO ADD A POINTER TO CLONER FUNTION IN HASMAP CLONE ALONSIDE DESTRUCTOR POINTEER
+//	ALSO INODE SHOULD NOT BE CLONED!!!!!!!	
+	child_process_context->file_desc = clone_inode_desc(parent_process_context->file_desc,sizeof(t_inode));
 	child_process_context->socket_desc = clone_socket_desc(parent_process_context->socket_desc);
 
 	if (parent_process_context->process_type == USERSPACE_PROCESS)
@@ -394,12 +397,12 @@ u32 _exec(char* path,char* argv[])
 	u32* stack_data_pointers;
 	char* page_addr;
 	char* stack_data;
-	u32 argc=0;
-	u32 i=0;
-	u32 j=0;
-	u32 k=0;
-	u32 z=0;
-	u32 frame_size=0;
+	u32 argc = 0;
+	u32 i = 0;
+	u32 j = 0;
+	u32 k = 0;
+	u32 z = 0;
+	u32 frame_size = 0;
 	u32 process_size;
 	t_elf_desc* elf_desc;
 
@@ -410,17 +413,18 @@ u32 _exec(char* path,char* argv[])
 	{
 		//collect_mem=1;
 	}
-	if (current_process_context->elf_desc==NULL)
+	if (current_process_context->elf_desc == NULL)
 	{
 		elf_desc=kmalloc(sizeof(t_elf_desc));
-		current_process_context->elf_desc=elf_desc;
+		current_process_context->elf_desc = elf_desc;
 	}
 
 	hashtable_free(current_process_context->file_desc);
-	current_process_context->file_desc=hashtable_init(PROCESS_INIT_FILE);
+	//t_hashtable* dc_hashtable_init(u32 init_size,void (*data_destructor)(void*))
+	current_process_context->file_desc = hashtable_init(PROCESS_INIT_FILE,&inode_free);
 	current_process_context->socket_desc=hashtable_init(PROCESS_INIT_SOCKET);
 
-	if (elf_loader_init(current_process_context->elf_desc,path)==-1)
+	if (elf_loader_init(current_process_context->elf_desc,path) == -1)
 	{
 		return -1;
 	}
@@ -430,45 +434,45 @@ u32 _exec(char* path,char* argv[])
 	current_process_context->assigned_sleep_time=0;
 	current_process_context->static_priority=0;
 
-	i=0;
-	data_size=0;
-	while(argv[i++]!=NULL)
+	i = 0;
+	data_size = 0;
+	while(argv[i++] != NULL)
 	{
 		 argc++;
 	}
 
-	bk_area=kmalloc(sizeof(char*)*argc);
+	bk_area = kmalloc(sizeof(char*)*argc);
 				
-	for(k=0;k<argc;k++)
+	for(k = 0;k < argc;k++)
 	{
 		i=0;
-		while (argv[k][i]!=NULL)
+		while (argv[k][i] != NULL)
 		{
 			i++;		
 		}
-		bk_area[k]=kmalloc(i+1);
-		data_size+=(i+1);
+		bk_area[k] = kmalloc(i+1);
+		data_size += (i+1);
 	}
 
-	for(k=0;k<argc;k++)
+	for(k = 0; k< argc;k++)
 	{
-		i=0;
-		while (argv[k][i]!=NULL)
+		i = 0;
+		while (argv[k][i] != NULL)
 		{		
-			bk_area[k][i]=argv[k][i];
+			bk_area[k][i] = argv[k][i];
 			i++;
 		}
-		bk_area[k][i++]='\0';
+		bk_area[k][i++] = '\0';
 	}		
 	//init_vm_process(current_process_context);
 	//SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 
 
-	if (current_process_context->process_type==KERNEL_THREAD)
+	if (current_process_context->process_type == KERNEL_THREAD)
 	{
-		current_process_context->process_mem_reg=create_mem_reg(PROC_VIRT_MEM_START_ADDR,PROC_VIRT_MEM_START_ADDR+process_size);
-		current_process_context->heap_mem_reg=create_mem_reg(HEAP_VIRT_MEM_START_ADDR,HEAP_VIRT_MEM_START_ADDR+HEAP_INIT_SIZE);
-		current_process_context->ustack_mem_reg=create_mem_reg(USER_STACK-USER_STACK_INIT_SIZE,USER_STACK);
-		page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
+		current_process_context->process_mem_reg = create_mem_reg(PROC_VIRT_MEM_START_ADDR,PROC_VIRT_MEM_START_ADDR+process_size);
+		current_process_context->heap_mem_reg = create_mem_reg(HEAP_VIRT_MEM_START_ADDR,HEAP_VIRT_MEM_START_ADDR+HEAP_INIT_SIZE);
+		current_process_context->ustack_mem_reg = create_mem_reg(USER_STACK-USER_STACK_INIT_SIZE,USER_STACK);
+		page_addr = buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
 		map_vm_mem(current_process_context->page_dir,(USER_STACK-PAGE_SIZE),FROM_VIRT_TO_PHY(page_addr),PAGE_SIZE,7);
 		system.buddy_desc->count[BLOCK_INDEX(FROM_VIRT_TO_PHY((unsigned int)page_addr))]++;
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 
@@ -476,38 +480,38 @@ u32 _exec(char* path,char* argv[])
 	else
 	{
 		free_vm_process_user_space(current_process_context);
-		current_process_context->process_mem_reg->end_addr=PROC_VIRT_MEM_START_ADDR+process_size;
+		current_process_context->process_mem_reg->end_addr = PROC_VIRT_MEM_START_ADDR+process_size;
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 
 	}
-	current_process_context->process_type=USERSPACE_PROCESS;
+	current_process_context->process_type = USERSPACE_PROCESS;
 
-	frame_size=4*(argc+4)+data_size;
-	frame_size+=16; //pad
-	stack_pointer=USER_STACK-frame_size;
+	frame_size = 4*(argc+4)+data_size;
+	frame_size += 16; //pad
+	stack_pointer = USER_STACK - frame_size;
 
-	stack_data_pointers=stack_pointer+4;
-	stack_data=stack_data_pointers+argc;
+	stack_data_pointers = stack_pointer+4;
+	stack_data = stack_data_pointers+argc;
 
-	*(stack_pointer+0)=NULL;
-	*(stack_pointer+1)=argc;
-	*(stack_pointer+2)=stack_data_pointers;
-	*(stack_pointer+3)=NULL;
+	*(stack_pointer + 0) = NULL;
+	*(stack_pointer + 1) = argc;
+	*(stack_pointer + 2) = stack_data_pointers;
+	*(stack_pointer +3 ) = NULL;
 	
-	z=k=j=0;
-	for(i=0;i<argc;i++)
+	z = k = j = 0;
+	for(i = 0;i < argc;i++)
 	{
-		k=0;
-		while(bk_area[i][k]!=NULL)
+		k = 0;
+		while(bk_area[i][k] != NULL)
 		{
-			stack_data[j++]=bk_area[i][k];
+			stack_data[j++] = bk_area[i][k];
 			k++;
 		}
-		stack_data[j++]='\0';
-		*(stack_data_pointers+i)=((u32) stack_data)+z;
-		z=j;
+		stack_data[j++] = '\0';
+		*(stack_data_pointers+i) = ((u32) stack_data) + z;
+		z = j;
 	}
 
-	for(k=0;k<argc;k++)
+	for(k = 0;k < argc;k++)
 	{
 		kfree(bk_area[k]);
 	}
