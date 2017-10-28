@@ -416,7 +416,7 @@ u32 _exec(char* path,char* argv[])
 		current_process_context->elf_desc=elf_desc;
 	}
 
-	hashtable_free(current_process_context->file_desc);
+	hashtable_free(current_process_context->file_desc);---qui
 	current_process_context->file_desc=hashtable_init(PROCESS_INIT_FILE);
 	current_process_context->socket_desc=hashtable_init(PROCESS_INIT_SOCKET);
 
@@ -427,7 +427,7 @@ u32 _exec(char* path,char* argv[])
 	process_size=current_process_context->elf_desc->file_size;
 	current_process_context->proc_status=RUNNING;
 	current_process_context->sleep_time=0;
-	current_process_context->assigned_sleep_time=0;
+	current_process_context->assigned_sleep_time= 0;
 	current_process_context->static_priority=0;
 
 	i=0;
