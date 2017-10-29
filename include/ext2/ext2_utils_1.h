@@ -318,7 +318,7 @@ u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode)
 		read_inode(ext2,inode);
 		return 0;
 	}
-	tmp_parent_dir_inode=kmalloc(sizeof(t_inode));
+	tmp_parent_dir_inode = inode_init();
         if (path[0]=='/')
         {
 		tmp_parent_dir_inode->i_number=current_process_context->root_dir_inode_number;

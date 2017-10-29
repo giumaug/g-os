@@ -13,8 +13,8 @@
 int main()
 {
 	//const char path[] = "/home/ubuntu/sample.txt";
-	//const char path[] = "/sample.txt";
-	const char path[] = "/hhh";
+	const char path[] = "/sample.txt";
+	//const char path[] = "/shell";
 	char* io_buffer;
 	int current_len;
 	int file_len;
@@ -25,21 +25,23 @@ int main()
 	int t = 0;
 	
 	printf("---------start performance check---------- \n");
-	//read_test();
+	read_test();
 	printf("---------end performance check------------ \n");
 
-	//f = open(path, O_RDWR | O_APPEND);
+	f = open(path, O_RDWR | O_APPEND);
 	if (f == -1)
 	{
 		printf("file not found...++..\n");
+		exit(0);
 		return;
 	}
-/*
+
 	stat(path,&stat_data);
 	file_len = stat_data.st_size;
 	io_buffer = malloc(b_to_read);
-	//file_len = 31457280;
-	file_len = 239;
+	file_len = 31457280;
+	//file_len = 239;
+	//file_len = 31339;
 	printf("file len is... %d \n",file_len);
 	current_len = file_len;
 	while (current_len > 0)
@@ -49,9 +51,8 @@ int main()
 		//printf("b_read is %d \n",b_read);
 		current_len -= b_read;
 	}
-*/
-	//close(f);
-//	free(io_buffer);
+	close(f);
+	free(io_buffer);
 	check_free_mem();
 	exit(0);	
 }

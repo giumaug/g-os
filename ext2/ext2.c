@@ -33,9 +33,7 @@ int _open(t_ext2* ext2,const char* fullpath, int flags)
 	char path[NAME_MAX];
 	char filename[NAME_MAX];
 
-	inode = kmalloc(sizeof(t_inode));
-	inode->indirect_block_1 = NULL;
-	inode->indirect_block_2 = NULL;
+	inode = inode_init();
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 	fd = current_process_context->next_fd++;
 	//current_process_context->file_desc=kmalloc(sizeof(t_hashtable));
@@ -71,19 +69,20 @@ int _close(t_ext2* ext2,int fd)
 
 	CURRENT_PROCESS_CONTEXT(current_process_context)
 	inode=hashtable_remove(current_process_context->file_desc,fd);
-	if (inode != NULL)
-	{
-		ret = 0;
-		if (inode->indirect_block_1 != NULL)
-		{
-			indirect_block_free(inode->indirect_block_1);
-		}
-		if (inode->indirect_block_2 != NULL)
-		{
-			indirect_block_free(inode->indirect_block_2);
-		}
-		kfree(inode);
-	}
+//	if (inode != NULL)
+//	{
+//		ret = 0;
+//		if (inode->indirect_block_1 != NULL)
+//		{
+//			indirect_block_free(inode->indirect_block_1);
+//		}
+//		if (inode->indirect_block_2 != NULL)
+//		{
+//			indirect_block_free(inode->indirect_block_2);
+//		}
+//		kfree(inode);
+//	}
+	ret = inode_free(inode);
 	//AT THE MOMENT READ ONLY	
 	//write_inode(system.root_fs,inode);
 	return ret;
@@ -225,6 +224,99 @@ void _read_test(t_ext2* ext2)
 	return;	
 }
 
+t_indirect_block* clone_indirect_block(t_indirect_block* indirect_block)
+{
+	int i;
+	t_indirect_block* cloned_indirect_block = NULL;
+	
+	printk("using indirect \n");
+	cloned_indirect_block = kmalloc(sizeof(t_indirect_block));
+	cloned_indirect_block->block = kmalloc(BLOCK_SIZE);
+
+	for (i = 0 ;i <  BLOCK_SIZE; i++)
+	{
+		if (indirect_block->block_map[i] != NULL)
+		{
+			 cloned_indirect_block->block_map[i] = clone_indirect_block(indirect_block->block_map[i]);
+		}
+		else
+		{
+			cloned_indirect_block->block_map[i] = NULL;
+		}
+	}
+	for (i = 0 ;i <  BLOCK_SIZE; i++)
+	{
+		cloned_indirect_block->block = indirect_block->block;
+	}
+	return cloned_indirect_block;
+}
+
+t_hashtable* clone_file_desc(t_hashtable* file_desc)
+{
+	int i;
+	t_inode* inode = NULL;
+	t_hashtable* cloned_file_desc = NULL;
+
+	printk("!!!! \n");
+	cloned_file_desc = dc_hashtable_init(PROCESS_INIT_FILE,&inode_free);
+	for (i = 0; i < file_desc->size;i++)
+	{
+		inode = hashtable_get(file_desc,i);
+		if (inode != NULL)
+		{
+			hashtable_put(cloned_file_desc,i,inode_clone(inode)); 
+		}
+	}
+	return cloned_file_desc;
+}
+
+t_inode* inode_clone(t_inode* inode)
+{
+	t_inode* cloned_inode = NULL;
+	
+	cloned_inode = inode_init();
+	kmemcpy(cloned_inode,inode,sizeof(t_inode));
+	if (inode->indirect_block_1 != NULL)
+	{
+		cloned_inode->indirect_block_1 = clone_indirect_block(inode->indirect_block_1);
+	}
+	if (inode->indirect_block_2 != NULL)
+	{
+		cloned_inode->indirect_block_2 = clone_indirect_block(inode->indirect_block_2);
+	}
+	return cloned_inode;
+}
+
+t_inode* inode_init()
+{
+	t_inode* inode = NULL;
+
+	inode = kmalloc(sizeof(t_inode));
+	inode->indirect_block_1 = NULL;
+	inode->indirect_block_2 = NULL;
+	return inode;
+}
+
+int inode_free(t_inode* inode)
+{
+	int ret = -1;
+	
+	if (inode != NULL)
+	{
+		if (inode->indirect_block_1 != NULL)
+		{
+			indirect_block_free(inode->indirect_block_1);
+		}
+		if (inode->indirect_block_2 != NULL)
+		{
+			indirect_block_free(inode->indirect_block_2);
+		}
+		ret = 0;
+	}
+	kfree(inode);
+	return ret;
+}
+
 int _read(t_ext2* ext2,int fd, void* buf,u32 count)
 {
 	struct t_process_context* current_process_context;
@@ -251,14 +343,6 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count)
 //	iob_indirect_block=kmalloc(BLOCK_SIZE);
 	iob_data_block=kmalloc(BLOCK_SIZE);
 
-	static _count = 0;
-	_count++;
-	printk("count is %d \n",_count);
-	if (_count == 7695 || _count == 7696) 
-	{
-		printk("...\n");
-	}
-
 	CURRENT_PROCESS_CONTEXT(current_process_context)
 	inode=hashtable_get(current_process_context->file_desc,fd);
 	if (inode==NULL)
@@ -273,7 +357,6 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count)
 	{
 		if (i > INDIRECT_0_LIMIT && i <= INDIRECT_1_LIMIT)
 		{
-			printk("1....\n");
 			if (inode->indirect_block_1 == NULL)
 			{
 				inode->indirect_block_1 = indirect_block_init();
@@ -286,7 +369,6 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count)
 		}
 		else if (i > INDIRECT_1_LIMIT  && i <= INDIRECT_2_LIMIT)
 		{
-			printk("2....\ n");
 			second_block = (i - INDIRECT_2_LIMIT - 1) / (BLOCK_SIZE / 4);
 			second_block_offset = (i - INDIRECT_2_LIMIT - 1) % (BLOCK_SIZE /4);
 			if (inode->indirect_block_2 == NULL)
@@ -617,14 +699,15 @@ int _chdir(t_ext2* ext2,char* path)
 	t_inode* inode;
 	struct t_process_context* current_process_context;
 
-	inode=kmalloc(sizeof(t_inode));
+	inode = inode_init();
 	CURRENT_PROCESS_CONTEXT(current_process_context)
 	ret=lookup_inode(path,ext2,inode);
 	if (ret==0)
 	{
 		current_process_context->current_dir_inode_number=inode->i_number;
 	}
-	kfree(inode);
+	//kfree(inode);
+	inode_free(inode);
 }
 
 int _stat(t_ext2* ext2,char* pathname,t_stat* stat)
@@ -632,11 +715,12 @@ int _stat(t_ext2* ext2,char* pathname,t_stat* stat)
 	t_inode* inode;
 	int ret_code=-1;
 
-	inode=kmalloc(sizeof(t_inode));
+	inode = inode_init();
 	ret_code=lookup_inode(pathname,ext2,inode);		
 	if (ret_code==-1)
 	{
-		kfree(inode);
+		//kfree(inode);
+		inode_free(inode);
 		return -1;
 	}
        
@@ -649,6 +733,7 @@ int _stat(t_ext2* ext2,char* pathname,t_stat* stat)
 	stat->st_mtime=inode->i_mtime;
 	stat->st_ctime=inode->i_ctime;
 
-	kfree(inode);
+	//kfree(inode);
+	inode_free(inode);
 	return 0;	
 }
