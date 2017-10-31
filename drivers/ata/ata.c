@@ -63,7 +63,7 @@ void int_handler_ata()
 	EXIT_INT_HANDLER(0,processor_reg)
 }
 
-static unsigned int __read_write_28_ata(t_io_request* io_request)
+static unsigned int _read_write_28_ata(t_io_request* io_request)
 {
 	int i;
 	t_device_desc* device_desc;
@@ -126,7 +126,7 @@ static unsigned int __read_write_28_ata(t_io_request* io_request)
 }
 
 //MODIFIED VERSION TO TEST PERFORMANCE WITH MULTISECTORE READS (SEE _read_test(t_ext2* ext2) in ext2.c)
-static unsigned int _read_write_28_ata(t_io_request* io_request)
+static unsigned int ___read_write_28_ata(t_io_request* io_request)
 {
 	int i;
 	t_device_desc* device_desc;

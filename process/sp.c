@@ -35,13 +35,14 @@ int main()
 	int i,t,f;
 	unsigned int port=21846;
     	struct sockaddr_in ssock;
-	const char path[] = "/usr/src/kernels/g-os/network/tcp.c";
+	//const char path[] = "/usr/src/kernels/g-os/network/tcp.c";
+	const char path[] = "/sample.txt";
 	char* io_buffer;
 	int current_len;
 	int file_len;
 	t_stat stat_data;
 	int b_read;
-	int b_to_read = 4096;
+	int b_to_read = 16384;
 	int tt=0;
 
 	ssock.sin_family = AF_INET;
@@ -84,26 +85,28 @@ int main()
 				printf("file not found\n");
 				return;
 			}
-			stat(path,&stat_data);
-			file_len = stat_data.st_size;
-			io_buffer = malloc(file_len);
+			//stat(path,&stat_data);
+			//file_len = stat_data.st_size;
+			io_buffer = malloc(b_to_read);
+			file_len = 31457280;
 			printf("file len is %d \n",file_len);
-			b_to_read = file_len;
-			for (t=0;t<1000;t++) 
+			//b_to_read = file_len;
+			//for (t=0;t<1000;t++)
+			for (t=0;t<1;t++)
 			{
 				current_len = file_len;
 				while (current_len > 0)
 				{
 					b_read = read(f,io_buffer,b_to_read);
-					printf("count= %d \n",t);
-					//ret = write_socket(client_sockfd,io_buffer,b_read);
+					//printf("count= %d \n",b_read);
+					ret = write_socket(client_sockfd,io_buffer,b_read);
 					ret = 0;
 					while (ret !=0 )
 					{
-						//ret = write_socket(client_sockfd, buffer_2,index);	
+						ret = write_socket(client_sockfd, buffer_2,index);	
 						sleep(10);
 						rt++;
-						//printf("retry=%d \n",rt);
+						printf("retry=%d \n",rt);
 					}				
 					current_len -= b_read;
 					io_buffer[b_read] = '\0';
