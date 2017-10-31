@@ -97,13 +97,16 @@ int main()
 				current_len = file_len;
 				while (current_len > 0)
 				{
-					b_read = read(f,io_buffer,b_to_read);
+					//b_read = read(f,io_buffer,b_to_read);
+					b_read = b_to_read;
+					
 					//printf("count= %d \n",b_read);
-					ret = write_socket(client_sockfd,io_buffer,b_read);
-					ret = 0;
-					while (ret !=0 )
+					//ret = write_socket(client_sockfd,io_buffer,b_read);
+					ret = write_socket(client_sockfd,buffer_1,b_read);
+					//ret = 0;
+					while (ret != 0 )
 					{
-						ret = write_socket(client_sockfd, buffer_2,index);	
+						ret = write_socket(client_sockfd, buffer_1,b_read);	
 						sleep(10);
 						rt++;
 						printf("retry=%d \n",rt);
