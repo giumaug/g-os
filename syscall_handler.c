@@ -238,9 +238,9 @@ void syscall_handler()
 		default:
 		panic();
 	}
+	EXIT_INT_HANDLER(on_exit_action,processor_reg)
 
-//	EXIT_INT_HANDLER(on_exit_action,processor_reg)
-
+/*
 	if (system.force_scheduling == 1 && on_exit_action == 0 && system.int_path_count == 0)                                     
 	{                                                                                                                       
 		on_exit_action = 1;                                                                                                     
@@ -283,4 +283,5 @@ void syscall_handler()
 		RESTORE_PROCESSOR_REG                                                                       
 		RET_FROM_INT_HANDLER                                                                        
 	}
+*/
 }

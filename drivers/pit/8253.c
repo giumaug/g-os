@@ -152,8 +152,8 @@ void int_handler_pit()
 	//Qui non va bene servono interrupt attivi e softirq
 	//FLUSH NETWORK QUEUES BEFORE EXITING
 	//testx();
-	equeue_packet(system.network_desc);
-	dequeue_packet(system.network_desc);
+	//equeue_packet(system.network_desc);
+	//dequeue_packet(system.network_desc);
 exit_handler:;
 //	EXIT_INT_HANDLER(is_schedule,processor_reg);
 
@@ -169,7 +169,9 @@ exit_handler:;
 	static struct t_processor_reg _processor_reg;                                                       
 	static unsigned int _action2;  
 	                                                                                                                                                             
-	CLI                                                                        
+	CLI
+	equeue_packet(system.network_desc);
+	dequeue_packet(system.network_desc);                                                                        
 	_action2=is_schedule;                                                                                   
 	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;                                  
 	_old_process_context=_current_process_context;                                                      
