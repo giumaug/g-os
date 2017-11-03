@@ -536,6 +536,7 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 data_len)
 				rtt = system.time - tcp_conn_desc->last_sent_time;
 				tcp_conn_desc->rto = ((float)(SRTT_FACTOR * tcp_conn_desc->rto) + (( 1 - SRTT_FACTOR) * rtt));
 				tcp_conn_desc->rto = min(tcp_conn_desc->rto , DEFAULT_RTO);
+				tcp_conn_desc->rto += 100;
 				tcp_conn_desc->last_seq_sent = 0;
 			}
 			else 
