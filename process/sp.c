@@ -44,6 +44,7 @@ int main()
 	int b_read;
 	int b_to_read = 16384;
 	int tt=0;
+	int ss=0;
 
 	ssock.sin_family = AF_INET;
 //	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=34;
@@ -101,22 +102,23 @@ int main()
 					b_read = b_to_read;
 					
 					//printf("count= %d \n",b_read);
-					printf("dddd \n");
+					//printf("dddd \n");
 					ret = write_socket(client_sockfd,io_buffer,b_read);
-					printf("injecting \n");
+					//printf("injecting \n");
 					//ret = write_socket(client_sockfd,buffer_1,b_read);
 					//ret = 0;
 					while (ret != 0 )
 					{
 						ret = write_socket(client_sockfd, buffer_1,b_read);	
-						sleep(10);
+						//sleep(10);
+						for (ss = 0;ss <= 3000000;ss++);
 						rt++;
 						printf("retry=%d \n",rt);
 					}				
 					current_len -= b_read;
 					io_buffer[b_read] = '\0';
 				}
-				lseek(f,0,SEEK_SET);
+				//lseek(f,0,SEEK_SET);
 			}
 			printf("rt=%d \n",rt);
 			close_socket(client_sockfd);

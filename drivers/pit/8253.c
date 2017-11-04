@@ -104,14 +104,14 @@ void int_handler_pit()
 //			//printk("pid= %d \n",process_context->pid);
 //		}
 //
-//		if (process_context->pid==0 && go==1)
-//		{
-//			p0++;
-//		}
-//		if (process_context->pid==2 && go==1)
-//		{
-//			p2++;
-//		}
+		if (process_context->pid==0 && go==1)
+		{
+			p0++;
+		}
+		if (process_context->pid==3 && go==1)
+		{
+			p2++;
+		}
 		if (process_context->sleep_time>1000) 	
 		{
 			process_context->sleep_time=1000;
