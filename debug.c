@@ -13,6 +13,7 @@ unsigned int collected_mem[15000];
 unsigned int collected_mem_index=0;
 unsigned int allocated_block=0;
 
+long x;
 void check_free_mem()
 {
 	static int age=0;
@@ -20,6 +21,16 @@ void check_free_mem()
 	int i=0;
 	unsigned int buddy_mem;
 	unsigned int pool_mem;
+
+//	for (x=0;x<=9000000;x++)
+//	{
+//		if (x==9000000)
+//		{
+//			printk("end \n");
+//		}
+//	}
+
+
 	buddy_mem=buddy_free_mem(system.buddy_desc);
 	pool_mem=kfree_mem();
 	//buddy_check_mem_status(system.buddy_desc);

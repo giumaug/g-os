@@ -1,5 +1,7 @@
 #include "network/network.h"
 
+extern int go;
+
 //ONLY ONE INSTANCE FOR ALL POSSIBLE INTERFACES!!!!!
 t_network_desc* network_init()
 {
@@ -34,7 +36,13 @@ void equeue_packet(t_network_desc* network_desc)
 	t_data_sckt_buf* data_sckt_buf;
 	void* frame;
 	u16 frame_len;
+	u32 tot_sent = 0;
+	static int tot = 0;
+	static int t1 = 0;
+	static int t2 = 0;
 
+//	SAVE_IF_STATUS
+//	CLI
 	sckt_buf_desc=network_desc->tx_queue;
 	while ((data_sckt_buf=dequeue_sckt(sckt_buf_desc))!=NULL)
 	{
@@ -42,20 +50,44 @@ void equeue_packet(t_network_desc* network_desc)
 		frame_len=data_sckt_buf->data_len;
 		send_packet_i8254x(network_desc->dev,frame,frame_len);
 		free_sckt(data_sckt_buf);
+		tot_sent += frame_len;
+	}
+//	RESTORE_IF_STATUS
+	if (go == 1)
+	{
+		tot += tot_sent;
+		if (tot_sent <= 16384)
+		{
+			t1++;
+		}
+		else 
+		{
+			t2++;
+		}
+//		if (tot_sent != 0)
+//		{
+//			printk("sent: %d \n",tot_sent);
+//		}
+		if (tot > 31200000)
+		{
+			printk("break!!! \n");
+		}
 	}
 }
 
 void dequeue_packet(t_network_desc* network_desc)
 {
 	int i=0;
-	//t_sckt_buf_desc* sckt_buf_desc;
 	t_data_sckt_buf* data_sckt_buf;
 
+//	SAVE_IF_STATUS
+//	CLI
 	while ((data_sckt_buf=dequeue_sckt(network_desc->rx_queue))!=NULL)
 	{	
 		rcv_packet_mac(data_sckt_buf);
 		i++;
 	}
+//	RESTORE_IF_STATUS
 }
 
 void debug_network(char* data,u32 data_len)
