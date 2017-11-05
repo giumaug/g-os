@@ -104,14 +104,14 @@ int main()
 					//printf("count= %d \n",b_read);
 					//printf("dddd \n");
 					ret = write_socket(client_sockfd,io_buffer,b_read);
-					//printf("injecting \n");
+					printf("injecting \n");
 					//ret = write_socket(client_sockfd,buffer_1,b_read);
 					//ret = 0;
 					while (ret != 0 )
 					{
 						ret = write_socket(client_sockfd, buffer_1,b_read);	
 						//sleep(10);
-						for (ss = 0;ss <= 3000000;ss++);
+						for (ss = 0;ss <= 1000000;ss++);
 						rt++;
 						printf("retry=%d \n",rt);
 					}				

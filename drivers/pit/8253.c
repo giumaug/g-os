@@ -7,6 +7,7 @@
 
 #define K_STACK 0x1FFFFB
 extern go;
+extern ggo;
 extern index_2;
 extern unsigned int proc[100];
 static int p0=0;
@@ -47,6 +48,7 @@ void int_handler_pit()
 	EOI_TO_MASTER_PIC
 	SWITCH_DS_TO_KERNEL_MODE
 
+	iter++;
 	system.time+=QUANTUM_DURATION;
 	if (system.int_path_count>0)
 	{
@@ -99,16 +101,17 @@ void int_handler_pit()
 	{	
 		process_context=system.process_info->current_process->val;
 		process_context->sleep_time-=QUANTUM_DURATION;
-//		if (go==1)
-//		{
-//			//printk("pid= %d \n",process_context->pid);
-//		}
-//
-		if (process_context->pid==0 && go==1)
+		if (go==1)
+		{
+			//printk("pid= %d \n",process_context->pid);
+			printk("iter= %d \n",iter);
+		}
+
+		if (process_context->pid==0 && ggo==1)
 		{
 			p0++;
 		}
-		if (process_context->pid==3 && go==1)
+		if (process_context->pid==3 && ggo==1)
 		{
 			p2++;
 		}
@@ -168,6 +171,11 @@ exit_handler:;
 	static struct t_process_context _new_process_context;	                                            
 	static struct t_processor_reg _processor_reg;                                                       
 	static unsigned int _action2;  
+	iter--;
+	if (iter>0)
+	{
+		printk("race \n");
+	}
 	                                                                                                                                                             
 	CLI
 	equeue_packet(system.network_desc);

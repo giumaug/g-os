@@ -8,6 +8,7 @@ extern int tcpdump_val[100];
 extern int tcpdump_desc[100];
 extern int tcpdump_index;
 int go = 0;
+extern int ggo;
 
 extern struct t_llist* kbc_wait_queue;
 extern unsigned int *master_page_dir;
@@ -112,6 +113,10 @@ void schedule(struct t_process_context *current_process_context,struct t_process
 	}
 	if (stop == 0)
 	{
+//		if (ggo == 1)
+//		{
+//			printk("wwww \n");
+//		}
 		if (current_process_context->proc_status == RUNNING)
 		{
 			adjust_sched_queue(current_process_context);
