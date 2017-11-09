@@ -1,7 +1,7 @@
 #include "lib/lib.h"  
 #include "selection-sort.h"
 
-#define MAXSIZE 0x100000
+#define MAXSIZE 0x10000
 //#define MAXSIZE 0x100
 //static int elements[MAXSIZE];
 static int maxsize;
@@ -9,10 +9,6 @@ void selection(int elements[], int array_size);
 
 int main (int argc, char* argv[])
 {
-	int* xxx;
-	xxx=0;
-	*xxx=1;
-
 	int elements[MAXSIZE];
 	int i;
 	for (i=MAXSIZE;i>0;i--) 
@@ -36,7 +32,8 @@ void selection(int elements[], int array_size)
 	printf("ssss \n");
 	for (i = 0; i < maxsize-1; i++)
 	{
-		printf("iteration=%d \n",i);
+		//printf("i=%d \n",i);
+		//printf("i");
 		min = i;
 		for (j = i+1; j < maxsize; j++)
 		{

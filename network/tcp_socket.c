@@ -254,6 +254,7 @@ int enqueue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		tcp_queue = tcp_conn_desc->snd_queue;
 		wnd_max = tcp_queue->wnd_min + tcp_queue->buf_size;
 		b_free_size = wnd_max - tcp_queue->cur;
+		//printk("free size is:%d \n",b_free_size);
 		if (b_free_size < data_len)
 		{
 			return -1;

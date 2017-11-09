@@ -45,8 +45,18 @@ void int_handler_pit()
 	t_timer* timer;
 	
 	SAVE_PROCESSOR_REG
+	DISABLE_PREEMPTION
 	EOI_TO_MASTER_PIC
 	SWITCH_DS_TO_KERNEL_MODE
+
+	static int fff=0;
+	fff++;
+	//printk("---in %d \n",fff);
+
+	if (go == 1)
+	{
+		//printk("-----inside int----\n");
+	}
 
 	iter++;
 	system.time+=QUANTUM_DURATION;
@@ -104,7 +114,7 @@ void int_handler_pit()
 		if (go==1)
 		{
 			//printk("pid= %d \n",process_context->pid);
-			printk("iter= %d \n",iter);
+			//printk("iter= %d \n",iter);
 		}
 
 		if (process_context->pid==0 && ggo==1)
@@ -176,7 +186,12 @@ exit_handler:;
 	{
 		printk("race \n");
 	}
-	                                                                                                                                                             
+	if (go == 1)
+	{
+		//printk("-----outside int----\n");
+	}
+	//printk("---out \n");
+	ENABLE_PREEMPTION                                                                                                                                                             
 	CLI
 	equeue_packet(system.network_desc);
 	dequeue_packet(system.network_desc);                                                                        

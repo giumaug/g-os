@@ -218,6 +218,8 @@ void int_handler_i8254x()
 	EOI_TO_MASTER_PIC
 	STI
 
+	//printk("ooo \n");
+
 	status=read_i8254x(i8254x,REG_ICR);
 	if (status & ICR_LSC)
 	{
@@ -254,7 +256,10 @@ void int_handler_i8254x()
 			rx_desc[cur].errors=0;
 			rx_desc[cur].special=0;
 
+			CLI
 			enqueue_sckt(system.network_desc->rx_queue,data_sckt_buf);
+			STI
+			
 			rx_desc[cur].status=0;
 			old_cur=cur;
 			cur =(cur + 1) % NUM_RX_DESC;
