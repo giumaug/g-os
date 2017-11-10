@@ -458,8 +458,9 @@ void page_fault_handler()
 	}
 
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 	
-//-	EXIT_INT_HANDLER(on_exit_action,processor_reg)
-                                                
+//	EXIT_INT_HANDLER(on_exit_action,processor_reg)
+      
+                                          
 	static struct t_process_context _current_process_context;                                                  		
 	static struct t_process_context _old_process_context;                                                      		
 	static struct t_process_context _new_process_context;	                                                   		

@@ -45,7 +45,6 @@ void int_handler_pit()
 	t_timer* timer;
 	
 	SAVE_PROCESSOR_REG
-	DISABLE_PREEMPTION
 	EOI_TO_MASTER_PIC
 	SWITCH_DS_TO_KERNEL_MODE
 
@@ -190,8 +189,7 @@ exit_handler:;
 	{
 		//printk("-----outside int----\n");
 	}
-	//printk("---out \n");
-	ENABLE_PREEMPTION                                                                                                                                                             
+	//printk("---out \n");                                                                                                                                                     
 	CLI
 	equeue_packet(system.network_desc);
 	dequeue_packet(system.network_desc);                                                                        
