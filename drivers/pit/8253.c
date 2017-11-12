@@ -58,6 +58,10 @@ void int_handler_pit()
 	}
 
 	iter++;
+	if (iter>1)
+	{
+		printk("race %d \n",iter);
+	}
 	system.time+=QUANTUM_DURATION;
 	if (system.int_path_count>0)
 	{
@@ -180,19 +184,22 @@ exit_handler:;
 	static struct t_process_context _new_process_context;	                                            
 	static struct t_processor_reg _processor_reg;                                                       
 	static unsigned int _action2;  
-	iter--;
-	if (iter>0)
-	{
-		printk("race \n");
-	}
 	if (go == 1)
 	{
 		//printk("-----outside int----\n");
 	}
 	//printk("---out \n");                                                                                                                                                     
 	CLI
-	equeue_packet(system.network_desc);
-	dequeue_packet(system.network_desc);                                                                        
+	if (system.int_path_count == 0)
+	{
+		equeue_packet(system.network_desc);
+		dequeue_packet(system.network_desc);
+	}
+	iter--;
+	if (iter>0)
+	{
+		//printk("race \n");
+	}                                                                       
 	_action2=is_schedule;                                                                                   
 	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;                                  
 	_old_process_context=_current_process_context;                                                      

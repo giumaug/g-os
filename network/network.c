@@ -42,9 +42,9 @@ void equeue_packet(t_network_desc* network_desc)
 	static int t2 = 0;
 	int count = 0;
 
-	//DISABLE_PREEMPTION
-	//SAVE_IF_STATUS
-	//STI
+	DISABLE_PREEMPTION
+//	SAVE_IF_STATUS
+	STI
 	sckt_buf_desc=network_desc->tx_queue;
 	while ((data_sckt_buf=dequeue_sckt(sckt_buf_desc))!=NULL && system.force_scheduling == 0)
 	{
@@ -55,8 +55,9 @@ void equeue_packet(t_network_desc* network_desc)
 		free_sckt(data_sckt_buf);
 		tot_sent += frame_len;
 	}
-	//RESTORE_IF_STATUS
-	//ENABLE_PREEMPTION
+//	RESTORE_IF_STATUS
+	CLI
+	ENABLE_PREEMPTION
 	if (go == 1)
 	{
 		tot += tot_sent;
@@ -75,7 +76,7 @@ void equeue_packet(t_network_desc* network_desc)
 		}
 		if (tot > 31200000)
 		{
-			printk("break!!! \n");
+			//printk("break!!! \n");
 		}
 	}
 }
@@ -85,16 +86,17 @@ void dequeue_packet(t_network_desc* network_desc)
 	int i=0;
 	t_data_sckt_buf* data_sckt_buf;
 
-	//DISABLE_PREEMPTION
-	//SAVE_IF_STATUS
-	//STI
+	DISABLE_PREEMPTION
+//	SAVE_IF_STATUS
+	STI
 	while ((data_sckt_buf=dequeue_sckt(network_desc->rx_queue))!=NULL)
 	{	
 		rcv_packet_mac(data_sckt_buf);
 		i++;
 	}
-	//RESTORE_IF_STATUS
-	//ENABLE_PREEMPTION
+	CLI
+//	RESTORE_IF_STATUS
+	ENABLE_PREEMPTION
 }
 
 void debug_network(char* data,u32 data_len)
