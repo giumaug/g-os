@@ -51,6 +51,7 @@ void equeue_packet(t_network_desc* network_desc)
 		count++;
 		frame=data_sckt_buf->mac_hdr;
 		frame_len=data_sckt_buf->data_len;
+		printk("+++\n");
 		send_packet_i8254x(network_desc->dev,frame,frame_len);
 		free_sckt(data_sckt_buf);
 		tot_sent += frame_len;
@@ -92,6 +93,7 @@ void dequeue_packet(t_network_desc* network_desc)
 	while ((data_sckt_buf=dequeue_sckt(network_desc->rx_queue))!=NULL)
 	{	
 		rcv_packet_mac(data_sckt_buf);
+		printk("---\n");
 		i++;
 	}
 	CLI

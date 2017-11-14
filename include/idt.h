@@ -31,9 +31,9 @@ void set_idt_entry(int entry,struct t_i_desc* i_desc);
 	CLI                                                                                                                     \
 	if (system.int_path_count == 0)                                                                                         \
 	{                                                                                                                       \
-		/*equeue_packet(system.network_desc);*/                                                                             \
-		/*dequeue_packet(system.network_desc);*/                                                                            \
-	}	                                                                                                                \
+		equeue_packet(system.network_desc);                                                                             \
+		dequeue_packet(system.network_desc);                                                                            \
+	}                                                                                                                       \
 	_action2=action;                                                                                           		\
 	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;             		\
 	_old_process_context=_current_process_context;                                                             		\
