@@ -43,7 +43,7 @@ void equeue_packet(t_network_desc* network_desc)
 	int count = 0;
 
 	DISABLE_PREEMPTION
-//	SAVE_IF_STATUS
+////	SAVE_IF_STATUS
 	STI
 	sckt_buf_desc=network_desc->tx_queue;
 	while ((data_sckt_buf=dequeue_sckt(sckt_buf_desc))!=NULL && system.force_scheduling == 0)
@@ -51,12 +51,11 @@ void equeue_packet(t_network_desc* network_desc)
 		count++;
 		frame=data_sckt_buf->mac_hdr;
 		frame_len=data_sckt_buf->data_len;
-		printk("+++\n");
 		send_packet_i8254x(network_desc->dev,frame,frame_len);
 		free_sckt(data_sckt_buf);
 		tot_sent += frame_len;
 	}
-//	RESTORE_IF_STATUS
+////	RESTORE_IF_STATUS
 	CLI
 	ENABLE_PREEMPTION
 	if (go == 1)
@@ -88,16 +87,15 @@ void dequeue_packet(t_network_desc* network_desc)
 	t_data_sckt_buf* data_sckt_buf;
 
 	DISABLE_PREEMPTION
-//	SAVE_IF_STATUS
+////	SAVE_IF_STATUS
 	STI
 	while ((data_sckt_buf=dequeue_sckt(network_desc->rx_queue))!=NULL)
 	{	
 		rcv_packet_mac(data_sckt_buf);
-		printk("---\n");
 		i++;
 	}
 	CLI
-//	RESTORE_IF_STATUS
+////	RESTORE_IF_STATUS
 	ENABLE_PREEMPTION
 }
 
