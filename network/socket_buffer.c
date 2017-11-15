@@ -49,31 +49,43 @@ t_data_sckt_buf* dequeue_sckt(t_sckt_buf_desc* sckt_buf_desc)
 t_data_sckt_buf* alloc_sckt(u16 data_len)
 {
 	char* data;
+
+	SAVE_IF_STATUS
+	CLI
 	t_data_sckt_buf* data_sckt_buf=kmalloc(sizeof(t_data_sckt_buf));
 	data=kmalloc(data_len);
 	data_sckt_buf->data=data;
 	data_sckt_buf->data_len=data_len;
 	//collect_mem_alloc(data_sckt_buf);
+	RESTORE_IF_STATUS
 	return data_sckt_buf;
 }
 
 t_data_sckt_buf* alloc_void_sckt()
 {
-	t_data_sckt_buf* data_sckt_buf=kmalloc(sizeof(t_data_sckt_buf));
+	t_data_sckt_buf* data_sckt_buf = NULL;
+
+	SAVE_IF_STATUS
+	CLI
+	data_sckt_buf=kmalloc(sizeof(t_data_sckt_buf));
 	data_sckt_buf->data=NULL;
 	data_sckt_buf->data_len=0;
 	//collect_mem_alloc(data_sckt_buf);
+	RESTORE_IF_STATUS
 	return data_sckt_buf;
 }
 
 void free_sckt(t_data_sckt_buf* data_sckt_buf)
 {
+	SAVE_IF_STATUS
+	CLI
 	if (data_sckt_buf->data!=NULL)
 	{
 		kfree(data_sckt_buf->data);
 	}
 	//collect_mem_free(data_sckt_buf);
 	kfree(data_sckt_buf);
+	RESTORE_IF_STATUS
 }
 
 unsigned short checksum(unsigned short* ip, int len)
