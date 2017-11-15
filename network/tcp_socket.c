@@ -257,6 +257,7 @@ int enqueue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		//printk("free size is:%d \n",b_free_size);
 		if (b_free_size < data_len)
 		{
+			RESTORE_IF_STATUS
 			return -1;
 		}
 		else
