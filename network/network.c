@@ -42,7 +42,11 @@ void equeue_packet(t_network_desc* network_desc)
 	static int t2 = 0;
 	int count = 0;
 	static int iter = 0;
-	iter++;	
+	iter++;
+//	if (iter > 1)
+//	{
+//		//printk("race !!! \n"); 
+//	}
 	
 	DISABLE_PREEMPTION
 ////	SAVE_IF_STATUS
@@ -53,20 +57,20 @@ void equeue_packet(t_network_desc* network_desc)
 		count++;
 		frame=data_sckt_buf->mac_hdr;
 		frame_len=data_sckt_buf->data_len;
-		CLI
+		//CLI
 		send_packet_i8254x(network_desc->dev,frame,frame_len);
-		STI
+		//STI
 		free_sckt(data_sckt_buf);
 		tot_sent += frame_len;
 	}
 ////	RESTORE_IF_STATUS
 	CLI
 	ENABLE_PREEMPTION
-	iter--;
-	if (iter > 0)
-	{
-		printk("race !!! \n"); 
-	}
+//	iter--;---last
+//	if (iter > 0)
+//	{
+//		//printk("race !!! \n"); 
+//	}
 	if (go == 1)
 	{
 		tot += tot_sent;
@@ -97,6 +101,10 @@ void dequeue_packet(t_network_desc* network_desc)
 	static int iter = 0;
 
 	iter++;
+//	if (iter > 1)
+//	{
+//		//printk("race !!! \n"); 
+//	}
 	DISABLE_PREEMPTION
 ////	SAVE_IF_STATUS
 	STI
@@ -111,10 +119,10 @@ void dequeue_packet(t_network_desc* network_desc)
 ////	RESTORE_IF_STATUS
 	ENABLE_PREEMPTION
 	iter--;
-	if (iter > 0)
-	{
-		printk("race !!! \n"); 
-	}
+//	if (iter > 0)
+//	{
+//		//printk("race !!! \n"); 
+//	}
 }
 
 void debug_network(char* data,u32 data_len)

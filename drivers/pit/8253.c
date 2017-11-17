@@ -198,7 +198,7 @@ exit_handler:;
 	iter--;
 	if (iter>0)
 	{
-		//printk("race \n");
+		//printk("race-o %d \n",iter);
 	}                                                                     
 	_action2=is_schedule;                                                                                   
 	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;                                  
