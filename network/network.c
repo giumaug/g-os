@@ -52,14 +52,15 @@ void equeue_packet(t_network_desc* network_desc)
 ////	SAVE_IF_STATUS
 	STI
 	sckt_buf_desc=network_desc->tx_queue;
-	while ((data_sckt_buf=dequeue_sckt(sckt_buf_desc))!=NULL && system.force_scheduling == 0)
+	//while ((data_sckt_buf=dequeue_sckt(sckt_buf_desc))!=NULL && system.force_scheduling == 0)
+	while ((data_sckt_buf=dequeue_sckt(sckt_buf_desc))!=NULL)
 	{
 		count++;
 		frame=data_sckt_buf->mac_hdr;
 		frame_len=data_sckt_buf->data_len;
-		//CLI
+		CLI
 		send_packet_i8254x(network_desc->dev,frame,frame_len);
-		//STI
+		STI
 		free_sckt(data_sckt_buf);
 		tot_sent += frame_len;
 	}

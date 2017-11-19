@@ -3,3 +3,15 @@
 1 block multi no int 8
 16 block multi no int 5
 
+sp network + disk
+ubuntu 25 (talvolta 54)
+g-os 42 (con int disabilitati)
+
+sp solo network
+ubuntu 25
+g-os 25 (con int disabilitati)
+
+
+
+
+

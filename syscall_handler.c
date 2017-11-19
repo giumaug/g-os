@@ -240,7 +240,12 @@ void syscall_handler()
 	}
 //	EXIT_INT_HANDLER(on_exit_action,processor_reg)
 
-
+	CLI
+	if (system.int_path_count == 0)
+	{
+		equeue_packet(system.network_desc);
+		dequeue_packet(system.network_desc);
+	}
 	if (system.force_scheduling == 1 && on_exit_action == 0 && system.int_path_count == 0)                                     
 	{                                                                                                                       
 		on_exit_action = 1;                                                                                                     
@@ -252,8 +257,7 @@ void syscall_handler()
 	static struct t_process_context _new_process_context;	                                            
 	static struct t_processor_reg _processor_reg;                                                       
 	static unsigned int _action;                                                                     
-                                                                                                            
-	CLI                                                                        
+                                                                                                                                                                                
 	_action=on_exit_action;                                                                                
 	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;                                  
 	_old_process_context=_current_process_context;                                                      
