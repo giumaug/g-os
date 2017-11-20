@@ -63,6 +63,10 @@ void equeue_packet(t_network_desc* network_desc)
 		STI
 		free_sckt(data_sckt_buf);
 		tot_sent += frame_len;
+//		if (system.force_scheduling != 0)
+//		{
+//			break;
+//		}
 	}
 ////	RESTORE_IF_STATUS
 	CLI
@@ -115,6 +119,10 @@ void dequeue_packet(t_network_desc* network_desc)
 		rcv_packet_mac(data_sckt_buf);
 		i++;
 		STI
+//		if (system.force_scheduling != 0)
+//		{
+//			break;
+//		}
 	}
 	CLI
 ////	RESTORE_IF_STATUS
