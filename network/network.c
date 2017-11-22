@@ -42,13 +42,18 @@ void equeue_packet(t_network_desc* network_desc)
 	static int t2 = 0;
 	int count = 0;
 	static int iter = 0;
-	iter++;	
+	iter++;
+//	if (iter > 1)
+//	{
+//		//printk("race !!! \n"); 
+//	}
 	
 	DISABLE_PREEMPTION
 ////	SAVE_IF_STATUS
 	STI
 	sckt_buf_desc=network_desc->tx_queue;
-	while ((data_sckt_buf=dequeue_sckt(sckt_buf_desc))!=NULL && system.force_scheduling == 0)
+	//while ((data_sckt_buf=dequeue_sckt(sckt_buf_desc))!=NULL && system.force_scheduling == 0)
+	while ((data_sckt_buf=dequeue_sckt(sckt_buf_desc))!=NULL)
 	{
 		count++;
 		frame=data_sckt_buf->mac_hdr;
@@ -58,15 +63,19 @@ void equeue_packet(t_network_desc* network_desc)
 		STI
 		free_sckt(data_sckt_buf);
 		tot_sent += frame_len;
+//		if (system.force_scheduling != 0)
+//		{
+//			break;
+//		}
 	}
 ////	RESTORE_IF_STATUS
 	CLI
 	ENABLE_PREEMPTION
-	iter--;
-	if (iter > 0)
-	{
-		printk("race !!! \n"); 
-	}
+//	iter--;---last
+//	if (iter > 0)
+//	{
+//		//printk("race !!! \n"); 
+//	}
 	if (go == 1)
 	{
 		tot += tot_sent;
@@ -97,6 +106,10 @@ void dequeue_packet(t_network_desc* network_desc)
 	static int iter = 0;
 
 	iter++;
+//	if (iter > 1)
+//	{
+//		//printk("race !!! \n"); 
+//	}
 	DISABLE_PREEMPTION
 ////	SAVE_IF_STATUS
 	STI
@@ -106,15 +119,19 @@ void dequeue_packet(t_network_desc* network_desc)
 		rcv_packet_mac(data_sckt_buf);
 		i++;
 		STI
+//		if (system.force_scheduling != 0)
+//		{
+//			break;
+//		}
 	}
 	CLI
 ////	RESTORE_IF_STATUS
 	ENABLE_PREEMPTION
 	iter--;
-	if (iter > 0)
-	{
-		printk("race !!! \n"); 
-	}
+//	if (iter > 0)
+//	{
+//		//printk("race !!! \n"); 
+//	}
 }
 
 void debug_network(char* data,u32 data_len)

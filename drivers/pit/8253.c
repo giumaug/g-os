@@ -173,12 +173,6 @@ void int_handler_pit()
 exit_handler:;
 //	EXIT_INT_HANDLER(is_schedule,processor_reg);
 
-	if (system.force_scheduling == 1 && is_schedule == 0 && system.int_path_count == 0)
-	{
-		is_schedule = 1;
-	}
-	system.force_scheduling = 0;
-
 	static struct t_process_context _current_process_context;                                          
 	static struct t_process_context _old_process_context;                                              
 	static struct t_process_context _new_process_context;	                                            
@@ -190,20 +184,26 @@ exit_handler:;
 	}
 	//printk("---out \n");                                                                                                                                                     
 	CLI
-	if (system.int_path_count == 0)
-	{
-		equeue_packet(system.network_desc);
-		dequeue_packet(system.network_desc);
-	}
 	iter--;
 	if (iter>0)
 	{
-		//printk("race \n");
-	}                                                                     
+		//printk("race-o %d \n",iter);
+	}
+	if (system.int_path_count == 0 && system.force_scheduling == 0)                                                                                         \
+	{                                                                                                                       \
+		equeue_packet(system.network_desc);                                                                             \
+		dequeue_packet(system.network_desc);                                                                            \
+	}                                                         
 	_action2=is_schedule;                                                                                   
 	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;                                  
 	_old_process_context=_current_process_context;                                                      
-	_processor_reg=processor_reg;                     
+	_processor_reg=processor_reg;
+	if (system.force_scheduling == 1 && is_schedule == 0 && system.int_path_count == 0)
+	{
+		is_schedule = 1;
+	}
+	system.force_scheduling = 0; 
+                  
 	if (_action2>0)                                                                                      
 	{                                                                                           
 		schedule(&_current_process_context,&_processor_reg);	                          

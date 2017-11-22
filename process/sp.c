@@ -111,7 +111,7 @@ int main()
 					{
 						ret = write_socket(client_sockfd, buffer_1,b_read);
 						//printf("-------------\n");	
-						sleep(1000);
+						sleep(10);
 						//for (ss = 0;ss <= 1000000;ss++);
 						rt++;
 						printf("retry=%d \n",rt);
