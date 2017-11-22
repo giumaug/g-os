@@ -52,9 +52,9 @@ int main()
 //      ((unsigned char*) &(server_address.sin_addr.s_addr))[2]=28;
 //      ((unsigned char*) &(server_address.sin_addr.s_addr))[3]=130;
 
-	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=172;
-	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=16;
-	((unsigned char*) &(server_address.sin_addr.s_addr))[2]=6;
+	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=192;
+	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=168;
+	((unsigned char*) &(server_address.sin_addr.s_addr))[2]=247;
 	((unsigned char*) &(server_address.sin_addr.s_addr))[3]=101;
 
 	((unsigned char*) &(server_address.sin_port))[0]=((unsigned char*) &(port))[1];
