@@ -81,7 +81,7 @@ void check_process_context()
 		{
 			process_context=next->val;
 			//if (process_context->curr_sched_queue_index>9 || process_context->curr_sched_queue_index<0)
-			if (process_context==NULL)
+			if (process_context->pid==2)
 			{
 				PRINTK("panic!!!! \n");
 			}

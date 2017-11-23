@@ -84,6 +84,10 @@ void schedule(struct t_process_context *current_process_context,struct t_process
 			next_process_context=next->val;
 			if (current_process_context->pid!=next_process_context->pid && next_process_context->pid!=0)
 			{
+				if (next_process_context->pid == 2)
+				{
+					check_process_context();
+				}
 				do_context_switch(current_process_context,processor_reg,next_process_context);	
 				system.process_info->current_process=next;
 				if (current_process_context->proc_status==RUNNING)
@@ -95,7 +99,7 @@ void schedule(struct t_process_context *current_process_context,struct t_process
 				}
 				else if (current_process_context->proc_status==SLEEPING)
 				{
-					ll_delete_node(node);	
+					ll_delete_node(node);
 				}
 				else if (current_process_context->proc_status==EXITING)
 				{
@@ -127,7 +131,8 @@ void schedule(struct t_process_context *current_process_context,struct t_process
 			system.process_info->current_process = system.process_info->process_0;
 			if (current_process_context->proc_status==SLEEPING)
 			{
-				ll_delete_node(node);	
+				ll_delete_node(node);
+				check_process_context();
 			}
 			else if (current_process_context->proc_status==EXITING)
 			{
