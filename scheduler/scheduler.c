@@ -75,6 +75,7 @@ void schedule(struct t_process_context *current_process_context,struct t_process
 	node=system.process_info->current_process;	
 	current_process_context=node->val;
 	
+	//check_process_context();
 	while(!stop && index<10)
 	{
 		sentinel_node=ll_sentinel(system.scheduler_desc->scheduler_queue[index]);
@@ -84,10 +85,6 @@ void schedule(struct t_process_context *current_process_context,struct t_process
 			next_process_context=next->val;
 			if (current_process_context->pid!=next_process_context->pid && next_process_context->pid!=0)
 			{
-				if (next_process_context->pid == 2)
-				{
-					check_process_context();
-				}
 				do_context_switch(current_process_context,processor_reg,next_process_context);	
 				system.process_info->current_process=next;
 				if (current_process_context->proc_status==RUNNING)
@@ -95,6 +92,7 @@ void schedule(struct t_process_context *current_process_context,struct t_process
 					adjust_sched_queue(current_process_context);
 					ll_delete_node(node);
 					queue_index=current_process_context->curr_sched_queue_index;
+					check_process_context();
 					ll_append(system.scheduler_desc->scheduler_queue[queue_index],current_process_context);
 				}
 				else if (current_process_context->proc_status==SLEEPING)
@@ -131,8 +129,9 @@ void schedule(struct t_process_context *current_process_context,struct t_process
 			system.process_info->current_process = system.process_info->process_0;
 			if (current_process_context->proc_status==SLEEPING)
 			{
+				//check_process_context();
 				ll_delete_node(node);
-				check_process_context();
+				//check_process_context();
 			}
 			else if (current_process_context->proc_status==EXITING)
 			{
@@ -224,6 +223,8 @@ void adjust_sched_queue(struct t_process_context *current_process_context)
 
 void _sleep()
 {
+	//check_process_context();
+	system.sleep_count++;
 	_sleep_and_unlock(NULL);
 }
 
@@ -249,9 +250,11 @@ void _sleep_and_unlock(t_spinlock_desc* lock)
 void _awake(struct t_process_context *new_process)
 {
 	t_llist_node* new_node;
+	struct t_process_context* process_context;
 
 	SAVE_IF_STATUS
 	CLI
+	CURRENT_PROCESS_CONTEXT(process_context);
 	if (new_process->pid==2)
 	{
 		//printk("qui!! \n");
@@ -259,7 +262,11 @@ void _awake(struct t_process_context *new_process)
 	new_process->sleep_time=(system.time-new_process->sleep_time>=1000) ? 1000 : (system.time-new_process->sleep_time);
 	new_process->proc_status=RUNNING;
 	adjust_sched_queue(new_process);
-	ll_prepend(system.scheduler_desc->scheduler_queue[new_process->curr_sched_queue_index],new_process);
+	check_process_context();
+	if (process_context->pid != new_process->pid)
+	{
+		ll_prepend(system.scheduler_desc->scheduler_queue[new_process->curr_sched_queue_index],new_process);
+	}	
 	system.force_scheduling = 1;
 	RESTORE_IF_STATUS
 }
@@ -386,6 +393,7 @@ int _fork(struct t_processor_reg processor_reg)
 		child_process_context->ustack_mem_reg = create_mem_reg(parent_process_context->ustack_mem_reg->start_addr,
 								     parent_process_context->ustack_mem_reg->end_addr);	
 	}
+	check_process_context();
 	ll_prepend(system.scheduler_desc->scheduler_queue[parent_process_context->curr_sched_queue_index],child_process_context);
 	child_process_context->page_dir = clone_vm_process(parent_process_context->page_dir,
 							 parent_process_context->process_type,

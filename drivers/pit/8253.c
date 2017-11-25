@@ -93,6 +93,7 @@ void int_handler_pit()
 			next_process->assigned_sleep_time=0;
 			next_process->proc_status=RUNNING;
 			queue_index=next_process->curr_sched_queue_index;
+			check_process_context();
 			ll_append(system.scheduler_desc->scheduler_queue[queue_index],next_process);
 			old_node=next;
 			next=ll_next(next);
@@ -187,12 +188,18 @@ exit_handler:;
 	iter--;
 	if (iter>0)
 	{
-		//printk("race-o %d \n",iter);
+		printk("race-o %d \n",iter);
 	}
-	if (system.int_path_count == 0 && system.force_scheduling == 0)                                                                                         \
-	{                                                                                                                       \
-		equeue_packet(system.network_desc);                                                                             \
-		dequeue_packet(system.network_desc);                                                                            \
+	if (system.int_path_count == 0 && system.force_scheduling ==0)                                                                                
+	{
+		int xxx = system.time;
+		equeue_packet(system.network_desc);
+		dequeue_packet(system.network_desc);
+		system.count += (system.time - xxx);
+		if ((system.time - xxx) > 30)
+		{
+			panic();
+		}
 	}                                                         
 	_action2=is_schedule;                                                                                   
 	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;                                  
@@ -202,10 +209,10 @@ exit_handler:;
 	{
 		is_schedule = 1;
 	}
-	system.force_scheduling = 0; 
                   
 	if (_action2>0)                                                                                      
-	{                                                                                           
+	{
+		system.force_scheduling = 0;                                                                                           
 		schedule(&_current_process_context,&_processor_reg);	                          
 		_new_process_context=*(struct t_process_context*)(system.process_info->current_process->val);
 		if (_new_process_context.pid != _old_process_context.pid)

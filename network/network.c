@@ -1,6 +1,8 @@
 #include "network/network.h"
 
 extern int go;
+int pp1 = 0;
+int pp2 = 0;
 
 //ONLY ONE INSTANCE FOR ALL POSSIBLE INTERFACES!!!!!
 t_network_desc* network_init()
@@ -43,10 +45,10 @@ void equeue_packet(t_network_desc* network_desc)
 	int count = 0;
 	static int iter = 0;
 	iter++;
-//	if (iter > 1)
-//	{
-//		//printk("race !!! \n"); 
-//	}
+	if (iter > 1)
+	{
+		printk("race !!! \n"); 
+	}
 	
 	DISABLE_PREEMPTION
 ////	SAVE_IF_STATUS
@@ -63,19 +65,19 @@ void equeue_packet(t_network_desc* network_desc)
 		STI
 		free_sckt(data_sckt_buf);
 		tot_sent += frame_len;
-//		if (system.force_scheduling != 0)
-//		{
-//			break;
-//		}
+		if (system.force_scheduling != 0)
+		{
+			break;
+		}
 	}
 ////	RESTORE_IF_STATUS
 	CLI
 	ENABLE_PREEMPTION
-//	iter--;---last
-//	if (iter > 0)
-//	{
-//		//printk("race !!! \n"); 
-//	}
+	iter--;
+	if (iter > 0)
+	{
+		printk("race !!! \n"); 
+	}
 	if (go == 1)
 	{
 		tot += tot_sent;
@@ -94,7 +96,7 @@ void equeue_packet(t_network_desc* network_desc)
 		}
 		if (tot > 31200000)
 		{
-			//printk("break!!! \n");
+			printk("break!!! \n");
 		}
 	}
 }
@@ -106,10 +108,10 @@ void dequeue_packet(t_network_desc* network_desc)
 	static int iter = 0;
 
 	iter++;
-//	if (iter > 1)
-//	{
-//		//printk("race !!! \n"); 
-//	}
+	if (iter > 1)
+	{
+		printk("race !!! \n"); 
+	}
 	DISABLE_PREEMPTION
 ////	SAVE_IF_STATUS
 	STI
@@ -119,19 +121,19 @@ void dequeue_packet(t_network_desc* network_desc)
 		rcv_packet_mac(data_sckt_buf);
 		i++;
 		STI
-//		if (system.force_scheduling != 0)
-//		{
-//			break;
-//		}
+		if (system.force_scheduling != 0)
+		{
+			break;
+		}
 	}
 	CLI
 ////	RESTORE_IF_STATUS
 	ENABLE_PREEMPTION
 	iter--;
-//	if (iter > 0)
-//	{
-//		//printk("race !!! \n"); 
-//	}
+	if (iter > 0)
+	{
+		printk("race !!! \n"); 
+	}
 }
 
 void debug_network(char* data,u32 data_len)

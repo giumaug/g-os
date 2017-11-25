@@ -2,6 +2,7 @@
 #include "memory_manager/general.h"
 #include "debug.h"
 
+extern go;
 unsigned int pippo;
 extern unsigned int free_mem_list[POOL_NUM];
 
@@ -68,10 +69,16 @@ void check_free_mem()
 
 void check_process_context()
 {
+	return;
+}
+
+void _check_process_context()
+{
 	t_llist_node* next;
 	t_llist_node* sentinel_node;
 	struct t_process_context* process_context;
 	int index=0;
+	int count = 0;
 
 	while(index<10)
 	{
@@ -81,13 +88,17 @@ void check_process_context()
 		{
 			process_context=next->val;
 			//if (process_context->curr_sched_queue_index>9 || process_context->curr_sched_queue_index<0)
-			if (process_context->pid==2)
+			if (process_context->pid==2 && go==1)
 			{
-				PRINTK("panic!!!! \n");
+				count++;
 			}
 			next=next=ll_next(next);
 		}
 		index++;
+	}
+	if (count >1)
+	{
+		printk("!!! \n");
 	}
 }
 

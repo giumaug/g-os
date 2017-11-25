@@ -241,17 +241,22 @@ void syscall_handler()
 //	EXIT_INT_HANDLER(on_exit_action,processor_reg)
 
 	CLI
-	if (system.int_path_count == 0)
+	if (system.int_path_count == 0 && system.force_scheduling == 0)
 	{
+		int xxx = system.time;
 		equeue_packet(system.network_desc);
 		dequeue_packet(system.network_desc);
+		system.count += (system.time - xxx);
+		if ((system.time - xxx) > 30)
+		{
+			panic();
+		}
 	}
 	if (system.force_scheduling == 1 && on_exit_action == 0 && system.int_path_count == 0)                                     
 	{                                                                                                                       
-		on_exit_action = 1;                                                                                                     
-	}                                                                                                                       
-	system.force_scheduling = 0;   
-
+		on_exit_action = 1;                                                                                             
+	}
+	
 	static struct t_process_context _current_process_context;                                          
 	static struct t_process_context _old_process_context;                                              
 	static struct t_process_context _new_process_context;	                                            
@@ -263,7 +268,8 @@ void syscall_handler()
 	_old_process_context=_current_process_context;                                                      
 	_processor_reg=processor_reg;                                                           
 	if (_action>0)                                                                                      
-	{                                                                                   
+	{  
+		system.force_scheduling = 0;                                                                                 
 		schedule(&_current_process_context,&_processor_reg);                            
 		_new_process_context=*(struct t_process_context*)(system.process_info->current_process->val);
 		if (_new_process_context.pid != _old_process_context.pid)

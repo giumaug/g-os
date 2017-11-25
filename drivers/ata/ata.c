@@ -4,6 +4,10 @@
 #include "drivers/ata/ata.h"
 
 static int race=0;
+extern int go;
+extern int ggo;
+extern int pp1;
+extern int pp2;
 
 void static int_handler_ata();
 
@@ -53,9 +57,17 @@ void int_handler_ata()
 	{
 		sem_up(&io_request->device_desc->sem);
 	}
+	if (ggo == 1)
+	{
+		pp1++;
+	}
 	if (current_process_context->pid != process_context->pid) 
 	{
 	 	system.force_scheduling = 1;
+		if (go == 1)
+		{
+			pp2++;
+		}
 	}
 	system.device_desc->status=DEVICE_IDLE;
 	enable_irq_line(14);

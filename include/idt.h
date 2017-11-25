@@ -29,11 +29,17 @@ void set_idt_entry(int entry,struct t_i_desc* i_desc);
 	static unsigned int _action2;                                                                              		\
                                                                                                                    		\
 	CLI                                                                                                                     \
-	if (system.int_path_count == 0 && system.force_scheduling == 0)                                                                                         \
+	if (system.int_path_count == 0 && system.force_scheduling == 0)                                                         \
 	{                                                                                                                       \
+		int xxx =system.time;                                                                                    \
 		equeue_packet(system.network_desc);                                                                             \
 		dequeue_packet(system.network_desc);                                                                            \
-	}                                                                                                                      \
+                system.count += (system.time - xxx);                                                                            \
+		if ((system.time - xxx) > 30)                                                                                   \
+		{                                                                                                               \
+			panic();                                                                                               \
+		}                                                                                                               \
+	}                                                                                                                       \
 	_action2=action;                                                                                           		\
 	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;             		\
 	_old_process_context=_current_process_context;                                                             		\
@@ -42,10 +48,9 @@ void set_idt_entry(int entry,struct t_i_desc* i_desc);
 	{                                                                                                                       \
 		_action2 = 1;                                                                                                   \
 	}                                                                                                                       \
-	system.force_scheduling = 0;                                                                                            \
                                                                                                                                 \
 	if (_action2>0)                                                                                            		\
-	{                                                                                                          		\
+	{	system.force_scheduling = 0;                                                                                    \
 		schedule(&_current_process_context,&_processor_reg);                                               		\
 		_new_process_context=*(struct t_process_context*)system.process_info->current_process->val;         		\
 		if (_new_process_context.pid != _old_process_context.pid)                                                       \
