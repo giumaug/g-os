@@ -247,9 +247,9 @@ void syscall_handler()
 		equeue_packet(system.network_desc);
 		dequeue_packet(system.network_desc);
 		system.count += (system.time - xxx);
-		if ((system.time - xxx) > 30)
+		if ((system.time - xxx) >= 20)
 		{
-			panic();
+			panic2(system.time - xxx);
 		}
 	}
 	if (system.force_scheduling == 1 && on_exit_action == 0 && system.int_path_count == 0)                                     

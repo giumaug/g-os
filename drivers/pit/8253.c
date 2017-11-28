@@ -52,15 +52,17 @@ void int_handler_pit()
 	fff++;
 	//printk("---in %d \n",fff);
 
-	if (go == 1)
+	if (ggo == 1)
 	{
 		//printk("-----inside int----\n");
+		//printk("---iter %d \n",iter);
+		//printk("...\n");
 	}
 
 	iter++;
 	if (iter>1)
 	{
-		printk("race %d \n",iter);
+		//printk("race %d \n",iter);
 	}
 	system.time+=QUANTUM_DURATION;
 	if (system.int_path_count>0)
@@ -174,6 +176,7 @@ void int_handler_pit()
 exit_handler:;
 //	EXIT_INT_HANDLER(is_schedule,processor_reg);
 
+	int xxx = 0;
 	static struct t_process_context _current_process_context;                                          
 	static struct t_process_context _old_process_context;                                              
 	static struct t_process_context _new_process_context;	                                            
@@ -183,24 +186,26 @@ exit_handler:;
 	{
 		//printk("-----outside int----\n");
 	}
-	//printk("---out \n");                                                                                                                                                     
+	//printk("---out\n");
 	CLI
-	iter--;
-	if (iter>0)
+	if (system.int_path_count == 0 && system.force_scheduling == 0)           
 	{
-		printk("race-o %d \n",iter);
-	}
-	if (system.int_path_count == 0 && system.force_scheduling ==0)                                                                                
-	{
-		int xxx = system.time;
+		xxx = system.time;
 		equeue_packet(system.network_desc);
 		dequeue_packet(system.network_desc);
 		system.count += (system.time - xxx);
-		if ((system.time - xxx) > 30)
+		if ((system.time - xxx) >= 40)
 		{
-			panic();
+			printk("xxx is %d \n",xxx);
+			printk("time is %d\ ",system.time);
+			panic2(system.time - xxx);
 		}
-	}                                                         
+	}
+	iter--;
+	if (iter>0)
+	{
+		//printk("race-o %d \n",iter);
+	}                                                        
 	_action2=is_schedule;                                                                                   
 	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;                                  
 	_old_process_context=_current_process_context;                                                      

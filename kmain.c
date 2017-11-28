@@ -112,5 +112,13 @@ void panic()
 	printk("\n");
 	printk("Kernel panic!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 	printk("\n");
-	while(1);
+	//while(1);
+}
+
+void panic2(int delay)
+{
+	printk("\n");
+	printk("delay is %d \n",delay);
+	printk("\n");
+	//while(1);
 }

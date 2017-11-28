@@ -35,9 +35,9 @@ void set_idt_entry(int entry,struct t_i_desc* i_desc);
 		equeue_packet(system.network_desc);                                                                             \
 		dequeue_packet(system.network_desc);                                                                            \
                 system.count += (system.time - xxx);                                                                            \
-		if ((system.time - xxx) > 30)                                                                                   \
+		if ((system.time - xxx) >= 20)                                                                                   \
 		{                                                                                                               \
-			panic();                                                                                               \
+			panic2(system.time - xxx);                                                                              \
 		}                                                                                                               \
 	}                                                                                                                       \
 	_action2=action;                                                                                           		\
