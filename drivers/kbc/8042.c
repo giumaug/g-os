@@ -6,6 +6,7 @@
 #include "drivers/kbc/8042.h" 
 #include "lib/lib.h"
 
+extern ggo;
 char lowercase_charset[0x80] = {
 			[0x00]='\0',			
 			[0x01]='\0',

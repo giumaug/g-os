@@ -69,6 +69,7 @@ void int_handler_ata()
 			pp2++;
 		}
 	}
+	system.stop = 1;
 	system.device_desc->status=DEVICE_IDLE;
 	enable_irq_line(14);
 	ENABLE_PREEMPTION
@@ -137,8 +138,8 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	return 0;
 }
 
-//MODIFIED VERSION TO TEST PERFORMANCE WITH MULTISECTORE READS (SEE _read_test(t_ext2* ext2) in ext2.c)
-static unsigned int ___read_write_28_ata(t_io_request* io_request)
+//MODIFIED VERSION TO TEST PERFORMANCE WITH MULTISECTOR READS (SEE _read_test(t_ext2* ext2) in ext2.c)
+static unsigned int _read_write_28_ata_____(t_io_request* io_request)
 {
 	int i;
 	t_device_desc* device_desc;
@@ -155,7 +156,7 @@ static unsigned int ___read_write_28_ata(t_io_request* io_request)
 	device_desc->status=DEVICE_BUSY;
 	system.device_desc->serving_request=io_request;
 	
-        out(2, 0x3F6);
+        //out(2, 0x3F6);
 	out(0xE0 | (io_request->lba >> 24),0x1F6);
 	//io_request->sector_count=2;
 	out((unsigned char)io_request->sector_count,0x1F2);

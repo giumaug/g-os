@@ -37,8 +37,12 @@ void set_idt_entry(int entry,struct t_i_desc* i_desc);
                 system.count += (system.time - xxx);                                                                            \
 		if ((system.time - xxx) >= 20)                                                                                   \
 		{                                                                                                               \
-			panic2(system.time - xxx);                                                                              \
+			/*panic2(system.time - xxx);*/                                                                              \
 		}                                                                                                               \
+                if (ggo == 1) \
+		{                                                                                                               \
+                	panic2(system.time - xxx);      \
+		} \
 	}                                                                                                                       \
 	_action2=action;                                                                                           		\
 	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;             		\

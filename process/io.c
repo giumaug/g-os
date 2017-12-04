@@ -25,7 +25,7 @@ int main()
 	int t = 0;
 	
 	printf("---------start performance check---------- \n");
-	//read_test();
+	read_test();
 	printf("---------end performance check------------ \n");
 
 	f = open(path, O_RDWR | O_APPEND);

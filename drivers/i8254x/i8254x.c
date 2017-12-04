@@ -2,6 +2,7 @@
 #include "virtual_memory/vm.h"
 
 static int counter=0;
+extern int ggo;
 
 static void write_i8254x(t_i8254x* i8254x,u32 address,u32 value)
 {

@@ -73,6 +73,7 @@ typedef struct s_system
 //	int collect_mem;//for debug memeory
 	int sleep_count;
 	int count;
+	u8 stop;
 }
 t_system;
 

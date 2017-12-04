@@ -209,7 +209,7 @@ void _read_test(t_ext2* ext2)
 
 	first_block = 3000;
 	last_block = 33720;
-	cons_block = 32;
+	cons_block = 16;
 	buf = kmalloc(1024 * cons_block);
 	iob_data_block = kmalloc(1024 * cons_block);	
 

@@ -1,7 +1,14 @@
-1 block with int 10-14
-1 block no int 10
-1 block multi no int 8
-16 block multi no int 5
+performace su io con su chiamata read_test (30 MB)
+1 block with int 14
+1 block multi no int 10
+1 block multi with  int 11
+16 block multi no int 6
+16 block multi with int 6
+
+io codice regolare(int disabilitati su network 30 MB)
+1 block multi no int 9
+1 block multi with int 9
+
 
 sp network + disk
 ubuntu 25 (talvolta 54)

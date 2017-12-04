@@ -38,6 +38,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
       		/* Something went not according to specs. Print an error */
    	}
  	CLI
+	system.stop = 0;
 	system.force_scheduling = 0;
 	system.process_info = &process_info;
 	system.buddy_desc = &buddy_desc;
@@ -117,8 +118,15 @@ void panic()
 
 void panic2(int delay)
 {
-	printk("\n");
-	printk("delay is %d \n",delay);
-	printk("\n");
+	static int tot = 0;
+	static int del = 0;
+	tot++;
+	if (delay > 0)
+	{
+		del++;
+	}
+	//printk("\n");
+	//printk("delay is %d \n",delay);
+	//printk("\n");
 	//while(1);
 }

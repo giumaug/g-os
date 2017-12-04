@@ -1,6 +1,7 @@
 #include "network/network.h"
 
 extern int go;
+extern int ggo;
 int pp1 = 0;
 int pp2 = 0;
 
@@ -34,15 +35,18 @@ void network_free(t_network_desc* network_desc)
 
 void equeue_packet(t_network_desc* network_desc)
 {
+	int stop;
 	t_sckt_buf_desc* sckt_buf_desc;
 	t_data_sckt_buf* data_sckt_buf;
 	void* frame;
 	u16 frame_len;
 	u32 tot_sent = 0;
+	u32 static count = 0;
+	u32 static tot_count = 0;
+	u32 static avg = 0;
 	static int tot = 0;
 	static int t1 = 0;
 	static int t2 = 0;
-	int count = 0;
 	static int iter = 0;
 	iter++;
 	if (iter > 1)
@@ -50,37 +54,44 @@ void equeue_packet(t_network_desc* network_desc)
 		printk("race !!! \n"); 
 	}
 	
-	DISABLE_PREEMPTION
+//	DISABLE_PREEMPTION
 ////	SAVE_IF_STATUS
-	STI
+//	STI
 	sckt_buf_desc=network_desc->tx_queue;
 	//while ((data_sckt_buf=dequeue_sckt(sckt_buf_desc))!=NULL && system.force_scheduling == 0)
-	while ((data_sckt_buf=dequeue_sckt(sckt_buf_desc))!=NULL)
+	stop = 0;
+	while (stop == 0 && (data_sckt_buf=dequeue_sckt(sckt_buf_desc))!=NULL)
 	{
-		count++;
 		frame=data_sckt_buf->mac_hdr;
 		frame_len=data_sckt_buf->data_len;
-		CLI
+//		CLI
 		send_packet_i8254x(network_desc->dev,frame,frame_len);
-		STI
+//		STI
 		free_sckt(data_sckt_buf);
 		tot_sent += frame_len;
-		if (system.force_scheduling != 0)
-		{
-			break;
-		}
+//		if (system.force_scheduling == 1 || system.stop == 1)
+//		{
+//			system.stop = 0;
+//			stop = 1;
+//		}
 	}
 ////	RESTORE_IF_STATUS
-	CLI
-	ENABLE_PREEMPTION
+//	CLI
+//	ENABLE_PREEMPTION
 	iter--;
 	if (iter > 0)
 	{
 		printk("race !!! \n"); 
 	}
-	if (go == 1)
+	if (ggo == 1)
 	{
 		tot += tot_sent;
+		tot_count++;
+		if (tot_sent > 0)
+		{
+			count++;
+			avg = tot / count;
+		}
 		if (tot_sent <= 16384)
 		{
 			t1++;
@@ -96,7 +107,8 @@ void equeue_packet(t_network_desc* network_desc)
 		}
 		if (tot > 31200000)
 		{
-			printk("break!!! \n");
+			//printk("break!!! \n");
+			//panic2(0);
 		}
 	}
 }
@@ -112,23 +124,23 @@ void dequeue_packet(t_network_desc* network_desc)
 	{
 		printk("race !!! \n"); 
 	}
-	DISABLE_PREEMPTION
+//	DISABLE_PREEMPTION
 ////	SAVE_IF_STATUS
-	STI
+//	STI
 	while ((data_sckt_buf=dequeue_sckt(network_desc->rx_queue))!=NULL)
 	{	
-		CLI
+//		CLI
 		rcv_packet_mac(data_sckt_buf);
 		i++;
-		STI
+//		STI
 		if (system.force_scheduling != 0)
 		{
 			break;
 		}
 	}
-	CLI
+//	CLI
 ////	RESTORE_IF_STATUS
-	ENABLE_PREEMPTION
+//	ENABLE_PREEMPTION
 	iter--;
 	if (iter > 0)
 	{

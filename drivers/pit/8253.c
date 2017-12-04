@@ -6,8 +6,8 @@
 #include "drivers/pic/8259A.h" 
 
 #define K_STACK 0x1FFFFB
-extern go;
 extern ggo;
+extern go;
 extern index_2;
 extern unsigned int proc[100];
 static int p0=0;
@@ -198,6 +198,10 @@ exit_handler:;
 		{
 			printk("xxx is %d \n",xxx);
 			printk("time is %d\ ",system.time);
+			//panic2(system.time - xxx);
+		}
+		if (ggo == 1)
+		{
 			panic2(system.time - xxx);
 		}
 	}
@@ -212,7 +216,7 @@ exit_handler:;
 	_processor_reg=processor_reg;
 	if (system.force_scheduling == 1 && is_schedule == 0 && system.int_path_count == 0)
 	{
-		is_schedule = 1;
+		_action2 = 1;
 	}
                   
 	if (_action2>0)                                                                                      

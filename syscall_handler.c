@@ -9,6 +9,7 @@
 #define K_STACK 0x1FFFFB
 
 unsigned int counter=0;
+extern ggo;
 
 void syscall_handler()
 {
@@ -249,6 +250,10 @@ void syscall_handler()
 		system.count += (system.time - xxx);
 		if ((system.time - xxx) >= 20)
 		{
+			//panic2(system.time - xxx);
+		}
+		if (ggo == 1)
+		{
 			panic2(system.time - xxx);
 		}
 	}
@@ -264,7 +269,7 @@ void syscall_handler()
 	static unsigned int _action;                                                                     
                                                                                                                                                                                 
 	_action=on_exit_action;                                                                                
-	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;                                  
+	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;                                
 	_old_process_context=_current_process_context;                                                      
 	_processor_reg=processor_reg;                                                           
 	if (_action>0)                                                                                      
