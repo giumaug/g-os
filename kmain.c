@@ -29,8 +29,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	static t_device_desc device_desc;
 	static u32 kernel_stack;
 
-	system.count = 0;
-	system.sleep_count = 0;
+	system.preempt_network_flush = 0;
 	system.time = 0;
 	init_data = init_data_add;
 	if ( magic != 0x2BADB002 )
@@ -38,7 +37,6 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
       		/* Something went not according to specs. Print an error */
    	}
  	CLI
-	system.stop = 0;
 	system.force_scheduling = 0;
 	system.process_info = &process_info;
 	system.buddy_desc = &buddy_desc;
@@ -113,20 +111,5 @@ void panic()
 	printk("\n");
 	printk("Kernel panic!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 	printk("\n");
-	//while(1);
-}
-
-void panic2(int delay)
-{
-	static int tot = 0;
-	static int del = 0;
-	tot++;
-	if (delay > 0)
-	{
-		del++;
-	}
-	//printk("\n");
-	//printk("delay is %d \n",delay);
-	//printk("\n");
 	//while(1);
 }

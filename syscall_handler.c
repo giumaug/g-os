@@ -8,9 +8,6 @@
 
 #define K_STACK 0x1FFFFB
 
-unsigned int counter=0;
-extern ggo;
-
 void syscall_handler()
 {
 	static int free_vm_proc;        
@@ -244,18 +241,8 @@ void syscall_handler()
 	CLI
 	if (system.int_path_count == 0 && system.force_scheduling == 0)
 	{
-		int xxx = system.time;
 		equeue_packet(system.network_desc);
 		dequeue_packet(system.network_desc);
-		system.count += (system.time - xxx);
-		if ((system.time - xxx) >= 20)
-		{
-			//panic2(system.time - xxx);
-		}
-		if (ggo == 1)
-		{
-			panic2(system.time - xxx);
-		}
 	}
 	if (system.force_scheduling == 1 && on_exit_action == 0 && system.int_path_count == 0)                                     
 	{                                                                                                                       

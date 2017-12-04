@@ -93,7 +93,7 @@ int main()
 			printf("file len is %d \n",file_len);
 			//b_to_read = file_len;
 			//for (t=0;t<1000;t++)
-			for (t=0;t<1;t++)
+			for (t=0;t<10;t++)
 			{
 				current_len = file_len;
 				while (current_len > 0)
@@ -123,6 +123,7 @@ int main()
 			}
 			printf("rt=%d \n",rt);
 			close_socket(client_sockfd);
+			free(io_buffer);
 			exit(0);
 		}
 		else 

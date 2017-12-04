@@ -3,11 +3,11 @@
 #include "virtual_memory/vm.h"
 #include "drivers/ata/ata.h"
 
-static int race=0;
-extern int go;
-extern int ggo;
-extern int pp1;
-extern int pp2;
+//static int race=0;
+//extern int go;
+//extern int ggo;
+//extern int pp1;
+//extern int pp2;
 
 void static int_handler_ata();
 
@@ -57,19 +57,11 @@ void int_handler_ata()
 	{
 		sem_up(&io_request->device_desc->sem);
 	}
-	if (ggo == 1)
-	{
-		pp1++;
-	}
 	if (current_process_context->pid != process_context->pid) 
 	{
 	 	system.force_scheduling = 1;
-		if (go == 1)
-		{
-			pp2++;
-		}
 	}
-	system.stop = 1;
+	system.preempt_network_flush = 1;
 	system.device_desc->status=DEVICE_IDLE;
 	enable_irq_line(14);
 	ENABLE_PREEMPTION
@@ -151,12 +143,11 @@ static unsigned int _read_write_28_ata_____(t_io_request* io_request)
 	device_desc=io_request->device_desc;
 	//Entrypoint mutual exclusion region
 	sem_down(&device_desc->mutex);
-	race++;
 	
 	device_desc->status=DEVICE_BUSY;
 	system.device_desc->serving_request=io_request;
 	
-        //out(2, 0x3F6);
+        out(2, 0x3F6);
 	out(0xE0 | (io_request->lba >> 24),0x1F6);
 	//io_request->sector_count=2;
 	out((unsigned char)io_request->sector_count,0x1F2);
@@ -204,11 +195,6 @@ static unsigned int _read_write_28_ata_____(t_io_request* io_request)
 			}
 		i=0;
 		}
-	}
-	race--;
-	if (race>0)
-	{
-		panic();
 	}
 	//Endpoint mutual exclusion region
 	sem_up(&device_desc->mutex);	

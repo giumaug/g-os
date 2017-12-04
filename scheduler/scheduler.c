@@ -223,8 +223,6 @@ void adjust_sched_queue(struct t_process_context *current_process_context)
 
 void _sleep()
 {
-	//check_process_context();
-	system.sleep_count++;
 	_sleep_and_unlock(NULL);
 }
 
@@ -263,6 +261,7 @@ void _awake(struct t_process_context *new_process)
 	new_process->proc_status=RUNNING;
 	adjust_sched_queue(new_process);
 	check_process_context();
+	//COULD ARRIVE AN ATA INTERRUPT DURING NETWORK FLUSH
 	if (process_context->pid != new_process->pid)
 	{
 		ll_prepend(system.scheduler_desc->scheduler_queue[new_process->curr_sched_queue_index],new_process);

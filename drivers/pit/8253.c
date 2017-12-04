@@ -6,12 +6,10 @@
 #include "drivers/pic/8259A.h" 
 
 #define K_STACK 0x1FFFFB
-extern ggo;
-extern go;
-extern index_2;
-extern unsigned int proc[100];
-static int p0=0;
-static int p2=0;
+//extern ggo;
+//extern go;
+//static int p0=0;
+//static int p2=0;
 
 void init_pit()
 {	
@@ -48,22 +46,11 @@ void int_handler_pit()
 	EOI_TO_MASTER_PIC
 	SWITCH_DS_TO_KERNEL_MODE
 
-	static int fff=0;
-	fff++;
-	//printk("---in %d \n",fff);
-
-	if (ggo == 1)
-	{
-		//printk("-----inside int----\n");
-		//printk("---iter %d \n",iter);
-		//printk("...\n");
-	}
-
-	iter++;
-	if (iter>1)
-	{
-		//printk("race %d \n",iter);
-	}
+//	iter++;
+//	if (iter>1)
+//	{
+//		printk("race %d \n",iter);
+//	}
 	system.time+=QUANTUM_DURATION;
 	if (system.int_path_count>0)
 	{
@@ -117,20 +104,15 @@ void int_handler_pit()
 	{	
 		process_context=system.process_info->current_process->val;
 		process_context->sleep_time-=QUANTUM_DURATION;
-		if (go==1)
-		{
-			//printk("pid= %d \n",process_context->pid);
-			//printk("iter= %d \n",iter);
-		}
-
-		if (process_context->pid==0 && ggo==1)
-		{
-			p0++;
-		}
-		if (process_context->pid==3 && ggo==1)
-		{
-			p2++;
-		}
+		
+//		if (process_context->pid==0 && ggo==1)
+//		{
+//			p0++;
+//		}
+//		if (process_context->pid==3 && ggo==1)
+//		{
+//			p2++;
+//		}
 		if (process_context->sleep_time>1000) 	
 		{
 			process_context->sleep_time=1000;
@@ -168,11 +150,6 @@ void int_handler_pit()
 		node = ll_next(node);
 	}
 
-	//Qui non va bene servono interrupt attivi e softirq
-	//FLUSH NETWORK QUEUES BEFORE EXITING
-	//testx();
-	//equeue_packet(system.network_desc);
-	//dequeue_packet(system.network_desc);
 exit_handler:;
 //	EXIT_INT_HANDLER(is_schedule,processor_reg);
 
@@ -182,36 +159,20 @@ exit_handler:;
 	static struct t_process_context _new_process_context;	                                            
 	static struct t_processor_reg _processor_reg;                                                       
 	static unsigned int _action2;  
-	if (go == 1)
-	{
-		//printk("-----outside int----\n");
-	}
-	//printk("---out\n");
+	
 	CLI
 	if (system.int_path_count == 0 && system.force_scheduling == 0)           
 	{
-		xxx = system.time;
 		equeue_packet(system.network_desc);
 		dequeue_packet(system.network_desc);
-		system.count += (system.time - xxx);
-		if ((system.time - xxx) >= 40)
-		{
-			printk("xxx is %d \n",xxx);
-			printk("time is %d\ ",system.time);
-			//panic2(system.time - xxx);
-		}
-		if (ggo == 1)
-		{
-			panic2(system.time - xxx);
-		}
 	}
 	iter--;
-	if (iter>0)
-	{
-		//printk("race-o %d \n",iter);
-	}                                                        
+//	if (iter>0)
+//	{
+//		printk("race-o %d \n",iter);
+//	}                                                        
 	_action2=is_schedule;                                                                                   
-	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;                                  
+	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;
 	_old_process_context=_current_process_context;                                                      
 	_processor_reg=processor_reg;
 	if (system.force_scheduling == 1 && is_schedule == 0 && system.int_path_count == 0)
@@ -243,7 +204,7 @@ exit_handler:;
 	{   
 		DO_STACK_FRAME(_processor_reg.esp-8);                                                                                  
 		RESTORE_PROCESSOR_REG
-		//TO FIX: SHOULD BE REPLACED BY  EXIT_SYSCALL_HANDLER                                                                      
+		//TO FIX: SHOULD BE REPLACED BY EXIT_SYSCALL_HANDLER
 		RET_FROM_INT_HANDLER                                                                      
 	}
 }
