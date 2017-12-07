@@ -32,7 +32,9 @@ static t_tcp_snd_queue* tcp_snd_queue_init()
 	t_tcp_snd_queue* tcp_snd_queue = NULL;
 
 	tcp_snd_queue = kmalloc(sizeof(t_tcp_snd_queue));
-	tcp_snd_queue->buf = kmalloc(TCP_SND_SIZE);
+	tcp_snd_queue = buddy_alloc_page(system.buddy_desc,0x1000);
+	//tcp_snd_queue->buf = kmalloc(TCP_SND_SIZE);
+	tcp_snd_queue->buf = buddy_alloc_page(system.buddy_desc,TCP_SND_SIZE);
 	tcp_snd_queue->wnd_min = 1;
 	tcp_snd_queue->wnd_size = SMSS;
 	tcp_snd_queue->cur = 1;
@@ -43,7 +45,8 @@ static t_tcp_snd_queue* tcp_snd_queue_init()
 
 static void tcp_snd_queue_free(t_tcp_snd_queue* tcp_snd_queue)
 {
-	kfree(tcp_snd_queue->buf);
+	//kfree(tcp_snd_queue->buf);
+	buddy_free_page(system.buddy_desc,tcp_snd_queue->buf);
 	kfree(tcp_snd_queue);
 }
 
@@ -685,7 +688,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	}
 	else if (tcp_conn_desc->duplicated_ack == 1 || tcp_conn_desc->duplicated_ack == 2)
 	{
-		printk("duplicated ack!!! \n");
+		//printk("duplicated ack!!! \n");
 		wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
 		if (wnd_max > tcp_queue->nxt_snd)
 		{
