@@ -47,10 +47,10 @@ int main()
 	int ss=0;
 
 	ssock.sin_family = AF_INET;
-//	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=34;
-//	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=253;
-//      ((unsigned char*) &(server_address.sin_addr.s_addr))[2]=28;
-//      ((unsigned char*) &(server_address.sin_addr.s_addr))[3]=130;
+//	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=79;
+//	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=19;
+//      ((unsigned char*) &(server_address.sin_addr.s_addr))[2]=210;
+//      ((unsigned char*) &(server_address.sin_addr.s_addr))[3]=2;
 
 	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=192;
 	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=168;
@@ -93,25 +93,25 @@ int main()
 			printf("file len is %d \n",file_len);
 			//b_to_read = file_len;
 			//for (t=0;t<1000;t++)
-			for (t=0;t<10;t++)
+			for (t=0;t<1;t++)
 			{
 				current_len = file_len;
 				while (current_len > 0)
 				{
-					b_read = read(f,io_buffer,b_to_read);
-					//b_read = b_to_read;
+					//b_read = read(f,io_buffer,b_to_read);
+					b_read = b_to_read;
 					
 					//printf("count= %d \n",b_read);
 					//printf("dddd \n");
-					ret = write_socket(client_sockfd,io_buffer,b_read);
+					//ret = write_socket(client_sockfd,io_buffer,b_read);
 					//printf("injecting \n");
-					//ret = write_socket(client_sockfd,buffer_1,b_read);
+					ret = write_socket(client_sockfd,buffer_1,b_read);
 					//ret = 0;
 					while (ret != 0 )
 					{
 						ret = write_socket(client_sockfd, buffer_1,b_read);
-						//printf("-------------\n");	
 						sleep(10);
+						//printf("-------------\n");	
 						//for (ss = 0;ss <= 1000000;ss++);
 						rt++;
 						printf("retry=%d \n",rt);
