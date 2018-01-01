@@ -20,7 +20,7 @@ g-os 25 (con int disabilitati)
 
 Consideration:
 Network and disk requestes can't overlap because cpu is almost always busy to serve pio mode flow (interrupts and copy)
-I.e if I request 16K cpu has to perform 16k/block_size copy interrput serving  instead of only one.
+I.e if I request 16K cpu has to perform 16k/block_size copy interrput serving  instead of only one.Also seems to be crucial IO port read/write time.
 
 
 

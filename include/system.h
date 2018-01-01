@@ -30,10 +30,19 @@ struct s_buddy_desc;
 struct s_device_desc;
 struct s_network_desc;
 
+typedef struct s_dma_lba
+{
+	unsigned int lba;
+	unsigned int sector_count;
+	char* io_buffer;
+}
+t_dma_lba;
+
 typedef struct s_io_request 
 {
 	unsigned int sector_count;
 	unsigned int lba;
+	struct s_dma_lba dma_lba_list;
 	struct s_device_desc* device_desc;
 	void* io_buffer;
 	struct t_process_context* process_context;

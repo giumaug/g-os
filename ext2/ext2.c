@@ -88,81 +88,81 @@ int _close(t_ext2* ext2,int fd)
 	return ret;
 }
 
-int _read_orig(t_ext2* ext2,int fd, void* buf,u32 count)
-{
-	struct t_process_context* current_process_context;
-	u32 i;
-	u32 block_offset;
-	u32 first_inode_block;
-	u32 first_data_offset;
-	u32 last_inode_block;
-	u32 inode_block;
-	u32 lba;
-	u32 indirect_lba;
-	u32 allocated_indirect_block;
-	u32 sector_count;
-	u32 byte_to_read;
-	u32 byte_read;
-	u32 byte_count;
-	t_inode* inode;
-	char* iob_indirect_block;
-	char* iob_data_block;
-
-	byte_read=0;
-	byte_to_read=count;
-	iob_indirect_block=kmalloc(BLOCK_SIZE);
-	iob_data_block=kmalloc(BLOCK_SIZE);
-
-	CURRENT_PROCESS_CONTEXT(current_process_context)
-	inode=hashtable_get(current_process_context->file_desc,fd);
-	if (inode==NULL)
-	{
-		return -1;
-	}
-	first_inode_block=inode->file_offset/BLOCK_SIZE;
-	first_data_offset=inode->file_offset%BLOCK_SIZE;
-	last_inode_block=(inode->file_offset+count)/BLOCK_SIZE;
-
-	allocated_indirect_block=0;
-	for (i=first_inode_block;i<=last_inode_block;i++)
-	{
-		if (i>11)
-		{
-			if (!allocated_indirect_block)
-			{
-				indirect_lba=FROM_BLOCK_TO_LBA(inode->i_block[12]);
-        			sector_count=BLOCK_SIZE/SECTOR_SIZE;
-				READ(sector_count,indirect_lba,iob_indirect_block);
-				allocated_indirect_block=1;
-			}
-			READ_DWORD(&iob_indirect_block[4*(i-12)],inode_block);
-			lba=FROM_BLOCK_TO_LBA(inode_block);
-		}
-		else
-		{
-			lba=FROM_BLOCK_TO_LBA(inode->i_block[i]);
-		}
-		if (byte_to_read>=BLOCK_SIZE)
-		{
-			byte_count=BLOCK_SIZE;
-			byte_to_read-=BLOCK_SIZE;	
-		}
-		else
-		{
-			byte_count=byte_to_read;
-			byte_to_read=0;
-		}
-        	sector_count=BLOCK_SIZE/SECTOR_SIZE;
-		READ(sector_count,lba,iob_data_block);
-		kmemcpy(buf,iob_data_block+first_data_offset,byte_count);
-		inode->file_offset+=byte_count;
-		buf+=byte_count;
-		byte_read+=byte_count;
-	}
-	kfree(iob_indirect_block);
-	kfree(iob_data_block);
-	return byte_read;
-}
+//int _read_orig(t_ext2* ext2,int fd, void* buf,u32 count)
+//{
+//	struct t_process_context* current_process_context;
+//	u32 i;
+//	u32 block_offset;
+//	u32 first_inode_block;
+//	u32 first_data_offset;
+//	u32 last_inode_block;
+//	u32 inode_block;
+//	u32 lba;
+//	u32 indirect_lba;
+//	u32 allocated_indirect_block;
+//	u32 sector_count;
+//	u32 byte_to_read;
+//	u32 byte_read;
+//	u32 byte_count;
+//	t_inode* inode;
+//	char* iob_indirect_block;
+//	char* iob_data_block;
+//
+//	byte_read=0;
+//	byte_to_read=count;
+//	iob_indirect_block=kmalloc(BLOCK_SIZE);
+//	iob_data_block=kmalloc(BLOCK_SIZE);
+//
+//	CURRENT_PROCESS_CONTEXT(current_process_context)
+//	inode=hashtable_get(current_process_context->file_desc,fd);
+//	if (inode==NULL)
+//	{
+//		return -1;
+//	}
+//	first_inode_block=inode->file_offset/BLOCK_SIZE;
+//	first_data_offset=inode->file_offset%BLOCK_SIZE;
+//	last_inode_block=(inode->file_offset+count)/BLOCK_SIZE;
+//
+//	allocated_indirect_block=0;
+//	for (i=first_inode_block;i<=last_inode_block;i++)
+//	{
+//		if (i>11)
+//		{
+//			if (!allocated_indirect_block)
+//			{
+//				indirect_lba=FROM_BLOCK_TO_LBA(inode->i_block[12]);
+//        			sector_count=BLOCK_SIZE/SECTOR_SIZE;
+//				READ(sector_count,indirect_lba,iob_indirect_block);
+//				allocated_indirect_block=1;
+//			}
+//			READ_DWORD(&iob_indirect_block[4*(i-12)],inode_block);
+//			lba=FROM_BLOCK_TO_LBA(inode_block);
+//		}
+//		else
+//		{
+//			lba=FROM_BLOCK_TO_LBA(inode->i_block[i]);
+//		}
+//		if (byte_to_read>=BLOCK_SIZE)
+//		{
+//			byte_count=BLOCK_SIZE;
+//			byte_to_read-=BLOCK_SIZE;	
+//		}
+//		else
+//		{
+//			byte_count=byte_to_read;
+//			byte_to_read=0;
+//		}
+//        	sector_count=BLOCK_SIZE/SECTOR_SIZE;
+//		READ(sector_count,lba,iob_data_block);
+//		kmemcpy(buf,iob_data_block+first_data_offset,byte_count);
+//		inode->file_offset+=byte_count;
+//		buf+=byte_count;
+//		byte_read+=byte_count;
+//	}
+//	kfree(iob_indirect_block);
+//	kfree(iob_data_block);
+//	return byte_read;
+//}
 
 static t_indirect_block* indirect_block_init()
 {
@@ -209,7 +209,7 @@ void _read_test(t_ext2* ext2)
 
 	first_block = 3000;
 	last_block = 33720;
-	cons_block = 16;
+	cons_block = 1;
 	buf = kmalloc(1024 * cons_block);
 	iob_data_block = kmalloc(1024 * cons_block);	
 
@@ -317,7 +317,134 @@ int inode_free(t_inode* inode)
 	return ret;
 }
 
-int _read(t_ext2* ext2,int fd, void* buf,u32 count)
+//int _read(t_ext2* ext2,int fd, void* buf,u32 count)
+//{
+//	struct t_process_context* current_process_context;
+//	u32 i;
+//	u32 block_offset;
+//	u32 first_inode_block;
+//	u32 first_data_offset;
+//	u32 last_inode_block;
+//	u32 inode_block;
+//	u32 lba;
+//	u32 indirect_lba;
+//	u32 sector_count;
+//	u32 byte_to_read;
+//	u32 byte_read;
+//	u32 byte_count;
+//	t_inode* inode;
+//	u32 inode_block_data; 
+//	char* iob_data_block;
+//	u32 second_block;
+//	u32 second_block_offset;
+//
+//	byte_read=0;
+//	byte_to_read=count;
+////	iob_indirect_block=kmalloc(BLOCK_SIZE);
+//	iob_data_block=kmalloc(BLOCK_SIZE);
+//
+//	CURRENT_PROCESS_CONTEXT(current_process_context)
+//	inode=hashtable_get(current_process_context->file_desc,fd);
+//	if (inode==NULL)
+//	{
+//		return -1;
+//	}
+//	first_inode_block=inode->file_offset/BLOCK_SIZE;
+//	first_data_offset=inode->file_offset%BLOCK_SIZE;
+//	last_inode_block=(inode->file_offset+(count-1))/BLOCK_SIZE;
+//	
+//	for (i=first_inode_block;i<=last_inode_block;i++)
+//	{
+//		if (i > INDIRECT_0_LIMIT && i <= INDIRECT_1_LIMIT)
+//		{
+//			if (inode->indirect_block_1 == NULL)
+//			{
+//				inode->indirect_block_1 = indirect_block_init();
+//				indirect_lba = FROM_BLOCK_TO_LBA(inode->i_block[12]);
+//        			sector_count = BLOCK_SIZE/SECTOR_SIZE;
+//				READ(sector_count,indirect_lba,inode->indirect_block_1->block);
+//			}
+//			READ_DWORD(&inode->indirect_block_1->block[4*(i - INDIRECT_0_LIMIT - 1)],inode_block_data);
+//			lba = FROM_BLOCK_TO_LBA(inode_block_data);
+//		}
+//		else if (i > INDIRECT_1_LIMIT  && i <= INDIRECT_2_LIMIT)
+//		{
+//			second_block = (i - INDIRECT_2_LIMIT - 1) / (BLOCK_SIZE / 4);
+//			second_block_offset = (i - INDIRECT_2_LIMIT - 1) % (BLOCK_SIZE /4);
+//			if (inode->indirect_block_2 == NULL)
+//			{
+//				inode->indirect_block_2 = indirect_block_init();
+//				indirect_lba = FROM_BLOCK_TO_LBA(inode->i_block[13]);
+//        			sector_count = BLOCK_SIZE/SECTOR_SIZE;
+//				READ(sector_count,indirect_lba,inode->indirect_block_2->block);
+//			}
+//			if (inode->indirect_block_2->block_map[second_block] == NULL)
+//			{
+//				inode->indirect_block_2->block_map[second_block] = indirect_block_init();
+//				indirect_lba = FROM_BLOCK_TO_LBA(inode->indirect_block_2->block[second_block]);
+//        			sector_count = BLOCK_SIZE/SECTOR_SIZE;
+//				READ(sector_count,indirect_lba,inode->indirect_block_2->block_map[second_block]->block);	
+//			}
+//			READ_DWORD(&inode->indirect_block_2->block_map[second_block]->block[second_block_offset],inode_block_data);
+//			lba = FROM_BLOCK_TO_LBA(inode_block_data);
+//		}
+//		else if ( i > INDIRECT_2_LIMIT  && i <= INDIRECT_3_LIMIT )
+//		{
+//			//TO DO
+//		}
+//		else
+//		{
+//			lba=FROM_BLOCK_TO_LBA(inode->i_block[i]);
+//		}
+//		if (byte_to_read>=BLOCK_SIZE)
+//		{
+//			if (first_data_offset == 0)
+//			{
+//				byte_count=BLOCK_SIZE;
+//				byte_to_read-=BLOCK_SIZE;
+//			}
+//			else
+//			{
+//				byte_count = BLOCK_SIZE - first_data_offset;
+//				byte_to_read -= (BLOCK_SIZE - first_data_offset);
+//			}	
+//		}
+//		else
+//		{
+//			if (first_data_offset == 0)
+//			{
+//				byte_count=byte_to_read;
+//				byte_to_read=0;
+//			}
+//			else 
+//			{
+//				if (BLOCK_SIZE - first_data_offset > byte_to_read)
+//				{
+//					byte_count=byte_to_read;
+//					byte_to_read=0;
+//				}
+//				else
+//				{
+//					byte_count = BLOCK_SIZE - first_data_offset;
+//					byte_to_read -= (BLOCK_SIZE - first_data_offset);
+//				}
+//			}
+//		}
+//        	sector_count=BLOCK_SIZE/SECTOR_SIZE;
+//		READ(sector_count,lba,iob_data_block);
+//		kmemcpy(buf,iob_data_block+first_data_offset,byte_count);
+//		inode->file_offset+=byte_count;
+//		buf+=byte_count;
+//		byte_read+=byte_count;
+//		first_data_offset = 0;
+//	}
+//	//kfree(iob_indirect_block);
+//	kfree(iob_data_block);
+//	return byte_read;
+//}
+
+-------------------------qui!!!!!!!!!!!!!!!!
+int _read(t_ext2* ext2,int fd, void* buf,u32 count,int is_dma)
 {
 	struct t_process_context* current_process_context;
 	u32 i;
@@ -337,23 +464,27 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count)
 	char* iob_data_block;
 	u32 second_block;
 	u32 second_block_offset;
+	t_llist* dma_lba_list = NULL;
+	u32 last_lba;
+	u32 first_lba;
+	t_llist_node* sentinel = NULL;
+	t_llist_node* next = NULL;
+	t_dma_lba* dma_lba = NULL;
 
-	byte_read=0;
-	byte_to_read=count;
-//	iob_indirect_block=kmalloc(BLOCK_SIZE);
-	iob_data_block=kmalloc(BLOCK_SIZE);
+	byte_read = 0;
+	byte_to_read = count;
 
 	CURRENT_PROCESS_CONTEXT(current_process_context)
-	inode=hashtable_get(current_process_context->file_desc,fd);
-	if (inode==NULL)
+	inode = hashtable_get(current_process_context->file_desc,fd);
+	if (inode == NULL)
 	{
 		return -1;
 	}
-	first_inode_block=inode->file_offset/BLOCK_SIZE;
-	first_data_offset=inode->file_offset%BLOCK_SIZE;
-	last_inode_block=(inode->file_offset+(count-1))/BLOCK_SIZE;
+	first_inode_block = inode->file_offset / BLOCK_SIZE;
+	first_data_offset = inode->file_offset % BLOCK_SIZE;
+	last_inode_block = (inode->file_offset + (count - 1)) / BLOCK_SIZE;
 	
-	for (i=first_inode_block;i<=last_inode_block;i++)
+	for (i = first_inode_block;i <= last_inode_block;i++)
 	{
 		if (i > INDIRECT_0_LIMIT && i <= INDIRECT_1_LIMIT)
 		{
@@ -394,14 +525,14 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count)
 		}
 		else
 		{
-			lba=FROM_BLOCK_TO_LBA(inode->i_block[i]);
+			lba = FROM_BLOCK_TO_LBA(inode->i_block[i]);
 		}
-		if (byte_to_read>=BLOCK_SIZE)
+		if (byte_to_read >= BLOCK_SIZE)
 		{
 			if (first_data_offset == 0)
 			{
-				byte_count=BLOCK_SIZE;
-				byte_to_read-=BLOCK_SIZE;
+				byte_count = BLOCK_SIZE;
+				byte_to_read -= BLOCK_SIZE;
 			}
 			else
 			{
@@ -413,15 +544,15 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count)
 		{
 			if (first_data_offset == 0)
 			{
-				byte_count=byte_to_read;
-				byte_to_read=0;
+				byte_count = byte_to_read;
+				byte_to_read = 0;
 			}
 			else 
 			{
 				if (BLOCK_SIZE - first_data_offset > byte_to_read)
 				{
-					byte_count=byte_to_read;
-					byte_to_read=0;
+					byte_count = byte_to_read;
+					byte_to_read = 0;
 				}
 				else
 				{
@@ -430,16 +561,63 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count)
 				}
 			}
 		}
-        	sector_count=BLOCK_SIZE/SECTOR_SIZE;
-		READ(sector_count,lba,iob_data_block);
-		kmemcpy(buf,iob_data_block+first_data_offset,byte_count);
-		inode->file_offset+=byte_count;
-		buf+=byte_count;
-		byte_read+=byte_count;
-		first_data_offset = 0;
+		if(is_dma)
+		{
+			dma_lba_list = new_dllist();
+			if (first_lba == 0)
+			{
+				first_lba == lba;
+				last_lba == lba;
+			}
+			else if (last_lba == lba + (BLOCK_SIZE/SECTOR_SIZE))
+			{
+				dma_sector_count += (BLOCK_SIZE/SECTOR_SIZE);
+				last_lba = lba + (BLOCK_SIZE/SECTOR_SIZE);
+			}
+			else
+			{
+				dma_lba = kmalloc(sizeof(t_dma_lba));
+				dma_lba->io_buffer = kmalloc(dma_sector_count * SECTOR_SIZE);
+				dma_lba->lba = first_lba;
+				dma_lba->sector_count = dma_sector_count;
+				ll_append(dma_lba_list,dma_lba);
+				dma_sector_count = 0;
+				last_lba = lba;
+				first_lba = lba;
+			}
+		}
+		else
+		{
+			iob_data_block = kmalloc(BLOCK_SIZE);
+        		sector_count = BLOCK_SIZE/SECTOR_SIZE;
+			READ(sector_count,lba,iob_data_block);
+			kmemcpy(buf,iob_data_block+first_data_offset,byte_count);
+			inode->file_offset += byte_count;
+			buf += byte_count;
+			byte_read += byte_count;
+			first_data_offset = 0;
+		}
 	}
-	//kfree(iob_indirect_block);
-	kfree(iob_data_block);
+	if (is_dma)
+	{
+		DMA_READ(dma_lba_list);
+		buf_offset = 0;
+		sentinel = ll_sentinel(dma_lba_list);
+		next = ll_first(dma_lba_list);
+		while(sentinel != next)
+		{
+			dma_lba = next->val;
+			byte_count = dma_lba_sector_count * SECTOR_SIZE;
+			kmemcpy(buf + buf_offset,dma_lba->io_buffer,byte_count);
+			kfree(dma_lba->io_buffer);
+			buff_offset += byte_count;
+		}
+		free_llist(dma_lba_list);
+	}
+	else
+	{
+		kfree(iob_data_block);
+	}
 	return byte_read;
 }
 

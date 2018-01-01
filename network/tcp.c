@@ -32,7 +32,6 @@ static t_tcp_snd_queue* tcp_snd_queue_init()
 	t_tcp_snd_queue* tcp_snd_queue = NULL;
 
 	tcp_snd_queue = kmalloc(sizeof(t_tcp_snd_queue));
-	tcp_snd_queue = buddy_alloc_page(system.buddy_desc,0x1000);
 	//tcp_snd_queue->buf = kmalloc(TCP_SND_SIZE);
 	tcp_snd_queue->buf = buddy_alloc_page(system.buddy_desc,TCP_SND_SIZE);
 	tcp_snd_queue->wnd_min = 1;

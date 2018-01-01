@@ -68,6 +68,83 @@ void int_handler_ata()
 	EXIT_INT_HANDLER(0,processor_reg)
 }
 
+static unsigned int _read_write_dma_ata(t_io_request* io_request)
+{
+	int i;
+	t_device_desc* device_desc;
+	t_io_request* pending_request;
+	t_llist_node* node;
+	char prd[8];
+	int k=0;
+	int s;
+	
+	device_desc=io_request->device_desc;
+	//Entrypoint mutual exclusion region.
+	//Here all requestes are enqueued using semaphore internal queue.
+	//In order to implement a multilevel disk scheduler a better design
+	//is to use an external queue with multilevel priority slots.
+	sem_down(&device_desc->mutex);
+	device_desc->status=DEVICE_BUSY;
+	system.device_desc->serving_request=io_request;
+
+/*
+	prd[0] = io_request->io_buffer....
+	prd[1] =
+	prd[2] =
+	prd[3] =
+	prd[4] =
+	prd[5] =
+	prd[6] =
+	prd[7] =
+*/
+
+	out(0xE0 | (io_request->lba >> 24),0x1F6);
+	out((unsigned char)io_request->sector_count,0x1F2);
+	out((unsigned char)io_request->lba,0x1F3);
+	out((unsigned char)(io_request->lba >> 8),0x1F4);
+	out((unsigned char)(io_request->lba >> 16),0x1F5);
+	out(io_request->command,0x1F7);
+	
+	for (k=0;k<1000;k++);
+
+	//to fix
+	if (io_request->command==WRITE_28)
+	{
+		for (i=0;i<256;i++)
+		{  
+			//out(*(char*)io_request->io_buffer++,0x1F0); 
+			outw((unsigned short)57,0x1F0);
+		}
+	}
+	
+	//one interrupt for each block
+	for (k=0;k<io_request->sector_count;k++)
+	{
+		//semaphore to avoid race with interrupt handler
+		sem_down(&device_desc->sem);
+
+		if ((in(0x1F7)&1))
+		{
+			device_desc->status=DEVICE_IDLE;
+			panic();
+			return -1;
+		}
+		if (io_request->command==READ_28)
+		{
+			for (i=0;i<512;i+=2)
+			{  
+				unsigned short val=inw(0x1F0);
+				((char*)io_request->io_buffer)[i+(512*k)]=(val&0xff);
+				((char*)io_request->io_buffer)[i+1+(512*k)]=(val>>0x8);
+			}
+		i=0;
+		}
+	}
+	//Endpoint mutual exclusion region
+	sem_up(&device_desc->mutex);	
+	return 0;
+}
+
 static unsigned int _read_write_28_ata(t_io_request* io_request)
 {
 	int i;
@@ -78,7 +155,10 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	int s;
 	
 	device_desc=io_request->device_desc;
-	//Entrypoint mutual exclusion region
+	//Entrypoint mutual exclusion region.
+	//Here all requestes are enqueued using semaphore internal queue.
+	//In order to implement a multilevel disk scheduler a better design
+	//is to use an external queue with multilevel priority slots.
 	sem_down(&device_desc->mutex);
 	device_desc->status=DEVICE_BUSY;
 	system.device_desc->serving_request=io_request;
@@ -213,7 +293,7 @@ static unsigned int _p_read_write_28_ata(t_io_request* io_request)
 	SPINLOCK_INIT(spinlock);
 	device_desc=io_request->device_desc;
 	
-	//Entrypoint mutual exclusion region
+	//Entrypoint mutual exclusion region.
 	SPINLOCK_LOCK(spinlock);
 	
 	device_desc->status=DEVICE_BUSY || POOLING_MODE;
