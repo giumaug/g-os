@@ -1,5 +1,6 @@
 //BASED ON RFC5681 AND RFC6298
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!IMPORTANTE VERIFICARE CHE LA STRUTTURA DATI COMPLESSIVA SIA SENSATA!!!!!!!!!!!!!!!!!!
+#include "common.h"
 #include "network/tcp.h"
 #include "lib/lib.h"
 

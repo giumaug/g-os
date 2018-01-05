@@ -443,7 +443,6 @@ int inode_free(t_inode* inode)
 //	return byte_read;
 //}
 
--------------------------qui!!!!!!!!!!!!!!!!
 int _read(t_ext2* ext2,int fd, void* buf,u32 count,int is_dma)
 {
 	struct t_process_context* current_process_context;
@@ -577,7 +576,8 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,int is_dma)
 			else
 			{
 				dma_lba = kmalloc(sizeof(t_dma_lba));
-				dma_lba->io_buffer = kmalloc(dma_sector_count * SECTOR_SIZE);
+				io_buffer = kmalloc(dma_sector_count * SECTOR_SIZE * 2);
+				dma_lba->io_buffer = kmalloc(dma_sector_count * SECTOR_SIZE * 2);
 				dma_lba->lba = first_lba;
 				dma_lba->sector_count = dma_sector_count;
 				ll_append(dma_lba_list,dma_lba);

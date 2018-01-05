@@ -33,7 +33,7 @@ struct s_network_desc;
 typedef struct s_dma_lba
 {
 	unsigned int lba;
-	unsigned int sector_count;
+	unsigned short sector_count;
 	char* io_buffer;
 }
 t_dma_lba;
@@ -43,6 +43,7 @@ typedef struct s_io_request
 	unsigned int sector_count;
 	unsigned int lba;
 	struct s_dma_lba dma_lba_list;
+	unsigned int lba dma_lba_list_size;
 	struct s_device_desc* device_desc;
 	void* io_buffer;
 	struct t_process_context* process_context;
@@ -56,11 +57,14 @@ typedef struct s_device_desc
 	u32 (*write)(t_io_request* io_request);
 	u32 (*p_read)(t_io_request* io_request);
 	u32 (*p_write)(t_io_request* io_request);
-
 	unsigned int status;
 	t_io_request* serving_request;
+	//should be in a device specific struct
 	t_sem_desc mutex;
 	t_sem_desc sem;
+	u8 dma_cmd_reg;
+	u8 dma_status_reg;
+	u8 dma_prd_reg;
 }
 t_device_desc;
 

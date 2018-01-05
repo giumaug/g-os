@@ -41,19 +41,6 @@
 #define DEFAULT_GW_IP   0xAC100664
 #endif
 
-#define LOW_32(data)			(data & 0xFFFF)
-#define HI_32(data)			((data>>16) & 0xFFFF)
-#define LOW_16(data) 			(data & 0xFF)
-#define HI_16(data)  			((data>>8) & 0xFF)
-//#define SWAP_WORD(data)           	(data>>8) | (data<<8)
-#define SWAP_WORD(data)           	((data>>8) & 0xFF) | ((data)<<8 & 0xFFFF)
-#define GET_WORD(a,b)			(b | ((a<<8) & 0xFFFF ))
-#define GET_DWORD(a,b,c,d)		(d | ((c<<8) & 0xFFFF) | ((b<<16) & 0xFFFFFF ) | (a<<24))
-#define LOW_OCT_32(data)		(data & 0xFF)
-#define MID_RGT_OCT_32(data)		((data>>8) & 0xFF)
-#define MID_LFT_OCT_32(data)		((data>>16) & 0xFF)
-#define HI_OCT_32(data)			((data>>24) & 0xFF)
-
 typedef struct s_mac_addr
 {
 	u16 lo;

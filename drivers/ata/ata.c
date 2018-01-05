@@ -1,3 +1,4 @@
+#incluse "common.h"
 #include "asm.h" 
 #include "idt.h"
 #include "virtual_memory/vm.h"
@@ -11,22 +12,35 @@
 
 void static int_handler_ata();
 
+void static write_ata_pci_config()
+{
+
+}
+
+void static read_ata_pci_config()
+{
+
+}
+
 void init_ata(t_device_desc* device_desc)
 {	
 	struct t_i_desc i_desc;
 	
-	i_desc.baseLow=((int)&int_handler_ata) & 0xFFFF;
-	i_desc.selector=0x8;
-	i_desc.flags=0x08e00;
-	i_desc.baseHi=((int)&int_handler_ata)>>0x10;
+	i_desc.baseLow = ((int)&int_handler_ata) & 0xFFFF;
+	i_desc.selector = 0x8;
+	i_desc.flags = 0x08e00;
+	i_desc.baseHi = ((int)&int_handler_ata)>>0x10;
 	set_idt_entry(0x2E,&i_desc);
-	device_desc->read=_read_28_ata;
-	device_desc->write=_write_28_ata;
-	device_desc->p_read=_p_read_28_ata;
-	device_desc->p_write=_p_write_28_ata;
-	device_desc->status=DEVICE_IDLE;
+	device_desc->read = _read_28_ata;
+	device_desc->write = _write_28_ata;
+	device_desc->p_read = _p_read_28_ata;
+	device_desc->p_write = _p_write_28_ata;
+	device_desc->status = DEVICE_IDLE;
 	sem_init(&device_desc->mutex,1);
 	sem_init(&device_desc->sem,0);
+	device_desc->dma_cmd_reg = read_pci_config_word(ATA_BUS,ATA_SLOT,ATA_FUNC,ATA_CMD_REG) & 0xFF;
+	device_desc->dma_status_reg = read_pci_config_word(ATA_BUS,ATA_SLOT,ATA_FUNC,ATA_STATUS_REG) & 0xFF;
+	device_desc->dma_prd_reg = read_pci_config_word(ATA_BUS,ATA_SLOT,ATA_FUNC,ATA_PRD_REG) & 0xFF;
 }
 
 void free_ata(t_device_desc* device_desc)
@@ -68,15 +82,17 @@ void int_handler_ata()
 	EXIT_INT_HANDLER(0,processor_reg)
 }
 
-static unsigned int _read_write_dma_ata(t_io_request* io_request)
+static unsigned int _read_write_28_dma_ata(t_io_request* io_request)
 {
 	int i;
 	t_device_desc* device_desc;
 	t_io_request* pending_request;
 	t_llist_node* node;
-	char prd[8];
-	int k=0;
+	char* prd;
+	int k = 0;
 	int s;
+	short byte_count;
+	char is_last_prd;
 	
 	device_desc=io_request->device_desc;
 	//Entrypoint mutual exclusion region.
@@ -87,6 +103,41 @@ static unsigned int _read_write_dma_ata(t_io_request* io_request)
 	device_desc->status=DEVICE_BUSY;
 	system.device_desc->serving_request=io_request;
 
+	prd = kmalloc(8 * io_request->dma_lba_list_size);
+	for (i = 0; i <= io_request->dma_lba_list_size;i++)
+	{
+		if (i == io_request->dma_lba_list_size - 1)
+		{
+			is_last_prd = 1;	
+		}
+		else
+		{
+			is_last_prd = 0;
+		}
+		next = ll_first(io_request->dma_lba_list);
+		dma_lba = next->val;
+		
+		mem_addr = FROM_VIRT_TO_PHY(ALIGN_DMA_BUFFER(request->io_buffer));
+		byte_count = sector_count * SECTOR_SIZE;
+
+		prd[(i*8)] = HI_OCT_32(mem_addr);
+		prd[(i*8) + 1] = MID_RGT_OCT_32(mem_addr);+
+		prd[(i*8) + 2] = MID_LFT_OCT_32(mem_addr);
+		prd[(i*8) + 3] = LOW_OCT_32(mem_addr);
+		prd[(i*8) + 4] = HI_16(byte_count);
+		prd[(i*8) + 5] = LOW_16(byte_count); 
+		prd[(i*8) + 6] = 0;
+		prd[(i*8) + 7] = is_last_prd;
+	}
+	write_ata_pci_config ---------------------------------qui!!!!!!!!!!!!!
+	system.device_desc->dma_prd_reg = prd;
+
+
+	Software provides the starting address of the PRD Table by loading the PRD Table Pointer
+	Register . The direction of the data transfer is specified by setting the Read/Write Control bit.(bit 3 a 0)
+	Clear the Interrupt bit and Error bit in the Status register.
+
+	
 /*
 	prd[0] = io_request->io_buffer....
 	prd[1] =
@@ -341,6 +392,12 @@ static unsigned int _p_read_write_28_ata(t_io_request* io_request)
 	//Exitpoint mutual exclusion region
 	SPINLOCK_UNLOCK(spinlock);
 	return 0;
+}
+
+unsigned int _read_28_dma_ata(t_io_request* io_request)
+{
+	io_request->command=READ_28;
+	return _read_write_28_dma_ata(io_request);	
 }
 
 unsigned int _read_28_ata(t_io_request* io_request)
