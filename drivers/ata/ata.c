@@ -25,6 +25,7 @@ void static read_ata_pci_config()
 void init_ata(t_device_desc* device_desc)
 {	
 	struct t_i_desc i_desc;
+	u32* bar4 = NULL;
 	
 	i_desc.baseLow = ((int)&int_handler_ata) & 0xFFFF;
 	i_desc.selector = 0x8;
@@ -38,9 +39,22 @@ void init_ata(t_device_desc* device_desc)
 	device_desc->status = DEVICE_IDLE;
 	sem_init(&device_desc->mutex,1);
 	sem_init(&device_desc->sem,0);
-	device_desc->dma_cmd_reg = read_pci_config_word(ATA_BUS,ATA_SLOT,ATA_FUNC,ATA_CMD_REG) & 0xFF;
-	device_desc->dma_status_reg = read_pci_config_word(ATA_BUS,ATA_SLOT,ATA_FUNC,ATA_STATUS_REG) & 0xFF;
-	device_desc->dma_prd_reg = read_pci_config_word(ATA_BUS,ATA_SLOT,ATA_FUNC,ATA_PRD_REG) & 0xFF;
+	bar4 = read_pci_config_word(ATA_BUS,ATA_SLOT,ATA_FUNC,ATA_BAR4) & 0xFF;
+	if ((u32) bar4 & 0x1) 
+	{
+		device_desc->io_base = (u32) bar0 & 0xFFFC;
+		device_desc->mem_base = NULL;
+		device_desc->bar_type = 1;
+	}
+	else 
+	{
+		device_desc->mem_base = ATA_PCI_VIRT_BAR4_MEM;
+		device_desc->io_base = NULL;
+		device_desc->bar_type = 0;
+		CURRENT_PROCESS_CONTEXT(current_process_context);
+	map_vm_mem(current_process_context->page_dir,ATA_PCI_VIRT_BAR4_MEM,(((u32) (bar4)) & 0xFFFFFFF0),ATA_PCI_VIRT_BAR4_MEM_SIZE,3);
+		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 
+	}
 }
 
 void free_ata(t_device_desc* device_desc)
@@ -121,7 +135,7 @@ static unsigned int _read_write_28_dma_ata(t_io_request* io_request)
 		byte_count = sector_count * SECTOR_SIZE;
 
 		prd[(i*8)] = HI_OCT_32(mem_addr);
-		prd[(i*8) + 1] = MID_RGT_OCT_32(mem_addr);+
+		prd[(i*8) + 1] = MID_RGT_OCT_32(mem_addr);
 		prd[(i*8) + 2] = MID_LFT_OCT_32(mem_addr);
 		prd[(i*8) + 3] = LOW_OCT_32(mem_addr);
 		prd[(i*8) + 4] = HI_16(byte_count);
@@ -129,25 +143,36 @@ static unsigned int _read_write_28_dma_ata(t_io_request* io_request)
 		prd[(i*8) + 6] = 0;
 		prd[(i*8) + 7] = is_last_prd;
 	}
-	write_ata_pci_config ---------------------------------qui!!!!!!!!!!!!!
-	system.device_desc->dma_prd_reg = prd;
+	write_ata_config(device_desc,ATA_DMA_PRD_REG,FROM_VIRT_TO_PHY(prd));
+	write_ata_config(device_desc,ATA_DMA_COMMAND_REG,0x8);//0001000
+	write_ata_config(device_desc,ATA_DMA_STATUS_REG,0x4);//0000100
+	for (i = 0; i <= io_request->dma_lba_list_size;i++)
+	{
+		out(0xE0 | (io_request->lba >> 24),0x1F6);
+		out((unsigned char)io_request->sector_count,0x1F2);
+		out((unsigned char)io_request->lba,0x1F3);
+		out((unsigned char)(io_request->lba >> 8),0x1F4);
+		out((unsigned char)(io_request->lba >> 16),0x1F5);
+		out(io_request->command,0x1F7);
+		//for (k=0;k<1000;k++);??????
+	}
+	write_ata_config(device_desc,DMA_COMMAND_REG,0x1);
+	sem_down(&device_desc->sem);
+	write_ata_pci_config(system.device_desc->dma_cmd_reg,0x0);
+	dma_status = read_ata_pci_config(system.device_desc->dma_sts_reg);
+	if ((in(0x1F7) & 1) || dma_status & 1)
+	{
+		device_desc->status=DEVICE_IDLE;
+		panic();
+		return -1;
+	}
+	mettere kfree!!!! + interrupt count----------------qui!!!!!!!!!!!!!!!!!
+
 
 
 	Software provides the starting address of the PRD Table by loading the PRD Table Pointer
 	Register . The direction of the data transfer is specified by setting the Read/Write Control bit.(bit 3 a 0)
-	Clear the Interrupt bit and Error bit in the Status register.
-
-	
-/*
-	prd[0] = io_request->io_buffer....
-	prd[1] =
-	prd[2] =
-	prd[3] =
-	prd[4] =
-	prd[5] =
-	prd[6] =
-	prd[7] =
-*/
+	Clear the Interrupt bit and Error bit in the Status register. (3 bit 0)
 
 	out(0xE0 | (io_request->lba >> 24),0x1F6);
 	out((unsigned char)io_request->sector_count,0x1F2);

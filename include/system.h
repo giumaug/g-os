@@ -59,12 +59,8 @@ typedef struct s_device_desc
 	u32 (*p_write)(t_io_request* io_request);
 	unsigned int status;
 	t_io_request* serving_request;
-	//should be in a device specific struct
-	t_sem_desc mutex;
-	t_sem_desc sem;
-	u8 dma_cmd_reg;
-	u8 dma_status_reg;
-	u8 dma_prd_reg;
+	u32 dma_pci_io_base;
+	u32 dma_pci_mem_base;
 }
 t_device_desc;
 

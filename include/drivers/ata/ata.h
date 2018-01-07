@@ -6,11 +6,14 @@
 #include "drivers/ata/ata.h"
 
 //check from Linux
-#define ATA_BUS 0x0??
-#define ATA_SLOT 0x0
-#define ATA_FUNC 0x0
-#define ATA_CMD_REG 0x2
-#define ATA_PRD_REG 0x4
+#define ATA_PCI_BUS 0x0??
+#define ATA_PCI_SLOT 0x0
+#define ATA_PCI_FUNC 0x0
+#define ATA_PCI_VIRT_BAR4_MEM 0x????
+#define ATA_PCI_VIRT_BAR4_MEM_SIZE 0x????
+#define ATA_DMA_COMMAND_REG 0x0
+#define ATA_DMA_STATUS_REG_0x2
+#define ATA_DMA_PRD_REG 0x4
 
 #define ALIGN_DMA_BUFFER(address)                                                                                           \
 					((address % 0x10000) != 0) ?                                                        \
@@ -18,6 +21,8 @@
 
 #define READ_28 0x20
 #define WRITE_28 0x30
+#define READ_28_DMA 0xC8
+#define WRITE_28_DMA 0xCA
 
 void init_ata(t_device_desc* ata_desc);
 unsigned int _read_28_ata(t_io_request* io_request);
