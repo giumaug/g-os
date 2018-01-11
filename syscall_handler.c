@@ -117,7 +117,7 @@ void syscall_handler()
 		break;
 
 		case 20: 
-		params[3]=_read(system.root_fs,params[0],params[1],params[2]); 
+		params[3]=_read(system.root_fs,params[0],params[1],params[2],1); 
 		on_exit_action=1; 
 		break;
 

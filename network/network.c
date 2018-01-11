@@ -1,3 +1,4 @@
+#include "common.h"
 #include "network/network.h"
 
 //extern int go;

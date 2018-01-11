@@ -1,3 +1,4 @@
+#include "common.h"
 #include "network/ip4.h"
 
 static u16 ipv4_id=0;

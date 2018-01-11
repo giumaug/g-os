@@ -443,7 +443,7 @@ int inode_free(t_inode* inode)
 //	return byte_read;
 //}
 
-int _read(t_ext2* ext2,int fd, void* buf,u32 count,int is_dma)
+int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 {
 	struct t_process_context* current_process_context;
 	u32 i;
@@ -469,6 +469,8 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,int is_dma)
 	t_llist_node* sentinel = NULL;
 	t_llist_node* next = NULL;
 	t_dma_lba* dma_lba = NULL;
+	u32 dma_sector_count;
+	u32 buf_offset;
 
 	byte_read = 0;
 	byte_to_read = count;
@@ -576,7 +578,6 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,int is_dma)
 			else
 			{
 				dma_lba = kmalloc(sizeof(t_dma_lba));
-				io_buffer = kmalloc(dma_sector_count * SECTOR_SIZE * 2);
 				dma_lba->io_buffer = kmalloc(dma_sector_count * SECTOR_SIZE * 2);
 				dma_lba->lba = first_lba;
 				dma_lba->sector_count = dma_sector_count;
@@ -600,17 +601,17 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,int is_dma)
 	}
 	if (is_dma)
 	{
-		DMA_READ(dma_lba_list);
+		READ_DMA(dma_lba_list);
 		buf_offset = 0;
 		sentinel = ll_sentinel(dma_lba_list);
 		next = ll_first(dma_lba_list);
 		while(sentinel != next)
 		{
 			dma_lba = next->val;
-			byte_count = dma_lba_sector_count * SECTOR_SIZE;
+			byte_count = dma_lba->sector_count * SECTOR_SIZE;
 			kmemcpy(buf + buf_offset,dma_lba->io_buffer,byte_count);
 			kfree(dma_lba->io_buffer);
-			buff_offset += byte_count;
+			buf_offset += byte_count;
 		}
 		free_llist(dma_lba_list);
 	}

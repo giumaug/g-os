@@ -62,16 +62,16 @@
                                                 kfree(io_request);                                                      \
 						} while(0);
 
-#define DMA_READ(_dma_lba_list)                 do{                                                                     \
+#define READ_DMA(_dma_lba_list)                 do{                                                                     \
 						t_io_request* io_request; 						\
                                                 io_request = kmalloc(sizeof(t_io_request));                             \
 					  	io_request->device_desc = ext2->device_desc;				\
 						io_request->sector_count = NULL;					\
 						io_request->lba = NULL;							\
 						io_request->io_buffer = NULL;					        \
-                                                io_request->dma_lba_list = _dma_lba_list                                \
+                                                io_request->dma_lba_list = _dma_lba_list;                               \
 						io_request->process_context = system.process_info->current_process->val;\
-						ext2->device_desc->dma_read(io_request); 				\
+						ext2->device_desc->read_dma(io_request); 				\
                                                 kfree(io_request);                                                      \
 						} while(0);
 
@@ -239,7 +239,7 @@ void init_ext2(t_ext2 *ext2,struct s_device_desc* device_desc);
 void free_ext2(t_ext2* ext2);
 int _open(t_ext2* ext2,const char* fullpath, int flags);
 int _close(t_ext2* ext2,int fd);
-int _read(t_ext2* ext2,int fd, void* buf,u32 count);
+int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma);
 int _write(t_ext2* ext2,int fd, const void *buf,u32 count);
 int _seek(t_ext2* ext2,int fd,unsigned int offset,int whence);
 int _rm(t_ext2* ext2,char* fullpath);
