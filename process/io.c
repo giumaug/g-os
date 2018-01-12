@@ -25,7 +25,7 @@ int main()
 	int t = 0;
 	
 	printf("---------start performance check---------- \n");
-	read_test();
+	//read_test();
 	printf("---------end performance check------------ \n");
 
 	f = open(path, O_RDWR | O_APPEND);
@@ -40,8 +40,6 @@ int main()
 	file_len = stat_data.st_size;
 	io_buffer = malloc(b_to_read);
 	file_len = 31457280;
-	//file_len = 239;
-	//file_len = 31339;
 	printf("file len is... %d \n",file_len);
 	current_len = file_len;
 	while (current_len > 0)

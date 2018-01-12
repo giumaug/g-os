@@ -75,7 +75,7 @@ void init_ata(t_device_desc* device_desc)
 	device_desc->status = DEVICE_IDLE;
 	sem_init(&device_desc->mutex,1);
 	sem_init(&device_desc->sem,0);
-	bar4 = read_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_BAR4) & 0xFF;
+	bar4 = read_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_BAR4);
 	if ((u32) bar4 & 0x1) 
 	{
 		device_desc->dma_pci_io_base = (u32) bar4 & 0xFFFC;

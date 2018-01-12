@@ -464,12 +464,12 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 	u32 second_block;
 	u32 second_block_offset;
 	t_llist* dma_lba_list = NULL;
-	u32 last_lba;
-	u32 first_lba;
+	u32 last_lba = 0;
+	u32 first_lba = 0;
 	t_llist_node* sentinel = NULL;
 	t_llist_node* next = NULL;
 	t_dma_lba* dma_lba = NULL;
-	u32 dma_sector_count;
+	u32 dma_sector_count = 0;
 	u32 buf_offset;
 
 	byte_read = 0;
@@ -564,16 +564,17 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 		}
 		if(is_dma)
 		{
+			printk("lba is %d \n",lba);
 			dma_lba_list = new_dllist();
-			if (first_lba == 0)
+			if(first_lba == 0)
 			{
-				first_lba == lba;
-				last_lba == lba;
+				first_lba = lba;
+				last_lba = lba;
 			}
-			else if (last_lba == lba + (BLOCK_SIZE/SECTOR_SIZE))
+			else if(lba == last_lba + (BLOCK_SIZE/SECTOR_SIZE))
 			{
 				dma_sector_count += (BLOCK_SIZE/SECTOR_SIZE);
-				last_lba = lba + (BLOCK_SIZE/SECTOR_SIZE);
+				last_lba = lba;
 			}
 			else
 			{
