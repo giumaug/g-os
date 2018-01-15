@@ -145,6 +145,7 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 	char is_last_prd;
 	int ret = 0;
 	t_llist_node* next = NULL;
+	t_llist_node* first = NULL;
 	t_dma_lba* dma_lba = NULL;
 	u32 mem_addr;
 	u8 dma_status;
@@ -158,8 +159,10 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 	device_desc->status=DEVICE_BUSY;
 	system.device_desc->serving_request=io_request;
 
+	first = ll_first(io_request->dma_lba_list);
+	next = first;
 	prd = kmalloc(8 * io_request->dma_lba_list_size);
-	for (i = 0; i <= io_request->dma_lba_list_size;i++)
+	for (i = 0; i < io_request->dma_lba_list_size;i++)
 	{
 		if (i == io_request->dma_lba_list_size - 1)
 		{
@@ -183,23 +186,29 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 		prd[(i * 8) + 5] = LOW_16(byte_count); 
 		prd[(i * 8) + 6] = 0;
 		prd[(i * 8) + 7] = is_last_prd;
+		next = ll_next(next);
 	}
 	write_ata_config(device_desc,ATA_DMA_PRD_REG,FROM_VIRT_TO_PHY(prd),0);
 	write_ata_config(device_desc,ATA_DMA_COMMAND_REG,0x8,1);//0001000
 	write_ata_config(device_desc,ATA_DMA_STATUS_REG,0x4,1);//0000100
-	for (i = 0; i <= io_request->dma_lba_list_size;i++)
+	next = first;
+	for (i = 0; i < io_request->dma_lba_list_size;i++)
 	{
+		dma_lba = next->val;
 		out(0xE0 | (io_request->lba >> 24),0x1F6);
-		out((unsigned char)io_request->sector_count,0x1F2);
+		out((unsigned char)dma_lba->sector_count,0x1F2);
 		out((unsigned char)io_request->lba,0x1F3);
 		out((unsigned char)(io_request->lba >> 8),0x1F4);
 		out((unsigned char)(io_request->lba >> 16),0x1F5);
 		out(io_request->command,0x1F7);
 		//for (k=0;k<1000;k++);??????
+		next = ll_next(next);
 	}
 	write_ata_config(device_desc,ATA_DMA_COMMAND_REG,0x1,1);
 	//semaphore to avoid race with interrupt handler
-	sem_down(&device_desc->sem);
+	//sem_down(&device_desc->sem);
+	for (k=0;k<100000;k++);
+	k = in(0x1F7);
 	write_ata_config(device_desc,ATA_DMA_COMMAND_REG,0x0,1);
 	dma_status = read_ata_config(device_desc,ATA_DMA_STATUS_REG);
 
