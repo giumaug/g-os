@@ -17,7 +17,24 @@ u32 dma_pci_io_base;
 u32 dma_pci_mem_base;
 u8 dma_pci_bar_type;
 
-static u32 read_ata_config(t_device_desc* device_desc,u32 address)
+static u8 read_ata_config_byte(t_device_desc* device_desc,u32 address)
+{
+	u32 virt_addr;
+	u8 value;
+
+	if (device_desc->dma_pci_bar_type == 0)
+	{
+		virt_addr = (u32) device_desc->dma_pci_mem_base + address;
+		value =  (*((volatile u8*)(virt_addr)));
+	}
+	else 
+	{
+		value = in(device_desc->dma_pci_io_base + address);
+	}
+	return value;
+}
+
+static u32 read_ata_config_dword(t_device_desc* device_desc,u32 address)
 {
 	u32 virt_addr;
 	u32 value;
@@ -34,16 +51,11 @@ static u32 read_ata_config(t_device_desc* device_desc,u32 address)
 	return value;
 }
 
-static void write_ata_config(t_device_desc* device_desc,u32 address,u32 value,u8 read_before)
+static void write_ata_config_dword(t_device_desc* device_desc,u8 address,u32 value)
 {
 	u32 virt_addr;
 	u8 reg_value;
 
-	if (read_before)
-	{
-		reg_value = read_ata_config(device_desc,ATA_DMA_COMMAND_REG);
-		value = value | reg_value;
-	}
 	if (device_desc->dma_pci_bar_type == 0)
 	{
 		virt_addr = (u32) device_desc->dma_pci_mem_base + address;
@@ -52,6 +64,35 @@ static void write_ata_config(t_device_desc* device_desc,u32 address,u32 value,u8
 	else 
 	{
 		outdw(value,device_desc->dma_pci_io_base + address);
+	}
+}
+
+static void write_ata_config_bit(t_device_desc* device_desc,u32 address,u8 bit,u8 value)
+{
+	u32 virt_addr;
+	u8 reg_value;
+	u8 read_value;
+
+	reg_value = read_ata_config_byte(device_desc,address);
+	if (value == 1)
+	{
+		SET_BIT(reg_value,bit);
+	}
+	else if (value == 0)
+	{
+		CLEAR_BIT(reg_value,bit);
+	}
+	if (device_desc->dma_pci_bar_type == 0)
+	{
+		virt_addr = (u32) device_desc->dma_pci_mem_base + address;
+		 (*((volatile u32*)(virt_addr))) = (reg_value);
+	}
+	else 
+	{
+		printk("wrote value %d \n",reg_value);
+		out(reg_value,device_desc->dma_pci_io_base + address);
+		read_value = in(device_desc->dma_pci_io_base + address);
+		printk("read value %d \n",read_value);
 	}
 }
 
@@ -188,9 +229,14 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 		prd[(i * 8) + 7] = is_last_prd;
 		next = ll_next(next);
 	}
-	write_ata_config(device_desc,ATA_DMA_PRD_REG,FROM_VIRT_TO_PHY(prd),0);
-	write_ata_config(device_desc,ATA_DMA_COMMAND_REG,0x8,1);//0001000
-	write_ata_config(device_desc,ATA_DMA_STATUS_REG,0x4,1);//0000100
+	int xxx = 0;
+	int yyy = FROM_VIRT_TO_PHY(prd);
+	write_ata_config_dword(device_desc,ATA_DMA_PRD_REG,FROM_VIRT_TO_PHY(prd));
+	xxx = read_ata_config_dword(device_desc,ATA_DMA_PRD_REG);
+	write_ata_config_bit(device_desc,ATA_DMA_COMMAND_REG,0x4,0x1);//0001000
+	xxx = read_ata_config_byte(device_desc,ATA_DMA_COMMAND_REG);
+	write_ata_config_bit(device_desc,ATA_DMA_STATUS_REG,0x3,0x1);//0000100
+	xxx = read_ata_config_byte(device_desc,ATA_DMA_STATUS_REG);
 	next = first;
 	for (i = 0; i < io_request->dma_lba_list_size;i++)
 	{
@@ -204,13 +250,13 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 		//for (k=0;k<1000;k++);??????
 		next = ll_next(next);
 	}
-	write_ata_config(device_desc,ATA_DMA_COMMAND_REG,0x1,1);
+	write_ata_config_bit(device_desc,ATA_DMA_COMMAND_REG,0x0,0x1);
 	//semaphore to avoid race with interrupt handler
 	//sem_down(&device_desc->sem);
 	for (k=0;k<100000;k++);
 	k = in(0x1F7);
-	write_ata_config(device_desc,ATA_DMA_COMMAND_REG,0x0,1);
-	dma_status = read_ata_config(device_desc,ATA_DMA_STATUS_REG);
+	write_ata_config_bit(device_desc,ATA_DMA_COMMAND_REG,0x0,0x0);
+	dma_status = read_ata_config_byte(device_desc,ATA_DMA_STATUS_REG);
 
 	if ((in(0x1F7) & 1) || dma_status & 1)
 	{
