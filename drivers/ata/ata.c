@@ -67,32 +67,18 @@ static void write_ata_config_dword(t_device_desc* device_desc,u8 address,u32 val
 	}
 }
 
-static void write_ata_config_bit(t_device_desc* device_desc,u32 address,u8 bit,u8 value)
+static void write_ata_config_byte(t_device_desc* device_desc,u32 address,u8 value)
 {
 	u32 virt_addr;
-	u8 reg_value;
-	u8 read_value;
 
-	reg_value = read_ata_config_byte(device_desc,address);
-	if (value == 1)
-	{
-		SET_BIT(reg_value,bit);
-	}
-	else if (value == 0)
-	{
-		CLEAR_BIT(reg_value,bit);
-	}
 	if (device_desc->dma_pci_bar_type == 0)
 	{
 		virt_addr = (u32) device_desc->dma_pci_mem_base + address;
-		 (*((volatile u32*)(virt_addr))) = (reg_value);
+		 (*((volatile u32*)(virt_addr))) = (value);
 	}
 	else 
 	{
-		printk("wrote value %d \n",reg_value);
-		out(reg_value,device_desc->dma_pci_io_base + address);
-		read_value = in(device_desc->dma_pci_io_base + address);
-		printk("read value %d \n",read_value);
+		out(value,device_desc->dma_pci_io_base + address);
 	}
 }
 
@@ -207,7 +193,7 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 	{
 		if (i == io_request->dma_lba_list_size - 1)
 		{
-			is_last_prd = 1;	
+			is_last_prd = 0x80;	
 		}
 		else
 		{
@@ -219,44 +205,60 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 		mem_addr = FROM_VIRT_TO_PHY(ALIGN_DMA_BUFFER((u32)dma_lba->io_buffer));
 		byte_count = dma_lba->sector_count * SECTOR_SIZE;
 
-		prd[(i * 8)] = HI_OCT_32(mem_addr);
+		prd[(i * 8)] = LOW_OCT_32(mem_addr);
 		prd[(i * 8) + 1] = MID_RGT_OCT_32(mem_addr);
-		prd[(i * 8) + 2] = MID_LFT_OCT_32(mem_addr);
-		prd[(i * 8) + 3] = LOW_OCT_32(mem_addr);
-		prd[(i * 8) + 4] = HI_16(byte_count);
-		prd[(i * 8) + 5] = LOW_16(byte_count); 
+		prd[(i * 8) + 2] = MID_LFT_OCT_32(mem_addr); 
+		prd[(i * 8) + 3] = HI_OCT_32(mem_addr);
+		prd[(i * 8) + 4] = LOW_16(byte_count);
+		prd[(i * 8) + 5] = HI_16(byte_count); 
 		prd[(i * 8) + 6] = 0;
 		prd[(i * 8) + 7] = is_last_prd;
+		
+		//u32* test;
+		//test = prd + 4;
+		//*test = 0xaabbccdd;
+		
 		next = ll_next(next);
 	}
+	k = in(0x1F7);
+	printk("ata status is: %d \n",k);
 	int xxx = 0;
 	int yyy = FROM_VIRT_TO_PHY(prd);
 	write_ata_config_dword(device_desc,ATA_DMA_PRD_REG,FROM_VIRT_TO_PHY(prd));
-	xxx = read_ata_config_dword(device_desc,ATA_DMA_PRD_REG);
-	write_ata_config_bit(device_desc,ATA_DMA_COMMAND_REG,0x4,0x1);//0001000
-	xxx = read_ata_config_byte(device_desc,ATA_DMA_COMMAND_REG);
-	write_ata_config_bit(device_desc,ATA_DMA_STATUS_REG,0x3,0x1);//0000100
-	xxx = read_ata_config_byte(device_desc,ATA_DMA_STATUS_REG);
+	//xxx = read_ata_config_dword(device_desc,ATA_DMA_PRD_REG);
+	printk("xxx is %d \n",xxx);
+	write_ata_config_byte(device_desc,ATA_DMA_STATUS_REG,0x6);
+	//xxx = read_ata_config_byte(device_desc,ATA_DMA_STATUS_REG);
+	k = in(0x1F7);
+	printk("xxx is %d \n",xxx);
+	printk("ata status is: %d \n",k);
 	next = first;
 	for (i = 0; i < io_request->dma_lba_list_size;i++)
 	{
 		dma_lba = next->val;
-		out(0xE0 | (io_request->lba >> 24),0x1F6);
+		out(0xE0 | (unsigned char)(dma_lba->lba >> 24),0x1F6);
 		out((unsigned char)dma_lba->sector_count,0x1F2);
-		out((unsigned char)io_request->lba,0x1F3);
-		out((unsigned char)(io_request->lba >> 8),0x1F4);
-		out((unsigned char)(io_request->lba >> 16),0x1F5);
+		out((unsigned char)dma_lba->lba,0x1F3);
+		out((unsigned char)(dma_lba->lba >> 8),0x1F4);
+		out((unsigned char)(dma_lba->lba >> 16),0x1F5);
+		k = in(0x1F7);
 		out(io_request->command,0x1F7);
 		//for (k=0;k<1000;k++);??????
 		next = ll_next(next);
+		k = in(0x1F7);
 	}
-	write_ata_config_bit(device_desc,ATA_DMA_COMMAND_REG,0x0,0x1);
+	write_ata_config_byte(device_desc,ATA_DMA_COMMAND_REG,0x1);
+	//xxx = read_ata_config_byte(device_desc,ATA_DMA_COMMAND_REG);
+	printk("xxx is %d \n",xxx);
 	//semaphore to avoid race with interrupt handler
-	//sem_down(&device_desc->sem);
+	sem_down(&device_desc->sem);
 	for (k=0;k<100000;k++);
 	k = in(0x1F7);
-	write_ata_config_bit(device_desc,ATA_DMA_COMMAND_REG,0x0,0x0);
+	write_ata_config_byte(device_desc,ATA_DMA_COMMAND_REG,0x0);
+	//xxx = read_ata_config_byte(device_desc,ATA_DMA_COMMAND_REG);
+	printk("xxx--- is %d \n",xxx);
 	dma_status = read_ata_config_byte(device_desc,ATA_DMA_STATUS_REG);
+	printk("dma---_status is: %d \n",dma_status);
 
 	if ((in(0x1F7) & 1) || dma_status & 1)
 	{

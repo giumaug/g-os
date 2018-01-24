@@ -13,7 +13,7 @@
 int main()
 {
 	//const char path[] = "/home/ubuntu/sample.txt";
-	const char path[] = "/sample.txt";
+	const char path[] = "/io";
 	//const char path[] = "/shell";
 	char* io_buffer;
 	int current_len;

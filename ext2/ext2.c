@@ -644,6 +644,7 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 	{
 		READ_DMA(dma_lba_list,dma_lba_list_size);
 		buf_offset = 0;
+		byte_count = 0;
 		sentinel = ll_sentinel(dma_lba_list);
 		next = ll_first(dma_lba_list);
 		while(sentinel != next)
@@ -653,7 +654,9 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 			kmemcpy(buf + buf_offset,dma_lba->io_buffer,byte_count);
 			kfree(dma_lba->io_buffer);
 			buf_offset += byte_count;
+			next = ll_next(next);
 		}
+		inode->file_offset += byte_count;
 		free_llist(dma_lba_list);
 	}
 	else
