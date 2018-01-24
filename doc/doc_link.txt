@@ -1,0 +1,5 @@
+x86 assembly
+https://cs.nyu.edu/~mwalfish/classes/15fa/ref/i386/toc.htm
+
+pci architecture
+https://superuser.com/questions/464416/how-is-the-communication-between-northbridge-and-southbridge-like

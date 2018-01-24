@@ -1,0 +1,4 @@
+/home/peppe/Desktop/qemu-2.5.0/hw/net/e1000.c
+/home/peppe/Desktop/qemu-2.5.0/exec.c
+/home/peppe/Desktop/qemu-2.5.0/memory.c
+/home/peppe/Desktop/qemu-2.5.0/net/net.c

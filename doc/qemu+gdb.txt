@@ -1,0 +1,113 @@
+cd /opt/virtutech/simics-3.0.31/workspace/
+
+losetup -o 1048576 /dev/loop5 ./disk.img
+
+cd /home/peppe/Desktop/qemu-2.5.0/build/i386-softmmu
+
+./qemu-system-i386 -s -S -m 500M -hda /opt/virtutech/simics-3.0.31/workspace/disk.img  -monitor stdio -device e1000,netdev=net0,mac=00:0C:29:10:64:B9 -netdev tap,id=net0,script=no,ifname=tap0
+
+fedora img
+./qemu-system-i386 -s -S -m 1000M -cdrom /home/peppe/Desktop/Fedora-13-i686-Live.iso  -monitor stdio -netdev tap,id=net0,ifname=tap0,script=no,downscript=no -device e1000,netdev=net0,mac=00:0c:29:10:64:b9
+
+gdb ./kernel.bin
+dentro gdb:
+target remote: 1234
+b kmain
+
+debug remote 1 (log su remote debug)
+
+
+qemu
+monitor control-alt-1/2
+
+log item in_asm --faccio dump su file programma in esecuzione su qemu
+
+lancire qemu con:qemu -s -S -m 200M -kernel
+
+lanciare gdb con:gdb
+connettersi a qemu con: target remote :1234
+
+
+gdb:
+
+attaccarsi a un processo in esecuzione gdb ./isdnsim 10987 
+(per caricare i dorgenti : dir path sorgenti
+
+b nome funzione per settare brekpoint
+d numero per eliminare breakpoint
+c per continuare dopo breakpoint
+q exit
+b *0x44444 breakpoint su indirizzo esadecimale
+p nome variabile per stamapre una variabile
+x /20b 0xa00e160 stampa n byte in esadecimale
+l stampa linee di codice
+
+settare linea di comando : set args aaa vvv ccc 
+
+core dump:
+gdb nome eseguibile nome file dumped(gdb) set logging on
+
+watchpoit: set watch nome variabile ---interessante
+
+vedere i registri :info register(gdb) set logging on
+vedere pc: p $pc
+
+andare avanti di un istruzione: step
+[100]
+disaasemblare: disas inizio fine
+
+watch address:break point quando scrivo su address
+
+
+log su file
+
+(gdb) set logging on
+
+(gdb) set logging file my_god_object.log
+
+(gdb) show logging
+
+(gdb) system.tracepoint[index]@200
+
+cat
+
+cat ./dump_copy.txt |  sed ':a;N;$!ba;s/\n//g' > new.txt
+
+
+cat ./new.txt | sed 's/ //g' > new2.txt
+
+cat ./gdb.txt |  sed ':a;N;$!ba;s/\n//g' > _gdb.txt.txt
+
+cat ./_gdb.txt | sed 's/ //g' > __gdb.txt
+
+mount disk image
+
+losetup -o 1048576 /dev/loop2 ./disk.img
+mount /dev/loop1 /mnt
+
+disk dump:
+xxd -g1 ./dump.txt exit
+dd bs=512 if=/home/peppe/Desktop/disk.img count=1
+
+debugfs
+dump "/" /tmp/test.txt dump inode "/"
+hexdump /tmp/test.txt
+
+blocks "/" numero blocco corrispondente "/" ("/" puo' essere pure inode)
+
+block_dump <x> dump blocco x
+
+show_super_stats dump superblock e group_block
+
+
+
+
+/tmp/read_test.txt = blocco 1155 inode 20
+
+/tmp/ blocco 341
+
+
+
+
+
+

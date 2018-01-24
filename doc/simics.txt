@@ -1,0 +1,78 @@
+run-command-file "run-g-os"
+
+
+$disk_image="./disk.img"
+run-command-file "targets/x86-440bx/tango-common.simics"
+new-symtable file = kernel.bin
+set-bookmark booted
+ptime
+revto steps
+break (sym _read_write_28_ata)
+kernel.source-path "/home/peppe/Desktop/g-os/drivers/ata/;/home/peppe/Desktop/g-os/scheduler/"
+kernel.source-path /home/peppe/Desktop/g-os/drivers/ata/
+kernel.source-path
+break -x (pos 8253.c:188)
+break (sym sem_down)
+break (sym sem_up)
+
+
+
+break (sym int_handler_pit)
+break (sym int_handler_ata)
+break (sym _read_write_28_ata)
+
+kernel.source-path /home/peppe/Desktop/g-os/drivers/ata/ata.c
+
+set-bookmark booted
+
+break (sym _exec)
+break (sym sem_down)
+
+break -x (pos syscall_handler.c:188)
+break -x (pos syscall_handler.c:188)
+
+psym io_request
+psym "*io_request->process_context"
+
+altri comandi
+hai risposto alla tipa?
+ 
+cpu0.read-reg ds
+break-exception -all
+trace-io kbd0
+untrace-io kbd0
+
+log-level vedo tutti gli oggetti loggabili
+object.log vedo log oggetto
+
+ide.status status ide
+list-objects tutti oggetti disponibili
+
+cpu0.print-gdt gdt
+cpu0-tlb.status
+
+
+stack-trace
+pregs
+
+phys_mem0.break C1F1FF4 4 -w
+logical-to-physical 0xCC0F1FF4
+phys_mem0.x 0xC1F1FF4
+
+psym "*((struct t_process_context*)system.process_info->current_process->val)"
+
+sh_sym.load-symbols /home/peppe/Desktop/g-os/process/shell
+
+cpu0.set-context my-little-context
+my-little-context.symtable new_symtable
+contesto di default primary context quindi per passare da kernel a user space:primary_context.symtable shell
+
+
+
+
+
+
+
+
+
+

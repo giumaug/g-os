@@ -1,0 +1,34 @@
+su macchina fisica:
+chmod 777 /dev/vm*
+
+su macchina virtuale (toolchain)
+
+/usr/sbin/tunctl -t tap0 -u peppe
+brctl addbr virbr0
+brctl addif virbr0 eth2
+sudo brctl addif virbr0 tap0
+
+ifconfig eth2 up
+ifconfig tap0 up
+ifconfig virbr0 up
+
+ifconfig virbr0 172.16.6.100/24
+ifconfig eth2 0.0.0.0 promisc
+
+dhclient virbr0
+route add default gw 172.16.6.2 virbr0
+
+add/del roue
+route del -net 172.16.6.0 netmask 255.255.255.0 dev eth2
+
+per monitorare traffico:
+tcpdump host 172.16.1.2
+
+./qemu-system-i386 -s -S -m 500M -hda /opt/virtutech/simics-3.0.31/workspace/disk.img  -monitor stdio -device e1000,netdev=net0,mac=00:0C:29:10:64:B9 -netdev tap,id=net0,script=no,ifname=tap0
+
+./qemu-system-i386 -s -S -m 1000M -cdrom /home/peppe/Desktop/Fedora-13-i686-Live.iso  -monitor stdio -netdev tap,id=net0,ifname=tap0,script=no,downscript=no -device e1000,netdev=net0,mac=00:0c:29:10:64:b9
+
+./qemu-system-i386 -m 1000M -hda /home/peppe/Desktop/ubuntu-16.04-server-cloudimg-i386-disk1.img  -monitor stdio -netdev tap,id=net0,ifname=tap0,script=no,downscript=no -device e1000,netdev=net0,mac=00:0c:29:10:64:b9
+
+
+

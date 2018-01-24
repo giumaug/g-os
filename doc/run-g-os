@@ -1,0 +1,10 @@
+$disk_image="./disk.img"
+run-command-file "targets/x86-440bx/tango-common.simics"
+new-symtable file = kernel.bin
+new-symtable file = /home/peppe/Desktop/g-os/process/shell
+new-symtable file = /home/peppe/Desktop/g-os/process/ls
+set-bookmark booted
+kernel.source-path "/home/peppe/Desktop/g-os/;/home/peppe/Desktop/g-os/scheduler/;/home/peppe/Desktop/g-os/memory_manager/;/home/peppe/Desktop/g-os/virtual_memory/;/home/peppe/Desktop/g-os/console/;/home/peppe/Desktop/g-os/klib/;/home/peppe/Desktop/g-os/data_types/;/home/peppe/Desktop/g-os/synchro_types/;/home/peppe/Desktop/g-os/ext2/;/home/peppe/Desktop/g-os/drivers/;/home/peppe/Desktop/g-os/process/lib"
+shell.source-path "/home/peppe/Desktop/g-os/process/lib"
+ls.source-path "/home/peppe/Desktop/g-os/process;/home/peppe/Desktop/g-os/process/lib"
+
