@@ -86,6 +86,7 @@ void init_ata(t_device_desc* device_desc)
 {	
 	struct t_i_desc i_desc;
 	u32 bar4 = NULL;
+	u32 pci_command = NULL;
 	struct t_process_context* current_process_context = NULL;
 	
 	i_desc.baseLow = ((int)&int_handler_ata) & 0xFFFF;
@@ -103,6 +104,13 @@ void init_ata(t_device_desc* device_desc)
 	sem_init(&device_desc->mutex,1);
 	sem_init(&device_desc->sem,0);
 	bar4 = read_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_BAR4);
+	pci_command = read_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_COMMAND);
+	//printk("command reg is %x \n",pci_command);
+     	pci_command |= 0x4;
+	write_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_COMMAND,pci_command);
+	pci_command = read_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_COMMAND);
+	//printk("new command reg is %x \n",pci_command);
+
 	if ((u32) bar4 & 0x1) 
 	{
 		device_desc->dma_pci_io_base = (u32) bar4 & 0xFFFC;
@@ -166,6 +174,7 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 	t_io_request* pending_request = NULL;
 	t_llist_node* node = NULL;
 	char* prd = NULL;
+	char* prd_orig = NULL;
 	int k = 0;
 	int s;
 	short byte_count;
@@ -188,7 +197,9 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 
 	first = ll_first(io_request->dma_lba_list);
 	next = first;
-	prd = kmalloc(8 * io_request->dma_lba_list_size);
+	prd = kmalloc(16 * io_request->dma_lba_list_size);
+	prd_orig = prd;
+	prd = ((((u32)prd % 0x10) != 0) ? ((((u32)prd + 0x10) - (((u32)prd + 0x10) % 0x10))) : ((u32)prd % 0x10));   
 	for (i = 0; i < io_request->dma_lba_list_size;i++)
 	{
 		if (i == io_request->dma_lba_list_size - 1)
@@ -214,10 +225,6 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 		prd[(i * 8) + 6] = 0;
 		prd[(i * 8) + 7] = is_last_prd;
 		
-		//u32* test;
-		//test = prd + 4;
-		//*test = 0xaabbccdd;
-		
 		next = ll_next(next);
 	}
 	k = in(0x1F7);
@@ -225,7 +232,8 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 	int xxx = 0;
 	int yyy = FROM_VIRT_TO_PHY(prd);
 	write_ata_config_dword(device_desc,ATA_DMA_PRD_REG,FROM_VIRT_TO_PHY(prd));
-	//xxx = read_ata_config_dword(device_desc,ATA_DMA_PRD_REG);
+	//write_ata_config_dword(device_desc,ATA_DMA_PRD_REG,0x1000);
+	xxx = read_ata_config_dword(device_desc,ATA_DMA_PRD_REG);
 	printk("xxx is %d \n",xxx);
 	write_ata_config_byte(device_desc,ATA_DMA_STATUS_REG,0x6);
 	//xxx = read_ata_config_byte(device_desc,ATA_DMA_STATUS_REG);
@@ -268,7 +276,7 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 	}
 	//Endpoint mutual exclusion region
 	sem_up(&device_desc->mutex);
-	kfree(prd);	
+	kfree(prd_orig);	
 	return ret;
 }
 
