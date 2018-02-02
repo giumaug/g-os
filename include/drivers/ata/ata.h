@@ -17,9 +17,9 @@
 #define ATA_DMA_STATUS_REG 0x2
 #define ATA_DMA_PRD_REG 0x4
 
-#define ALIGN_DMA_BUFFER(address)                                                                                           \
-					(((address % 0x10000) != 0) ?                                                        \
-					(((address + 0x10000) - ((address + 0x10000) % 0x10000))) : (address % 0x10000))    
+//#define ALIGN_DMA_BUFFER(address)                                                                                           \
+//					(((address % 0x10000) != 0) ?                                                        \
+//					(((address + 0x10000) - ((address + 0x10000) % 0x10000))) : (address % 0x10000))    
 
 #define READ_28 0x20
 #define WRITE_28 0x30

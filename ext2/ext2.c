@@ -1,3 +1,4 @@
+#include "common.h"
 #include "ext2/ext2.h"
 #include "ext2/ext2_utils_1.h"
 #include "ext2/ext2_utils_2.h"
@@ -472,6 +473,7 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 	u32 dma_sector_count = 0;
 	u32 buf_offset;
 	u32 dma_lba_list_size = 0;
+	char* dma_buffer = NULL;
 
 	byte_read = 0;
 	byte_to_read = count;
@@ -565,6 +567,10 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 		}
 		if(is_dma)
 		{
+			if (lba == 4156)
+			{
+				printk("ok! \n");
+			}
 			printk("lba is %d \n",lba);
 			if(first_lba == 0 && i < last_inode_block)
 			{
@@ -651,7 +657,8 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 		{
 			dma_lba = next->val;
 			byte_count = dma_lba->sector_count * SECTOR_SIZE;
-			kmemcpy(buf + buf_offset,dma_lba->io_buffer,byte_count);
+			dma_buffer = ALIGN_TO_BOUNDARY(0x10000,(u32)dma_lba->io_buffer);
+			kmemcpy(buf + buf_offset,dma_buffer,byte_count);
 			kfree(dma_lba->io_buffer);
 			buf_offset += byte_count;
 			next = ll_next(next);

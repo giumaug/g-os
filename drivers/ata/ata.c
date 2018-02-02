@@ -174,7 +174,7 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 	t_io_request* pending_request = NULL;
 	t_llist_node* node = NULL;
 	char* prd = NULL;
-	char* prd_orig = NULL;
+	char* aligned_prd = NULL;
 	int k = 0;
 	int s;
 	short byte_count;
@@ -198,8 +198,7 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 	first = ll_first(io_request->dma_lba_list);
 	next = first;
 	prd = kmalloc(16 * io_request->dma_lba_list_size);
-	prd_orig = prd;
-	prd = ((((u32)prd % 0x10) != 0) ? ((((u32)prd + 0x10) - (((u32)prd + 0x10) % 0x10))) : ((u32)prd % 0x10));   
+	aligned_prd = ((((u32)prd % 0x10) != 0) ? ((((u32)prd + 0x10) - (((u32)prd + 0x10) % 0x10))) : ((u32)prd % 0x10));   
 	for (i = 0; i < io_request->dma_lba_list_size;i++)
 	{
 		if (i == io_request->dma_lba_list_size - 1)
@@ -213,30 +212,29 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 		next = ll_first(io_request->dma_lba_list);
 		dma_lba = next->val;
 		
-		mem_addr = FROM_VIRT_TO_PHY(ALIGN_DMA_BUFFER((u32)dma_lba->io_buffer));
+		//ALIGN_TO_BOUNDARY(boundary,address) 
+		mem_addr = FROM_VIRT_TO_PHY(ALIGN_TO_BOUNDARY(0x10000,(u32)dma_lba->io_buffer));
 		byte_count = dma_lba->sector_count * SECTOR_SIZE;
 
-		prd[(i * 8)] = LOW_OCT_32(mem_addr);
-		prd[(i * 8) + 1] = MID_RGT_OCT_32(mem_addr);
-		prd[(i * 8) + 2] = MID_LFT_OCT_32(mem_addr); 
-		prd[(i * 8) + 3] = HI_OCT_32(mem_addr);
-		prd[(i * 8) + 4] = LOW_16(byte_count);
-		prd[(i * 8) + 5] = HI_16(byte_count); 
-		prd[(i * 8) + 6] = 0;
-		prd[(i * 8) + 7] = is_last_prd;
+		aligned_prd[(i * 8)] = LOW_OCT_32(mem_addr);
+		aligned_prd[(i * 8) + 1] = MID_RGT_OCT_32(mem_addr);
+		aligned_prd[(i * 8) + 2] = MID_LFT_OCT_32(mem_addr); 
+		aligned_prd[(i * 8) + 3] = HI_OCT_32(mem_addr);
+		aligned_prd[(i * 8) + 4] = LOW_16(byte_count);
+		aligned_prd[(i * 8) + 5] = HI_16(byte_count); 
+		aligned_prd[(i * 8) + 6] = 0;
+		aligned_prd[(i * 8) + 7] = is_last_prd;
 		
 		next = ll_next(next);
 	}
 	k = in(0x1F7);
 	printk("ata status is: %d \n",k);
 	int xxx = 0;
-	int yyy = FROM_VIRT_TO_PHY(prd);
-	write_ata_config_dword(device_desc,ATA_DMA_PRD_REG,FROM_VIRT_TO_PHY(prd));
-	//write_ata_config_dword(device_desc,ATA_DMA_PRD_REG,0x1000);
+	int yyy = FROM_VIRT_TO_PHY(aligned_prd);
+	write_ata_config_dword(device_desc,ATA_DMA_PRD_REG,FROM_VIRT_TO_PHY(aligned_prd));
 	xxx = read_ata_config_dword(device_desc,ATA_DMA_PRD_REG);
 	printk("xxx is %d \n",xxx);
 	write_ata_config_byte(device_desc,ATA_DMA_STATUS_REG,0x6);
-	//xxx = read_ata_config_byte(device_desc,ATA_DMA_STATUS_REG);
 	k = in(0x1F7);
 	printk("xxx is %d \n",xxx);
 	printk("ata status is: %d \n",k);
@@ -251,19 +249,16 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 		out((unsigned char)(dma_lba->lba >> 16),0x1F5);
 		k = in(0x1F7);
 		out(io_request->command,0x1F7);
-		//for (k=0;k<1000;k++);??????
 		next = ll_next(next);
 		k = in(0x1F7);
 	}
 	write_ata_config_byte(device_desc,ATA_DMA_COMMAND_REG,0x1);
-	//xxx = read_ata_config_byte(device_desc,ATA_DMA_COMMAND_REG);
 	printk("xxx is %d \n",xxx);
 	//semaphore to avoid race with interrupt handler
 	sem_down(&device_desc->sem);
 	for (k=0;k<100000;k++);
 	k = in(0x1F7);
 	write_ata_config_byte(device_desc,ATA_DMA_COMMAND_REG,0x0);
-	//xxx = read_ata_config_byte(device_desc,ATA_DMA_COMMAND_REG);
 	printk("xxx--- is %d \n",xxx);
 	dma_status = read_ata_config_byte(device_desc,ATA_DMA_STATUS_REG);
 	printk("dma---_status is: %d \n",dma_status);
@@ -276,7 +271,7 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 	}
 	//Endpoint mutual exclusion region
 	sem_up(&device_desc->mutex);
-	kfree(prd_orig);	
+	kfree(prd);	
 	return ret;
 }
 
