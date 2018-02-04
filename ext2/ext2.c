@@ -467,13 +467,14 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 	t_llist* dma_lba_list = NULL;
 	u32 last_lba = 0;
 	u32 first_lba = 0;
-	t_llist_node* sentinel = NULL;
+	t_llist_node* first = NULL;
 	t_llist_node* next = NULL;
 	t_dma_lba* dma_lba = NULL;
 	u32 dma_sector_count = 0;
 	u32 buf_offset;
 	u32 dma_lba_list_size = 0;
 	char* dma_buffer = NULL;
+	u32 len;
 
 	byte_read = 0;
 	byte_to_read = count;
@@ -486,7 +487,16 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 	}
 	first_inode_block = inode->file_offset / BLOCK_SIZE;
 	first_data_offset = inode->file_offset % BLOCK_SIZE;
-	last_inode_block = (inode->file_offset + (count - 1)) / BLOCK_SIZE;
+	if (inode->i_size < (inode->file_offset + (count - 1)))
+	{
+		last_inode_block = inode->i_size / BLOCK_SIZE;
+		byte_to_read = inode->file_offset - inode->i_size;
+	}
+	else
+	{
+		last_inode_block = (inode->file_offset + (count - 1)) / BLOCK_SIZE;
+		byte_to_read = count;
+	}
 	
 	for (i = first_inode_block;i <= last_inode_block;i++)
 	{
@@ -531,43 +541,43 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 		{
 			lba = FROM_BLOCK_TO_LBA(inode->i_block[i]);
 		}
-		if (byte_to_read >= BLOCK_SIZE)
-		{
-			if (first_data_offset == 0)
-			{
-				byte_count = BLOCK_SIZE;
-				byte_to_read -= BLOCK_SIZE;
-			}
-			else
-			{
-				byte_count = BLOCK_SIZE - first_data_offset;
-				byte_to_read -= (BLOCK_SIZE - first_data_offset);
-			}	
-		}
-		else
-		{
-			if (first_data_offset == 0)
-			{
-				byte_count = byte_to_read;
-				byte_to_read = 0;
-			}
-			else 
-			{
-				if (BLOCK_SIZE - first_data_offset > byte_to_read)
-				{
-					byte_count = byte_to_read;
-					byte_to_read = 0;
-				}
-				else
-				{
-					byte_count = BLOCK_SIZE - first_data_offset;
-					byte_to_read -= (BLOCK_SIZE - first_data_offset);
-				}
-			}
-		}
+//		if (byte_to_read >= BLOCK_SIZE)
+//		{
+//			if (first_data_offset == 0 || i > first_inode_block)
+//			{
+//				byte_count = BLOCK_SIZE;
+//				byte_to_read -= BLOCK_SIZE;
+//			}
+//			else
+//			{
+//				byte_count = BLOCK_SIZE - first_data_offset;
+//				byte_to_read -= (BLOCK_SIZE - first_data_offset);
+//			}	
+//		}
+//		else
+//		{
+//			if (first_data_offset == 0 || i > first_inode_block)
+//			{
+//				byte_count = byte_to_read;
+//				byte_to_read = 0;
+//			}
+//			else 
+//			{
+//				if (BLOCK_SIZE - first_data_offset > byte_to_read)
+//				{
+//					byte_count = byte_to_read;
+//					byte_to_read = 0;
+//				}
+//				else
+//				{
+//					byte_count = BLOCK_SIZE - first_data_offset;
+//					byte_to_read -= (BLOCK_SIZE - first_data_offset);
+//				}
+//			}
+//		}
 		if(is_dma)
 		{
-			if (lba == 4156)
+			if (lba == 8252)
 			{
 				printk("ok! \n");
 			}
@@ -636,10 +646,44 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 		}
 		else
 		{
+			if (byte_to_read >= BLOCK_SIZE)
+			{
+				if (first_data_offset == 0 || i > first_inode_block)
+				{
+					byte_count = BLOCK_SIZE;
+					byte_to_read -= BLOCK_SIZE;
+				}
+				else
+				{
+					byte_count = BLOCK_SIZE - first_data_offset;
+					byte_to_read -= (BLOCK_SIZE - first_data_offset);
+				}	
+			}
+			else
+			{
+				if (first_data_offset == 0 || i > first_inode_block)
+				{
+					byte_count = byte_to_read;
+					byte_to_read = 0;
+				}
+				else 
+				{
+					if (BLOCK_SIZE - first_data_offset > byte_to_read)
+					{
+						byte_count = byte_to_read;
+						byte_to_read = 0;
+					}
+					else
+					{
+						byte_count = BLOCK_SIZE - first_data_offset;
+						byte_to_read -= (BLOCK_SIZE - first_data_offset);
+					}	
+				}
+			}
 			iob_data_block = kmalloc(BLOCK_SIZE);
         		sector_count = BLOCK_SIZE/SECTOR_SIZE;
 			READ(sector_count,lba,iob_data_block);
-			kmemcpy(buf,iob_data_block+first_data_offset,byte_count);
+			kmemcpy(buf,iob_data_block + first_data_offset,byte_count);
 			inode->file_offset += byte_count;
 			buf += byte_count;
 			byte_read += byte_count;
@@ -651,17 +695,32 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 		READ_DMA(dma_lba_list,dma_lba_list_size);
 		buf_offset = 0;
 		byte_count = 0;
-		sentinel = ll_sentinel(dma_lba_list);
-		next = ll_first(dma_lba_list);
-		while(sentinel != next)
+		len = 0;
+
+		first = ll_first(dma_lba_list);
+		next = first;
+		for (i = 0; i < dma_lba_list_size;i++)
 		{
 			dma_lba = next->val;
-			byte_count = dma_lba->sector_count * SECTOR_SIZE;
+			len = dma_lba->sector_count * SECTOR_SIZE;
+			if (i == 0 && first_data_offset > 0)
+			{
+				byte_count = len - first_data_offset;
+			}
+			else if (i == (dma_lba_list_size - 1) && len + byte_read > byte_to_read)
+			{
+				byte_count = byte_read - byte_to_read;
+			}
+			else
+			{
+				byte_count = dma_lba->sector_count * SECTOR_SIZE;	
+			}
 			dma_buffer = ALIGN_TO_BOUNDARY(0x10000,(u32)dma_lba->io_buffer);
 			kmemcpy(buf + buf_offset,dma_buffer,byte_count);
 			kfree(dma_lba->io_buffer);
 			buf_offset += byte_count;
 			next = ll_next(next);
+			byte_read += byte_count;
 		}
 		inode->file_offset += byte_count;
 		free_llist(dma_lba_list);

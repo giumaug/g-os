@@ -21,7 +21,7 @@ int main()
 	t_stat stat_data;
 	//struct stat stat_data;
 	int b_read,f;
-	int b_to_read = 4096;
+	int b_to_read = 5120;
 	int t = 0;
 	
 	printf("---------start performance check---------- \n");
@@ -46,10 +46,10 @@ int main()
 	while (current_len > 0)
 	{
 		b_read = read(f,io_buffer,b_to_read);
-		//printf("count= %d \n",t++);
-		//printf("b_read is %d \n",b_read);
+		printf("byte read = %d \n",b_read);
 		current_len -= b_read;
 	}
+	printf("----qui!!! \n");
 	close(f);
 	free(io_buffer);
 	check_free_mem();

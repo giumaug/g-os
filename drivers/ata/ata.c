@@ -175,8 +175,6 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 	t_llist_node* node = NULL;
 	char* prd = NULL;
 	char* aligned_prd = NULL;
-	int k = 0;
-	int s;
 	short byte_count;
 	char is_last_prd;
 	int ret = 0;
@@ -227,17 +225,8 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 		
 		next = ll_next(next);
 	}
-	k = in(0x1F7);
-	printk("ata status is: %d \n",k);
-	int xxx = 0;
-	int yyy = FROM_VIRT_TO_PHY(aligned_prd);
 	write_ata_config_dword(device_desc,ATA_DMA_PRD_REG,FROM_VIRT_TO_PHY(aligned_prd));
-	xxx = read_ata_config_dword(device_desc,ATA_DMA_PRD_REG);
-	printk("xxx is %d \n",xxx);
 	write_ata_config_byte(device_desc,ATA_DMA_STATUS_REG,0x6);
-	k = in(0x1F7);
-	printk("xxx is %d \n",xxx);
-	printk("ata status is: %d \n",k);
 	next = first;
 	for (i = 0; i < io_request->dma_lba_list_size;i++)
 	{
@@ -247,21 +236,13 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 		out((unsigned char)dma_lba->lba,0x1F3);
 		out((unsigned char)(dma_lba->lba >> 8),0x1F4);
 		out((unsigned char)(dma_lba->lba >> 16),0x1F5);
-		k = in(0x1F7);
 		out(io_request->command,0x1F7);
 		next = ll_next(next);
-		k = in(0x1F7);
 	}
 	write_ata_config_byte(device_desc,ATA_DMA_COMMAND_REG,0x1);
-	printk("xxx is %d \n",xxx);
 	//semaphore to avoid race with interrupt handler
 	sem_down(&device_desc->sem);
-	for (k=0;k<100000;k++);
-	k = in(0x1F7);
 	write_ata_config_byte(device_desc,ATA_DMA_COMMAND_REG,0x0);
-	printk("xxx--- is %d \n",xxx);
-	dma_status = read_ata_config_byte(device_desc,ATA_DMA_STATUS_REG);
-	printk("dma---_status is: %d \n",dma_status);
 
 	if ((in(0x1F7) & 1) || dma_status & 1)
 	{
