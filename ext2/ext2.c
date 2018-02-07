@@ -173,7 +173,7 @@ static t_indirect_block* indirect_block_init()
 	indirect_block = kmalloc(sizeof(t_indirect_block));
 	indirect_block->block = kmalloc(BLOCK_SIZE);
 	indirect_block->block_map = kmalloc(BLOCK_SIZE * sizeof(t_indirect_block));
-	for (i = 0 ;i <  BLOCK_SIZE; i++)
+	for (i = 0 ;i <  (BLOCK_SIZE / 4); i++)
 	{
 		indirect_block->block_map[i] = NULL;
 	}
@@ -184,7 +184,7 @@ static void indirect_block_free(t_indirect_block* indirect_block)
 {
 	int i = 0;
 
-	for (i = 0 ;i <  BLOCK_SIZE; i++)
+	for (i = 0 ;i <  (BLOCK_SIZE / 4); i++)
 	{
 		if (indirect_block->block_map[i] != NULL)
 		{
@@ -446,6 +446,7 @@ int inode_free(t_inode* inode)
 
 int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 {
+	static u32 xcount = 0;
 	struct t_process_context* current_process_context;
 	u32 i;
 	u32 block_offset;
@@ -475,6 +476,8 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 	u32 dma_lba_list_size = 0;
 	char* dma_buffer = NULL;
 	u32 len;
+
+	is_dma = 0;
 
 	byte_read = 0;
 	byte_to_read = count;
@@ -509,13 +512,14 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
         			sector_count = BLOCK_SIZE/SECTOR_SIZE;
 				READ(sector_count,indirect_lba,inode->indirect_block_1->block);
 			}
-			READ_DWORD(&inode->indirect_block_1->block[4*(i - INDIRECT_0_LIMIT - 1)],inode_block_data);
+			//READ_DWORD(&inode->indirect_block_1->block[4*(i - INDIRECT_0_LIMIT - 1)],inode_block_data);
+			READ_DWORD(&inode->indirect_block_1->block[(i - INDIRECT_0_LIMIT - 1)],inode_block_data);
 			lba = FROM_BLOCK_TO_LBA(inode_block_data);
 		}
 		else if (i > INDIRECT_1_LIMIT  && i <= INDIRECT_2_LIMIT)
 		{
-			second_block = (i - INDIRECT_2_LIMIT - 1) / (BLOCK_SIZE / 4);
-			second_block_offset = (i - INDIRECT_2_LIMIT - 1) % (BLOCK_SIZE /4);
+			second_block = (i - INDIRECT_1_LIMIT - 1) / (BLOCK_SIZE / 4);
+			second_block_offset = (i - INDIRECT_1_LIMIT - 1) % (BLOCK_SIZE /4);
 			if (inode->indirect_block_2 == NULL)
 			{
 				inode->indirect_block_2 = indirect_block_init();
@@ -575,13 +579,18 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 //				}
 //			}
 //		}
+		if (lba == 19992)
+		{
+			printk("xcount is %d \n",xcount);
+		}
 		if(is_dma)
 		{
-			if (lba == 8252)
-			{
-				printk("ok! \n");
-			}
+			xcount++;
 			printk("lba is %d \n",lba);
+			if (lba == 19992)
+			{
+				printk("xcount is %d \n",xcount);
+			}
 			if(first_lba == 0 && i < last_inode_block)
 			{
 				first_lba = lba;
@@ -680,6 +689,7 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 					}	
 				}
 			}
+			printk("-lba is %d \n",lba);
 			iob_data_block = kmalloc(BLOCK_SIZE);
         		sector_count = BLOCK_SIZE/SECTOR_SIZE;
 			READ(sector_count,lba,iob_data_block);

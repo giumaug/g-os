@@ -169,7 +169,7 @@ t_group_block;
 
 typedef struct s_indirect_block
 {
-	char* block;
+	u32* block;
 	struct s_indirect_block** block_map;
 }
 t_indirect_block;
