@@ -172,7 +172,14 @@ static t_indirect_block* indirect_block_init()
 
 	indirect_block = kmalloc(sizeof(t_indirect_block));
 	indirect_block->block = kmalloc(BLOCK_SIZE);
-	indirect_block->block_map = kmalloc(BLOCK_SIZE * sizeof(t_indirect_block));
+	int xxx = (BLOCK_SIZE / 4) * sizeof(t_indirect_block*);
+	indirect_block->block_map = kmalloc((BLOCK_SIZE / 4) * sizeof(t_indirect_block*));
+	
+	if (indirect_block->block_map == 0xc2010060)
+	{
+		printk("qui \n");
+	}
+
 	for (i = 0 ;i <  (BLOCK_SIZE / 4); i++)
 	{
 		indirect_block->block_map[i] = NULL;
@@ -579,7 +586,7 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 //				}
 //			}
 //		}
-		if (lba == 19992)
+		if (lba == 19884)
 		{
 			printk("xcount is %d \n",xcount);
 		}

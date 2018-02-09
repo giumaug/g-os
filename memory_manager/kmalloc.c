@@ -69,6 +69,10 @@ void* kmalloc(unsigned int mem_size)
 	{
 		panic();
 	}
+	if (mem_add==0xc2010060)
+	{
+		printk("alert1!!! \n");
+	}
 	
 	RESTORE_IF_STATUS
 	return mem_add;
@@ -80,7 +84,12 @@ void kfree(void *address)
 	unsigned int pool_index;
 
 	SAVE_IF_STATUS
-	CLI	
+	CLI
+		    
+	if (address==0xc2010060)
+	{
+		printk("alert!!! \n");
+	}	
 	
 	pool_index=0;
 	while ((pool_index+1)*MEM_TO_POOL<(address-VIRT_MEM_START_ADDR-POOL_START_ADDR))
