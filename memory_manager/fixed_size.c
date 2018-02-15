@@ -40,6 +40,20 @@ void a_fixed_size_init(t_a_fixed_size_desc *a_fixed_size_desc,unsigned int block
 
 void *a_fixed_size_alloc(t_a_fixed_size_desc *a_fixed_size_desc) 
 {
+//	if (a_fixed_size_desc->block_size == 131072)
+//	{
+//		printk("size is %d \n",a_fixed_size_desc->current_free_block);
+//		if (a_fixed_size_desc->current_free_block == 7)
+//		{
+//			printk("leak!!! \n");
+//		}
+//	}
+	
+	if ((a_fixed_size_desc->current_free_block) == 0)
+	{
+		printk("run out of kmalloc memory!!!");
+		panic();
+	}
         t_block_desc *block_add;
         t_page_desc *page_desc;
 	t_block_desc *current_block_desc;

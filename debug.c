@@ -9,7 +9,7 @@ extern unsigned int free_mem_list[POOL_NUM];
 unsigned int proc[100];
 //int t_sched_debug[10][10];
 int index_2=0;
-unsigned int collect_mem=0;
+unsigned int _collect_mem=0;
 unsigned int collected_mem[15000];
 unsigned int collected_mem_index=0;
 unsigned int allocated_block=0;
@@ -129,27 +129,13 @@ void check_active_process()
 
 void collect_mem_alloc(unsigned int page_addr)
 {
-	struct t_process_context* current_process;
-
-	CURRENT_PROCESS_CONTEXT(current_process);
-
-	collected_mem[collected_mem_index++]=page_addr;
-	
-	if (collected_mem_index>14999)
+	if (_collect_mem == 1)
 	{
-		panic();
-	}
-	allocated_block++;
-	int i=0;
-	if (collected_mem_index>=130)
-	{
-		for (i=50;i<=100;i++) //350
+		collected_mem[collected_mem_index++]=page_addr;
+		if (collected_mem_index>14999)
 		{
-			if (collected_mem[i]!=0)
-			{
-				printk("mem check!!!! \n");
-			}
-		}	
+			panic();
+		}
 	}
 }
 
@@ -157,24 +143,34 @@ void collect_mem_free(unsigned int page_addr)
 {
 	int found=0;
 	unsigned int i=0;
-	struct t_process_context* current_process;
-
-	CURRENT_PROCESS_CONTEXT(current_process);
 	
-	for (i=0;i<collected_mem_index;i++)
+	if (_collect_mem == 1)
 	{
-		if (collected_mem[i]==page_addr)
+		for (i=0;i<collected_mem_index;i++)
 		{
-			allocated_block--;
-			collected_mem[i]=0;
+			if (collected_mem[i]==page_addr)
+			{
+				allocated_block--;
+				collected_mem[i]=0;
+				found=1;
+				break;
+			}
+		}
+		if (found==0) 
+		{
 			found=1;
-			break;
+			printk("no!! \n");
 		}
 	}
-	if (found==0) 
+}
+
+void reset_counter()
+{
+	int i;
+	collected_mem_index = 0;
+	for (i = 0; i <15000;i++)
 	{
-		found=1;
-		//printk("no!! \n");
+		collected_mem[i] = 0;
 	}
 }
 

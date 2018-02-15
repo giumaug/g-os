@@ -82,6 +82,7 @@ void* buddy_alloc_page(t_buddy_desc* buddy,unsigned int mem_size)
 //	buddy_free_mem(buddy);
 	if (next_list_index==NUM_LIST)
 	{
+		printk("run out of buddy memory!!!");
 		panic();
 	}
 
@@ -108,10 +109,10 @@ void* buddy_alloc_page(t_buddy_desc* buddy,unsigned int mem_size)
 	system.buddy_desc->count[BLOCK_INDEX((int)page_addr)]=0;
 	new_mem_addr=page_addr+BUDDY_START_ADDR + VIRT_MEM_START_ADDR;
 
-	if (collect_mem==1)
-	{
-		collect_mem_alloc(new_mem_addr);
-	}
+//	if (collect_mem==1)
+//	{
+//		collect_mem_alloc(new_mem_addr);
+//	}
 	
 	//SPINLOCK_UNLOCK
 	RESTORE_IF_STATUS
@@ -139,10 +140,10 @@ void buddy_free_page(t_buddy_desc* buddy,void* to_free_page_addr)
 
 	page_addr=to_free_page_addr;
 
-	if (collect_mem==1)
-	{
-		collect_mem_free(page_addr);
-	}
+//	if (collect_mem==1)
+//	{
+//		collect_mem_free(page_addr);
+//	}
 
 	page_addr-=(BUDDY_START_ADDR + VIRT_MEM_START_ADDR);
 	if ((buddy->order[BLOCK_INDEX(page_addr)] & 16)==0)

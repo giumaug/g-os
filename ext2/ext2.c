@@ -3,6 +3,9 @@
 #include "ext2/ext2_utils_1.h"
 #include "ext2/ext2_utils_2.h"
 
+#define DMA_BUFFER_SIZE 0x20000
+
+extern unsigned int _collect_mem;
 static void indirect_block_free(t_indirect_block* indirect_block);
 static t_indirect_block* indirect_block_init();
 
@@ -469,7 +472,7 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 	u32 byte_count;
 	t_inode* inode;
 	u32 inode_block_data; 
-	char* iob_data_block;
+	char* iob_data_block = NULL;
 	u32 second_block;
 	u32 second_block_offset;
 	t_llist* dma_lba_list = NULL;
@@ -484,16 +487,22 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 	char* dma_buffer = NULL;
 	u32 len;
 
-	is_dma = 0;
-
 	byte_read = 0;
 	byte_to_read = count;
-
 	CURRENT_PROCESS_CONTEXT(current_process_context)
 	inode = hashtable_get(current_process_context->file_desc,fd);
 	if (inode == NULL)
 	{
 		return -1;
+	}
+	
+	if (!is_dma)
+	{
+		iob_data_block = kmalloc(BLOCK_SIZE);
+	}
+	else
+	{
+		//_collect_mem = 1;
 	}
 	first_inode_block = inode->file_offset / BLOCK_SIZE;
 	first_data_offset = inode->file_offset % BLOCK_SIZE;
@@ -552,52 +561,9 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 		{
 			lba = FROM_BLOCK_TO_LBA(inode->i_block[i]);
 		}
-//		if (byte_to_read >= BLOCK_SIZE)
-//		{
-//			if (first_data_offset == 0 || i > first_inode_block)
-//			{
-//				byte_count = BLOCK_SIZE;
-//				byte_to_read -= BLOCK_SIZE;
-//			}
-//			else
-//			{
-//				byte_count = BLOCK_SIZE - first_data_offset;
-//				byte_to_read -= (BLOCK_SIZE - first_data_offset);
-//			}	
-//		}
-//		else
-//		{
-//			if (first_data_offset == 0 || i > first_inode_block)
-//			{
-//				byte_count = byte_to_read;
-//				byte_to_read = 0;
-//			}
-//			else 
-//			{
-//				if (BLOCK_SIZE - first_data_offset > byte_to_read)
-//				{
-//					byte_count = byte_to_read;
-//					byte_to_read = 0;
-//				}
-//				else
-//				{
-//					byte_count = BLOCK_SIZE - first_data_offset;
-//					byte_to_read -= (BLOCK_SIZE - first_data_offset);
-//				}
-//			}
-//		}
-		if (lba == 19884)
-		{
-			printk("xcount is %d \n",xcount);
-		}
 		if(is_dma)
 		{
-			xcount++;
-			printk("lba is %d \n",lba);
-			if (lba == 19992)
-			{
-				printk("xcount is %d \n",xcount);
-			}
+			_collect_mem = 1;
 			if(first_lba == 0 && i < last_inode_block)
 			{
 				first_lba = lba;
@@ -611,7 +577,9 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 				dma_sector_count = (BLOCK_SIZE/SECTOR_SIZE);
 				dma_lba_list_size = 1;
 				dma_lba = kmalloc(sizeof(t_dma_lba));
-				dma_lba->io_buffer = kmalloc(dma_sector_count * SECTOR_SIZE * 2);
+				//dma_lba->io_buffer = kmalloc(dma_sector_count * SECTOR_SIZE * 2);
+				dma_lba->io_buffer = kmalloc(DMA_BUFFER_SIZE);
+				//printk("allocating %d \n",dma_lba->io_buffer);
 				dma_lba->lba = lba;
 				dma_lba->sector_count = dma_sector_count;
 				ll_append(dma_lba_list,dma_lba);
@@ -626,7 +594,9 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 				dma_sector_count += (BLOCK_SIZE/SECTOR_SIZE);
 				dma_lba_list_size++;
 				dma_lba = kmalloc(sizeof(t_dma_lba));
-				dma_lba->io_buffer = kmalloc(dma_sector_count * SECTOR_SIZE * 2);
+				//dma_lba->io_buffer = kmalloc(dma_sector_count * SECTOR_SIZE * 2);
+				dma_lba->io_buffer = kmalloc(DMA_BUFFER_SIZE);
+				//printk("allocating %d \n",dma_lba->io_buffer);			
 				dma_lba->lba = first_lba;
 				dma_lba->sector_count = dma_sector_count;
 				ll_append(dma_lba_list,dma_lba);
@@ -635,14 +605,23 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 			{
 				dma_lba_list_size++;
 				dma_lba = kmalloc(sizeof(t_dma_lba));
-				dma_lba->io_buffer = kmalloc(dma_sector_count * SECTOR_SIZE * 2);
+				//dma_lba->io_buffer = kmalloc(dma_sector_count * SECTOR_SIZE * 2);
+				dma_lba->io_buffer = kmalloc(DMA_BUFFER_SIZE);
+				//printk("allocating %d \n",dma_lba->io_buffer);
 				dma_lba->lba = first_lba;
 				dma_lba->sector_count = dma_sector_count;
 				ll_append(dma_lba_list,dma_lba);
 
 				dma_sector_count = (BLOCK_SIZE/SECTOR_SIZE);
 				dma_lba = kmalloc(sizeof(t_dma_lba));
-				dma_lba->io_buffer = kmalloc(dma_sector_count * SECTOR_SIZE * 2);
+//				printk("lba is: %d \n",lba);
+//				if (lba == 68078)
+//				{
+//					printk("qui!! \n");
+//				}
+				//dma_lba->io_buffer = kmalloc(dma_sector_count * SECTOR_SIZE * 2);
+				dma_lba->io_buffer = kmalloc(DMA_BUFFER_SIZE);
+				//printk("allocating %d \n",dma_lba->io_buffer);
 				dma_lba->lba = lba;
 				dma_lba->sector_count = dma_sector_count;
 				ll_append(dma_lba_list,dma_lba);
@@ -651,7 +630,9 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 			{
 				dma_lba_list_size++;
 				dma_lba = kmalloc(sizeof(t_dma_lba));
-				dma_lba->io_buffer = kmalloc(dma_sector_count * SECTOR_SIZE * 2);
+				//dma_lba->io_buffer = kmalloc(dma_sector_count * SECTOR_SIZE * 2);
+				dma_lba->io_buffer = kmalloc(DMA_BUFFER_SIZE);	
+				//printk("allocating %d \n",dma_lba->io_buffer);		
 				dma_lba->lba = first_lba;
 				dma_lba->sector_count = dma_sector_count;
 				ll_append(dma_lba_list,dma_lba);
@@ -659,6 +640,7 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 				last_lba = lba;
 				first_lba = lba;
 			}
+			_collect_mem = 0;
 		}
 		else
 		{
@@ -696,8 +678,7 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 					}	
 				}
 			}
-			printk("-lba is %d \n",lba);
-			iob_data_block = kmalloc(BLOCK_SIZE);
+			//printk("-lba is %d \n",lba);
         		sector_count = BLOCK_SIZE/SECTOR_SIZE;
 			READ(sector_count,lba,iob_data_block);
 			kmemcpy(buf,iob_data_block + first_data_offset,byte_count);
@@ -709,7 +690,9 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 	}
 	if (is_dma)
 	{
+		_collect_mem = 0;
 		READ_DMA(dma_lba_list,dma_lba_list_size);
+		_collect_mem = 1;
 		buf_offset = 0;
 		byte_count = 0;
 		len = 0;
@@ -735,12 +718,15 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 			dma_buffer = ALIGN_TO_BOUNDARY(0x10000,(u32)dma_lba->io_buffer);
 			kmemcpy(buf + buf_offset,dma_buffer,byte_count);
 			kfree(dma_lba->io_buffer);
+			//printk("releasing %d \n",dma_lba->io_buffer);
 			buf_offset += byte_count;
 			next = ll_next(next);
 			byte_read += byte_count;
 		}
 		inode->file_offset += byte_count;
 		free_llist(dma_lba_list);
+		_collect_mem = 0;
+		reset_counter();
 	}
 	else
 	{

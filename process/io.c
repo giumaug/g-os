@@ -23,35 +23,37 @@ int main()
 	int b_read,f;
 	int b_to_read = 4096;
 	int t = 0;
+	int i;
 	
 	printf("---------start performance check---------- \n");
 	//read_test();
 	printf("---------end performance check------------ \n");
-
-	f = open(path, O_RDWR | O_APPEND);
-	if (f == -1)
+	for (i = 0; i<= 10; i++)
 	{
-		printf("file not found...++..\n");
-		exit(0);
-		return;
-	}
+		f = open(path, O_RDWR | O_APPEND);
+		if (f == -1)
+		{
+			printf("file not found...++..\n");
+			exit(0);
+			return;
+		}
 
-	stat(path,&stat_data);
-	file_len = stat_data.st_size;
-	io_buffer = malloc(b_to_read);
-	file_len = 31457280;
-	//file_len = 29414;
-	printf("file len is... %d \n",file_len);
-	current_len = file_len;
-	while (current_len > 0)
-	{
-		b_read = read(f,io_buffer,b_to_read);
-		printf("byte read = %d \n",b_read);
-		current_len -= b_read;
+		stat(path,&stat_data);
+		file_len = stat_data.st_size;
+		io_buffer = malloc(b_to_read);
+		file_len = 31457280;
+		//file_len = 29414;
+		printf("file len is... %d \n",file_len);
+		current_len = file_len;
+		while (current_len > 0)
+		{
+			b_read = read(f,io_buffer,b_to_read);
+			//printf("byte to read = %d \n",current_len);
+			current_len -= b_read;
+		}
+		close(f);
+		free(io_buffer);
+		check_free_mem();
 	}
-	printf("----qui!!! \n");
-	close(f);
-	free(io_buffer);
-	check_free_mem();
 	exit(0);	
 }
