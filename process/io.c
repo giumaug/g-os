@@ -12,10 +12,10 @@
 
 int main()
 {
-	const char path[] = "/sample.txt";
+	const char path[] = "/sample2.txt";
 	//const char path[] = "/io";
 	//const char path[] = "/shell";
-	char* io_buffer;
+	unsigned char* io_buffer;
 	int current_len;
 	int file_len;
 	t_stat stat_data;
@@ -23,12 +23,14 @@ int main()
 	int b_read,f;
 	int b_to_read = 4096;
 	int t = 0;
-	int i;
+	int i,j;
+	unsigned long hash = 0;
+	int count = 0;
 	
 	printf("---------start performance check---------- \n");
 	//read_test();
 	printf("---------end performance check------------ \n");
-	for (i = 0; i<= 10; i++)
+	for (i = 0; i<= 1000; i++)
 	{
 		f = open(path, O_RDWR | O_APPEND);
 		if (f == -1)
@@ -47,12 +49,32 @@ int main()
 		current_len = file_len;
 		while (current_len > 0)
 		{
+			hash = 0;
+			count++;
 			b_read = read(f,io_buffer,b_to_read);
 			//printf("byte to read = %d \n",current_len);
 			current_len -= b_read;
+			for (j = 0; j < 4096;j++)
+			{
+				hash += io_buffer[j];
+				//printf("val is %d \n",io_buffer[j]);	
+			}
+			printf("hash is %d \n",hash);
+			if (count == 388) 
+			{
+				while(1);
+			}
 		}
 		close(f);
 		free(io_buffer);
+		if (hash == 4011292438)
+		{
+			printf("hash is ok \n");
+		}
+		else
+		{
+			printf("hash is ko \n");
+		}
 		check_free_mem();
 	}
 	exit(0);	

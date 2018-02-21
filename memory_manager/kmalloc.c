@@ -53,9 +53,9 @@ void* kmalloc(unsigned int mem_size)
 	int i;	
 	void *mem_add;
 	struct t_process_context* process_context;
+
 	SAVE_IF_STATUS
 	CLI	
-	//SPINLOCK_LOCK
 	for (i=0;i<POOL_NUM;i++)
 	{
 		if (mem_size<=pow2(2+i)) break;
@@ -68,7 +68,7 @@ void* kmalloc(unsigned int mem_size)
 	{
 		panic();
 	}
-	collect_mem_alloc(mem_add);
+//	collect_mem_alloc(mem_add);
 	RESTORE_IF_STATUS
 	return mem_add;
 }
@@ -79,15 +79,14 @@ void kfree(void *address)
 	unsigned int pool_index;
 
 	SAVE_IF_STATUS
-	CLI
-		  
+	CLI	  
 	pool_index=0;
 	while ((pool_index+1)*MEM_TO_POOL<(address-VIRT_MEM_START_ADDR-POOL_START_ADDR))
 	{
 		pool_index++;
 	}
 	a_fixed_size_free(&a_fixed_size_desc[pool_index],address);
-	collect_mem_free(address);
+//	collect_mem_free(address);
 	RESTORE_IF_STATUS
 }
 

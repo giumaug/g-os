@@ -147,7 +147,7 @@ void int_handler_ata()
 	EOI_TO_SLAVE_PIC
 	EOI_TO_MASTER_PIC
 	STI
-
+	
 	io_request = system.device_desc->serving_request;
 	process_context = io_request->process_context;
 	CURRENT_PROCESS_CONTEXT(current_process_context);
@@ -183,6 +183,7 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 	t_dma_lba* dma_lba = NULL;
 	u32 mem_addr;
 	u8 dma_status;
+	u8 cmd_status;
 	
 	device_desc = io_request->device_desc;
 	//Entrypoint mutual exclusion region.
@@ -243,8 +244,11 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 	//semaphore to avoid race with interrupt handler
 	sem_down(&device_desc->sem);
 	write_ata_config_byte(device_desc,ATA_DMA_COMMAND_REG,0x0);
-
-	if ((in(0x1F7) & 1) || dma_status & 1)
+	
+	dma_status = read_ata_config_byte(device_desc,ATA_DMA_STATUS_REG);
+	cmd_status = in(0x1F7);
+//	if ((in(0x1F7) & 1) || dma_status & 1)
+	if ((cmd_status & 1) || dma_status & 1)
 	{
 		device_desc->status=DEVICE_IDLE;
 		panic();//only for debug

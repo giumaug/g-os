@@ -1,5 +1,6 @@
 #include "memory_manager/fixed_size.h"
 
+static int req_count=0;
 static void *dump_fx[100];
 extern t_a_fixed_size_desc a_fixed_size_desc[POOL_NUM];
 
@@ -44,8 +45,8 @@ void *a_fixed_size_alloc(t_a_fixed_size_desc *a_fixed_size_desc)
 //	{
 //		printk("size is %d \n",a_fixed_size_desc->current_free_block);
 //		if (a_fixed_size_desc->current_free_block == 7)
-//		{
-//			printk("leak!!! \n");
+//		{	req_count++;
+//			printk("leak!!! %d \n",req_count);
 //		}
 //	}
 	
