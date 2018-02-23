@@ -630,7 +630,7 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 				dma_lba->lba = first_lba;
 				dma_lba->sector_count = dma_sector_count;
 				ll_append(dma_lba_list,dma_lba);
-				dma_sector_count = (BLOCK_SIZE/SECTOR_SIZE);?????????
+				dma_sector_count = (BLOCK_SIZE/SECTOR_SIZE);//?????????
 				last_lba = lba;
 				first_lba = lba;
 			}
