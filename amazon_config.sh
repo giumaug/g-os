@@ -1,4 +1,3 @@
---
 /usr/sbin/tunctl -t tap0 -u ec2-user
 brctl addbr virbr0
 brctl addif virbr0 eth1
