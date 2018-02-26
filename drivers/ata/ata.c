@@ -229,11 +229,6 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 	write_ata_config_byte(device_desc,ATA_DMA_STATUS_REG,0x6);
 	next = first;
 	
-	if (io_request->dma_lba_list_size>1)
-	{
-		printk("www \b");
-	}
-
 	for (i = 0; i < io_request->dma_lba_list_size;i++)
 	{
 		dma_lba = next->val;
@@ -244,12 +239,10 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 		out((unsigned char)(dma_lba->lba >> 16),0x1F5);
 		out(io_request->command,0x1F7);
 		next = ll_next(next);
-//	} //original end!!!!
-	if (i == 0) write_ata_config_byte(device_desc,ATA_DMA_COMMAND_REG,0x1);
+	}
+	write_ata_config_byte(device_desc,ATA_DMA_COMMAND_REG,0x1);
 	//semaphore to avoid race with interrupt handler
 	sem_down(&device_desc->sem);
-	if (i == io_request->dma_lba_list_size-1)
-	{
 	write_ata_config_byte(device_desc,ATA_DMA_COMMAND_REG,0x0);	
 	dma_status = read_ata_config_byte(device_desc,ATA_DMA_STATUS_REG);
 	cmd_status = in(0x1F7);
@@ -259,8 +252,6 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 		panic();//only for debugger
 		ret = -1;
 	}
-	}
-	} // new for end!!!!!!!!!!!!!!!!!!!!!!!!
 	//Endpoint mutual exclusion region
 	sem_up(&device_desc->mutex);
 	kfree(prd);	
