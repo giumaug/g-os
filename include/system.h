@@ -34,7 +34,7 @@ typedef struct s_dma_lba
 {
 	unsigned int lba;
 	unsigned short sector_count;
-	char* io_buffer;
+	//char* io_buffer;
 }
 t_dma_lba;
 

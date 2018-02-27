@@ -484,7 +484,8 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 	u32 dma_sector_count = 0;
 	u32 buf_offset;
 	u32 dma_lba_list_size = 0;
-	char* dma_buffer = NULL;
+	unsigned char* dma_buffer = NULL;
+	unsigned char* aligned_dma_buffer = NULL;
 	u32 len;
 
 	byte_read = 0;
@@ -495,7 +496,12 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 	{
 		return -1;
 	}
-	if (!is_dma)
+	if (is_dma == 1)
+	{
+		dma_buffer = kmalloc(DMA_BUFFER_SIZE);
+		aligned_dma_buffer = dma_buffer = ALIGN_TO_BOUNDARY((DMA_BUFFER_SIZE / 2),(u32)dma_buffer);
+	}
+	else
 	{
 		iob_data_block = kmalloc(BLOCK_SIZE);
 	}
@@ -580,8 +586,6 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 				dma_sector_count = (BLOCK_SIZE/SECTOR_SIZE);
 				dma_lba_list_size = 1;
 				dma_lba = kmalloc(sizeof(t_dma_lba));
-				dma_lba->io_buffer = kmalloc(DMA_BUFFER_SIZE);
-				//printk("allocating %d \n",dma_lba->io_buffer);
 				dma_lba->lba = lba;
 				dma_lba->sector_count = dma_sector_count;
 				ll_append(dma_lba_list,dma_lba);
@@ -595,9 +599,7 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 			{
 				dma_sector_count += (BLOCK_SIZE/SECTOR_SIZE);
 				dma_lba_list_size++;
-				dma_lba = kmalloc(sizeof(t_dma_lba));
-				dma_lba->io_buffer = kmalloc(DMA_BUFFER_SIZE);
-				//printk("allocating %d \n",dma_lba->io_buffer);			
+				dma_lba = kmalloc(sizeof(t_dma_lba));		
 				dma_lba->lba = first_lba;
 				dma_lba->sector_count = dma_sector_count;
 				ll_append(dma_lba_list,dma_lba);
@@ -606,8 +608,6 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 			{
 				dma_lba_list_size++;
 				dma_lba = kmalloc(sizeof(t_dma_lba));
-				dma_lba->io_buffer = kmalloc(DMA_BUFFER_SIZE);
-				//printk("allocating %d \n",dma_lba->io_buffer);
 				dma_lba->lba = first_lba;
 				dma_lba->sector_count = dma_sector_count;
 				ll_append(dma_lba_list,dma_lba);
@@ -615,8 +615,6 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 				dma_lba_list_size++;
 				dma_sector_count = (BLOCK_SIZE/SECTOR_SIZE);
 				dma_lba = kmalloc(sizeof(t_dma_lba));
-				dma_lba->io_buffer = kmalloc(DMA_BUFFER_SIZE);
-				//printk("allocating %d \n",dma_lba->io_buffer);
 				dma_lba->lba = lba;
 				dma_lba->sector_count = dma_sector_count;
 				ll_append(dma_lba_list,dma_lba);
@@ -624,9 +622,7 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 			else
 			{
 				dma_lba_list_size++;
-				dma_lba = kmalloc(sizeof(t_dma_lba));
-				dma_lba->io_buffer = kmalloc(DMA_BUFFER_SIZE);	
-				//printk("allocating %d \n",dma_lba->io_buffer);		
+				dma_lba = kmalloc(sizeof(t_dma_lba));		
 				dma_lba->lba = first_lba;
 				dma_lba->sector_count = dma_sector_count;
 				ll_append(dma_lba_list,dma_lba);
@@ -683,7 +679,6 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 	}
 	if (is_dma)
 	{
-		READ_DMA(dma_lba_list,dma_lba_list_size);
 		buf_offset = 0;
 		byte_count = 0;
 		len = 0;
@@ -706,19 +701,13 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 			{
 				byte_count = dma_lba->sector_count * SECTOR_SIZE;	
 			}
-			dma_buffer = ALIGN_TO_BOUNDARY(0x10000,(u32)dma_lba->io_buffer);
-			u32 xxx = (u32)dma_lba->io_buffer;
-			if ((dma_buffer + 0x10000) > (xxx + 0x20000))
-			{
-				printk("out of boundary \n");
-			}
-			kmemcpy(buf + buf_offset,dma_buffer,byte_count);
-			kfree(dma_lba->io_buffer);
-			//printk("releasing %d \n",dma_lba->io_buffer);
+			READ_DMA(dma_lba->sector_count,dma_lba->lba,aligned_dma_buffer);
+			kmemcpy(buf + buf_offset,aligned_dma_buffer,byte_count);
 			buf_offset += byte_count;
 			next = ll_next(next);
 			byte_read += byte_count;
 		}
+		kfree(dma_buffer);
 		inode->file_offset += byte_count;
 		free_llist(dma_lba_list);
 	}
