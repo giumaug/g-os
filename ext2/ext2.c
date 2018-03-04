@@ -1,9 +1,8 @@
 #include "common.h"
+#include "drivers/ata/ata.h"
 #include "ext2/ext2.h"
 #include "ext2/ext2_utils_1.h"
 #include "ext2/ext2_utils_2.h"
-
-#define DMA_BUFFER_SIZE 0x20000
 
 static void indirect_block_free(t_indirect_block* indirect_block);
 static t_indirect_block* indirect_block_init();
@@ -486,6 +485,7 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 	u32 dma_lba_list_size = 0;
 	unsigned char* dma_buffer = NULL;
 	unsigned char* aligned_dma_buffer = NULL;
+	unsigned char* phy_dma_buffer = NULL;
 	u32 len;
 
 	byte_read = 0;
@@ -499,7 +499,8 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 	if (is_dma == 1)
 	{
 		dma_buffer = kmalloc(DMA_BUFFER_SIZE);
-		aligned_dma_buffer = dma_buffer = ALIGN_TO_BOUNDARY((DMA_BUFFER_SIZE / 2),(u32)dma_buffer);
+		aligned_dma_buffer = ALIGN_TO_BOUNDARY((DMA_BUFFER_SIZE / 2),(u32)dma_buffer);
+		phy_dma_buffer = FROM_VIRT_TO_PHY(ALIGN_TO_BOUNDARY((DMA_BUFFER_SIZE / 2),(u32) dma_buffer));
 	}
 	else
 	{
@@ -509,7 +510,7 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 	{
 		xxx++;
 		printk("xxx is %d \n",xxx);
-		if (xxx >= 383)
+		if (xxx >= 4967 || xxx>=375)
 		{
 			printk("to check here \n");
 		}
@@ -529,6 +530,10 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 	
 	for (i = first_inode_block;i <= last_inode_block;i++)
 	{
+		if (i == 1528)
+		{
+			printk("test !! \n");
+		}
 		if (i > INDIRECT_0_LIMIT && i <= INDIRECT_1_LIMIT)
 		{
 			if (inode->indirect_block_1 == NULL)
@@ -573,6 +578,8 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 		}
 		if(is_dma)
 		{
+			printk("inode is: %d \n",i);
+			printk("lba is: %d \n",lba);
 			if(first_lba == 0 && i < last_inode_block)
 			{
 				first_lba = lba;
@@ -701,7 +708,11 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 			{
 				byte_count = dma_lba->sector_count * SECTOR_SIZE;	
 			}
-			READ_DMA(dma_lba->sector_count,dma_lba->lba,aligned_dma_buffer);
+			if (dma_lba->lba > 81444)
+			{
+				printk("to... \n");
+			}
+			READ_DMA(dma_lba->sector_count,dma_lba->lba,phy_dma_buffer);
 			kmemcpy(buf + buf_offset,aligned_dma_buffer,byte_count);
 			buf_offset += byte_count;
 			next = ll_next(next);
@@ -797,7 +808,7 @@ int _write(t_ext2* ext2,int fd, const void *buf,u32 count)
 			if (load_block)
 			{
 				sector_count=BLOCK_SIZE/SECTOR_SIZE;
-				_read_28_ata(sector_count,lba,iob_data_block);
+				//_read_28_ata(sector_count,lba,iob_data_block); doesn't compile!!!
 				if (i==first_inode_block)
 				{
 					iob_data_block+=first_data_offset;

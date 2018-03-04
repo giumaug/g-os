@@ -30,7 +30,7 @@ int main()
 	printf("---------start performance check---------- \n");
 	//read_test();
 	printf("---------end performance check------------ \n");
-	for (i = 0; i<= 1000; i++)
+	for (i = 0; i< 1; i++)
 	{
 		f = open(path, O_RDWR | O_APPEND);
 		if (f == -1)
@@ -60,10 +60,6 @@ int main()
 				//printf("val is %d \n",io_buffer[j]);	
 			}
 			printf("hash is %d \n",hash);
-			if (count == 388) 
-			{
-				while(1);
-			}
 		}
 		close(f);
 		free(io_buffer);

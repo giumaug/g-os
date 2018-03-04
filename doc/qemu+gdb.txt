@@ -91,6 +91,7 @@ dd bs=512 if=/home/peppe/Desktop/disk.img count=1
 
 debugfs
 dump "/" /tmp/test.txt dump inode "/"
+
 hexdump /tmp/test.txt
 
 blocks "/" numero blocco corrispondente "/" ("/" puo' essere pure inode)
@@ -105,6 +106,12 @@ show_super_stats dump superblock e group_block
 /tmp/read_test.txt = blocco 1155 inode 20
 
 /tmp/ blocco 341
+
+data un blocco letto su debugfs xxx il corrispondente blocco lba letto su ext2 e':
+lba = (xxx * 2) - 1024
+xxx = (lba + 1024) / 2
+
+debugfs numera i blocchi non considerando il mbr (512) e 
 
 
 

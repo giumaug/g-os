@@ -5,12 +5,6 @@
 #include "pci/pci.h"
 #include "drivers/ata/ata.h"
 
-//static int race=0;
-//extern int go;
-//extern int ggo;
-//extern int pp1;
-//extern int pp2;
-
 void static int_handler_ata();
 
 u32 dma_pci_io_base;
@@ -173,10 +167,10 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 	t_device_desc* device_desc = NULL;
 	t_io_request* pending_request = NULL;
 	t_llist_node* node = NULL;
-	char prd[8]  __attribute__ ((aligned (16)));
+	char* prd = NULL;
+	char* prd_aligned = NULL;
 	short byte_count;
 	int ret = 0;
-	u32 mem_addr;
 	u8 dma_status;
 	u8 cmd_status;
 	
@@ -187,28 +181,28 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 	//is to use an external queue with multilevel priority slots.
 	sem_down(&device_desc->mutex);
 	device_desc->status=DEVICE_BUSY;
-	system.device_desc->serving_request=io_request; 
-		
-	//mem_addr = FROM_VIRT_TO_PHY(ALIGN_TO_BOUNDARY(0x10000,(u32)io_request->io_buffer));
-	mem_addr = FROM_VIRT_TO_PHY((u32)io_request->io_buffer);
+	system.device_desc->serving_request=io_request;
+
+	prd = kmalloc(16);
+	prd_aligned = ((((u32)prd % 0x10) != 0) ? ((((u32)prd + 0x10) - (((u32)prd + 0x10) % 0x10))) : ((u32)prd % 0x10));  
 	byte_count = io_request->sector_count * SECTOR_SIZE;
-	prd[0] = LOW_OCT_32(mem_addr);
-	prd[1] = MID_RGT_OCT_32(mem_addr);
-	prd[2] = MID_LFT_OCT_32(mem_addr); 
-	prd[3] = HI_OCT_32(mem_addr);
-	prd[4] = LOW_16(byte_count);
-	prd[5] = HI_16(byte_count); 
-	prd[6] = 0;
-	prd[7] = 0x80;
+	prd_aligned[0] = LOW_OCT_32((u32)io_request->io_buffer);
+	prd_aligned[1] = MID_RGT_OCT_32((u32)io_request->io_buffer);
+	prd_aligned[2] = MID_LFT_OCT_32((u32)io_request->io_buffer); 
+	prd_aligned[3] = HI_OCT_32((u32)io_request->io_buffer);
+	prd_aligned[4] = LOW_16(byte_count);
+	prd_aligned[5] = HI_16(byte_count); 
+	prd_aligned[6] = 0;
+	prd_aligned[7] = 0x80;
 		
-	write_ata_config_dword(device_desc,ATA_DMA_PRD_REG,FROM_VIRT_TO_PHY(prd));
+	write_ata_config_dword(device_desc,ATA_DMA_PRD_REG,FROM_VIRT_TO_PHY(prd_aligned));
 	write_ata_config_byte(device_desc,ATA_DMA_STATUS_REG,0x6);
 	
 	out(0xE0 | (unsigned char)(io_request->lba >> 24),0x1F6);
 	out((unsigned char)io_request->sector_count,0x1F2);
 	out((unsigned char)io_request->lba,0x1F3);
-	out(((unsigned char)io_request->lba >> 8),0x1F4);
-	out(((unsigned char)io_request->lba >> 16),0x1F5);
+	out((unsigned char)(io_request->lba >> 8),0x1F4);
+	out((unsigned char)(io_request->lba >> 16),0x1F5);
 	out(io_request->command,0x1F7);
 	
 	write_ata_config_byte(device_desc,ATA_DMA_COMMAND_REG,0x1);
