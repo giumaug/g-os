@@ -62,7 +62,19 @@
                                                 kfree(io_request);                                                      \
 						} while(0);
 
-#define READ_DMA(_dma_lba_list,_dma_lba_list_size) do{                                                                  \
+#define READ_DMA(_sector_count,_lba,_io_buffer) do{                                                                     \
+						t_io_request* io_request; 						\
+                                                io_request=kmalloc(sizeof(t_io_request));                               \
+					  	io_request->device_desc=ext2->device_desc;				\
+						io_request->sector_count=_sector_count;					\
+						io_request->lba=_lba;							\
+						io_request->io_buffer=_io_buffer;					\
+						io_request->process_context=system.process_info->current_process->val;	\
+						ext2->device_desc->read_dma(io_request); 				\
+                                                kfree(io_request);                                                      \
+						} while(0);
+
+//#define READ_DMA(_dma_lba_list,_dma_lba_list_size) do{                                                                \
 						t_io_request* io_request; 						\
                                                 io_request = kmalloc(sizeof(t_io_request));                             \
 					  	io_request->device_desc = ext2->device_desc;				\

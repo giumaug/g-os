@@ -3,7 +3,6 @@
 
 #include "system.h"
 #include "scheduler/process.h"
-#include "drivers/ata/ata.h"
 
 #define ATA_PCI_BUS 0x0
 #define ATA_PCI_SLOT 0x1
@@ -21,7 +20,7 @@
 #define READ_DMA_28 0xC8
 #define WRITE_DMA_28 0xCA
 
-//#define DMA_BUFFER_SIZE 20000
+#define DMA_BUFFER_SIZE 0x20000
 
 void init_ata(t_device_desc* ata_desc);
 unsigned int _read_28_ata(t_io_request* io_request);

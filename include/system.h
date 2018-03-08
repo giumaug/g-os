@@ -34,7 +34,6 @@ typedef struct s_dma_lba
 {
 	unsigned int lba;
 	unsigned short sector_count;
-	char* io_buffer;
 }
 t_dma_lba;
 
@@ -42,8 +41,6 @@ typedef struct s_io_request
 {
 	unsigned int sector_count;
 	unsigned int lba;
-	t_llist* dma_lba_list;
-	unsigned int dma_lba_list_size;
 	struct s_device_desc* device_desc;
 	void* io_buffer;
 	struct t_process_context* process_context;

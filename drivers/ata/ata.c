@@ -5,12 +5,6 @@
 #include "pci/pci.h"
 #include "drivers/ata/ata.h"
 
-//static int race=0;
-//extern int go;
-//extern int ggo;
-//extern int pp1;
-//extern int pp2;
-
 void static int_handler_ata();
 
 u32 dma_pci_io_base;
@@ -174,14 +168,9 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 	t_io_request* pending_request = NULL;
 	t_llist_node* node = NULL;
 	char* prd = NULL;
-	char* aligned_prd = NULL;
+	char* prd_aligned = NULL;
 	short byte_count;
-	char is_last_prd;
 	int ret = 0;
-	t_llist_node* next = NULL;
-	t_llist_node* first = NULL;
-	t_dma_lba* dma_lba = NULL;
-	u32 mem_addr;
 	u8 dma_status;
 	u8 cmd_status;
 	
@@ -194,52 +183,28 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 	device_desc->status=DEVICE_BUSY;
 	system.device_desc->serving_request=io_request;
 
-	first = ll_first(io_request->dma_lba_list);
-	next = first;
-	prd = kmalloc(16 * io_request->dma_lba_list_size);
-	aligned_prd = ((((u32)prd % 0x10) != 0) ? ((((u32)prd + 0x10) - (((u32)prd + 0x10) % 0x10))) : ((u32)prd % 0x10));   
-	for (i = 0; i < io_request->dma_lba_list_size;i++)
-	{
-		if (i == io_request->dma_lba_list_size - 1)
-		{
-			is_last_prd = 0x80;	
-		}
-		else
-		{
-			is_last_prd = 0;
-		}
-		dma_lba = next->val;
+	prd = kmalloc(16);
+	prd_aligned = ((((u32)prd % 0x10) != 0) ? ((((u32)prd + 0x10) - (((u32)prd + 0x10) % 0x10))) : ((u32)prd % 0x10));  
+	byte_count = io_request->sector_count * SECTOR_SIZE;
+	prd_aligned[0] = LOW_OCT_32((u32)io_request->io_buffer);
+	prd_aligned[1] = MID_RGT_OCT_32((u32)io_request->io_buffer);
+	prd_aligned[2] = MID_LFT_OCT_32((u32)io_request->io_buffer); 
+	prd_aligned[3] = HI_OCT_32((u32)io_request->io_buffer);
+	prd_aligned[4] = LOW_16(byte_count);
+	prd_aligned[5] = HI_16(byte_count); 
+	prd_aligned[6] = 0;
+	prd_aligned[7] = 0x80;
 		
-		//ALIGN_TO_BOUNDARY(boundary,address) 
-		mem_addr = FROM_VIRT_TO_PHY(ALIGN_TO_BOUNDARY(0x10000,(u32)dma_lba->io_buffer));
-		byte_count = dma_lba->sector_count * SECTOR_SIZE;
-
-		aligned_prd[(i * 8)] = LOW_OCT_32(mem_addr);
-		aligned_prd[(i * 8) + 1] = MID_RGT_OCT_32(mem_addr);
-		aligned_prd[(i * 8) + 2] = MID_LFT_OCT_32(mem_addr); 
-		aligned_prd[(i * 8) + 3] = HI_OCT_32(mem_addr);
-		aligned_prd[(i * 8) + 4] = LOW_16(byte_count);
-		aligned_prd[(i * 8) + 5] = HI_16(byte_count); 
-		aligned_prd[(i * 8) + 6] = 0;
-		aligned_prd[(i * 8) + 7] = is_last_prd;
-		
-		next = ll_next(next);
-	}
-	write_ata_config_dword(device_desc,ATA_DMA_PRD_REG,FROM_VIRT_TO_PHY(aligned_prd));
+	write_ata_config_dword(device_desc,ATA_DMA_PRD_REG,FROM_VIRT_TO_PHY(prd_aligned));
 	write_ata_config_byte(device_desc,ATA_DMA_STATUS_REG,0x6);
-	next = first;
 	
-	for (i = 0; i < io_request->dma_lba_list_size;i++)
-	{
-		dma_lba = next->val;
-		out(0xE0 | (unsigned char)(dma_lba->lba >> 24),0x1F6);
-		out((unsigned char)dma_lba->sector_count,0x1F2);
-		out((unsigned char)dma_lba->lba,0x1F3);
-		out((unsigned char)(dma_lba->lba >> 8),0x1F4);
-		out((unsigned char)(dma_lba->lba >> 16),0x1F5);
-		out(io_request->command,0x1F7);
-		next = ll_next(next);
-	}
+	out(0xE0 | (unsigned char)(io_request->lba >> 24),0x1F6);
+	out((unsigned char)io_request->sector_count,0x1F2);
+	out((unsigned char)io_request->lba,0x1F3);
+	out((unsigned char)(io_request->lba >> 8),0x1F4);
+	out((unsigned char)(io_request->lba >> 16),0x1F5);
+	out(io_request->command,0x1F7);
+	
 	write_ata_config_byte(device_desc,ATA_DMA_COMMAND_REG,0x1);
 	//semaphore to avoid race with interrupt handler
 	sem_down(&device_desc->sem);
