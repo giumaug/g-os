@@ -487,6 +487,7 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 	unsigned char* aligned_dma_buffer = NULL;
 	unsigned char* phy_dma_buffer = NULL;
 	u32 len;
+	static int yyy = -1;
 
 	byte_read = 0;
 	byte_to_read = count;
@@ -509,8 +510,9 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 	if (is_dma == 1)
 	{
 		xxx++;
-		printk("xxx is %d \n",xxx);
-		if (xxx >= 4967 || xxx>=375)
+		//printk("xxx is %d \n",xxx);
+		//if (xxx >= 4967 || xxx>=375)
+		if (xxx >= 4967)
 		{
 			printk("to check here \n");
 		}
@@ -578,8 +580,17 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 		}
 		if(is_dma)
 		{
+			yyy++;
+			printk("yyy is: %d \n",yyy);
 			printk("inode is: %d \n",i);
 			printk("lba is: %d \n",lba);
+
+			if (yyy == 19724 || yyy == 0)
+			{
+				printk("stop !!! \n");
+			}
+
+
 			if(first_lba == 0 && i < last_inode_block)
 			{
 				first_lba = lba;
