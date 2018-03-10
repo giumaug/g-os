@@ -81,8 +81,8 @@ int remove(const char *filename);
 
 
 //stdlib.h
-int atoi (char *data);
-void itoa (int val,char *char_val,unsigned int base);
+unsigned int atoi (unsigned char *data);
+void itoa (unsigned int val,char *char_val,unsigned int base);
 void exit(int status);
 void *malloc(unsigned int mem_size);
 void free(void *address);

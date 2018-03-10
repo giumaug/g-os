@@ -34,7 +34,7 @@ void printf(char* text,...)
 {
 	int index=-1;
 	int param_index=0;
-	int** param_val;
+	unsigned int** param_val;
 	int params[1];
 	int sys_num=4;
 
