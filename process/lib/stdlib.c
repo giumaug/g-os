@@ -2,7 +2,7 @@
 
 #define RAND_MAX 4294967294
 
-int atoi (char *data)
+unsigned int atoi (unsigned char *data)
 {
 	unsigned int index=0;
 	unsigned int sign=1;
@@ -25,7 +25,7 @@ int atoi (char *data)
 	return val;
 }
 
-void itoa (int val,char *char_val,unsigned int base)
+void itoa (unsigned int val,char *char_val,unsigned int base)
 {
 	unsigned int mod;
 	unsigned int res;

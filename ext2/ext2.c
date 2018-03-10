@@ -488,7 +488,7 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 	unsigned char* phy_dma_buffer = NULL;
 	u32 len;
 	static int yyy = -1;
-
+	
 	byte_read = 0;
 	byte_to_read = count;
 	CURRENT_PROCESS_CONTEXT(current_process_context)
@@ -512,7 +512,7 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 		xxx++;
 		//printk("xxx is %d \n",xxx);
 		//if (xxx >= 4967 || xxx>=375)
-		if (xxx >= 4967)
+		if (xxx >= 4100)
 		{
 			printk("to check here \n");
 		}
@@ -562,6 +562,10 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 			}
 			if (inode->indirect_block_2->block_map[second_block] == NULL)
 			{
+				if (second_block == 76 )
+				{
+					printk("qui!!! \n");
+				}
 				inode->indirect_block_2->block_map[second_block] = indirect_block_init();
 				indirect_lba = FROM_BLOCK_TO_LBA(inode->indirect_block_2->block[second_block]);
         			sector_count = BLOCK_SIZE/SECTOR_SIZE;
@@ -581,8 +585,8 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 		if(is_dma)
 		{
 			yyy++;
-			printk("yyy is: %d \n",yyy);
-			printk("inode is: %d \n",i);
+			//printk("yyy is: %d \n",yyy);
+			//printk("inode is: %d \n",i);
 			printk("lba is: %d \n",lba);
 
 			if (yyy == 19724 || yyy == 0)
@@ -730,7 +734,7 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 			byte_read += byte_count;
 		}
 		kfree(dma_buffer);
-		inode->file_offset += byte_count;
+		inode->file_offset += byte_read;
 		free_llist(dma_lba_list);
 	}
 	else

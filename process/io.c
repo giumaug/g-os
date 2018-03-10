@@ -24,8 +24,12 @@ int main()
 	int b_to_read = 4096;
 	int t = 0;
 	int i,j;
-	unsigned long hash = 0;
+	unsigned long long hash = 0;
 	int count = 0;
+
+	unsigned  int vvv = (4294967290);
+	printf("dddd = %d \n",vvv);
+	while(1);
 	
 	printf("---------start performance check---------- \n");
 	//read_test();
@@ -49,7 +53,7 @@ int main()
 		current_len = file_len;
 		while (current_len > 0)
 		{
-			hash = 0;
+			//hash = 0;
 			count++;
 			b_read = read(f,io_buffer,b_to_read);
 			//printf("byte to read = %d \n",current_len);
