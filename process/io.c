@@ -26,15 +26,11 @@ int main()
 	int i,j;
 	unsigned long long hash = 0;
 	int count = 0;
-
-	unsigned  int vvv = (4294967290);
-	printf("dddd = %d \n",vvv);
-	while(1);
 	
 	printf("---------start performance check---------- \n");
 	//read_test();
 	printf("---------end performance check------------ \n");
-	for (i = 0; i< 1; i++)
+	for (i = 0; i< 1000; i++)
 	{
 		f = open(path, O_RDWR | O_APPEND);
 		if (f == -1)
@@ -43,7 +39,6 @@ int main()
 			exit(0);
 			return;
 		}
-
 		stat(path,&stat_data);
 		file_len = stat_data.st_size;
 		io_buffer = malloc(b_to_read);
@@ -51,19 +46,23 @@ int main()
 		//file_len = 29414;
 		printf("file len is... %d \n",file_len);
 		current_len = file_len;
+		b_to_read += 100;
+		if (b_to_read > 65536)
+		{
+			b_to_read = 65536;
+		}
+		printf("using block size: %d \n",b_to_read);
 		while (current_len > 0)
 		{
 			//hash = 0;
 			count++;
 			b_read = read(f,io_buffer,b_to_read);
-			//printf("byte to read = %d \n",current_len);
 			current_len -= b_read;
-			for (j = 0; j < 4096;j++)
+			for (j = 0; j < b_to_read;j++)
 			{
 				hash += io_buffer[j];
-				//printf("val is %d \n",io_buffer[j]);	
 			}
-			printf("hash is %d \n",hash);
+			//printf("hash is %d \n",hash);
 		}
 		close(f);
 		free(io_buffer);
