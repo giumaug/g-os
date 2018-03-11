@@ -175,12 +175,6 @@ static t_indirect_block* indirect_block_init()
 	indirect_block->block = kmalloc(BLOCK_SIZE);
 	int xxx = (BLOCK_SIZE / 4) * sizeof(t_indirect_block*);
 	indirect_block->block_map = kmalloc((BLOCK_SIZE / 4) * sizeof(t_indirect_block*));
-	
-	if (indirect_block->block_map == 0xc2010060)
-	{
-		printk("qui \n");
-	}
-
 	for (i = 0 ;i <  (BLOCK_SIZE / 4); i++)
 	{
 		indirect_block->block_map[i] = NULL;
@@ -266,7 +260,6 @@ t_hashtable* clone_file_desc(t_hashtable* file_desc)
 	t_inode* inode = NULL;
 	t_hashtable* cloned_file_desc = NULL;
 
-	printk("!!!! \n");
 	cloned_file_desc = dc_hashtable_init(PROCESS_INIT_FILE,&inode_free);
 	for (i = 0; i < file_desc->size;i++)
 	{
@@ -487,7 +480,6 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 	unsigned char* aligned_dma_buffer = NULL;
 	unsigned char* phy_dma_buffer = NULL;
 	u32 len;
-	static int yyy = -1;
 	
 	byte_read = 0;
 	byte_to_read = count;
@@ -509,13 +501,10 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 	}
 	if (is_dma == 1)
 	{
-		xxx++;
-		//printk("xxx is %d \n",xxx);
-		//if (xxx >= 4967 || xxx>=375)
-		if (xxx >= 4100)
-		{
-			printk("to check here \n");
-		}
+//		if (xxx >= 4100)
+//		{
+//			printk("to check here \n");
+//		}
 	}
 	first_inode_block = inode->file_offset / BLOCK_SIZE;
 	first_data_offset = inode->file_offset % BLOCK_SIZE;
@@ -532,10 +521,6 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 	
 	for (i = first_inode_block;i <= last_inode_block;i++)
 	{
-		if (i == 1528)
-		{
-			printk("test !! \n");
-		}
 		if (i > INDIRECT_0_LIMIT && i <= INDIRECT_1_LIMIT)
 		{
 			if (inode->indirect_block_1 == NULL)
@@ -562,10 +547,6 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 			}
 			if (inode->indirect_block_2->block_map[second_block] == NULL)
 			{
-				if (second_block == 76 )
-				{
-					printk("qui!!! \n");
-				}
 				inode->indirect_block_2->block_map[second_block] = indirect_block_init();
 				indirect_lba = FROM_BLOCK_TO_LBA(inode->indirect_block_2->block[second_block]);
         			sector_count = BLOCK_SIZE/SECTOR_SIZE;
@@ -584,17 +565,6 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 		}
 		if(is_dma)
 		{
-			yyy++;
-			//printk("yyy is: %d \n",yyy);
-			//printk("inode is: %d \n",i);
-			printk("lba is: %d \n",lba);
-
-			if (yyy == 19724 || yyy == 0)
-			{
-				printk("stop !!! \n");
-			}
-
-
 			if(first_lba == 0 && i < last_inode_block)
 			{
 				first_lba = lba;
@@ -689,7 +659,6 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 					}	
 				}
 			}
-			//printk("-lba is %d \n",lba);
         		sector_count = BLOCK_SIZE/SECTOR_SIZE;
 			READ(sector_count,lba,iob_data_block);
 			kmemcpy(buf,iob_data_block + first_data_offset,byte_count);
@@ -717,15 +686,11 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 			}
 			else if (i == (dma_lba_list_size - 1) && len + byte_read > byte_to_read)
 			{
-				byte_count = byte_read - byte_to_read;
+				byte_count = byte_read - byte_to_read;----qui!!!!
 			}
 			else
 			{
 				byte_count = dma_lba->sector_count * SECTOR_SIZE;	
-			}
-			if (dma_lba->lba > 81444)
-			{
-				printk("to... \n");
 			}
 			READ_DMA(dma_lba->sector_count,dma_lba->lba,phy_dma_buffer);
 			kmemcpy(buf + buf_offset,aligned_dma_buffer,byte_count);

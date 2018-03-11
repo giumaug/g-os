@@ -23,32 +23,12 @@ void check_free_mem()
 	unsigned int buddy_mem;
 	unsigned int pool_mem;
 
-	for (x=0;x<=9000000;x++)
-	{
-		if (x==9000000)
-		{
-			printk("end \n");
-		}
-	}
-
 	buddy_mem=buddy_free_mem(system.buddy_desc);
 	pool_mem=kfree_mem();
 	//buddy_check_mem_status(system.buddy_desc);
 	//a_fixed_size_check_mem_status();
 
-	int kk=0;
-	for (i=0;i<collected_mem_index;i++)
-	{
-		if (collected_mem[i]!=0)
-		{	kk++;
-			if (kk==10)
-			{
-				last_block=i;
-			}
-		}
-	}
-
-	check_active_process();
+	//check_active_process();
 	if (buddy_mem<160700560)
 	{
 		PRINTK("BUDDY MEMEMORY LEAK!!!");
@@ -95,10 +75,6 @@ void _check_process_context()
 			next=next=ll_next(next);
 		}
 		index++;
-	}
-	if (count >1)
-	{
-		printk("!!! \n");
 	}
 }
 
