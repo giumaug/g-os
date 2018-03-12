@@ -30,8 +30,9 @@ int main()
 	printf("---------start performance check---------- \n");
 	//read_test();
 	printf("---------end performance check------------ \n");
-	for (i = 0; i< 1000; i++)
+	for (i = 0; i< 1; i++)
 	{
+		b_to_read += 200;
 		f = open(path, O_RDWR | O_APPEND);
 		if (f == -1)
 		{
@@ -46,7 +47,6 @@ int main()
 		//file_len = 29414;
 		printf("file len is... %d \n",file_len);
 		current_len = file_len;
-		b_to_read += 100;
 		if (b_to_read > 65536)
 		{
 			b_to_read = 65536;
@@ -62,10 +62,13 @@ int main()
 			{
 				hash += io_buffer[j];
 			}
-			//printf("hash is %d \n",hash);
+			printf("read is %d \n",b_read);
+			printf("count is %d \n",count);
+			printf("hash is %d \n",hash);
 		}
 		close(f);
 		free(io_buffer);
+
 		if (hash == 4011292438)
 		{
 			printf("hash is ok \n");

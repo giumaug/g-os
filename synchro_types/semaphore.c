@@ -5,7 +5,7 @@
 //CESATI AND BOVE explain how to protect kernel data structures at pag 216 parag. 5.3.
 //Intresting also is chapter 5 of Linux Device Drivers.
 //With count zero init mutex (formally process holding mutex should be the only permitted to release mutex )
-//Process holding mutex or semaphore can sleep.Process holding spinlock can't.
+//Process holding mutex or semaphore can sleep.Process holding spinlock can't.(Performance problems or deadlock)
 //Spinlock are useless in uniprocessor system without preemption.In uniprocessor system with preemption spinlock 
 //needs to disable interrupt otherwise deadlock:if i use a spinlock and interrupt is fired when spinlock 
 //is held system get deadlocked.

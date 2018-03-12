@@ -475,6 +475,7 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 	t_dma_lba* dma_lba = NULL;
 	u32 dma_sector_count = 0;
 	u32 buf_offset;
+	u32 dma_buf_offset;
 	u32 dma_lba_list_size = 0;
 	unsigned char* dma_buffer = NULL;
 	unsigned char* aligned_dma_buffer = NULL;
@@ -501,6 +502,7 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 	}
 	if (is_dma == 1)
 	{
+		xxx++;
 //		if (xxx >= 4100)
 //		{
 //			printk("to check here \n");
@@ -678,22 +680,29 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 		next = first;
 		for (i = 0; i < dma_lba_list_size;i++)
 		{
+			dma_buf_offset = 0;
 			dma_lba = next->val;
 			len = dma_lba->sector_count * SECTOR_SIZE;
-			if (i == 0 && first_data_offset > 0)
+			if (i == 0 && dma_lba_list_size > 1)
 			{
 				byte_count = len - first_data_offset;
+				dma_buf_offset = first_data_offset;
 			}
-			else if (i == (dma_lba_list_size - 1) && len + byte_read > byte_to_read)
+			else if (i == 0 && dma_lba_list_size == 1)
 			{
-				byte_count = byte_read - byte_to_read;----qui!!!!
+				byte_count = byte_to_read;
+				dma_buf_offset = first_data_offset;
+			}
+			else if (i == (dma_lba_list_size - 1) && (len + byte_read > byte_to_read) && i > 0)
+			{
+				byte_count = byte_to_read - byte_read;
 			}
 			else
 			{
 				byte_count = dma_lba->sector_count * SECTOR_SIZE;	
 			}
 			READ_DMA(dma_lba->sector_count,dma_lba->lba,phy_dma_buffer);
-			kmemcpy(buf + buf_offset,aligned_dma_buffer,byte_count);
+			kmemcpy(buf + buf_offset,aligned_dma_buffer + dma_buf_offset,byte_count);
 			buf_offset += byte_count;
 			next = ll_next(next);
 			byte_read += byte_count;
@@ -701,6 +710,7 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 		kfree(dma_buffer);
 		inode->file_offset += byte_read;
 		free_llist(dma_lba_list);
+		printk("xxx is %d \n",xxx);
 	}
 	else
 	{
