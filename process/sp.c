@@ -42,7 +42,7 @@ int main()
 	int file_len;
 	t_stat stat_data;
 	int b_read;
-	int b_to_read = 16384;
+	int b_to_read = 49152; //4096;
 	int tt=0;
 	int ss=0;
 
@@ -72,7 +72,7 @@ int main()
 	while(1) 
 	{
 		check_free_mem();
-		printf("server waiting...\n");
+		printf("server waiting...+\n");
 
 		client_len = sizeof(client_address);
 		client_sockfd = accept(server_sockfd,(struct sockaddr *)&client_address, &client_len);
@@ -92,7 +92,6 @@ int main()
 			file_len = 31457280;
 			printf("file len is %d \n",file_len);
 			//b_to_read = file_len;
-			//for (t=0;t<1000;t++)
 			for (t=0;t<1;t++)
 			{
 				current_len = file_len;
@@ -100,21 +99,12 @@ int main()
 				{
 					b_read = read(f,io_buffer,b_to_read);
 					//b_read = b_to_read;
-					
-					//printf("count= %d \n",b_read);
-					//printf("dddd \n");
-					//ret = write_socket(client_sockfd,io_buffer,b_read);
-					//printf("injecting \n");
 					ret = write_socket(client_sockfd,buffer_1,b_read);
 					//ret = 0;
 					while (ret != 0 )
 					{
 						ret = write_socket(client_sockfd, buffer_1,b_read);
 						sleep(10);
-						//printf("-------------\n");	
-						//for (ss = 0;ss <= 1000000;ss++);
-						rt++;
-						//printf("retry=%d \n",rt);
 					}				
 					current_len -= b_read;
 					io_buffer[b_read] = '\0';

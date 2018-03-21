@@ -1,0 +1,20 @@
+HOME INTERNET
+Le due soluzione sono equivalenti.Va sottolineato che l'SNAT O MASQUERADE VA APPLICATO ALL'INTERFACCIA vmnet8.
+
+SOLUZIONE 1
+echo 1 > /proc/sys/net/ipv4/ip_forward
+iptables -F
+iptables -t nat -F
+iptables -t nat -A PREROUTING -p tcp --dport 21846 -j DNAT --to-destination 192.168.247.101:21846
+iptables -t nat -A POSTROUTING -p tcp -d 192.168.247.101 --dport 21846 -j SNAT --to-source 192.168.247.1
+
+SOLUZIONE 2
+echo 1 > /proc/sys/net/ipv4/ip_forward
+iptables -F
+iptables -t nat -F
+iptables -t nat -A PREROUTING -p tcp --dport 21846 -j DNAT --to-destination 192.168.247.101:21846
+iptables -t nat -A POSTROUTING --out-interface vmnet8 -j MASQUERADE
+
+
+
+http://192.168.237.124:21846/usr/src/kernels/g-os/link.htm
