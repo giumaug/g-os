@@ -445,10 +445,12 @@ int inode_free(t_inode* inode)
 //	return byte_read;
 //}
 
+//MAX REQUEST SIZE 64512 (i.e. 64K - 1K) BECAUSE ONE LBA SUPPORTED ONLY.
+//IT NEEDED 1K OFFSET TO AVOID TO GO BEYOND &$K IN LBA
+
 int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 {
 	u32 static xxx = 0;
-	static u32 xcount = 0;
 	struct t_process_context* current_process_context;
 	u32 i;
 	u32 block_offset;
@@ -500,20 +502,23 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 	{
 		iob_data_block = kmalloc(BLOCK_SIZE);
 	}
-	if (is_dma == 1)
-	{
-		xxx++;
-//		if (xxx >= 4100)
+
+//	if (is_dma == 1)
+//	{
+//		xxx++;
+//		printk("xxx is %d \n",xxx);
+//		if (xxx == 693)
 //		{
 //			printk("to check here \n");
 //		}
-	}
+//	}
+
 	first_inode_block = inode->file_offset / BLOCK_SIZE;
 	first_data_offset = inode->file_offset % BLOCK_SIZE;
 	if (inode->i_size < (inode->file_offset + (count - 1)))
 	{
-		last_inode_block = inode->i_size / BLOCK_SIZE;
-		byte_to_read = inode->file_offset - inode->i_size;
+		last_inode_block = (inode->i_size / BLOCK_SIZE) - 1;
+		byte_to_read = inode->i_size - inode->file_offset;
 	}
 	else
 	{
@@ -527,12 +532,12 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 		{
 			if (inode->indirect_block_1 == NULL)
 			{
+
 				inode->indirect_block_1 = indirect_block_init();
 				indirect_lba = FROM_BLOCK_TO_LBA(inode->i_block[12]);
         			sector_count = BLOCK_SIZE/SECTOR_SIZE;
 				READ(sector_count,indirect_lba,inode->indirect_block_1->block);
 			}
-			//READ_DWORD(&inode->indirect_block_1->block[4*(i - INDIRECT_0_LIMIT - 1)],inode_block_data);
 			READ_DWORD(&inode->indirect_block_1->block[(i - INDIRECT_0_LIMIT - 1)],inode_block_data);
 			lba = FROM_BLOCK_TO_LBA(inode_block_data);
 		}
@@ -620,7 +625,7 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 				dma_lba->lba = first_lba;
 				dma_lba->sector_count = dma_sector_count;
 				ll_append(dma_lba_list,dma_lba);
-				dma_sector_count = (BLOCK_SIZE/SECTOR_SIZE);//?????????
+				dma_sector_count = (BLOCK_SIZE/SECTOR_SIZE);
 				last_lba = lba;
 				first_lba = lba;
 			}
@@ -670,6 +675,7 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 			first_data_offset = 0;
 		}
 	}
+	//A bit convoluted code.Is it possible to do better?
 	if (is_dma)
 	{
 		buf_offset = 0;
@@ -680,6 +686,7 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 		next = first;
 		for (i = 0; i < dma_lba_list_size;i++)
 		{
+
 			dma_buf_offset = 0;
 			dma_lba = next->val;
 			len = dma_lba->sector_count * SECTOR_SIZE;
@@ -710,7 +717,6 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 		kfree(dma_buffer);
 		inode->file_offset += byte_read;
 		free_llist(dma_lba_list);
-		printk("xxx is %d \n",xxx);
 	}
 	else
 	{
