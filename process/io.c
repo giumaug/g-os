@@ -21,7 +21,7 @@ int main()
 	t_stat stat_data;
 	//struct stat stat_data;
 	int b_read,f;
-	int b_to_read = 4096;
+	int b_to_read = 7; //4096;
 	int t = 0;
 	int i,j;
 	unsigned long long hash = 0;
@@ -30,9 +30,10 @@ int main()
 	printf("---------start performance check---------- \n");
 	//read_test();
 	printf("---------end performance check------------ \n");
-	for (i = 0; i< 1; i++)
+	for (i = 0; i < 100; i++)
 	{
-		b_to_read += 200;
+		hash = 0;
+		b_to_read += 1;
 		f = open(path, O_RDWR | O_APPEND);
 		if (f == -1)
 		{
@@ -58,13 +59,14 @@ int main()
 			count++;
 			b_read = read(f,io_buffer,b_to_read);
 			current_len -= b_read;
-			for (j = 0; j < b_to_read;j++)
+			//for (j = 0; j < b_to_read;j++)
+			for (j = 0; j < b_read;j++)
 			{
 				hash += io_buffer[j];
 			}
-			printf("read is %d \n",b_read);
-			printf("count is %d \n",count);
-			printf("hash is %d \n",hash);
+			//printf("read is %d \n",b_read);
+			//printf("count is %d \n",count);
+			//printf("hash is %d \n",hash);
 		}
 		close(f);
 		free(io_buffer);
@@ -75,7 +77,8 @@ int main()
 		}
 		else
 		{
-			printf("hash is ko \n");
+			printf("hash is ko !!!!!!!!!!!!!!!!!!! \n");
+			while(1);
 		}
 		check_free_mem();
 	}
