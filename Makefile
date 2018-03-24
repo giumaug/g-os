@@ -1,4 +1,4 @@
-#/dev/loop7 new image /dev/loop5 old image
+#/dev/loop7 new image /dev/loop4 old image
 include make.rules
 
 vpath %.h $(INCLUDE)
@@ -119,7 +119,7 @@ install_remote:all
 	scp ./kernel.bin root@192.168.1.215:/boot/
 
 bochs:all
-	mount /dev/loop4 /mnt
+	mount /dev/loop7 /mnt
 	cp $(BASE_DIR)/kernel.bin /mnt/boot/kernel.bin
 	umount /mnt
 clean:	

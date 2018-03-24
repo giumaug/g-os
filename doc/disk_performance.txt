@@ -13,6 +13,9 @@ io codice regolare(int disabilitati su network 30 MB)
 sp network + disk
 ubuntu 25 (talvolta 54)
 g-os 42 (con int disabilitati)
+g-os 26 (nuova versione con dma block size 4K)
+g-os  (nuova versione con dma block size 16K) ???
+g-os  (nuova versione con dma block size 64000) ??? testare pure letture senza dma
 
 sp solo network
 ubuntu 25
