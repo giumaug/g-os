@@ -296,6 +296,7 @@ void _exit(int status)
 	
 	SAVE_IF_STATUS
 	CLI
+	system.out++;
 	//process 0 never die
 	CURRENT_PROCESS_CONTEXT(current_process);
 	
@@ -348,6 +349,7 @@ void _exit(int status)
 
 int _fork(struct t_processor_reg processor_reg) 
 {
+	system.fork++;
 	int i = 0;
  	struct t_process_context* child_process_context = NULL;
 	struct t_process_context* parent_process_context = NULL;
@@ -360,6 +362,10 @@ int _fork(struct t_processor_reg processor_reg)
 	SAVE_IF_STATUS
 	CLI
 	CURRENT_PROCESS_CONTEXT(parent_process_context);
+	if (parent_process_context->pid != 2)
+	{
+		panic();
+	}
 	if (parent_process_context->pid == 0)
 	{
 		system.process_info->process_0 = system.process_info->current_process;
@@ -425,14 +431,16 @@ u32 _exec(char* path,char* argv[])
 //	CLI  ----------non serve
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 
-	if (current_process_context->pid >1)
+
+	if (current_process_context->pid >4)
 	{
-		//collect_mem=1;
+		collect_mem=1;
 	}
 	if (current_process_context->pid >1)
 	{
 		go = 1;
 	}
+
 	
 	if (current_process_context->elf_desc == NULL)
 	{

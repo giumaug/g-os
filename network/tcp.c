@@ -1,9 +1,9 @@
 //BASED ON RFC5681 AND RFC6298
-//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!IMPORTANTE VERIFICARE CHE LA STRUTTURA DATI COMPLESSIVA SIA SENSATA!!!!!!!!!!!!!!!!!!
 #include "common.h"
 #include "network/tcp.h"
 #include "lib/lib.h"
 
+extern unsigned int collect_mem;
 static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 data_len);
 static u16 checksum_tcp(char* tcp_row_packet,u32 src_ip,u32 dst_ip,u16 data_len);
 static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_num,u32 indx);
@@ -28,10 +28,12 @@ static void upd_max_adv_wnd(t_tcp_conn_desc* tcp_conn_desc,u32 rcv_wmd_adv)
 	}
 }
 
-static t_tcp_snd_queue* tcp_snd_queue_init()
+static t_tcp_snd_queue* tcp_snd_queue_init(u32 size)
 {
 	t_tcp_snd_queue* tcp_snd_queue = NULL;
 
+	system.tcp_1++;
+	collect_mem = 1;
 	tcp_snd_queue = kmalloc(sizeof(t_tcp_snd_queue));
 	//tcp_snd_queue->buf = kmalloc(TCP_SND_SIZE);
 	tcp_snd_queue->buf = buddy_alloc_page(system.buddy_desc,TCP_SND_SIZE);
@@ -41,13 +43,22 @@ static t_tcp_snd_queue* tcp_snd_queue_init()
 	tcp_snd_queue->buf_size = TCP_SND_SIZE;
 	//to inizialize to random seq_num
 	tcp_snd_queue->nxt_snd = 1;
+	
+	//struct t_process_context* current_process_context = NULL;
+	//CURRENT_PROCESS_CONTEXT(current_process_context);
+	//current_process_context->debug_handler = tcp_snd_queue->buf;
+	collect_mem = 0;
+	return tcp_snd_queue;
 }
 
 static void tcp_snd_queue_free(t_tcp_snd_queue* tcp_snd_queue)
 {
+	system.tcp_2++;
+	collect_mem = 1;
 	//kfree(tcp_snd_queue->buf);
 	buddy_free_page(system.buddy_desc,tcp_snd_queue->buf);
 	kfree(tcp_snd_queue);
+	collect_mem = 0;
 }
 
 static t_tcp_rcv_queue* tcp_rcv_queue_init(u32 size)
@@ -102,6 +113,7 @@ t_tcp_conn_desc* tcp_conn_desc_int()
 	tcp_conn_desc->last_seq_sent = 0;
 	tcp_conn_desc->last_sent_time = 0;
 	tcp_conn_desc->last_ack_sent = 0;
+	tcp_conn_desc->process_context = NULL;
 	return tcp_conn_desc;
 }
 
@@ -117,7 +129,7 @@ void tcp_conn_desc_free(t_tcp_conn_desc* tcp_conn_desc)
 	kfree(tcp_conn_desc);
 //	printk("conn free!! %d\n",tcp_conn_desc->src_port);
 //	printk("conn free!! %d\n",tcp_conn_desc->dst_port);
-	printk("attempt %d \n",attempt);
+//	printk("attempt %d \n",attempt);
 }
 
 t_tcp_desc* tcp_init()
@@ -193,7 +205,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	t_tcp_conn_desc* tcp_req_desc = NULL;
 	t_tcp_conn_desc* tcp_listen_desc = NULL;
 	t_tcp_conn_desc* new_tcp_conn_desc = NULL;
-	struct t_process_context* process_context;
+	struct t_process_context* process_context = NULL;
 	u8 flags;
 	
 	tcp_desc = system.network_desc->tcp_desc;
@@ -213,6 +225,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	tcp_conn_desc = tcp_conn_map_get(tcp_desc->conn_map,dst_ip,src_ip,dst_port,src_port);
 	tcp_req_desc = tcp_conn_map_get(tcp_desc->req_map,dst_ip,system.network_desc->ip,dst_port,src_port);
 	tcp_listen_desc = tcp_conn_map_get(tcp_desc->listen_map,system.network_desc->ip,0,dst_port,0);
+
 	if (tcp_req_desc == NULL && tcp_listen_desc == NULL && tcp_conn_desc != NULL )
 	{
 		printk("no connection !!!!!! \n"); 
@@ -229,6 +242,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		//FIRST TIME
 		if (tcp_req_desc != NULL)
 		{
+			//printk("--d1 %d \n",src_port);
 			ack_num = seq_num + 1;
 			tcp_req_desc->rcv_queue->nxt_rcv = ack_num;
 			_SEND_PACKET_TCP(tcp_req_desc,NULL,0,ack_num,FLG_ACK,++tcp_conn_desc->snd_queue->nxt_snd);
@@ -254,6 +268,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	//THREE WAY HANDSHAKE SYN FROM CLIENT TO SERVER
 	else if (flags & FLG_SYN && tcp_listen_desc != NULL)
 	{
+		//printk("--d2 %d \n",src_port);
 		ack_num = seq_num + 1;
 		new_tcp_conn_desc = tcp_conn_map_get(tcp_listen_desc->back_log_i_map,dst_ip,src_ip,dst_port,src_port);
 		if (new_tcp_conn_desc == NULL)
@@ -281,12 +296,15 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	//IF THERE IS AN ACK COULD BE LAST STEP OF THREE WAY HANDSHAKE OR REGULAR PACKET
 	else if (flags & FLG_ACK && tcp_listen_desc != NULL)
 	{
+		//printk("--d3 %d \n",src_port);
 		new_tcp_conn_desc = tcp_conn_map_get(tcp_listen_desc->back_log_i_map,dst_ip,src_ip,dst_port,src_port);
 		if (new_tcp_conn_desc != NULL)
 		{
+			//printk("--d3.1 %d \n",src_port);
 			if (new_tcp_conn_desc->snd_queue->nxt_snd + 1 == ack_seq_num)
 			{
-				printk("estabilished %d \n",src_port);
+				//printk("--d3.2 %d \n",src_port);
+				//printk("estabilished %d \n",src_port);
 				tcp_conn_map_remove(tcp_listen_desc->back_log_i_map,dst_ip,src_ip,dst_port,src_port);
 				enqueue(tcp_listen_desc->back_log_c_queue,new_tcp_conn_desc);
 				tcp_conn_map_put(tcp_desc->conn_map,dst_ip,src_ip,dst_port,src_port,new_tcp_conn_desc);
@@ -309,9 +327,9 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	tcp_conn_desc = tcp_conn_map_get(tcp_desc->conn_map,dst_ip,src_ip,dst_port,src_port);
 	if (tcp_conn_desc == NULL) 
 	{
+		//printk("--d3.3 %d \n",src_port);
 		goto EXIT;
-	}
-	
+	}	
 	t_tcp_rcv_queue* tcp_queue = tcp_conn_desc->rcv_queue;
 	upd_max_adv_wnd(tcp_conn_desc,rcv_wmd_adv);
 
@@ -321,6 +339,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	if ((flags & FLG_FIN) && (flags & FLG_ACK) 
 	    && tcp_conn_desc->status == FIN_WAIT_1)
 	{
+		//printk("--d4 %d \n",src_port);
 		if (fin_num + 1 == ack_seq_num)
 		{
 			//SHOULD BE CLOSE_WAIT AND SHOULD BE MANAGED 2MLS TIMER (TCP ILLUSTRATED PAG 590)
@@ -346,6 +365,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	    	 && tcp_conn_desc->status == FIN_WAIT_1
 	    	 && (fin_num + 1) == ack_seq_num)
 	{
+		//printk("--d5 %d \n",src_port);
 		tcp_conn_desc->status = FIN_WAIT_2;
 		rtrsn_timer_reset(tcp_conn_desc->rtrsn_timer);
 		goto EXIT;
@@ -358,6 +378,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	}
 	else if (flags & FLG_FIN && tcp_conn_desc->status == FIN_WAIT_2)
 	{
+		//printk("--d6 %d \n",src_port);
 		//SHOULD BE CLOSE_WAIT AND SHOULD BE MANAGED 2MLS TIMER (TCP ILLUSTRATED PAG 590)
 		tcp_conn_desc->status = CLOSED;
 		_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK,(fin_num + 1));
@@ -377,6 +398,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	else if ((flags & FLG_FIN) 
 	    && tcp_conn_desc->status == ESTABILISHED)
 	{
+		//printk("--d7 %d \n",src_port);
 		tcp_conn_desc->status = CLOSE_WAIT;
 		_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK,fin_num);
 		rtrsn_timer_reset(tcp_conn_desc->rtrsn_timer);
@@ -403,6 +425,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 //END PASSIVE CLOSE
 	else if (data_len != 0)
 	{
+		//printk("--d8 %d \n",src_port);
 		if (tcp_conn_desc->pgybg_timer->val == 0)
 		{
 			tcp_conn_desc->pgybg_timer->val = PIGGYBACKING_TIMEOUT;
@@ -471,22 +494,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 
 		}
 	}
-
-	//-------------HACK TO TEST DUPLICATED ACK!!!!!!!!!!!!
-//	static int congestion_test = 0;
-//	congestion_test++;
-//	if (congestion_test >=10 && congestion_test <=150)
-//	{
-//		//ack_seq_num = tcp_conn_desc->snd_queue->wnd_min - 10;
-//		printk("forcing duplicated ack");
-//		printk("ack is %d \n",ack_seq_num);
-//		if (congestion_test == 149) 
-//		{
-//			printk("stop here!!! \n");
-//		}
-//	}
-	//------------END HACK
-
+	//printk("--d9 %d \n",src_port);
 	//CHECK DUPLICATE ACK DEFINITION RFC5681
 	if (tcp_conn_desc->snd_queue->nxt_snd - tcp_conn_desc->snd_queue->wnd_min > 0)
 	{	
@@ -494,6 +502,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	}
 EXIT:
 		free_sckt(data_sckt_buf);
+		//printk("--exit %d \n",src_port);	
 }
 	
 static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 data_len)

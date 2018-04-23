@@ -13,6 +13,7 @@ observed abroad.
 #include "scheduler/process.h"
 #include "virtual_memory/vm.h"
 
+extern unsigned int collect_mem;
 void page_fault_handler();
 
 void* init_virtual_memory()
@@ -173,7 +174,8 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 void free_vm_process(struct t_process_context* process_context)
 {
 	SAVE_IF_STATUS
-	CLI	
+	CLI
+	system.free_vm++;	
 	if (process_context->process_type==USERSPACE_PROCESS)
 	{
 		free_vm_process_user_space(process_context);
@@ -453,8 +455,11 @@ void page_fault_handler()
 	else
 	{
 		printk("\n ...Segmentation fault. \n");
+		system.cpanic++;
+		panic();
 		_exit(0);
 		on_exit_action=2;
+		//on_exit_action = 0;
 	}
 
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 	

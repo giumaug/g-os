@@ -11,8 +11,8 @@
 int main()
 {
 	char s[] = "0123456789";
-	char buffer_1[16384];
-	char buffer_2[16384];
+	char buffer_1[65536];
+	char buffer_2[65536];
 	int server_sockfd, client_sockfd;
 	int server_len, client_len;
 	struct sockaddr_in server_address;
@@ -42,7 +42,7 @@ int main()
 	int file_len;
 	t_stat stat_data;
 	int b_read;
-	int b_to_read = 49152; //4096;
+	int b_to_read = 64512;
 	int tt=0;
 	int ss=0;
 
@@ -61,7 +61,7 @@ int main()
 	((unsigned char*) &(server_address.sin_port))[1]=((unsigned char*) &(port))[0];
 //------------------------------------------------------------------------------
 
-	for (t=0;t<16384;t++)
+	for (t=0;t<65536;t++)
 	{
 		buffer_1[t] = *s;
 	}	
@@ -72,7 +72,7 @@ int main()
 	while(1) 
 	{
 		check_free_mem();
-		printf("server waiting...+\n");
+		printf("server waiting...++\n");
 
 		client_len = sizeof(client_address);
 		client_sockfd = accept(server_sockfd,(struct sockaddr *)&client_address, &client_len);

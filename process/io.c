@@ -21,7 +21,7 @@ int main()
 	t_stat stat_data;
 	//struct stat stat_data;
 	int b_read,f;
-	int b_to_read = 7; //4096;
+	int b_to_read = 64451;
 	int t = 0;
 	int i,j;
 	unsigned long long hash = 0;
@@ -30,10 +30,12 @@ int main()
 	printf("---------start performance check---------- \n");
 	//read_test();
 	printf("---------end performance check------------ \n");
-	for (i = 0; i < 100; i++)
+	for (i = 0; i < 1; i++)
 	{
+		printf("iteration is: %d \n",i);
 		hash = 0;
-		b_to_read += 1;
+		//b_to_read += (rand() % 200 + 1);
+		//b_to_read = 4096;
 		f = open(path, O_RDWR | O_APPEND);
 		if (f == -1)
 		{
@@ -48,9 +50,9 @@ int main()
 		//file_len = 29414;
 		printf("file len is... %d \n",file_len);
 		current_len = file_len;
-		if (b_to_read > 65536)
+		if (b_to_read >= 64512)
 		{
-			b_to_read = 65536;
+			b_to_read = 100;
 		}
 		printf("using block size: %d \n",b_to_read);
 		while (current_len > 0)

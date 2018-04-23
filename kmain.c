@@ -29,6 +29,17 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	static t_device_desc device_desc;
 	static u32 kernel_stack;
 
+	system.tcp_1 = 0;
+	system.tcp_2 = 0;
+	system.free_vm = 0;
+	system.fork = 0;
+	system.out = 0;
+	system.action2 = 0;
+	system.trig = 0;
+	system.exit_0 = 0;
+	system.exit_1 = 0;
+	system.cpanic = 0;
+
 	system.preempt_network_flush = 0;
 	system.time = 0;
 	init_data = init_data_add;
@@ -111,5 +122,13 @@ void panic()
 	printk("\n");
 	printk("Kernel panic!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 	printk("\n");
+	trace(0,0,99);
 	//while(1);
 }
+
+void panic2()
+{
+	system.trig++;
+}
+
+

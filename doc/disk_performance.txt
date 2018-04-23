@@ -12,14 +12,15 @@ io codice regolare(int disabilitati su network 30 MB)
 
 sp network + disk
 ubuntu 25 (talvolta 54)
-g-os 42 (con int disabilitati)
-g-os 26 (nuova versione con dma block size 4K)
-g-os  (nuova versione con dma block size 16K) ???
-g-os  (nuova versione con dma block size 64000) ??? testare pure letture senza dma
+g-os 42 (con int disabilitati no dma)
+g-os 25 (nuova versione con dma block size 4K)
+g-os 20 (nuova versione con dma block size 16K) 
+g-os 19 (nuova versione con dma block size 32K)
+g-os 18 (nuova versione con dma block size 64512)
 
 sp solo network
 ubuntu 25
-g-os 25 (con int disabilitati)
+g-os 18
 
 Consideration:
 Network and disk requestes can't overlap because cpu is almost always busy to serve pio mode flow (interrupts and copy)

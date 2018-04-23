@@ -71,7 +71,6 @@ t_tcp_conn_desc* accept_tcp(t_tcp_conn_desc* tcp_conn_desc)
 		CURRENT_PROCESS_CONTEXT(tcp_conn_desc->process_context);
 		_sleep();
 		new_tcp_conn_desc = dequeue(tcp_conn_desc->back_log_c_queue);
-		ggo = 1;
 	}
 	new_tcp_conn_desc->status = ESTABILISHED;
 	RESTORE_IF_STATUS

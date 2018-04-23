@@ -210,17 +210,19 @@ void int_handler_i8254x()
 	t_data_sckt_buf* data_sckt_buf;
 	char* data_buffer;
 	struct t_processor_reg processor_reg;
+	struct t_process_context* tmp;
 
 	SAVE_PROCESSOR_REG
+
+	CURRENT_PROCESS_CONTEXT(tmp);
+	trace(tmp->pid,5,0);
+
 	i8254x=system.network_desc->dev;
 	disable_irq_line(i8254x->irq_line);
 	DISABLE_PREEMPTION
 	EOI_TO_SLAVE_PIC
 	EOI_TO_MASTER_PIC
 	STI
-
-	//printk("ooo \n");
-
 	status=read_i8254x(i8254x,REG_ICR);
 	if (status & ICR_LSC)
 	{
@@ -271,6 +273,8 @@ void int_handler_i8254x()
 exit:
 	enable_irq_line(i8254x->irq_line);
 	ENABLE_PREEMPTION
+	CLI
+	trace(tmp->pid,6,0);
 	EXIT_INT_HANDLER(0,processor_reg)
 }
 

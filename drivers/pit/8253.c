@@ -46,6 +46,10 @@ void int_handler_pit()
 	EOI_TO_MASTER_PIC
 	SWITCH_DS_TO_KERNEL_MODE
 
+	struct t_process_context* tmp;
+	CURRENT_PROCESS_CONTEXT(tmp);
+	trace(tmp->pid,1,0);
+
 //	iter++;
 //	if (iter>1)
 //	{
@@ -161,6 +165,7 @@ exit_handler:;
 	static unsigned int _action2;  
 	
 	CLI
+	trace(tmp->pid,2,0);
 	if (system.int_path_count == 0 && system.force_scheduling == 0)           
 	{
 		equeue_packet(system.network_desc);
@@ -178,6 +183,10 @@ exit_handler:;
 	if (system.force_scheduling == 1 && is_schedule == 0 && system.int_path_count == 0)
 	{
 		_action2 = 1;
+		if (_current_process_context.proc_status == EXITING)
+		{
+			panic2();
+		} 
 	}
                   
 	if (_action2>0)                                                                                      
