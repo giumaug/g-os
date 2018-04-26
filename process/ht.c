@@ -65,7 +65,7 @@ int main()
 		if(fork() == 0) 
 		{
 			//printf("--1 \n");
-			process_request(client_sockfd);
+			process_request_2(client_sockfd);
 			//printf("--2 \n");
 			close_socket(client_sockfd);
 			//printf("--3 \n");
@@ -82,6 +82,15 @@ int main()
 	close_socket(server_sockfd);
 	//close(client_sockfd);
 	exit(0);
+}
+
+void process_request_2(int client_sockfd)
+{
+	const char body[]  = "ciao";
+	const char http_header[]  = "HTTP/1.1 200 OK\nConnection: close\nContent-Type:text/html;\nContent-Disposition: inline;charset=utf-8\nContent-Length:5\n\n";
+
+	write_socket(client_sockfd,http_header,118);
+	write_socket(client_sockfd,body,5);
 }
 
 //GET /corriere.it/pippo.txt HTTP/1.1
