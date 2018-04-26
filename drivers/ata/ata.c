@@ -142,9 +142,10 @@ void int_handler_ata()
 	EOI_TO_MASTER_PIC
 	STI
 	
+	CURRENT_PROCESS_CONTEXT(current_process_context);
+	trace(current_process_context->pid,3,0);
 	io_request = system.device_desc->serving_request;
 	process_context = io_request->process_context;
-	CURRENT_PROCESS_CONTEXT(current_process_context);
 
 	if (system.device_desc->status != POOLING_MODE)
 	{
@@ -158,7 +159,13 @@ void int_handler_ata()
 	system.device_desc->status=DEVICE_IDLE;
 	enable_irq_line(14);
 	ENABLE_PREEMPTION
+	CLI
+	trace(current_process_context->pid,4,0);
 	EXIT_INT_HANDLER(0,processor_reg)
+
+	
+
+
 }
 
 static unsigned int _read_write_dma_28_ata(t_io_request* io_request)

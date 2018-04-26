@@ -18,10 +18,17 @@ void syscall_handler()
 	int* params;
 	char data;
 	unsigned int on_exit_action;
+	struct t_process_context* tmp;
 
  	SAVE_PROCESSOR_REG
+	//CLI
 	//call can come from kernel mode (sleep)
 	SWITCH_DS_TO_KERNEL_MODE
+
+	CURRENT_PROCESS_CONTEXT(tmp);
+	syscall_num=processor_reg.eax;
+	trace(tmp->pid,7,syscall_num);
+
 	on_exit_action=0;
 	current_process_context=system.process_info->current_process->val;
 	t_console_desc *console_desc=current_process_context->console_desc;
@@ -93,8 +100,10 @@ void syscall_handler()
 		break;
 
 		case 13:
+		system.exit_0++;
 		_exit(params[0]);
 		on_exit_action=2;
+		system.exit_1++;
 		break;
 	
 		case 14: 
@@ -239,14 +248,11 @@ void syscall_handler()
 //	EXIT_INT_HANDLER(on_exit_action,processor_reg)
 
 	CLI
+	trace(tmp->pid,8,syscall_num);
 	if (system.int_path_count == 0 && system.force_scheduling == 0)
 	{
 		equeue_packet(system.network_desc);
 		dequeue_packet(system.network_desc);
-	}
-	if (system.force_scheduling == 1 && on_exit_action == 0 && system.int_path_count == 0)                                     
-	{                                                                                                                       
-		on_exit_action = 1;                                                                                             
 	}
 	
 	static struct t_process_context _current_process_context;                                          
@@ -258,7 +264,17 @@ void syscall_handler()
 	_action=on_exit_action;                                                                                
 	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;                                
 	_old_process_context=_current_process_context;                                                      
-	_processor_reg=processor_reg;                                                           
+	_processor_reg=processor_reg; 
+
+	if (system.force_scheduling == 1 && on_exit_action == 0 && system.int_path_count == 0)                                     
+	{                                                                                                                       
+		on_exit_action = 1;  
+		if (_current_process_context.proc_status == EXITING)
+		{
+			panic2();
+		}                                   
+	}  
+                                               
 	if (_action>0)                                                                                      
 	{  
 		system.force_scheduling = 0;                                                                                 

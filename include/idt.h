@@ -41,6 +41,10 @@ void set_idt_entry(int entry,struct t_i_desc* i_desc);
 	if (system.force_scheduling == 1 && action == 0 && system.int_path_count == 0)                                          \
 	{                                                                                                                       \
 		_action2 = 1;                                                                                                   \
+		if (_current_process_context.proc_status == EXITING)                                                           \
+		{                                                                                                               \
+			panic2();                                                                                               \
+		}                                                                                                               \
 	}                                                                                                                       \
                                                                                                                                 \
 	if (_action2>0)                                                                                            		\

@@ -2,6 +2,7 @@
 #include "asm.h"
 #include "virtual_memory/vm.h"
 
+extern unsigned int collect_mem;
 static unsigned int mem;
 
 static void buddy_reset_block(void* address,unsigned int page_size);
@@ -41,8 +42,6 @@ void buddy_init(t_buddy_desc* buddy)
 	//buddy_init_mem(buddy);
 	return;
 }
-
-extern unsigned int collect_mem;
 	
 void* buddy_alloc_page(t_buddy_desc* buddy,unsigned int mem_size)
 {
@@ -80,7 +79,7 @@ void* buddy_alloc_page(t_buddy_desc* buddy,unsigned int mem_size)
 		}
 	}
 //	buddy_free_mem(buddy);
-	if (next_list_index==NUM_LIST)
+	if (list_found == 0)
 	{
 		printk("run out of buddy memory!!!");
 		panic();
@@ -109,10 +108,10 @@ void* buddy_alloc_page(t_buddy_desc* buddy,unsigned int mem_size)
 	system.buddy_desc->count[BLOCK_INDEX((int)page_addr)]=0;
 	new_mem_addr=page_addr+BUDDY_START_ADDR + VIRT_MEM_START_ADDR;
 
-//	if (collect_mem==1)
-//	{
-//		collect_mem_alloc(new_mem_addr);
-//	}
+	if (collect_mem==1)
+	{
+		collect_mem_alloc(new_mem_addr);
+	}
 	
 	//SPINLOCK_UNLOCK
 	RESTORE_IF_STATUS
@@ -140,17 +139,16 @@ void buddy_free_page(t_buddy_desc* buddy,void* to_free_page_addr)
 
 	page_addr=to_free_page_addr;
 
-//	if (collect_mem==1)
-//	{
-//		collect_mem_free(page_addr);
-//	}
+	if (collect_mem == 1)
+	{
+		collect_mem_free(page_addr);
+	}
 
 	page_addr-=(BUDDY_START_ADDR + VIRT_MEM_START_ADDR);
 	if ((buddy->order[BLOCK_INDEX(page_addr)] & 16)==0)
 	{
 		panic();
 	}
-	
 	list_index=buddy->order[BLOCK_INDEX(page_addr)] & 15;
 	free_page_addr=page_addr;
 	free_page_order=list_index;
@@ -204,6 +202,11 @@ unsigned int buddy_free_mem(t_buddy_desc* buddy_desc)
 		tmp=ll_size(buddy_desc->page_list[i]);
 		buddy_desc->free_mem_list[i]=tmp;
 		tot=tot+4096*(1<<i)*tmp;
+		if (i == 10)
+		{
+			//printk("index =:%d \n",i);
+			printk("  slots:%d \n",tmp);
+		}
 	}
 	return tot;
 }

@@ -81,6 +81,16 @@ typedef struct s_system
 	t_llist* timer_list;
 	u8 force_scheduling;
 	u8 preempt_network_flush;
+	u32 tcp_1;
+	u32 tcp_2;
+	u32 fork;
+	u32 free_vm;
+	u32 out;
+	u32 action2;
+	u32 trig;
+	u32 exit_0;
+	u32 exit_1;
+	u32 cpanic;
 }
 t_system;
 

@@ -77,6 +77,7 @@ struct t_process_context
 	t_elf_desc* elf_desc;
 	t_hashtable* socket_desc;
 	u32 next_sd;
+	char* debug_handler;
 };
 
 struct t_process_info 

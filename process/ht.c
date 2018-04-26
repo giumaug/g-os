@@ -57,20 +57,24 @@ int main()
 	while(1) 
 	{
 		printf("http server waiting\n");
-		//check_free_mem();
+		check_free_mem();
 		client_len = sizeof(client_address);
 		client_sockfd = accept(server_sockfd,(struct sockaddr *)&client_address, &client_len);
 
 		printf("accepted request %d \n",request_count++);
 		if(fork() == 0) 
 		{
+			//printf("--1 \n");
 			process_request(client_sockfd);
+			//printf("--2 \n");
 			close_socket(client_sockfd);
+			//printf("--3 \n");
 			//close(client_sockfd);
 			exit(0);
 		}
 		else 
 		{
+			//printf("++++ \n");
 			close_socket(client_sockfd);
 			//close(client_sockfd);
 		}
@@ -107,11 +111,21 @@ void process_request(int client_sockfd)
 	int b_read = 0;
 	int b_to_read = 4096;
 
+        char get2[100];	
+	int get_index;
+
 	http_header_len = sizeof(http_header);
 	root_path_len = sizeof(root_path) - 1;
-
-	read_socket(client_sockfd,(void*)get,100);
+	get_index = read_socket(client_sockfd,(void*)get,100);
 	//read(client_sockfd,(void*)get,100);
+	
+	for (i = 0;i < get_index;i++)
+	{
+		get2[i] = get[i];
+	}
+	get2[get_index - 1] = '\0';
+	printf("get index is %d \n",get_index);
+	//printf("get2 is %s \n",get2);
 	
 	for (i = 0;i < root_path_len; i++)
 	{
@@ -122,8 +136,15 @@ void process_request(int client_sockfd)
 		path[index - 4 + root_path_len] = get[index];
 	}
 	while(get[index++] != ' ');
+
+	printf("root_path_len %d \n",root_path_len);
+	printf("index--1 %d \n",index);
+
+
 	int last_index = index - 5 + root_path_len;
 	path[last_index] = '\0';
+	//printf("index is %d \n",index);
+	//printf("path is %s \n",path);
 
 	if (path[last_index - 3]=='h' && path[last_index - 2]=='t' && path[last_index - 1]=='m')
 	{
@@ -141,6 +162,8 @@ void process_request(int client_sockfd)
 	}
 	while(http_header_1[index++] != '\0');
 	
+	printf("index--2 %d \n",index);
+
 	i = 0;
 	index--;
 	do
@@ -148,6 +171,9 @@ void process_request(int client_sockfd)
 		http_header[index++] = p[i];
 	}
 	while(p[i++] != '\0');
+
+	printf("index--3 %d \n",index);
+	printf("i---1 %d \n",i);
 		
 	i = 0;
 	index--;
@@ -156,15 +182,25 @@ void process_request(int client_sockfd)
 		http_header[index++] = http_header_2[i];
 	}
 	while (http_header_2[i++] != '\0');
+
+	printf("index--4 %d \n",index);
+	printf("i---2 %d \n",i);
+
+
 	http_header_len = index - 1;
 	
-	stat(path,&stat_data);
+	int xxx = stat(path,&stat_data);
+	printf("stat size is %d \n",xxx);
 	//http_body_len = stat_data.st_size + 1;
 	http_body_len = stat_data.st_size;
 	itoa(http_body_len,content_len,10);
+	printf("contet len %s \n",content_len);
         //sprintf( content_len, "%d", http_body_len - 1);
 
+	//printf("path is %s \n",path);
+	//printf("malloc 1 %d \n",b_to_read);
 	io_buffer = malloc(b_to_read);
+	//printf("malloc 2 %d \n",(http_body_len + http_header_len));
 	http_response = malloc(http_body_len + http_header_len);
 	for (i=0;i < http_header_len; i++)
 	{

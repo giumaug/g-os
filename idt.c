@@ -225,6 +225,7 @@ void init_idt()
 		idt[i].baseHi=((int)(&int_handler_generic))>>0x010;
 	}
 
+/*
 	idt[0].baseLow=((int)(&int_handler_generic_0)) & 0xFFFF;
 	idt[0].selector=0x8;
 	idt[0].flags=0x08e00;
@@ -344,7 +345,7 @@ void init_idt()
 	idt[39].selector=0x8;
 	idt[39].flags=0x08e00;
 	idt[39].baseHi=((int)(&int_handler_generic_39))>>0x010;
-
+*/
 	
 	idt_ptr.idt_size=64*256;
         idt_ptr.idt_address=(int)idt;
