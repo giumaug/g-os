@@ -377,6 +377,13 @@ int _fork(struct t_processor_reg processor_reg)
 	kmemcpy(kernel_stack_addr,FROM_PHY_TO_VIRT(parent_process_context->phy_kernel_stack),KERNEL_STACK_SIZE);
 
 	child_process_context->pid = system.process_info->next_pid++;
+
+	trace(parent_process_context->pid,7,child_process_context->pid);
+	if (*(int*)(processor_reg.esp+4) != TEST_STACK)
+	{
+		panic();
+	}
+
 	child_process_context->parent = parent_process_context;
 //	TEMPORARY TRICK.CORRECT SOLUTION IS TO ADD A POINTER TO CLONER FUNTION IN HASMAP CLONE ALONSIDE DESTRUCTOR POINTER
 //	ALSO INODE SHOULD NOT BE CLONED!!!!!!!	
@@ -404,6 +411,7 @@ int _fork(struct t_processor_reg processor_reg)
 							 parent_process_context->process_type,
 							 FROM_VIRT_TO_PHY(kernel_stack_addr));
 
+	child_process_context->pending_fork = 99;
 	RESTORE_IF_STATUS
 	return child_process_context->pid;
 }

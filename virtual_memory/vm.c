@@ -438,6 +438,16 @@ void page_fault_handler()
 				map_vm_mem(current_process_context->page_dir,aligned_fault_addr,FROM_VIRT_TO_PHY(page_addr),PAGE_SIZE,7);
 				system.buddy_desc->count[BLOCK_INDEX(phy_fault_addr)]--;
 				system.buddy_desc->count[BLOCK_INDEX(FROM_VIRT_TO_PHY(page_addr))]++;
+				
+				if (aligned_fault_addr == 0xbfffb000)
+				{
+					current_process_context->user_mode_stack = page_addr;
+					unsigned int* xxx = ((unsigned int*)(page_addr + 0xf1c));
+					if (*((unsigned int*)(page_addr + 0xf1c)) != AFTER_FORK)
+					{
+						panic();
+					}
+				}
 			}
 		}
 		else

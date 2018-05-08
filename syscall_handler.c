@@ -28,6 +28,7 @@ void syscall_handler()
 	CURRENT_PROCESS_CONTEXT(tmp);
 	syscall_num=processor_reg.eax;
 	trace(tmp->pid,7,syscall_num);
+	trace(tmp->pid,7,tmp->user_mode_stack);
 
 	on_exit_action=0;
 	current_process_context=system.process_info->current_process->val;
@@ -241,7 +242,7 @@ void syscall_handler()
 		case 105:
 		_read_test(system.root_fs);
 		break;
-	
+
 		default:
 		panic();
 	}
@@ -259,7 +260,14 @@ void syscall_handler()
 	static struct t_process_context _old_process_context;                                              
 	static struct t_process_context _new_process_context;	                                            
 	static struct t_processor_reg _processor_reg;                                                       
-	static unsigned int _action;                                                                     
+	static unsigned int _action;    
+	static int** _tmp;  
+	static int* _tmp2;
+	static int* _tmp3; 
+	static u32* page_table_new;
+	static u32 phy_fault_addr_new;
+	static u32* page_table_old;
+	static u32 phy_fault_addr_old;                                                         
                                                                                                                                                                                 
 	_action=on_exit_action;                                                                                
 	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;                                
@@ -285,7 +293,41 @@ void syscall_handler()
 				_processor_reg=_new_process_context.processor_reg;
 		}                         
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))
-		DO_STACK_FRAME(_processor_reg.esp-8);	
+		DO_STACK_FRAME(_processor_reg.esp-8);
+
+		_tmp = (int*)(_new_process_context.processor_reg.esp+4);
+		if (_new_process_context.pid > 2 && _new_process_context.pending_fork == 99)
+		{
+			((struct t_process_context*)(system.process_info->current_process->val))->pending_fork = 0;
+			if (*(int*)(_new_process_context.processor_reg.esp+4) != TEST_STACK)
+			{
+				panic();
+			}
+			if (**_tmp != TEST_USER_SPACE)
+			{
+				panic();
+			}
+
+			_tmp2 = _tmp + 3;
+			_tmp3 = (*_tmp2) + 24;
+			if (*_tmp3 != AFTER_FORK)
+			{
+				page_table_new = ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) _new_process_context.page_dir)[767]));
+				phy_fault_addr_new = ALIGN_4K(((unsigned int*) page_table_new)[1019]); 
+				if (phy_fault_addr_new == 0)
+				{
+					printk("!!\n");
+				}
+				page_table_old = ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) _old_process_context.page_dir)[767]));
+				phy_fault_addr_old = ALIGN_4K(((unsigned int*) page_table_old)[1019]); 
+				if (phy_fault_addr_old == 0)
+				{
+					printk("!!\n");
+				}
+				panic();
+			}
+		}
+		
 		if (_action==2)                                                                              
 		{                                                                           
 			DO_STACK_FRAME(_processor_reg.esp-8);                                               

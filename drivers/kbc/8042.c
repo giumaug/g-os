@@ -332,7 +332,98 @@ void int_handler_kbc()
 	}
 	enable_irq_line(1);
 	ENABLE_PREEMPTION
-	EXIT_INT_HANDLER(0,processor_reg)
+	//EXIT_INT_HANDLER(0,processor_reg)               
+                                                                                                                                \
+	static struct t_process_context _current_process_context;
+	static struct t_process_context _old_process_context;
+	static struct t_process_context _new_process_context;
+	static struct t_processor_reg _processor_reg;
+	static unsigned int _action2;
+	static int** _tmp;
+	static int* _tmp2;
+	static int* _tmp3;
+	static u32* page_table_new;
+	static u32 phy_fault_addr_new;
+	static u32* page_table_old;
+	static u32 phy_fault_addr_old; 
+        
+	CLI
+	if (system.int_path_count == 0 && system.force_scheduling == 0)
+	{
+		equeue_packet(system.network_desc);
+		dequeue_packet(system.network_desc);
+	}
+	_action2=0;
+	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;
+	_old_process_context=_current_process_context;
+	_processor_reg=processor_reg;
+	if (system.force_scheduling == 1 && 0 == 0 && system.int_path_count == 0)
+	{
+		_action2 = 1;
+		if (_current_process_context.proc_status == EXITING)
+		{
+			panic2();
+		}
+	}
+        
+	if (_action2>0)
+	{	system.force_scheduling = 0;
+		schedule(&_current_process_context,&_processor_reg);
+		_new_process_context=*(struct t_process_context*)system.process_info->current_process->val;
+		if (_new_process_context.pid != _old_process_context.pid)
+		{
+				_processor_reg=_new_process_context.processor_reg;
+		}
+		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))
+		DO_STACK_FRAME(_processor_reg.esp-8);
+                
+		_tmp = (int*)(_new_process_context.processor_reg.esp+4);
+		if (_new_process_context.pid > 2 && _new_process_context.pending_fork == 99)
+		{
+			((struct t_process_context*)(system.process_info->current_process->val))->pending_fork = 0;
+			if (*(int*)(_new_process_context.processor_reg.esp+4) != TEST_STACK)
+			{
+				panic();
+			}
+			if (**_tmp != TEST_USER_SPACE)
+			{
+				panic();
+			}
+
+			_tmp2 = _tmp + 3;
+			_tmp3 = (*_tmp2) + 24;
+			if (*_tmp3 != AFTER_FORK)
+			{
+				page_table_new = ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) _new_process_context.page_dir)[767]));
+				phy_fault_addr_new = ALIGN_4K(((unsigned int*) page_table_new)[1019]); 
+				if (phy_fault_addr_new == 0)
+				{
+					printk("!!\n");
+				}
+				page_table_old = ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) _old_process_context.page_dir)[767]));
+				phy_fault_addr_old = ALIGN_4K(((unsigned int*) page_table_old)[1019]); 
+				if (phy_fault_addr_old == 0)
+				{
+					printk("!!\n");
+				}
+				panic();
+			}
+		}
+		
+		if (_action2==2)
+		{
+			DO_STACK_FRAME(_processor_reg.esp-8);
+			free_vm_process(&_old_process_context);
+			buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_kernel_stack));
+		}
+		RESTORE_PROCESSOR_REG
+		EXIT_SYSCALL_HANDLER
+	}
+	else
+	{
+		RESTORE_PROCESSOR_REG
+		RET_FROM_INT_HANDLER
+	}
 }
 
 char read_buf()
