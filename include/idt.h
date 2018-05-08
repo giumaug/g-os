@@ -56,7 +56,17 @@ void set_idt_entry(int entry,struct t_i_desc* i_desc);
 				_processor_reg=_new_process_context.processor_reg;                                              \
 		}                                                                                                               \
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))                  		\
-		DO_STACK_FRAME(_processor_reg.esp-8);                                                              		\
+		DO_STACK_FRAME(_processor_reg.esp-8);                                                                           \
+                                                                                                                                \
+		if (_new_process_context.pid > 2 && _new_process_context.pending_fork == 99)                                    \
+		{                                                                                                               \
+			_new_process_context.pending_fork = 0;                                                                  \
+			if (*(int*)(_new_process_context.processor_reg.esp+4) != 0x1016ea)                                      \
+			{                                                                                                       \
+				panic();                                                                                        \
+			}                                                                                                       \
+ 		}                                                                                                               \
+                                                                                                                 		\
 		if (_action2==2)                                                                                   		\
 		{                                                                                                  		\
 			DO_STACK_FRAME(_processor_reg.esp-8);                                                      		\

@@ -108,7 +108,7 @@ void* buddy_alloc_page(t_buddy_desc* buddy,unsigned int mem_size)
 	system.buddy_desc->count[BLOCK_INDEX((int)page_addr)]=0;
 	new_mem_addr=page_addr+BUDDY_START_ADDR + VIRT_MEM_START_ADDR;
 
-	if (collect_mem==1)
+	if (collect_mem == 1)
 	{
 		collect_mem_alloc(new_mem_addr);
 	}

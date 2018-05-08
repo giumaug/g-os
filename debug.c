@@ -10,7 +10,7 @@ unsigned int trace_buffer_2[10000];
 unsigned int trace_buffer_3[10000];
 int index_2=0;
 unsigned int collect_mem=0;
-unsigned int collected_mem[500];
+unsigned int collected_mem[50005];
 unsigned int collected_mem_index=0;
 unsigned int allocated_block=0;
 unsigned int start_count = 0;
@@ -25,9 +25,9 @@ void check_free_mem()
 
 	if (age == 0)
 	{
-		//collect_mem = 1;
+		collect_mem = 1;
 		//start_count = 1;
-		//reset_counter();
+		reset_counter();
 	}
 
 	buddy_mem=buddy_free_mem(system.buddy_desc);
@@ -112,6 +112,59 @@ void _check_process_context()
 
 void collect_mem_alloc(unsigned int page_addr)
 {
+	unsigned int i=0;
+
+	if (collect_mem == 1)
+	{
+		for (i = collected_mem_index; i < 50000;i++)
+		{
+			if (collected_mem[collected_mem_index] == page_addr)
+			{
+				panic();
+			}
+		}
+		for (i = 0; i < collected_mem_index;i++)
+		{
+			if (collected_mem[collected_mem_index] == page_addr)
+			{
+				panic();
+			}
+		}
+		collected_mem_index++;
+		if (collected_mem_index > 49999)
+		{
+			collected_mem_index = 0;
+		}
+		collected_mem[collected_mem_index] = page_addr;
+	}
+}
+
+void collect_mem_free(unsigned int page_addr)
+{
+	int found=0;
+	unsigned int i=0;
+	
+	if (collect_mem == 1)
+	{
+		for (i = 0;i < 50000;i++)
+		{
+			if (collected_mem[i] == page_addr)
+			{
+				collected_mem[i] = 0;
+				found=1;
+				break;
+			}
+		}
+		if (found==0) 
+		{
+			found=1;
+			panic();
+		}
+	}
+}
+
+void _collect_mem_alloc(unsigned int page_addr)
+{
 	if (collect_mem == 1 && start_count == 1)
 	{
 		collected_mem[collected_mem_index++]=page_addr;
@@ -123,7 +176,7 @@ void collect_mem_alloc(unsigned int page_addr)
 	}
 }
 
-void collect_mem_free(unsigned int page_addr)
+void _collect_mem_free(unsigned int page_addr)
 {
 	int found=0;
 	unsigned int i=0;
@@ -203,6 +256,24 @@ void trace(int pid,int trace_code,int call_num)
 	trace_buffer_1[trace_index] = trace_code;
 	trace_buffer_2[trace_index] = pid;
 	trace_buffer_3[trace_index] = call_num;	
+}
+
+void check_user_space(struct t_process_context _new_process_context)
+{
+	int** tmp;
+	tmp = (int*)(_new_process_context.processor_reg.esp+4);
+	if (tmp == 0)
+	{
+		printk("dsdd\n");
+	}
+	if (_new_process_context.pid > 2 && _new_process_context.pending_fork == 99)
+		{
+			((struct t_process_context*)(system.process_info->current_process->val))->pending_fork = 0;
+			if (*(int*)(_new_process_context.processor_reg.esp+4) != TEST_STACK)
+			{
+				panic();
+			}
+		}
 }
 
 

@@ -119,6 +119,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 
 void panic()
 {
+	trace(0,0,98);
 	printk("\n");
 	printk("Kernel panic!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 	printk("\n");

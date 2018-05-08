@@ -13,6 +13,10 @@
 #include "network/network.h"
 #include "timer.h"
 
+#define TEST_STACK 0x101636
+#define TEST_USER_SPACE 0xe8f87d81
+#define AFTER_FORK 0x100179
+
 //#define DEBUG
 #ifdef DEBUG 
 	#define PRINTK(...) printk(__VA_ARGS__); 

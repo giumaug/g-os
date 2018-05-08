@@ -78,6 +78,8 @@ struct t_process_context
 	t_hashtable* socket_desc;
 	u32 next_sd;
 	char* debug_handler;
+	int pending_fork;
+	u32 user_mode_stack;
 };
 
 struct t_process_info 
