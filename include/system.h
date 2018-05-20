@@ -95,6 +95,8 @@ typedef struct s_system
 	u32 exit_0;
 	u32 exit_1;
 	u32 cpanic;
+	u32 shell_u_stack;
+	u32 shell_u_s_addr;
 }
 t_system;
 

@@ -33,7 +33,6 @@ static t_tcp_snd_queue* tcp_snd_queue_init(u32 size)
 	t_tcp_snd_queue* tcp_snd_queue = NULL;
 
 	system.tcp_1++;
-	collect_mem = 1;
 	tcp_snd_queue = kmalloc(sizeof(t_tcp_snd_queue));
 	//tcp_snd_queue->buf = kmalloc(TCP_SND_SIZE);
 	tcp_snd_queue->buf = buddy_alloc_page(system.buddy_desc,TCP_SND_SIZE);
@@ -47,18 +46,15 @@ static t_tcp_snd_queue* tcp_snd_queue_init(u32 size)
 	//struct t_process_context* current_process_context = NULL;
 	//CURRENT_PROCESS_CONTEXT(current_process_context);
 	//current_process_context->debug_handler = tcp_snd_queue->buf;
-	collect_mem = 0;
 	return tcp_snd_queue;
 }
 
 static void tcp_snd_queue_free(t_tcp_snd_queue* tcp_snd_queue)
 {
 	system.tcp_2++;
-	collect_mem = 1;
 	//kfree(tcp_snd_queue->buf);
 	buddy_free_page(system.buddy_desc,tcp_snd_queue->buf);
 	kfree(tcp_snd_queue);
-	collect_mem = 0;
 }
 
 static t_tcp_rcv_queue* tcp_rcv_queue_init(u32 size)

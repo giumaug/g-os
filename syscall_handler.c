@@ -279,7 +279,8 @@ void syscall_handler()
 		on_exit_action = 1;  
 		if (_current_process_context.proc_status == EXITING)
 		{
-			panic2();
+			on_exit_action = 2;
+			//panic2();
 		}                                   
 	}  
                                                

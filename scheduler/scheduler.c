@@ -364,7 +364,7 @@ int _fork(struct t_processor_reg processor_reg)
 	CURRENT_PROCESS_CONTEXT(parent_process_context);
 	if (parent_process_context->pid != 2)
 	{
-		panic();
+		//panic();
 	}
 	if (parent_process_context->pid == 0)
 	{
@@ -381,7 +381,7 @@ int _fork(struct t_processor_reg processor_reg)
 	trace(parent_process_context->pid,7,child_process_context->pid);
 	if (*(int*)(processor_reg.esp+4) != TEST_STACK)
 	{
-		panic();
+		//panic();
 	}
 
 	child_process_context->parent = parent_process_context;
@@ -440,9 +440,9 @@ u32 _exec(char* path,char* argv[])
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 
 
-	if (current_process_context->pid >4)
+	if (current_process_context->pid >=1)
 	{
-		collect_mem=1;
+		//collect_mem=1;
 	}
 	if (current_process_context->pid >1)
 	{
@@ -510,7 +510,7 @@ u32 _exec(char* path,char* argv[])
 		current_process_context->ustack_mem_reg = create_mem_reg(USER_STACK-USER_STACK_INIT_SIZE,USER_STACK);
 		page_addr = buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
 		map_vm_mem(current_process_context->page_dir,(USER_STACK-PAGE_SIZE),FROM_VIRT_TO_PHY(page_addr),PAGE_SIZE,7);
-		system.buddy_desc->count[BLOCK_INDEX(FROM_VIRT_TO_PHY((unsigned int)page_addr))]++;
+		system.buddy_desc->count[BLOCK_INDEX_FROM_PHY(FROM_VIRT_TO_PHY((unsigned int)page_addr))]++;
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 
 	}
 	else

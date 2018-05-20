@@ -192,7 +192,8 @@ exit_handler:;
 		_action2 = 1;
 		if (_current_process_context.proc_status == EXITING)
 		{
-			panic2();
+			_action2 = 2;
+			//panic2();
 		} 
 	}
                   
