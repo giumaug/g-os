@@ -25,7 +25,7 @@ void check_free_mem()
 
 	if (age == 0)
 	{
-		collect_mem = 1;
+		//collect_mem = 1;
 		//start_count = 1;
 		reset_counter();
 	}
@@ -110,13 +110,29 @@ void _check_process_context()
 //	}
 //}
 
+void is_phy_page_used(unsigned int phy_page_addr)
+{
+	u32 i = 0;
+	u32 page_addr;
+
+	page_addr = phy_page_addr+BUDDY_START_ADDR + VIRT_MEM_START_ADDR;
+
+	for (i = collected_mem_index; i < 5000;i++)
+	{
+		if (collected_mem[collected_mem_index] == page_addr)
+		{
+			panic();
+		}
+	}
+}
+
 void collect_mem_alloc(unsigned int page_addr)
 {
 	unsigned int i=0;
 
 	if (collect_mem == 1)
 	{
-		for (i = collected_mem_index; i < 50000;i++)
+		for (i = collected_mem_index; i < 5000;i++)
 		{
 			if (collected_mem[collected_mem_index] == page_addr)
 			{
@@ -131,9 +147,11 @@ void collect_mem_alloc(unsigned int page_addr)
 			}
 		}
 		collected_mem_index++;
-		if (collected_mem_index > 49999)
+		if (collected_mem_index > 4999)
 		{
 			collected_mem_index = 0;
+			printk("reset counter!!!! \n");
+			//panic();
 		}
 		collected_mem[collected_mem_index] = page_addr;
 	}
@@ -146,7 +164,7 @@ void collect_mem_free(unsigned int page_addr)
 	
 	if (collect_mem == 1)
 	{
-		for (i = 0;i < 50000;i++)
+		for (i = 0;i < 5000;i++)
 		{
 			if (collected_mem[i] == page_addr)
 			{
@@ -163,6 +181,7 @@ void collect_mem_free(unsigned int page_addr)
 	}
 }
 
+/*
 void _collect_mem_alloc(unsigned int page_addr)
 {
 	if (collect_mem == 1 && start_count == 1)
@@ -175,7 +194,9 @@ void _collect_mem_alloc(unsigned int page_addr)
 		}
 	}
 }
+*/
 
+/*
 void _collect_mem_free(unsigned int page_addr)
 {
 	int found=0;
@@ -196,11 +217,11 @@ void _collect_mem_free(unsigned int page_addr)
 		if (found==0) 
 		{
 			found=1;
-			//printk("no!! \n");
-			//panic();
+			panic();
 		}
 	}
 }
+*/
 
 void check_not_released()
 {

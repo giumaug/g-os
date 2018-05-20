@@ -5,7 +5,9 @@
 #include "memory_manager/general.h"
 
 #define NUM_LIST 11
-#define BLOCK_INDEX(mem_addr) (mem_addr-BUDDY_START_ADDR)/PAGE_SIZE
+//#define BLOCK_INDEX(mem_addr) (mem_addr-BUDDY_START_ADDR)/PAGE_SIZE
+#define BLOCK_INDEX(mem_addr) (mem_addr) / PAGE_SIZE
+#define BLOCK_INDEX_FROM_PHY(mem_addr) (mem_addr - BUDDY_START_ADDR - PHY_MEM_START_ADDR) / PAGE_SIZE
 
 struct s_buddy_desc 
 {
