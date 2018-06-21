@@ -342,6 +342,12 @@ void _exit(int status)
 		delete_mem_reg(current_process->heap_mem_reg);
 		delete_mem_reg(current_process->ustack_mem_reg);
 	}
+	system.exec_time += (system.time - current_process->start_time);
+	system.avg_exec_time = system.exec_time / system.proc_count;
+	if (system.time - current_process->start_time > 5000)
+	{
+		panic();
+	}
 	hashtable_free(current_process->file_desc);
 	hashtable_free(current_process->socket_desc);
 	RESTORE_IF_STATUS
@@ -349,6 +355,7 @@ void _exit(int status)
 
 int _fork(struct t_processor_reg processor_reg) 
 {
+	system.proc_count++;
 	system.fork++;
 	int i = 0;
  	struct t_process_context* child_process_context = NULL;
@@ -364,7 +371,7 @@ int _fork(struct t_processor_reg processor_reg)
 	CURRENT_PROCESS_CONTEXT(parent_process_context);
 	if (parent_process_context->pid != 2)
 	{
-		//panic();
+		panic();
 	}
 	if (parent_process_context->pid == 0)
 	{
@@ -412,6 +419,7 @@ int _fork(struct t_processor_reg processor_reg)
 							 FROM_VIRT_TO_PHY(kernel_stack_addr));
 
 	child_process_context->pending_fork = 99;
+	child_process_context->start_time = system.time;
 	RESTORE_IF_STATUS
 	return child_process_context->pid;
 }

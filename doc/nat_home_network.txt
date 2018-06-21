@@ -18,3 +18,5 @@ iptables -t nat -A POSTROUTING --out-interface vmnet8 -j MASQUERADE
 
 
 http://192.168.237.124:21846/usr/src/kernels/g-os/link.htm
+
+http://87.10.4.227:21846/usr/src/kernels/g-os/link.htm

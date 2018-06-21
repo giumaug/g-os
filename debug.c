@@ -5,6 +5,10 @@
 extern go;
 extern unsigned int free_mem_list[POOL_NUM];
 
+unsigned int pending_port[5000];
+unsigned int pending_port_age[5000];
+t_tcp_conn_desc* pending_connection[5000];
+unsigned int pending_port_index;
 unsigned int trace_buffer_1[10000];
 unsigned int trace_buffer_2[10000];
 unsigned int trace_buffer_3[10000];
@@ -14,15 +18,21 @@ unsigned int collected_mem[50005];
 unsigned int collected_mem_index=0;
 unsigned int allocated_block=0;
 unsigned int start_count = 0;
-long x;
+static int age=0;
+
+void add_tcp_conn(u32 port,t_tcp_conn_desc* conn);
+void remove_tcp_conn(u32 port);
+void check_tcp_conn();
+
 void check_free_mem()
 {
-	static int age=0;
 	int last_block;
 	int i=0;
 	unsigned int buddy_mem;
 	unsigned int pool_mem;
 
+	SAVE_IF_STATUS
+	CLI
 	if (age == 0)
 	{
 		//collect_mem = 1;
@@ -32,11 +42,12 @@ void check_free_mem()
 
 	buddy_mem=buddy_free_mem(system.buddy_desc);
 	pool_mem=kfree_mem();
+	check_tcp_conn();
 	//buddy_check_mem_status(system.buddy_desc);
 	//a_fixed_size_check_mem_status();
 
 	//check_active_process();
-	if (buddy_mem<160700560)
+	if (buddy_mem<90700560)
 	{
 		PRINTK("BUDDY MEMEMORY LEAK!!!");
 		//panic();
@@ -47,11 +58,14 @@ void check_free_mem()
 		//panic();
 	}
 	check_not_released();
+	_check_process_context();
 	printk("BUDDY MEMORY=%d \n",buddy_mem);
 	printk("POOL MEMORY=%d \n",pool_mem);
 	printk("AGE=%d \n",age++);
+	printk("ACTIVE PROCESS=%d \n",system.active_process);
 	//collected_mem_index=0;
 	//allocated_block=0;
+	RESTORE_IF_STATUS
 }
 
 void check_process_context()
@@ -75,7 +89,6 @@ void _check_process_context()
 		{
 			process_context=next->val;
 			//if (process_context->curr_sched_queue_index>9 || process_context->curr_sched_queue_index<0)
-			if (process_context->pid==2 && go==1)
 			{
 				count++;
 			}
@@ -83,6 +96,7 @@ void _check_process_context()
 		}
 		index++;
 	}
+	system.active_process = count;
 }
 
 //void check_active_process()
@@ -243,15 +257,27 @@ void check_not_released()
 		//printk("not releaed=%d \n",index);
 		//printk("collected_mem_index= %d \n",collected_mem_index);
 		//printk("tcp_1 = %d \n",system.tcp_1);
-		//printk("tcp_1 = %d \n",system.tcp_2);
+		//printk("tcp_2 = %d \n",system.tcp_2);
 		printk("fork = %d \n",system.fork);
-		printk("exit_0 = %d \n",system.exit_0);
+		//printk("exit_0 = %d \n",system.exit_0);
 		//printk("exit_1 = %d \n",system.exit_1);
-		printk("free_vm = %d \n",system.free_vm);
+		//printk("free_vm = %d \n",system.free_vm);
 		printk("out = %d \n",system.out);
 		//printk("action2 = %d \n",system.action2);
-		printk("trig = %d \n",system.trig);
-		printk("cpanic = %d \n",system.cpanic);
+		//printk("trig = %d \n",system.trig);
+		//printk("cpanic = %d \n",system.cpanic);
+		printk("piggy = %d \n",system.piggy_timeout);
+		//printk("rtrsn = %d \n",system.rtrsn_timeout);
+		printk("reset = %d \n",system.reset);
+		//printk("tcp_close_1 = %d \n",system.tcp_close_1);
+		//printk("tcp_close_2 = %d \n",system.tcp_close_2);
+		//printk("fin_1 = %d \n",system.fin_1);
+		//printk("fin_2 = %d \n",system.fin_2);
+		//printk("fin_3 = %d \n",system.fin_3);
+		//printk("reset_1 = %d \n",system.reset_1);
+		//printk("reset_2 = %d \n",system.reset_2);
+		//printk("reset_3 = %d \n",system.reset_3);
+		printk("avg exec time %d \n",system.avg_exec_time);
 	//	panic();
 	//}
 }
@@ -264,7 +290,77 @@ void reset_counter()
 	{
 		collected_mem[i] = 0;
 	}
+	reset_tcp_counter();
 }
+
+void reset_tcp_counter()
+{
+	int i;
+
+	for (i = 0; i <5000;i++)
+	{
+		pending_port[i] = 0;
+		pending_port_age[i] = 0;
+		pending_connection[i] = 0;
+	}
+	pending_port_index = 0;
+}
+
+void add_tcp_conn(u32 port,t_tcp_conn_desc* conn)
+{
+	int i;
+
+	pending_port_index++;
+	if (pending_port_index == 5000)
+	{
+		reset_tcp_counter();
+	}
+	pending_port[pending_port_index] = port;
+	pending_port_age[pending_port_index] = (system.tcp_1 % 5000);
+	pending_connection[pending_port_index] = conn;
+}
+void remove_tcp_conn(u32 port)
+{
+	int i;
+
+	for (i = 0; i <5000;i++)
+	{
+		if (pending_port[i] == port)
+		{
+			pending_port[i] = 0;
+			pending_port_age[i] = 0;
+			pending_connection[i] = 0;
+			continue;
+		}
+	}
+}
+
+void check_tcp_conn()
+{
+	u32 counter;
+	int i;
+	
+	counter = system.tcp_1 % 5000;	
+
+	if (counter < pending_port_index)
+	{
+		//panic();
+		return;
+	}
+
+	for (i = 0; i <5000;i++)
+	{
+		//if (counter > 100)
+		//{
+		//	panic();
+		//}
+		if (pending_port[i] != 0 && (counter - pending_port_age[i]) > 3000 )
+		{
+			panic();
+		}
+	}
+}
+
 
 void trace(int pid,int trace_code,int call_num)
 {
@@ -279,23 +375,38 @@ void trace(int pid,int trace_code,int call_num)
 	trace_buffer_3[trace_index] = call_num;	
 }
 
-void check_user_space(struct t_process_context _new_process_context)
-{
-	int** tmp;
-	tmp = (int*)(_new_process_context.processor_reg.esp+4);
-	if (tmp == 0)
-	{
-		printk("dsdd\n");
-	}
-	if (_new_process_context.pid > 2 && _new_process_context.pending_fork == 99)
-		{
-			((struct t_process_context*)(system.process_info->current_process->val))->pending_fork = 0;
-			if (*(int*)(_new_process_context.processor_reg.esp+4) != TEST_STACK)
-			{
-				panic();
-			}
-		}
-}
+//USEFUL CODE TO CHECK STACK MEMORY CORRUPTION
+//if (_new_process_context.pid > 2 && _new_process_context.pending_fork == 99)
+//{
+//	((struct t_process_context*)(system.process_info->current_process->val))->pending_fork = 0;
+//	if (*(int*)(_new_process_context.processor_reg.esp+4) != TEST_STACK)
+//	{
+//		panic();
+//	}
+//	if (**_tmp != TEST_USER_SPACE)
+//	{
+//		panic();
+//	}
+//	
+//	_tmp2 = _tmp + 3;
+//	_tmp3 = (*_tmp2) + 24;
+//	if (*_tmp3 != AFTER_FORK)
+//	{
+//		page_table_new = ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) _new_process_context.page_dir)[767]));
+//		phy_fault_addr_new = ALIGN_4K(((unsigned int*) page_table_new)[1019]); 
+//		if (phy_fault_addr_new == 0)
+//		{
+//			printk("!!\n");
+//		}
+//		page_table_old = ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) _old_process_context.page_dir)[767]));
+//		phy_fault_addr_old = ALIGN_4K(((unsigned int*) page_table_old)[1019]); 
+//		if (phy_fault_addr_old == 0)
+//		{
+//			printk("!!\n");
+//		}
+//		panic();
+//	}
+//}
 
 
 

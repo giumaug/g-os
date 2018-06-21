@@ -280,7 +280,6 @@ void syscall_handler()
 		if (_current_process_context.proc_status == EXITING)
 		{
 			on_exit_action = 2;
-			//panic2();
 		}                                   
 	}  
                                                
@@ -302,11 +301,11 @@ void syscall_handler()
 			((struct t_process_context*)(system.process_info->current_process->val))->pending_fork = 0;
 			if (*(int*)(_new_process_context.processor_reg.esp+4) != TEST_STACK)
 			{
-				panic();
+				//panic();
 			}
 			if (**_tmp != TEST_USER_SPACE)
 			{
-				panic();
+				//panic();
 			}
 
 			_tmp2 = _tmp + 3;
@@ -325,7 +324,7 @@ void syscall_handler()
 				{
 					printk("!!\n");
 				}
-				panic();
+				//panic();
 			}
 		}
 		
