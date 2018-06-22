@@ -54,6 +54,7 @@
 #define CLOSED                  8
 #define FIN_WAIT_1_PENDING      9
 #define LAST_ACK_PENDING       10
+#define RESET                  11
 
 //timout=200 ms (quantum = 10 ms)
 #define PIGGYBACKING_TIMEOUT 20
@@ -99,7 +100,6 @@ typedef struct s_tcp_rcv_queue
 	u32 wnd_size;
 	u32 nxt_rcv; //ack relativo finestra di ricezione e usato in trasmissione
 	t_bit_vector* buf_state;
-	//t_spinlock_desc lock;
 }
 t_tcp_rcv_queue;
 
@@ -134,6 +134,8 @@ typedef struct s_tcp_conn_desc
 	u32 last_ack_sent;
 	//introsuced to test congestion only.
 	u32 last_seq_sent;
+	u32 debug_status;
+	u32 count;
 }
 t_tcp_conn_desc;
 

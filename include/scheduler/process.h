@@ -80,6 +80,9 @@ struct t_process_context
 	char* debug_handler;
 	int pending_fork;
 	u32 user_mode_stack;
+	u32 user_mode_status;
+	u32 start_time;
+	u32 end_time;
 };
 
 struct t_process_info 

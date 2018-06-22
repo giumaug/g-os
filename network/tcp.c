@@ -110,11 +110,14 @@ t_tcp_conn_desc* tcp_conn_desc_int()
 	tcp_conn_desc->last_sent_time = 0;
 	tcp_conn_desc->last_ack_sent = 0;
 	tcp_conn_desc->process_context = NULL;
+	tcp_conn_desc->debug_status = 0;
+	tcp_conn_desc->count = 0;
 	return tcp_conn_desc;
 }
 
 void tcp_conn_desc_free(t_tcp_conn_desc* tcp_conn_desc)
 {
+	remove_tcp_conn(tcp_conn_desc->dst_port);
 	tcp_rcv_queue_free(tcp_conn_desc->rcv_queue);
 	tcp_snd_queue_free(tcp_conn_desc->snd_queue);
 	tcp_conn_map_free(tcp_conn_desc->back_log_i_map);
@@ -155,12 +158,12 @@ static void update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue)
 	u32 offset;
 	u32 index;
 	u32 state_index;
-	u32 wnd_max;
+	unsigned long long wnd_max;
 	u8 slot_state;
 
 	offset = 0;
 	index = tcp_queue->wnd_min;
-	wnd_max = index + tcp_queue->buf_size;
+	wnd_max = index + (long long)tcp_queue->buf_size;
 	while(index < wnd_max)
 	{
 		state_index = SLOT_WND(index,tcp_queue->buf_size);
@@ -188,7 +191,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	u32 seq_num;
 	u32 ack_seq_num;
 	u32 ack_num;
-	u32 wnd_max;
+	long long wnd_max;
 	u32 rcv_wmd_adv;
 	u32 len_1;
 	u32 len_2;
@@ -201,6 +204,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	t_tcp_conn_desc* tcp_req_desc = NULL;
 	t_tcp_conn_desc* tcp_listen_desc = NULL;
 	t_tcp_conn_desc* new_tcp_conn_desc = NULL;
+	t_tcp_conn_desc* pending_tcp_conn_desc = NULL;
 	struct t_process_context* process_context = NULL;
 	u8 flags;
 	
@@ -229,7 +233,51 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	}
 	if (flags & 4)
 	{
+		system.reset++;
 		printk("reset!!!! \n");
+		//panic();
+		if (tcp_conn_desc != NULL)
+		{
+			printk("tcp_conn_desc \n");
+			rtrsn_timer_reset(tcp_conn_desc->rtrsn_timer);
+			tcp_conn_desc->status = RESET;
+			if (tcp_conn_desc->ref_count == 0)
+			{
+				system.reset_1++;
+			} else if (tcp_conn_desc->ref_count == 1)
+			{
+				system.reset_2++;
+			}
+			else if (tcp_conn_desc->ref_count == new_tcp_conn_desc)
+			{
+				system.reset_3++;
+			}
+			if (tcp_conn_desc->ref_count == 0)
+			{
+				tcp_conn_map_remove(tcp_desc->conn_map,
+				            	    tcp_conn_desc->src_ip,
+				                    tcp_conn_desc->dst_ip,
+				                    tcp_conn_desc->src_port,
+				                    tcp_conn_desc->dst_port);
+				tcp_conn_desc_free(tcp_conn_desc);
+				goto EXIT;
+			}
+		}
+		else if (tcp_req_desc != NULL)
+		{
+			printk("tcp_req_desc \n");
+			rtrsn_timer_reset(tcp_req_desc->rtrsn_timer);
+			tcp_conn_desc->status = RESET;
+		}
+		else if (tcp_listen_desc != NULL)
+		{
+			pending_tcp_conn_desc = tcp_conn_map_get(tcp_listen_desc->back_log_i_map,dst_ip,src_ip,dst_port,src_port);
+			if (pending_tcp_conn_desc != NULL)
+			{
+				tcp_conn_map_remove(tcp_listen_desc->back_log_i_map,dst_ip,src_ip,dst_port,src_port);
+				tcp_conn_desc_free(pending_tcp_conn_desc);
+			}
+		}
 	}
 	
 	//THREE WAY HANDSHAKE SYN + ACK FROM SERVER TO CLIENT
@@ -305,6 +353,9 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 				enqueue(tcp_listen_desc->back_log_c_queue,new_tcp_conn_desc);
 				tcp_conn_map_put(tcp_desc->conn_map,dst_ip,src_ip,dst_port,src_port,new_tcp_conn_desc);
 				new_tcp_conn_desc->status = ESTABILISHED;
+		
+				add_tcp_conn(new_tcp_conn_desc->dst_port,new_tcp_conn_desc);			
+
 				new_tcp_conn_desc->snd_queue->nxt_snd++;
 				new_tcp_conn_desc->snd_queue->cur =  new_tcp_conn_desc->snd_queue->nxt_snd;
 				new_tcp_conn_desc->rcv_wmd_adv = rcv_wmd_adv;
@@ -315,7 +366,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 					_awake(tcp_listen_desc->process_context);
 					tcp_listen_desc->process_context = NULL;
 				}
-				rtrsn_timer_reset(new_tcp_conn_desc->rtrsn_timer);		
+				rtrsn_timer_reset(new_tcp_conn_desc->rtrsn_timer);	
 			}
 			goto EXIT;
 		}
@@ -323,7 +374,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	tcp_conn_desc = tcp_conn_map_get(tcp_desc->conn_map,dst_ip,src_ip,dst_port,src_port);
 	if (tcp_conn_desc == NULL) 
 	{
-		//printk("--d3.3 %d \n",src_port);
 		goto EXIT;
 	}	
 	t_tcp_rcv_queue* tcp_queue = tcp_conn_desc->rcv_queue;
@@ -335,12 +385,10 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	if ((flags & FLG_FIN) && (flags & FLG_ACK) 
 	    && tcp_conn_desc->status == FIN_WAIT_1)
 	{
-		//printk("--d4 %d \n",src_port);
 		if (fin_num + 1 == ack_seq_num)
 		{
 			//SHOULD BE CLOSE_WAIT AND SHOULD BE MANAGED 2MLS TIMER (TCP ILLUSTRATED PAG 590)
 			tcp_conn_desc->status = CLOSED;
-			//tcp_conn_desc->seq_num = tcp_conn_desc->fin_num + 1;
 			_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK,(fin_num + 1));
 			tcp_conn_map_remove(tcp_desc->conn_map,
 					    tcp_conn_desc->src_ip,
@@ -350,6 +398,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 
 			rtrsn_timer_reset(tcp_conn_desc->rtrsn_timer);
 			tcp_conn_desc_free(tcp_conn_desc);
+			system.fin_1++;
 			goto EXIT;
 		}
 		else
@@ -361,7 +410,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	    	 && tcp_conn_desc->status == FIN_WAIT_1
 	    	 && (fin_num + 1) == ack_seq_num)
 	{
-		//printk("--d5 %d \n",src_port);
 		tcp_conn_desc->status = FIN_WAIT_2;
 		rtrsn_timer_reset(tcp_conn_desc->rtrsn_timer);
 		goto EXIT;
@@ -374,13 +422,13 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	}
 	else if (flags & FLG_FIN && tcp_conn_desc->status == FIN_WAIT_2)
 	{
-		//printk("--d6 %d \n",src_port);
 		//SHOULD BE CLOSE_WAIT AND SHOULD BE MANAGED 2MLS TIMER (TCP ILLUSTRATED PAG 590)
 		tcp_conn_desc->status = CLOSED;
 		_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,(seq_num + 1),FLG_ACK,(fin_num + 1));
 		rtrsn_timer_reset(tcp_conn_desc->rtrsn_timer);
 		tcp_conn_map_remove(tcp_desc->conn_map,tcp_conn_desc->src_ip,tcp_conn_desc->dst_ip,tcp_conn_desc->src_port,tcp_conn_desc->dst_port);
 		tcp_conn_desc_free(tcp_conn_desc);
+		system.fin_2++;
 		goto EXIT;
 	}
 	else if (flags & FLG_FIN && tcp_conn_desc->status == FIN_WAIT_1)
@@ -410,6 +458,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		rtrsn_timer_reset(tcp_conn_desc->rtrsn_timer);
 		tcp_conn_map_remove(tcp_desc->conn_map,tcp_conn_desc->src_ip,tcp_conn_desc->dst_ip,tcp_conn_desc->src_port,tcp_conn_desc->dst_port);
 		tcp_conn_desc_free(tcp_conn_desc);
+		system.fin_3++;
 		goto EXIT;
 	}
 	else if ((tcp_conn_desc->status == CLOSE_WAIT || tcp_conn_desc->status == LAST_ACK)
@@ -475,7 +524,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			}
 		}
 		else
-		{	
+		{
 			goto EXIT;
 		}
 		update_rcv_window_and_ack(tcp_queue);
@@ -782,6 +831,7 @@ EXIT:
 		else if (tcp_conn_desc->status == LAST_ACK_PENDING)
 		{
 			tcp_conn_desc->status = LAST_ACK;
+			tcp_conn_desc->debug_status = 1;
 		}
 		if (tcp_conn_desc->pgybg_timer->ref != NULL)
 		{
@@ -890,9 +940,10 @@ void rtrsn_timer_handler(void* arg)
 {
 	t_tcp_conn_desc* tcp_conn_desc = NULL;
 	u32 ack_num = 0;
+	u32 seq_num = 0;
 
 
-	printk("timeout !!!\n ");
+	//printk("timeout !!!\n ");
 	tcp_conn_desc = (t_tcp_conn_desc*) arg;
 	if (tcp_conn_desc->status == ESTABILISHED || tcp_conn_desc->status == FIN_WAIT_1_PENDING)
 	{
@@ -922,9 +973,12 @@ void rtrsn_timer_handler(void* arg)
 	}
 	else if (tcp_conn_desc->status == LAST_ACK)
 	{
-		//send_packet_tcp(tcp_conn_desc,NULL,0,0,FLG_FIN);
 		tcp_conn_desc->rtrsn_timer->val = tcp_conn_desc->rto;
+		ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;
+		seq_num = tcp_conn_desc->snd_queue->nxt_snd;
+		_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,ack_num,(FLG_FIN | FLG_ACK),seq_num);
 	}
+	system.rtrsn_timeout++;
 }
 
 //Non occorre sincronizzazione sto dentro stessa deferred queue
@@ -947,6 +1001,7 @@ void pgybg_timer_handler(void* arg)
 		tcp_conn_desc->pgybg_timer->ref = NULL;
 	}
 	tcp_conn_desc->pgybg_timer->val = 0;
+	system.piggy_timeout++;
 }
 
 unsigned int _rand();

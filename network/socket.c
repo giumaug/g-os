@@ -1,5 +1,11 @@
 #include "network/socket.h"
 
+//TO DO:More sockects can point to same tcp connection.
+//We want only one socket can reference one tcp connection because
+//TCP_CONN_DESC reference only one process.
+//Multliple refererence should be checked and managed unless connection
+//in listen state.
+
 //NON SERVONO SOLO PER COMPILARE UDP 
 //static int free_port_search
 //t_socket_desc* socket_desc_init()
@@ -81,12 +87,17 @@ void socket_free(t_socket* socket)
 	}
 	else  if (socket->type == 1)
 	{
+		system.tcp_close_1++;
 		socket->tcp_conn_desc->ref_count--;
 		//printk("---------\n");
 		//printk("status=%d \n",socket->tcp_conn_desc->status);
 		//printk("ref_count=%d \n",socket->tcp_conn_desc->ref_count);
-		if ((socket->tcp_conn_desc->status == ESTABILISHED || socket->tcp_conn_desc->status == CLOSE_WAIT) && socket->tcp_conn_desc->ref_count == 0)
+		if ((socket->tcp_conn_desc->status == ESTABILISHED || 
+		     socket->tcp_conn_desc->status == CLOSE_WAIT ||
+                     socket->tcp_conn_desc->status == RESET) && 
+		     socket->tcp_conn_desc->ref_count == 0)
 		{
+			system.tcp_close_2++;
 			close_tcp(socket->tcp_conn_desc);
 		}
 		kfree(socket);

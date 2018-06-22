@@ -39,7 +39,21 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	system.exit_0 = 0;
 	system.exit_1 = 0;
 	system.cpanic = 0;
-
+	system.piggy_timeout = 0;
+	system.rtrsn_timeout = 0;
+	system.active_process = 0;
+	system.tcp_close_1 = 0;
+	system.tcp_close_2 = 0;
+	system.fin_1 = 0;
+	system.fin_2 = 0;
+	system.fin_3 = 0;
+	system.reset_1 = 0;
+	system.reset_2 = 0;
+	system.reset_3 = 0;
+	system.proc_count = 0;
+	system.avg_exec_time = 0;
+	system.exec_time = 0;
+	
 	system.preempt_network_flush = 0;
 	system.time = 0;
 	init_data = init_data_add;

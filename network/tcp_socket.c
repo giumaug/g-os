@@ -116,6 +116,8 @@ int connect_tcp(u32 dst_ip,u16 dst_port,t_socket* socket)
 void close_tcp(t_tcp_conn_desc* tcp_conn_desc)
 {
 	t_tcp_desc* tcp_desc = NULL;
+	t_tcp_conn_desc* tmp_tcp_conn_desc = NULL;
+	t_tcp_conn_map*  tmp_tcp_conn_map = NULL;
 	u8 flags = 0;
 	u32 ack_num = 0;
 	u32 seq_num = 0;	
@@ -127,40 +129,88 @@ void close_tcp(t_tcp_conn_desc* tcp_conn_desc)
 	seq_num = seq_num = tcp_conn_desc->snd_queue->nxt_snd;
 	ack_num = tcp_conn_desc->last_ack_sent;
 
-	if (tcp_conn_desc->status == CLOSED)
+	struct t_process_context* tmp;	
+	CURRENT_PROCESS_CONTEXT(tmp);
+	tmp->user_mode_status = 11;
+
+	if (tcp_conn_desc->status == RESET)
 	{
-		tcp_conn_map_remove(tcp_desc->listen_map,tcp_conn_desc->src_ip,tcp_conn_desc->dst_ip,tcp_conn_desc->src_port,tcp_conn_desc->dst_port);
-	}
-	if (tcp_conn_desc->snd_queue->wnd_min == tcp_conn_desc->snd_queue->cur)
-	{
-		if (tcp_conn_desc->pgybg_timer->ref != NULL)
+		panic();
+		tmp_tcp_conn_desc = tcp_conn_map_get(tcp_desc->conn_map,
+						tcp_conn_desc->src_ip,
+						tcp_conn_desc->dst_ip,
+						tcp_conn_desc->src_port,
+						tcp_conn_desc->dst_port);
+		if (tmp_tcp_conn_desc != NULL)
 		{
-			ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;
-			ll_delete_node(tcp_conn_desc->pgybg_timer->ref);
-			tcp_conn_desc->pgybg_timer->ref = NULL;
+			tmp_tcp_conn_map = tcp_desc->conn_map;
 		}
-		flags |= FLG_ACK;
-		_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,ack_num,flags,seq_num);
+		else
+		{
+			tmp_tcp_conn_desc = tcp_conn_map_get(tcp_desc->listen_map,
+					 	             tcp_conn_desc->src_ip,
+						             tcp_conn_desc->dst_ip,
+						             tcp_conn_desc->src_port,
+						             tcp_conn_desc->dst_port);
+
+			if (tmp_tcp_conn_desc != NULL)
+			{
+				tmp_tcp_conn_map = tcp_desc->listen_map;
+			}
+		}
+                if (tmp_tcp_conn_map != NULL)
+		{
+			tcp_conn_map_remove(tmp_tcp_conn_map,
+				            tcp_conn_desc->src_ip,
+				            tcp_conn_desc->dst_ip,
+				            tcp_conn_desc->src_port,
+				            tcp_conn_desc->dst_port);
+			tcp_conn_desc_free(tmp_tcp_conn_desc);
+		}
+	}
+	else
+	{ 
+		if (tcp_conn_desc->status == CLOSED)
+		{
+			tcp_conn_map_remove(tcp_desc->listen_map,
+				    	    tcp_conn_desc->src_ip,
+				            tcp_conn_desc->dst_ip,
+				            tcp_conn_desc->src_port,
+				            tcp_conn_desc->dst_port);
+		}
+		if (tcp_conn_desc->snd_queue->wnd_min == tcp_conn_desc->snd_queue->cur)
+		{
+			if (tcp_conn_desc->pgybg_timer->ref != NULL)
+			{
+				ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;
+				ll_delete_node(tcp_conn_desc->pgybg_timer->ref);
+				tcp_conn_desc->pgybg_timer->ref = NULL;
+			}
+			flags |= FLG_ACK;
+			_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,ack_num,flags,seq_num);
+			rtrsn_timer_set(tcp_conn_desc->rtrsn_timer,tcp_conn_desc->rto);
+			if (tcp_conn_desc->status == ESTABILISHED)
+			{
+				//FIN from client to server
+				tcp_conn_desc->status = FIN_WAIT_1;
+			}	
+			else if (tcp_conn_desc->status == CLOSE_WAIT) 
+			{
+				//FIN from server to client
+				tcp_conn_desc->status = LAST_ACK;
+				tcp_conn_desc->debug_status = 2;
+			}
+		}
 		if (tcp_conn_desc->status == ESTABILISHED)
 		{
 			//FIN from client to server
-			tcp_conn_desc->status = FIN_WAIT_1;
-		}	
-		else if (tcp_conn_desc->status == CLOSE_WAIT) 
-		{
-			//FIN from server to client
-			tcp_conn_desc->status = LAST_ACK;
+			tcp_conn_desc->status = FIN_WAIT_1_PENDING;
 		}
-	}
-	if (tcp_conn_desc->status == ESTABILISHED)
-	{
-		//FIN from client to server
-		tcp_conn_desc->status = FIN_WAIT_1_PENDING;
-	}
-	else if (tcp_conn_desc->status == CLOSE_WAIT) {
+		else if (tcp_conn_desc->status == CLOSE_WAIT) {
 
-		//FIN from server to client
-		tcp_conn_desc->status = LAST_ACK_PENDING;
+			//FIN from server to client
+			tcp_conn_desc->status = LAST_ACK_PENDING;
+		}
 	}
 	RESTORE_IF_STATUS
 	return;
@@ -168,6 +218,7 @@ void close_tcp(t_tcp_conn_desc* tcp_conn_desc)
 
 int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 {
+	int ret = 0;
 	u32 i = 0;
 	u32 len_1 = 0;
 	u32 len_2 = 0;
@@ -181,56 +232,68 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	SAVE_IF_STATUS
 	CLI
 	CURRENT_PROCESS_CONTEXT(current_process_context);
-	tcp_queue = tcp_conn_desc->rcv_queue;
-	available_data = tcp_queue->nxt_rcv - tcp_queue->wnd_min;
-	while (available_data == 0)
+
+	if (tcp_conn_desc->status == RESET)
 	{
-		enqueue(tcp_conn_desc->data_wait_queue,current_process_context);
-		_sleep();
+		panic();
+		printk("reset on read!!!! \n");
+		ret = -1;
+	}
+	else if (tcp_conn_desc->status == ESTABILISHED || tcp_conn_desc->status == CLOSE_WAIT)
+	{
+		tcp_queue = tcp_conn_desc->rcv_queue;
 		available_data = tcp_queue->nxt_rcv - tcp_queue->wnd_min;
-		if (available_data == 0)
+		while (available_data == 0)
 		{
-			return 0;
+			enqueue(tcp_conn_desc->data_wait_queue,current_process_context);
+			_sleep();
+			available_data = tcp_queue->nxt_rcv - tcp_queue->wnd_min;
+			if (available_data == 0)
+			{
+				ret = -1;
+				goto EXIT;
+			}	
 		}
-	}
 
-	if (available_data > 0 && available_data < data_len)
-	{
-		data_len = available_data;
-	}
-
-	low_index = SLOT_WND(tcp_queue->wnd_min,tcp_queue->buf_size);
-	hi_index = SLOT_WND((tcp_queue->wnd_min + data_len),tcp_queue->buf_size);
-
-	if (low_index < hi_index) 
-	{
-		kmemcpy(data,(tcp_queue->buf + low_index),data_len);
-		for (i = low_index;i < hi_index;i++)
+		if (available_data > 0 && available_data < data_len)
 		{
-			bit_vector_reset(tcp_queue->buf_state,i);
+			data_len = available_data;
+			ret = data_len;
 		}
-	}
-	else 
-	{
-		len_1 = tcp_queue->buf_size - low_index;
-		len_2 = data_len - len_1;
-		kmemcpy(data,(tcp_queue->buf + low_index),len_1);
-		kmemcpy(data + len_1,tcp_queue->buf,len_2);
 
-		for (i = low_index ; i < (low_index + len_1) ; i++)
-		{
-			bit_vector_reset(tcp_queue->buf_state,i);
-		}
-		for (i = 0;i < len_2;i++)
-		{
-			bit_vector_reset(tcp_queue->buf_state,i);
-		}
-	}
-	tcp_queue->wnd_size += data_len;
-	tcp_queue->wnd_min += data_len;
+		low_index = SLOT_WND(tcp_queue->wnd_min,tcp_queue->buf_size);
+		hi_index = SLOT_WND((tcp_queue->wnd_min + data_len),tcp_queue->buf_size);
 
+		if (low_index < hi_index) 
+		{
+			kmemcpy(data,(tcp_queue->buf + low_index),data_len);
+			for (i = low_index;i < hi_index;i++)
+			{
+				bit_vector_reset(tcp_queue->buf_state,i);
+			}
+		}
+		else 
+		{
+			len_1 = tcp_queue->buf_size - low_index;
+			len_2 = data_len - len_1;
+			kmemcpy(data,(tcp_queue->buf + low_index),len_1);
+			kmemcpy(data + len_1,tcp_queue->buf,len_2);
+
+			for (i = low_index ; i < (low_index + len_1) ; i++)
+			{
+				bit_vector_reset(tcp_queue->buf_state,i);
+			}
+			for (i = 0;i < len_2;i++)
+			{
+				bit_vector_reset(tcp_queue->buf_state,i);
+			}
+		}
+		tcp_queue->wnd_size += data_len;
+		tcp_queue->wnd_min += data_len;
+	}
+EXIT:
 	RESTORE_IF_STATUS
-	return data_len;
+	return ret;
 }
 
 //Meglio scodare solo dentro la deferred queue,serve pure un meccanismo che
@@ -245,10 +308,17 @@ int enqueue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	u32 wnd_max;
 	u32 len_1;
 	u32 len_2;
+	int ret = 0;
 
 	SAVE_IF_STATUS
 	CLI
-	if (tcp_conn_desc->status == ESTABILISHED || tcp_conn_desc->status == CLOSE_WAIT)
+	if (tcp_conn_desc->status == RESET)
+	{
+		panic();
+		printk("reset on write!!!! \n");
+		ret = -1;
+	}
+	else if (tcp_conn_desc->status == ESTABILISHED || tcp_conn_desc->status == CLOSE_WAIT)
 	{
 		tcp_queue = tcp_conn_desc->snd_queue;
 		wnd_max = tcp_queue->wnd_min + tcp_queue->buf_size;
@@ -257,10 +327,11 @@ int enqueue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		if (b_free_size < data_len)
 		{
 			RESTORE_IF_STATUS
-			return -1;
+			ret = -1;
 		}
 		else
 		{
+			ret = data_len;
 			cur_index = SLOT_WND(tcp_queue->cur,tcp_queue->buf_size);
 			if ((tcp_queue->buf_size - cur_index) > data_len)
 			{
@@ -280,5 +351,5 @@ int enqueue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		update_snd_window(tcp_conn_desc,0,1);
 	}
 	RESTORE_IF_STATUS
-	return 0;
+	return ;
 }

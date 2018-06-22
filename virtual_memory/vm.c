@@ -217,7 +217,7 @@ void free_vm_process_user_space(struct t_process_context* process_context)
 			u32 z1 = BLOCK_INDEX_FROM_PHY(ALIGN_4K(page_table[i]));
 			if (system.shell_u_stack == z1)
 			{
-				panic();
+				//panic();
 			}
 		}
 		else if (page_table[i]!=0)
@@ -227,7 +227,7 @@ void free_vm_process_user_space(struct t_process_context* process_context)
 			u32 z1 = BLOCK_INDEX_FROM_PHY(ALIGN_4K(page_table[i]));
 			if (system.shell_u_stack == z1 && system.buddy_desc->count[z1] == 0)
 			{
-				panic();
+				//panic();
 			}
 		}
 		page_table[i]=0;
@@ -251,7 +251,7 @@ void free_vm_process_user_space(struct t_process_context* process_context)
 						page_table[j]=0;
 						if (system.shell_u_stack == z1)
 						{
-							panic();
+							//panic();
 						}
 					}
 					else if (page_table[j]!=0)
@@ -261,7 +261,7 @@ void free_vm_process_user_space(struct t_process_context* process_context)
 						u32 z1 = BLOCK_INDEX_FROM_PHY(ALIGN_4K(page_table[j]));
 						if (system.shell_u_stack == z1 && system.buddy_desc->count[z1] == 0)
 						{
-							panic();
+							//panic();
 						}
 					}
 				}	
@@ -507,7 +507,7 @@ void page_fault_handler()
 					unsigned int* xxx = ((unsigned int*)(page_addr + 0xf1c));
 					if (*((unsigned int*)(page_addr + 0xf1c)) != AFTER_FORK)
 					{
-						panic();
+						//panic();
 					}
 				}
 			}
