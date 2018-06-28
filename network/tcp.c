@@ -68,6 +68,12 @@ static t_tcp_rcv_queue* tcp_rcv_queue_init(u32 size)
 	tcp_rcv_queue->wnd_size = TCP_RCV_SIZE;
 	tcp_rcv_queue->buf_size = TCP_RCV_SIZE;
 	tcp_rcv_queue->nxt_rcv = 0; 
+
+	tcp_rcv_queue->seq_num = 0;
+	tcp_rcv_queue->data_len = 0;
+	tcp_rcv_queue->low_index = 0;
+	tcp_rcv_queue->hi_index = 0;
+
 	return tcp_rcv_queue;
 }
 
@@ -220,6 +226,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 
 	if (checksum_tcp((unsigned short*) tcp_row_packet,src_ip,dst_ip,data_len) !=0 )
 	{
+		//panic();
 		goto EXIT;
 	}
 	tcp_conn_desc = tcp_conn_map_get(tcp_desc->conn_map,dst_ip,src_ip,dst_port,src_port);
@@ -228,6 +235,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 
 	if (tcp_req_desc == NULL && tcp_listen_desc == NULL && tcp_conn_desc != NULL )
 	{
+		//panic();
 		printk("no connection !!!!!! \n"); 
 		goto EXIT;
 	}
@@ -374,8 +382,13 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	tcp_conn_desc = tcp_conn_map_get(tcp_desc->conn_map,dst_ip,src_ip,dst_port,src_port);
 	if (tcp_conn_desc == NULL) 
 	{
+//		if (!(flags & 4))
+//		{
+//			panic();
+//		}
 		goto EXIT;
-	}	
+	}
+	tcp_conn_desc->count++;	
 	t_tcp_rcv_queue* tcp_queue = tcp_conn_desc->rcv_queue;
 	upd_max_adv_wnd(tcp_conn_desc,rcv_wmd_adv);
 
@@ -470,6 +483,11 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 //END PASSIVE CLOSE
 	else if (data_len != 0)
 	{
+		tcp_queue->seq_num = seq_num;
+		tcp_queue->data_len = data_len;
+		tcp_queue->low_index = SLOT_WND(seq_num,tcp_queue->buf_size);
+		tcp_queue->hi_index = SLOT_WND((seq_num + data_len),tcp_queue->buf_size);
+		
 		//printk("--d8 %d \n",src_port);
 		if (tcp_conn_desc->pgybg_timer->val == 0)
 		{
@@ -477,7 +495,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			tcp_conn_desc->pgybg_timer->ref = ll_append(system.timer_list,tcp_conn_desc->pgybg_timer);
 			tcp_conn_desc->pgybg_timer->id = 2;
 		}
-		wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
+		wnd_max = tcp_queue->wnd_min + (long long) tcp_queue->wnd_size;
 		if (seq_num >= tcp_queue->wnd_min && seq_num + data_len <= wnd_max)
 		{
 			low_index = SLOT_WND(seq_num,tcp_queue->buf_size);
