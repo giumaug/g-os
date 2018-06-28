@@ -5,9 +5,9 @@
 extern go;
 extern unsigned int free_mem_list[POOL_NUM];
 
-unsigned int pending_port[5000];
-unsigned int pending_port_age[5000];
-t_tcp_conn_desc* pending_connection[5000];
+unsigned int pending_port[10000];
+unsigned int pending_port_age[10000];
+t_tcp_conn_desc* pending_connection[10000];
 unsigned int pending_port_index;
 unsigned int trace_buffer_1[10000];
 unsigned int trace_buffer_2[10000];
@@ -142,6 +142,8 @@ void is_phy_page_used(unsigned int phy_page_addr)
 
 void collect_mem_alloc(unsigned int page_addr)
 {
+	return;
+/*
 	unsigned int i=0;
 
 	if (collect_mem == 1)
@@ -169,13 +171,17 @@ void collect_mem_alloc(unsigned int page_addr)
 		}
 		collected_mem[collected_mem_index] = page_addr;
 	}
+*/
 }
 
 void collect_mem_free(unsigned int page_addr)
 {
 	int found=0;
 	unsigned int i=0;
-	
+
+	return;
+
+/*
 	if (collect_mem == 1)
 	{
 		for (i = 0;i < 5000;i++)
@@ -193,49 +199,8 @@ void collect_mem_free(unsigned int page_addr)
 			panic();
 		}
 	}
-}
-
-/*
-void _collect_mem_alloc(unsigned int page_addr)
-{
-	if (collect_mem == 1 && start_count == 1)
-	{
-		collected_mem[collected_mem_index++]=page_addr;
-		if (collected_mem_index>49999)
-		{
-			collected_mem_index = 0;
-			//panic();
-		}
-	}
-}
 */
-
-/*
-void _collect_mem_free(unsigned int page_addr)
-{
-	int found=0;
-	unsigned int i=0;
-	
-	if (collect_mem == 1 && start_count ==1 )
-	{
-		for (i=0;i<=50000;i++)
-		{
-			if (collected_mem[i]==page_addr)
-			{
-				allocated_block--;
-				collected_mem[i]=0;
-				found=1;
-				break;
-			}
-		}
-		if (found==0) 
-		{
-			found=1;
-			panic();
-		}
-	}
 }
-*/
 
 void check_not_released()
 {
@@ -297,7 +262,7 @@ void reset_tcp_counter()
 {
 	int i;
 
-	for (i = 0; i <5000;i++)
+	for (i = 0; i <10000;i++)
 	{
 		pending_port[i] = 0;
 		pending_port_age[i] = 0;
@@ -311,19 +276,19 @@ void add_tcp_conn(u32 port,t_tcp_conn_desc* conn)
 	int i;
 
 	pending_port_index++;
-	if (pending_port_index == 5000)
+	if (pending_port_index == 10000)
 	{
 		reset_tcp_counter();
 	}
 	pending_port[pending_port_index] = port;
-	pending_port_age[pending_port_index] = (system.tcp_1 % 5000);
+	pending_port_age[pending_port_index] = (system.tcp_1 % 10000);
 	pending_connection[pending_port_index] = conn;
 }
 void remove_tcp_conn(u32 port)
 {
 	int i;
 
-	for (i = 0; i <5000;i++)
+	for (i = 0; i <10000;i++)
 	{
 		if (pending_port[i] == port)
 		{
@@ -340,7 +305,7 @@ void check_tcp_conn()
 	u32 counter;
 	int i;
 	
-	counter = system.tcp_1 % 5000;	
+	counter = system.tcp_1 % 10000;	
 
 	if (counter < pending_port_index)
 	{
@@ -348,13 +313,13 @@ void check_tcp_conn()
 		return;
 	}
 
-	for (i = 0; i <5000;i++)
+	for (i = 0; i <10000;i++)
 	{
 		//if (counter > 100)
 		//{
 		//	panic();
 		//}
-		if (pending_port[i] != 0 && (counter - pending_port_age[i]) > 3000 )
+		if (pending_port[i] != 0 && (counter - pending_port_age[i]) > 8000 )
 		{
 			panic();
 		}

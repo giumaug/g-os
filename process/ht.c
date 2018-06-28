@@ -36,9 +36,9 @@ int main()
 	
 	ssock.sin_family = AF_INET;
 //	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=87;
-//	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=10;
-//	((unsigned char*) &(server_address.sin_addr.s_addr))[2]=4;
-//      ((unsigned char*) &(server_address.sin_addr.s_addr))[3]=227;
+//	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=11;
+//	((unsigned char*) &(server_address.sin_addr.s_addr))[2]=64;
+//      ((unsigned char*) &(server_address.sin_addr.s_addr))[3]=111;
 
 	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=192;
 	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=168;
