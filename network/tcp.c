@@ -226,7 +226,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 
 	if (checksum_tcp((unsigned short*) tcp_row_packet,src_ip,dst_ip,data_len) !=0 )
 	{
-		//panic();
 		goto EXIT;
 	}
 	tcp_conn_desc = tcp_conn_map_get(tcp_desc->conn_map,dst_ip,src_ip,dst_port,src_port);
@@ -235,7 +234,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 
 	if (tcp_req_desc == NULL && tcp_listen_desc == NULL && tcp_conn_desc != NULL )
 	{
-		//panic();
 		printk("no connection !!!!!! \n"); 
 		goto EXIT;
 	}
@@ -243,7 +241,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	{
 		system.reset++;
 		printk("reset!!!! \n");
-		//panic();
 		if (tcp_conn_desc != NULL)
 		{
 			printk("tcp_conn_desc \n");
@@ -382,10 +379,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	tcp_conn_desc = tcp_conn_map_get(tcp_desc->conn_map,dst_ip,src_ip,dst_port,src_port);
 	if (tcp_conn_desc == NULL) 
 	{
-//		if (!(flags & 4))
-//		{
-//			panic();
-//		}
 		goto EXIT;
 	}
 	tcp_conn_desc->count++;	
@@ -676,7 +669,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 //	printk("still to send %d \n",(tcp_queue->cur - tcp_queue->nxt_snd));
 //      printk("win min %d \n", tcp_queue->wnd_min);
 //      printk("nxt_snd %d \n", tcp_queue->nxt_snd);
-        //printk("ack_seq_num %d \n",ack_seq_num);
+//      printk("ack_seq_num %d \n",ack_seq_num);
 //	printk("retry timesd is  %d \n",tcp_conn_desc->rtrsn_timer->val);
 	if (tcp_conn_desc->duplicated_ack > 2 && ack_seq_num == 0)
 	{
@@ -688,50 +681,25 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		{
 			word_to_ack = ack_seq_num - tcp_queue->wnd_min;
 			tcp_queue->wnd_min = tcp_queue->wnd_min + word_to_ack;
-			 //printk("setting win min to %d \n", tcp_queue->wnd_min);
 		}
-		wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
-
-//		//no data to send
-//		if ((tcp_queue->cur - tcp_queue->nxt_snd) == 0)
-//		{	
-//			if (tcp_conn_desc->pgybg_timer->val == 0 && ack_num > tcp_conn_desc->last_ack_sent)
-//			{
-//				tcp_conn_desc->pgybg_timer->val = PIGGYBACKING_TIMEOUT;
-//				tcp_conn_desc->pgybg_timer->ref = ll_append(system.timer_list,tcp_conn_desc->pgybg_timer);
-//			}
-//			goto EXIT;
-//		}
-		
+		wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;		
 		if (tcp_queue->cur >= tcp_queue->wnd_min && tcp_queue->cur <= wnd_max)
 		{	
 			wnd_l_limit = tcp_queue->nxt_snd;
 			wnd_r_limit = tcp_queue->cur;
-			//printk("aaaaaa \n");
 		}
 		else if (tcp_queue->cur >= wnd_max && tcp_queue->nxt_snd <= wnd_max)
 		{	
 			wnd_l_limit = tcp_queue->nxt_snd;
 			wnd_r_limit = wnd_max;
-			//printk("bbbbb \n");
 		}
 		else
 		{
 			//no data inside window!!!!!!!
 			data_to_send = 0;
 			indx = tcp_queue->nxt_snd;
-			//printk("no data inside window!!!!! \n");
-			//printk("min= %d \n",tcp_queue->wnd_min);
-			//printk("cur= %d \n",tcp_queue->cur);
-			//printk("wnd_max= %d \n",wnd_max);
-			//printk("snd= %d \n",tcp_queue->nxt_snd);
-			//if (tcp_conn_desc->rtrsn_timer->val == 0)
-			//{
-			//	printk("ops!!!! \n");
-			//}
 			goto EXIT;
 		}
-		
 		//sender silly window avoidance
 		//implementation lacks receiver case!!! (this is sender case)		
 		w_size = wnd_r_limit - wnd_l_limit;
@@ -754,13 +722,11 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		indx = wnd_l_limit;
 		if (data_to_send < SMSS && data_to_send > 0) 
 		{
-			//printk("check needed!!! \n");
 		}
 		tcp_conn_desc->flight_size = tcp_queue->nxt_snd - tcp_queue->wnd_min;
 	}
 	else if (tcp_conn_desc->duplicated_ack == 1 || tcp_conn_desc->duplicated_ack == 2)
 	{
-		//printk("duplicated ack!!! \n");
 		wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
 		if (wnd_max > tcp_queue->nxt_snd)
 		{
@@ -835,8 +801,6 @@ EXIT:
 	{
 
 	}
-        //printk("nxt_snd %d \n", tcp_queue->nxt_snd);
-	//printk("--------------------\n");
 
 	//close connection with FIN flag both client and server	
 	//FIN needs retrasmission management only. No retry.
@@ -857,8 +821,7 @@ EXIT:
 			tcp_conn_desc->pgybg_timer->ref = NULL;
 		}
 		_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,ack_num,FLG_FIN | FLG_ACK,tcp_conn_desc->snd_queue->nxt_snd);
-		rtrsn_timer_set(tcp_conn_desc->rtrsn_timer,tcp_conn_desc->rto);
-//		printk("fin from fix2 \n");		
+		rtrsn_timer_set(tcp_conn_desc->rtrsn_timer,tcp_conn_desc->rto);	
 	}
 }
 
@@ -873,7 +836,6 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 	u32 seq_num;
 
 	tcp_queue = tcp_conn_desc->snd_queue;
-	//seq_num = tcp_conn_desc->snd_queue->nxt_snd - data_to_send;
 	seq_num = indx;
 	if (data_to_send > 0)
 	{
@@ -1032,33 +994,6 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 	int ret = NULL;
 	char* tcp_header = NULL;
 
-//	u32 rand_num = (_rand() % 10 + 1);
-//        if (rand_num == 1 && seq_num < 3898693)
-//	{
-//		retry++;
-//		if (retry>300) 
-//		{
-//			printk("sssssssssss \n");
-//		}
-//		return;
-//	}
-
-//	retry++;
-//	if ((retry ==20 || retry ==22 || retry ==23 || retry ==25 || retry ==27 || retry ==29) || 
-//	    (retry >=150 && retry <=160) || 
-//	    (retry >=200 && retry <=220) ||
-//	    (retry >=500 && retry <=520) ||
-//	    (retry ==620 || retry ==622 || retry ==623 || retry ==625 || retry ==627 || retry ==629 || retry==635 || retry==636 || retry==637 || retry==640) ||
-//            (retry >=700 && retry <=720))
-////	{
-////
-//	if ((retry >=20 && retry <=25) || (retry >=150 && retry <=160) || (retry >=200 && retry <=220)) 
-//	{
-//		printk("haqck!!!!! \n");
-//		printk("dropping %d \n",seq_num);
-//		return;
-//	}
-	
 	data_sckt_buf = alloc_sckt(data_len + HEADER_ETH + HEADER_IP4 + HEADER_TCP);
 	data_sckt_buf->transport_hdr = data_sckt_buf->data + HEADER_ETH + HEADER_IP4;
 	data_sckt_buf->network_hdr=data_sckt_buf->transport_hdr-HEADER_IP4;
