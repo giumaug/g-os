@@ -139,15 +139,6 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 						{
 							tmp = BLOCK_INDEX_FROM_PHY(ALIGN_4K(parent_page_table[j]));
 							system.buddy_desc->count[BLOCK_INDEX_FROM_PHY(ALIGN_4K(parent_page_table[j]))]++;
-							if (i == 767 && j == 1019)
-							{
-								trace(current_process_context->pid,7,8883);
-							}
-						}
-						if (i == 767 && j == 1019)
-						{
-							trace(current_process_context->pid,7,tmp);
-							trace(current_process_context->pid,7,system.buddy_desc->count[tmp]);
 						}
 					}
 				}
@@ -214,21 +205,11 @@ void free_vm_process_user_space(struct t_process_context* process_context)
 		{
 			buddy_free_page(system.buddy_desc,ALIGN_4K(FROM_PHY_TO_VIRT(page_table[i])));
 			system.buddy_desc->count[BLOCK_INDEX_FROM_PHY(ALIGN_4K(page_table[i]))]=0;
-			u32 z1 = BLOCK_INDEX_FROM_PHY(ALIGN_4K(page_table[i]));
-			if (system.shell_u_stack == z1)
-			{
-				//panic();
-			}
 		}
 		else if (page_table[i]!=0)
 		{
 			u32 tmp=BLOCK_INDEX_FROM_PHY(ALIGN_4K(page_table[i]));
 			system.buddy_desc->count[BLOCK_INDEX_FROM_PHY(ALIGN_4K(page_table[i]))]--;
-			u32 z1 = BLOCK_INDEX_FROM_PHY(ALIGN_4K(page_table[i]));
-			if (system.shell_u_stack == z1 && system.buddy_desc->count[z1] == 0)
-			{
-				//panic();
-			}
 		}
 		page_table[i]=0;
 	}
@@ -247,22 +228,12 @@ void free_vm_process_user_space(struct t_process_context* process_context)
 					{
 						buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(ALIGN_4K(page_table[j])));
 						system.buddy_desc->count[BLOCK_INDEX_FROM_PHY(ALIGN_4K(page_table[j]))]=0;
-						u32 z1 = BLOCK_INDEX_FROM_PHY(ALIGN_4K(page_table[j]));
 						page_table[j]=0;
-						if (system.shell_u_stack == z1)
-						{
-							//panic();
-						}
 					}
 					else if (page_table[j]!=0)
 					{
 						system.buddy_desc->count[BLOCK_INDEX_FROM_PHY(ALIGN_4K(page_table[j]))]--;
 						page_table[j]=0;
-						u32 z1 = BLOCK_INDEX_FROM_PHY(ALIGN_4K(page_table[j]));
-						if (system.shell_u_stack == z1 && system.buddy_desc->count[z1] == 0)
-						{
-							//panic();
-						}
 					}
 				}	
 			}
@@ -461,55 +432,13 @@ void page_fault_handler()
 			((unsigned int*) page_table)[pt_num] |= 7;
                                 
 			u32 tmp=BLOCK_INDEX_FROM_PHY(phy_fault_addr);
-
-//			if (system.buddy_desc->count[BLOCK_INDEX(phy_fault_addr)] == 1 
-//				&& aligned_fault_addr == 0xbfffb000
-//				&& current_process_context->pid >= 2)
-//			{
-//				panic();
-//			}
-
-			if (aligned_fault_addr == 0xbfffb000)
-			{
-				u32 ddd = BLOCK_INDEX_FROM_PHY(phy_fault_addr);
-				trace(current_process_context->pid,7,8880);
-				trace(current_process_context->pid,7,ddd);
-				u32 ddd1 = system.buddy_desc->count[ddd];
-				trace(current_process_context->pid,7,ddd1);
-			}			
-	
 			if (system.buddy_desc->count[BLOCK_INDEX_FROM_PHY(phy_fault_addr)]>1)
 			{
-				trace(current_process_context->pid,7,8881);	
 				page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
 				kmemcpy(page_addr,aligned_fault_addr ,PAGE_SIZE);
 				map_vm_mem(current_process_context->page_dir,aligned_fault_addr,FROM_VIRT_TO_PHY(page_addr),PAGE_SIZE,7);
 				system.buddy_desc->count[BLOCK_INDEX_FROM_PHY(phy_fault_addr)]--;
 				system.buddy_desc->count[BLOCK_INDEX_FROM_PHY(FROM_VIRT_TO_PHY(page_addr))]++;
-				
-				if (aligned_fault_addr == 0xbfffb000)
-				{
-					u32 ss0 = BLOCK_INDEX_FROM_PHY(FROM_VIRT_TO_PHY(page_addr));
-					u32 ss1 = system.buddy_desc->count[ss0];
-					trace(current_process_context->pid,7,ss0);
-					trace(current_process_context->pid,7,ss1);
-					if (current_process_context->pid == 2)
-					{
-						system.shell_u_stack = ss0;
-						system.shell_u_s_addr = page_addr;	
-					}
-				}
-				
-				//SIAMO SICURI CHE CHE LA PAGINA E' SEMPRE REFERENZIATA PIU' DI UNA VOLTA????????
-				if (aligned_fault_addr == 0xbfffb000)
-				{
-					current_process_context->user_mode_stack = page_addr;
-					unsigned int* xxx = ((unsigned int*)(page_addr + 0xf1c));
-					if (*((unsigned int*)(page_addr + 0xf1c)) != AFTER_FORK)
-					{
-						//panic();
-					}
-				}
 			}
 		}
 		else

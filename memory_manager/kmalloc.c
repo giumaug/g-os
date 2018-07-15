@@ -50,6 +50,104 @@ void  _bigFree(void *address)
 
 void* kmalloc(unsigned int mem_size) 
 {		
+	void *mem_add;
+
+	SAVE_IF_STATUS
+	CLI
+	switch(mem_size)
+	{
+		case 0 ... 4:
+		{
+			mem_add=a_fixed_size_alloc(&a_fixed_size_desc[0]);
+			break;
+		}
+		case 5 ... 8:
+		{
+			mem_add=a_fixed_size_alloc(&a_fixed_size_desc[1]);
+			break;
+		}
+		case 9 ... 16:
+		{
+			mem_add=a_fixed_size_alloc(&a_fixed_size_desc[2]);
+			break;
+		}
+		case 17 ... 32:
+		{
+			mem_add=a_fixed_size_alloc(&a_fixed_size_desc[3]);
+			break;
+		}
+		case 33 ... 64:
+		{
+			mem_add=a_fixed_size_alloc(&a_fixed_size_desc[4]);
+			break;
+		}
+		case 65 ... 128:
+		{
+			mem_add=a_fixed_size_alloc(&a_fixed_size_desc[5]);
+			break;
+		}
+		case 129 ... 256:
+		{
+			mem_add=a_fixed_size_alloc(&a_fixed_size_desc[6]);
+			break;
+		}
+		case 257 ... 512:
+		{
+			mem_add=a_fixed_size_alloc(&a_fixed_size_desc[7]);
+			break;
+		}
+		case 513 ... 1024:
+		{
+			mem_add=a_fixed_size_alloc(&a_fixed_size_desc[8]);
+			break;
+		}
+		case 1025 ... 2048:
+		{
+			mem_add=a_fixed_size_alloc(&a_fixed_size_desc[9]);
+			break;
+		}
+		case 2049 ... 4096:
+		{
+			mem_add=a_fixed_size_alloc(&a_fixed_size_desc[10]);
+			break;
+		}
+		case 4097 ... 8192:
+		{
+			mem_add=a_fixed_size_alloc(&a_fixed_size_desc[11]);
+			break;
+		}
+		case 8193 ... 16384:
+		{
+			mem_add=a_fixed_size_alloc(&a_fixed_size_desc[12]);
+			break;
+		}
+		case 16385 ... 32768:
+		{
+			mem_add=a_fixed_size_alloc(&a_fixed_size_desc[13]);
+			break;
+		}
+		case 32769 ... 65536:
+		{
+			mem_add=a_fixed_size_alloc(&a_fixed_size_desc[14]);
+			break;
+		}
+		case 65537 ... 131072:
+		{
+			mem_add=a_fixed_size_alloc(&a_fixed_size_desc[15]);
+			break;
+		}
+		default:
+		{
+			panic();
+		}
+	}
+//	collect_mem_alloc(mem_add);
+	RESTORE_IF_STATUS
+	return mem_add;
+}
+
+void* kmalloc_old(unsigned int mem_size) 
+{		
 	int i;	
 	void *mem_add;
 	struct t_process_context* process_context;
@@ -74,6 +172,104 @@ void* kmalloc(unsigned int mem_size)
 }
 
 void kfree(void *address) 
+{	
+	int i;
+	unsigned int pool_index;
+	u32 pool_offset;
+
+	SAVE_IF_STATUS
+	CLI	  
+	pool_index=0;
+
+	pool_offset = address-VIRT_MEM_START_ADDR-POOL_START_ADDR;
+
+	switch(pool_offset)
+	{
+		case MEM_TO_POOL ... (2 * MEM_TO_POOL) - 1 :
+		{
+			a_fixed_size_free(&a_fixed_size_desc[0],address);
+		}
+		case (2 * MEM_TO_POOL) ... (3 * MEM_TO_POOL) - 1 :
+		{
+			a_fixed_size_free(&a_fixed_size_desc[0],address);
+		}
+		case (3 * MEM_TO_POOL) ... (4 * MEM_TO_POOL) - 1 :
+		{
+			a_fixed_size_free(&a_fixed_size_desc[0],address);
+		}
+		case (4 * MEM_TO_POOL) ... (5 * MEM_TO_POOL) - 1 :
+		{
+			a_fixed_size_free(&a_fixed_size_desc[0],address);
+		}
+		case (5 * MEM_TO_POOL) ... (6 * MEM_TO_POOL) - 1 :
+		{
+			a_fixed_size_free(&a_fixed_size_desc[0],address);
+		}
+		case (6 * MEM_TO_POOL) ... (7 * MEM_TO_POOL) - 1 :
+		{
+			a_fixed_size_free(&a_fixed_size_desc[0],address);
+		}
+		case (7 * MEM_TO_POOL) ... (8 * MEM_TO_POOL) - 1 :
+		{
+			a_fixed_size_free(&a_fixed_size_desc[0],address);
+		}
+		case (8 * MEM_TO_POOL) ... (9 * MEM_TO_POOL) - 1 :
+		{
+			a_fixed_size_free(&a_fixed_size_desc[0],address);
+		}
+		case (9 * MEM_TO_POOL) ... (10 * MEM_TO_POOL) - 1 :
+		{
+			a_fixed_size_free(&a_fixed_size_desc[0],address);
+		}
+		case (10 * MEM_TO_POOL) ... (11 * MEM_TO_POOL) - 1 :
+		{
+			a_fixed_size_free(&a_fixed_size_desc[0],address);
+		}
+		case (11 * MEM_TO_POOL) ... (12 * MEM_TO_POOL) - 1 :
+		{
+			a_fixed_size_free(&a_fixed_size_desc[0],address);
+		}
+		case (12 * MEM_TO_POOL) ... (13 * MEM_TO_POOL) - 1 :
+		{
+			a_fixed_size_free(&a_fixed_size_desc[0],address);
+		}
+		case (13 * MEM_TO_POOL) ... (14 * MEM_TO_POOL) - 1 :
+		{
+			a_fixed_size_free(&a_fixed_size_desc[0],address);
+		}
+		case (14 * MEM_TO_POOL) ... (15 * MEM_TO_POOL) - 1 :
+		{
+			a_fixed_size_free(&a_fixed_size_desc[0],address);
+		}
+		case (15 * MEM_TO_POOL) ... (16 * MEM_TO_POOL) - 1 :
+		{
+			a_fixed_size_free(&a_fixed_size_desc[0],address);
+		}
+		case (16 * MEM_TO_POOL) ... (17 * MEM_TO_POOL) - 1 :
+		{
+			a_fixed_size_free(&a_fixed_size_desc[0],address);
+		}
+		case default:
+		{
+			panic();
+		}
+	}
+		
+
+
+
+
+	while ((pool_index+1)*MEM_TO_POOL<(address-VIRT_MEM_START_ADDR-POOL_START_ADDR))
+	{
+		pool_index++;
+	}
+	a_fixed_size_free(&a_fixed_size_desc[pool_index],address);
+//	collect_mem_free(address);
+	RESTORE_IF_STATUS
+}
+
+
+void kfree_old(void *address) 
 {	
 	int i;
 	unsigned int pool_index;

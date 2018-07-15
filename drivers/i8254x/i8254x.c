@@ -210,13 +210,8 @@ void int_handler_i8254x()
 	t_data_sckt_buf* data_sckt_buf;
 	char* data_buffer;
 	struct t_processor_reg processor_reg;
-	struct t_process_context* tmp;
 
 	SAVE_PROCESSOR_REG
-
-	CURRENT_PROCESS_CONTEXT(tmp);
-	trace(tmp->pid,5,0);
-
 	i8254x=system.network_desc->dev;
 	disable_irq_line(i8254x->irq_line);
 	DISABLE_PREEMPTION
@@ -274,7 +269,6 @@ exit:
 	enable_irq_line(i8254x->irq_line);
 	ENABLE_PREEMPTION
 	CLI
-	trace(tmp->pid,6,0);
 	//EXIT_INT_HANDLER(0,processor_reg)
 
 	static struct t_process_context _current_process_context;
@@ -282,9 +276,6 @@ exit:
 	static struct t_process_context _new_process_context;
 	static struct t_processor_reg _processor_reg;
 	static unsigned int _action2;
-	static int** _tmp;
-	static int* _tmp2;
-	static int* _tmp3;
 	static u32* page_table_new;
 	static u32 phy_fault_addr_new;
 	static u32* page_table_old;
@@ -319,40 +310,7 @@ exit:
 		}
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))
 		DO_STACK_FRAME(_processor_reg.esp-8);
-                
-		_tmp = (int*)(_new_process_context.processor_reg.esp+4);
-		if (_new_process_context.pid > 2 && _new_process_context.pending_fork == 99)
-		{
-			((struct t_process_context*)(system.process_info->current_process->val))->pending_fork = 0;
-			if (*(int*)(_new_process_context.processor_reg.esp+4) != TEST_STACK)
-			{
-				//panic();
-			}
-			if (**_tmp != TEST_USER_SPACE)
-			{
-				//panic();
-			}
-
-			_tmp2 = _tmp + 3;
-			_tmp3 = (*_tmp2) + 24;
-			if (*_tmp3 != AFTER_FORK)
-			{
-				page_table_new = ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) _new_process_context.page_dir)[767]));
-				phy_fault_addr_new = ALIGN_4K(((unsigned int*) page_table_new)[1019]); 
-				if (phy_fault_addr_new == 0)
-				{
-					printk("!!\n");
-				}
-				page_table_old = ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) _old_process_context.page_dir)[767]));
-				phy_fault_addr_old = ALIGN_4K(((unsigned int*) page_table_old)[1019]); 
-				if (phy_fault_addr_old == 0)
-				{
-					printk("!!\n");
-				}
-				//panic(); 
-			}
-		}
-                
+               
 		if (_action2==2)
 		{
 			DO_STACK_FRAME(_processor_reg.esp-8);

@@ -77,10 +77,6 @@ struct t_process_context
 	t_elf_desc* elf_desc;
 	t_hashtable* socket_desc;
 	u32 next_sd;
-	char* debug_handler;
-	int pending_fork;
-	u32 user_mode_stack;
-	u32 user_mode_status;
 	u32 start_time;
 	u32 end_time;
 };

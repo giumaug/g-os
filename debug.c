@@ -62,9 +62,6 @@ void check_free_mem()
 	printk("BUDDY MEMORY=%d \n",buddy_mem);
 	printk("POOL MEMORY=%d \n",pool_mem);
 	printk("AGE=%d \n",age++);
-	printk("ACTIVE PROCESS=%d \n",system.active_process);
-	//collected_mem_index=0;
-	//allocated_block=0;
 	RESTORE_IF_STATUS
 }
 
@@ -88,7 +85,6 @@ void _check_process_context()
 		while(next!=sentinel_node)
 		{
 			process_context=next->val;
-			//if (process_context->curr_sched_queue_index>9 || process_context->curr_sched_queue_index<0)
 			{
 				count++;
 			}
@@ -96,33 +92,7 @@ void _check_process_context()
 		}
 		index++;
 	}
-	system.active_process = count;
 }
-
-//void check_active_process()
-//{
-//	t_llist_node* next;
-//	t_llist_node* sentinel_node;
-//	struct t_process_context* process_context;
-//	int index=0;
-//	
-//	index_2=0;
-//
-//
-//	while(index<10)
-//	{
-//		sentinel_node=ll_sentinel(system.scheduler_desc->scheduler_queue[index]);
-//		next=ll_first(system.scheduler_desc->scheduler_queue[index]);
-//		while(next!=sentinel_node)
-//		{
-//			process_context=next->val;
-//			proc[index_2]=process_context->pid;
-//			index_2++;
-//			next=next=ll_next(next);
-//		}
-//		index++;
-//	}
-//}
 
 void is_phy_page_used(unsigned int phy_page_addr)
 {
@@ -142,8 +112,6 @@ void is_phy_page_used(unsigned int phy_page_addr)
 
 void collect_mem_alloc(unsigned int page_addr)
 {
-	return;
-/*
 	unsigned int i=0;
 
 	if (collect_mem == 1)
@@ -171,7 +139,6 @@ void collect_mem_alloc(unsigned int page_addr)
 		}
 		collected_mem[collected_mem_index] = page_addr;
 	}
-*/
 }
 
 void collect_mem_free(unsigned int page_addr)
@@ -179,9 +146,6 @@ void collect_mem_free(unsigned int page_addr)
 	int found=0;
 	unsigned int i=0;
 
-	return;
-
-/*
 	if (collect_mem == 1)
 	{
 		for (i = 0;i < 5000;i++)
@@ -199,52 +163,38 @@ void collect_mem_free(unsigned int page_addr)
 			panic();
 		}
 	}
-*/
 }
 
 void check_not_released()
 {
 	int i = 0;
 	int index = 0;
-	//if (start_count == 1)
-	//{	
-	//	//for (i=(collected_mem_index - 2000);i<=(collected_mem_index - 1000);i++)
-	//	for (i = 0;i <= collected_mem_index;i++)
-	//	{
-	//		if (collected_mem[i] != 0)
-	//		{
-	//			index++;
-	//		}
-	//	}
-	//}
-	//if (index >0 ) 
-	//{
-		//printk("not releaed=%d \n",index);
-		//printk("collected_mem_index= %d \n",collected_mem_index);
-		//printk("tcp_1 = %d \n",system.tcp_1);
-		//printk("tcp_2 = %d \n",system.tcp_2);
-		printk("fork = %d \n",system.fork);
-		//printk("exit_0 = %d \n",system.exit_0);
-		//printk("exit_1 = %d \n",system.exit_1);
-		//printk("free_vm = %d \n",system.free_vm);
-		printk("out = %d \n",system.out);
-		//printk("action2 = %d \n",system.action2);
-		//printk("trig = %d \n",system.trig);
-		//printk("cpanic = %d \n",system.cpanic);
-		printk("piggy = %d \n",system.piggy_timeout);
-		//printk("rtrsn = %d \n",system.rtrsn_timeout);
-		printk("reset = %d \n",system.reset);
-		//printk("tcp_close_1 = %d \n",system.tcp_close_1);
-		//printk("tcp_close_2 = %d \n",system.tcp_close_2);
-		//printk("fin_1 = %d \n",system.fin_1);
-		//printk("fin_2 = %d \n",system.fin_2);
-		//printk("fin_3 = %d \n",system.fin_3);
-		//printk("reset_1 = %d \n",system.reset_1);
-		//printk("reset_2 = %d \n",system.reset_2);
-		//printk("reset_3 = %d \n",system.reset_3);
-		printk("avg exec time %d \n",system.avg_exec_time);
-	//	panic();
-	//}
+	
+	//printk("not releaed=%d \n",index);
+	//printk("collected_mem_index= %d \n",collected_mem_index);
+	//printk("tcp_1 = %d \n",system.tcp_1);
+	//printk("tcp_2 = %d \n",system.tcp_2);
+	printk("fork = %d \n",system.fork);
+	//printk("exit_0 = %d \n",system.exit_0);
+	//printk("exit_1 = %d \n",system.exit_1);
+	//printk("free_vm = %d \n",system.free_vm);
+	printk("out = %d \n",system.out);
+	//printk("action2 = %d \n",system.action2);
+	//printk("trig = %d \n",system.trig);
+	//printk("cpanic = %d \n",system.cpanic);
+	printk("piggy = %d \n",system.piggy_timeout);
+	//printk("rtrsn = %d \n",system.rtrsn_timeout);
+	printk("reset = %d \n",system.reset);
+	//printk("tcp_close_1 = %d \n",system.tcp_close_1);
+	//printk("tcp_close_2 = %d \n",system.tcp_close_2);
+	//printk("fin_1 = %d \n",system.fin_1);
+	//printk("fin_2 = %d \n",system.fin_2);
+	//printk("fin_3 = %d \n",system.fin_3);
+	//printk("reset_1 = %d \n",system.reset_1);
+	//printk("reset_2 = %d \n",system.reset_2);
+	//printk("reset_3 = %d \n",system.reset_3);
+	printk("avg exec time %d \n",system.avg_exec_time);
+	//panic();
 }
 
 void reset_counter()
@@ -309,16 +259,11 @@ void check_tcp_conn()
 
 	if (counter < pending_port_index)
 	{
-		//panic();
 		return;
 	}
 
 	for (i = 0; i <10000;i++)
 	{
-		//if (counter > 100)
-		//{
-		//	panic();
-		//}
 		if (pending_port[i] != 0 && (counter - pending_port_age[i]) > 8000 )
 		{
 			panic();
@@ -327,7 +272,7 @@ void check_tcp_conn()
 }
 
 
-void trace(int pid,int trace_code,int call_num)
+void _trace(int pid,int trace_code,int call_num)
 {
 	unsigned int static trace_index = 0;
 	trace_index++;
@@ -372,8 +317,3 @@ void trace(int pid,int trace_code,int call_num)
 //		panic();
 //	}
 //}
-
-
-
-
-

@@ -97,11 +97,11 @@ int main()
 				current_len = file_len;
 				while (current_len > 0)
 				{
-					b_read = read(f,io_buffer,b_to_read);
-					//b_read = b_to_read;
+					//b_read = read(f,io_buffer,b_to_read);
+					b_read = b_to_read;
 					ret = write_socket(client_sockfd,buffer_1,b_read);
-					//ret = 0;
-					while (ret != 0 )
+					ret = 1;
+					while (ret <= 0 )
 					{
 						ret = write_socket(client_sockfd, buffer_1,b_read);
 						sleep(10);

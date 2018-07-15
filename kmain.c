@@ -41,15 +41,6 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	system.cpanic = 0;
 	system.piggy_timeout = 0;
 	system.rtrsn_timeout = 0;
-	system.active_process = 0;
-	system.tcp_close_1 = 0;
-	system.tcp_close_2 = 0;
-	system.fin_1 = 0;
-	system.fin_2 = 0;
-	system.fin_3 = 0;
-	system.reset_1 = 0;
-	system.reset_2 = 0;
-	system.reset_3 = 0;
 	system.proc_count = 0;
 	system.avg_exec_time = 0;
 	system.exec_time = 0;
@@ -133,17 +124,8 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 
 void panic()
 {
-	trace(0,0,98);
 	printk("\n");
 	printk("Kernel panic!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 	printk("\n");
-	trace(0,0,99);
 	//while(1);
 }
-
-void panic2()
-{
-	system.trig++;
-}
-
-

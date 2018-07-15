@@ -142,7 +142,7 @@ void schedule(struct t_process_context *current_process_context,struct t_process
 	}
 }
 
-void adjust_sched_queue(struct t_process_context *current_process_context)
+void _adjust_sched_queue(struct t_process_context *current_process_context)
 {
 	int priority;
 	unsigned int queue_index;
@@ -215,6 +215,71 @@ void adjust_sched_queue(struct t_process_context *current_process_context)
 					}	
 				}	
 			}
+		}		
+	}
+	current_process_context->curr_sched_queue_index=queue_index;
+	return;
+}
+
+void adjust_sched_queue(struct t_process_context *current_process_context)
+{
+	int priority;
+	unsigned int queue_index;
+		
+	//static prioriry range from -10 to 10 default value is 0;
+	priority=current_process_context->sleep_time+(current_process_context->static_priority*10);
+
+	switch(priority)
+	{
+		case 0 ... 99:
+		{
+			queue_index=9;
+			break;
+		}		
+		case 100 ... 199:
+		{
+			queue_index=8;
+			break;
+		}
+		case 200 ... 299:
+		{
+			queue_index=7;
+			break;
+		}
+		case 300 ... 399:
+		{
+			queue_index=6;
+			break;
+		}
+		case 400 ... 499:
+		{
+			queue_index=5;
+			break;
+		}
+		case 500 ... 599:
+		{
+			queue_index=4;
+			break;
+		}
+		case 600 ... 699:
+		{
+			queue_index=3;
+			break;
+		}
+		case 700 ... 799:
+		{
+			queue_index=2;
+			break;
+		}
+		case 800 ... 899:
+		{
+			queue_index=1;
+			break;
+		}
+		case 900 ... 1000:
+		{
+			queue_index=0;
+			break;
 		}		
 	}
 	current_process_context->curr_sched_queue_index=queue_index;
@@ -346,7 +411,7 @@ void _exit(int status)
 	system.avg_exec_time = system.exec_time / system.proc_count;
 	if (system.time - current_process->start_time > 5000)
 	{
-		panic();
+		//panic();
 	}
 	hashtable_free(current_process->file_desc);
 	hashtable_free(current_process->socket_desc);
@@ -371,7 +436,7 @@ int _fork(struct t_processor_reg processor_reg)
 	CURRENT_PROCESS_CONTEXT(parent_process_context);
 	if (parent_process_context->pid != 2)
 	{
-		panic();
+		//panic();
 	}
 	if (parent_process_context->pid == 0)
 	{
@@ -382,15 +447,7 @@ int _fork(struct t_processor_reg processor_reg)
 	kernel_stack_addr = buddy_alloc_page(system.buddy_desc,KERNEL_STACK_SIZE);
 	child_process_context->phy_kernel_stack = FROM_VIRT_TO_PHY(kernel_stack_addr);
 	kmemcpy(kernel_stack_addr,FROM_PHY_TO_VIRT(parent_process_context->phy_kernel_stack),KERNEL_STACK_SIZE);
-
 	child_process_context->pid = system.process_info->next_pid++;
-
-	trace(parent_process_context->pid,7,child_process_context->pid);
-	if (*(int*)(processor_reg.esp+4) != TEST_STACK)
-	{
-		//panic();
-	}
-
 	child_process_context->parent = parent_process_context;
 //	TEMPORARY TRICK.CORRECT SOLUTION IS TO ADD A POINTER TO CLONER FUNTION IN HASMAP CLONE ALONSIDE DESTRUCTOR POINTER
 //	ALSO INODE SHOULD NOT BE CLONED!!!!!!!	
@@ -418,7 +475,6 @@ int _fork(struct t_processor_reg processor_reg)
 							 parent_process_context->process_type,
 							 FROM_VIRT_TO_PHY(kernel_stack_addr));
 
-	child_process_context->pending_fork = 99;
 	child_process_context->start_time = system.time;
 	RESTORE_IF_STATUS
 	return child_process_context->pid;
@@ -457,7 +513,6 @@ u32 _exec(char* path,char* argv[])
 		go = 1;
 	}
 
-	
 	if (current_process_context->elf_desc == NULL)
 	{
 		elf_desc=kmalloc(sizeof(t_elf_desc));
