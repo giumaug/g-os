@@ -41,9 +41,9 @@ void set_idt_entry(int entry,struct t_i_desc* i_desc);
 	if (system.force_scheduling == 1 && action == 0 && system.int_path_count == 0)                                          \
 	{                                                                                                                       \
 		_action2 = 1;                                                                                                   \
-		if (_current_process_context.proc_status == EXITING)                                                           \
+		if (_current_process_context.proc_status == EXITING)                                                            \
 		{                                                                                                               \
-			panic2();                                                                                               \
+			_action2 = 2;                                                                                           \
 		}                                                                                                               \
 	}                                                                                                                       \
                                                                                                                                 \
@@ -58,15 +58,6 @@ void set_idt_entry(int entry,struct t_i_desc* i_desc);
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))                  		\
 		DO_STACK_FRAME(_processor_reg.esp-8);                                                                           \
                                                                                                                                 \
-		if (_new_process_context.pid > 2 && _new_process_context.pending_fork == 99)                                    \
-		{                                                                                                               \
-			_new_process_context.pending_fork = 0;                                                                  \
-			if (*(int*)(_new_process_context.processor_reg.esp+4) != 0x1016ea)                                      \
-			{                                                                                                       \
-				panic();                                                                                        \
-			}                                                                                                       \
- 		}                                                                                                               \
-                                                                                                                 		\
 		if (_action2==2)                                                                                   		\
 		{                                                                                                  		\
 			DO_STACK_FRAME(_processor_reg.esp-8);                                                      		\

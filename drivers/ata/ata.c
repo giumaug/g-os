@@ -99,11 +99,9 @@ void init_ata(t_device_desc* device_desc)
 	sem_init(&device_desc->sem,0);
 	bar4 = read_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_BAR4);
 	pci_command = read_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_COMMAND);
-	//printk("command reg is %x \n",pci_command);
      	pci_command |= 0x4;
 	write_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_COMMAND,pci_command);
 	pci_command = read_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_COMMAND);
-	//printk("new command reg is %x \n",pci_command);
 
 	if ((u32) bar4 & 0x1) 
 	{
@@ -143,7 +141,6 @@ void int_handler_ata()
 	STI
 	
 	CURRENT_PROCESS_CONTEXT(current_process_context);
-	trace(current_process_context->pid,3,0);
 	io_request = system.device_desc->serving_request;
 	process_context = io_request->process_context;
 
@@ -160,7 +157,6 @@ void int_handler_ata()
 	enable_irq_line(14);
 	ENABLE_PREEMPTION
 	CLI
-	trace(current_process_context->pid,4,0);
 	//EXIT_INT_HANDLER(0,processor_reg)
 
 	static struct t_process_context _current_process_context;
@@ -168,9 +164,6 @@ void int_handler_ata()
 	static struct t_process_context _new_process_context;
 	static struct t_processor_reg _processor_reg;
 	static unsigned int _action2;
-	static int** _tmp;
-	static int* _tmp2;
-	static int* _tmp3;
 	static u32* page_table_new;
 	static u32 phy_fault_addr_new;
 	static u32* page_table_old;
@@ -206,39 +199,6 @@ void int_handler_ata()
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))
 		DO_STACK_FRAME(_processor_reg.esp-8);
                 
-		_tmp = (int*)(_new_process_context.processor_reg.esp+4);
-		if (_new_process_context.pid > 2 && _new_process_context.pending_fork == 99)
-		{
-			((struct t_process_context*)(system.process_info->current_process->val))->pending_fork = 0;
-			if (*(int*)(_new_process_context.processor_reg.esp+4) != TEST_STACK)
-			{
-				//panic();
-			}
-			if (**_tmp != TEST_USER_SPACE)
-			{
-				//panic();
-			}
-
-			_tmp2 = _tmp + 3;
-			_tmp3 = (*_tmp2) + 24;
-			if (*_tmp3 != AFTER_FORK)
-			{
-				page_table_new = ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) _new_process_context.page_dir)[767]));
-				phy_fault_addr_new = ALIGN_4K(((unsigned int*) page_table_new)[1019]); 
-				if (phy_fault_addr_new == 0)
-				{
-					printk("!!\n");
-				}
-				page_table_old = ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) _old_process_context.page_dir)[767]));
-				phy_fault_addr_old = ALIGN_4K(((unsigned int*) page_table_old)[1019]); 
-				if (phy_fault_addr_old == 0)
-				{
-					printk("!!\n");
-				}
-				//panic(); 
-			}
-		}
-		
 		if (_action2==2)
 		{
 			DO_STACK_FRAME(_processor_reg.esp-8);
@@ -349,7 +309,6 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	{
 		for (i = 0;i < 256;i++)
 		{  
-			//out(*(char*)io_request->io_buffer++,0x1F0); 
 			outw((unsigned short)57,0x1F0);
 		}
 	}
@@ -401,7 +360,6 @@ static unsigned int _read_write_28_ata_____(t_io_request* io_request)
 	
         out(2, 0x3F6);
 	out(0xE0 | (io_request->lba >> 24),0x1F6);
-	//io_request->sector_count=2;
 	out((unsigned char)io_request->sector_count,0x1F2);
 	out((unsigned char)io_request->lba,0x1F3);
 	out((unsigned char)(io_request->lba >> 8),0x1F4);

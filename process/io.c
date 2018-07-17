@@ -22,6 +22,7 @@ int main()
 	//struct stat stat_data;
 	int b_read,f;
 	int b_to_read = 64451;
+	//int b_to_read = 4096;
 	int t = 0;
 	int i,j;
 	unsigned long long hash = 0;
@@ -69,6 +70,7 @@ int main()
 			//printf("read is %d \n",b_read);
 			//printf("count is %d \n",count);
 			//printf("hash is %d \n",hash);
+			printf("current len is: %d \n",current_len);
 		}
 		close(f);
 		free(io_buffer);
@@ -82,7 +84,7 @@ int main()
 			printf("hash is ko !!!!!!!!!!!!!!!!!!! \n");
 			while(1);
 		}
-		check_free_mem();
+		//check_free_mem();
 	}
 	exit(0);	
 }

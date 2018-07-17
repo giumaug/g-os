@@ -100,15 +100,6 @@ typedef struct s_system
 	u32 piggy_timeout;
 	u32 rtrsn_timeout;
 	u32 reset;
-	u32 active_process;
-	u32 tcp_close_1;
-	u32 tcp_close_2;
-	u32 fin_1;
-	u32 fin_2;
-	u32 fin_3;
-	u32 reset_1;
-	u32 reset_2;
-	u32 reset_3;
 	u32 proc_count;
 	u32 avg_exec_time;
 	u32 exec_time;

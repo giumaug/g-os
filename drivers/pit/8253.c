@@ -26,8 +26,6 @@ void init_pit()
 
 void int_handler_pit()
 {
-	int static iter=0;	
-	int x;
 	int is_schedule=0;
 	struct t_process_context* process_context;
 	struct t_process_context* sleeping_process;
@@ -46,15 +44,6 @@ void int_handler_pit()
 	EOI_TO_MASTER_PIC
 	SWITCH_DS_TO_KERNEL_MODE
 
-	struct t_process_context* tmp;
-	CURRENT_PROCESS_CONTEXT(tmp);
-	trace(tmp->pid,1,0);
-
-//	iter++;
-//	if (iter>1)
-//	{
-//		printk("race %d \n",iter);
-//	}
 	system.time+=QUANTUM_DURATION;
 	if (system.int_path_count>0)
 	{
@@ -157,32 +146,22 @@ void int_handler_pit()
 exit_handler:;
 //	EXIT_INT_HANDLER(is_schedule,processor_reg);
 
-	int xxx = 0;
 	static struct t_process_context _current_process_context;                                          
 	static struct t_process_context _old_process_context;                                              
 	static struct t_process_context _new_process_context;	                                            
 	static struct t_processor_reg _processor_reg;                                                       
 	static unsigned int _action2;  
-	static int** _tmp;
-	static int* _tmp2;
-	static int* _tmp3;
 	static u32* page_table_new;
 	static u32 phy_fault_addr_new;
 	static u32* page_table_old;
 	static u32 phy_fault_addr_old;
 	
 	CLI
-	trace(tmp->pid,2,0);
 	if (system.int_path_count == 0 && system.force_scheduling == 0)           
 	{
 		equeue_packet(system.network_desc);
 		dequeue_packet(system.network_desc);
-	}
-	iter--;
-//	if (iter>0)
-//	{
-//		printk("race-o %d \n",iter);
-//	}                                                        
+	}                                                    
 	_action2=is_schedule;                                                                                   
 	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;
 	_old_process_context=_current_process_context;                                                      
@@ -208,39 +187,6 @@ exit_handler:;
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))                                   
 		DO_STACK_FRAME(_processor_reg.esp-8); 
 
-		_tmp = (int*)(_new_process_context.processor_reg.esp+4);
-		if (_new_process_context.pid > 2 && _new_process_context.pending_fork == 99)
-		{
-			((struct t_process_context*)(system.process_info->current_process->val))->pending_fork = 0;
-			if (*(int*)(_new_process_context.processor_reg.esp+4) != TEST_STACK)
-			{
-				//panic();
-			}
-			if (**_tmp != TEST_USER_SPACE)
-			{
-				//panic();
-			}
-	
-			_tmp2 = _tmp + 3;
-			_tmp3 = (*_tmp2) + 24;
-			if (*_tmp3 != AFTER_FORK)
-			{
-				page_table_new = ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) _new_process_context.page_dir)[767]));
-				phy_fault_addr_new = ALIGN_4K(((unsigned int*) page_table_new)[1019]); 
-				if (phy_fault_addr_new == 0)
-				{
-					printk("!!\n");
-				}
-				page_table_old = ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) _old_process_context.page_dir)[767]));
-				phy_fault_addr_old = ALIGN_4K(((unsigned int*) page_table_old)[1019]); 
-				if (phy_fault_addr_old == 0)
-				{
-					printk("!!\n");
-				}
-				//panic();
-			}
-		}
-		
 		if (_action2==2)                                                                              
 		{                                                                         
 			DO_STACK_FRAME(_processor_reg.esp-8); 	                                

@@ -131,7 +131,6 @@ void close_tcp(t_tcp_conn_desc* tcp_conn_desc)
 
 	struct t_process_context* tmp;	
 	CURRENT_PROCESS_CONTEXT(tmp);
-	tmp->user_mode_status = 11;
 
 	if (tcp_conn_desc->status == RESET)
 	{

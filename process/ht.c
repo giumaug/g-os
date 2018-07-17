@@ -10,6 +10,9 @@
 #include "lib/lib.h"
 
 void process_request(int client_sockfd);
+void process_request_2(int client_sockfd);
+void process_request_3(int client_sockfd);
+void process_request_4(int client_sockfd);
 
 int main()
 {
@@ -58,7 +61,7 @@ int main()
 	while(1) 
 	{
 		printf("http server waiting\n");
-		check_free_mem();
+		//check_free_mem();
 		client_len = sizeof(client_address);
 		client_sockfd = accept(server_sockfd,(struct sockaddr *)&client_address, &client_len);
 		//sleep(5000);
@@ -66,8 +69,8 @@ int main()
 		printf("accepted request %d \n",request_count++);
 		if(fork() == 0) 
 		{
-			process_request(client_sockfd);
-			//sleep(100);
+			process_request_3(client_sockfd);
+			//sleep(10);
 			close_socket(client_sockfd);
 			exit(0);
 		}
@@ -77,11 +80,15 @@ int main()
 		}
 	}
 	close_socket(server_sockfd);
+	printf("ended !! \n");
 	exit(0);
 }
 
 void process_request_3(int client_sockfd)
 {
+	t_stat stat_data;
+	int get_index;
+	char get[100];
 	int ret = -1;
 	int f = 0;
 	unsigned char* io_buffer = NULL;
@@ -92,27 +99,30 @@ void process_request_3(int client_sockfd)
 	const char body[]  = "ciao";
 	const char http_header[]  = "HTTP/1.1 200 OK\nConnection: close\nContent-Type:text/plain;\nContent-Disposition: inline;charset=utf-8\nContent-Length:32617\n\n";
 
+	//stat(path,&stat_data);
 	io_buffer = malloc(b_to_read + 1 );
+	//get_index = read_socket(client_sockfd,(void*)get,100);
 	ret = write_socket(client_sockfd,http_header,123);
 	if (ret < 0)
 	{
 		close_socket(client_sockfd);
 		exit(0);
 	}
-	f = open(path, O_RDWR | O_APPEND);
-	if (f == -1)
-	{
-		printf("file not found\n");
-		free(io_buffer);
-		return;
-	}
+//	f = open(path, O_RDWR | O_APPEND);
+//	if (f == -1)
+//	{
+//		printf("file not found\n");
+//		free(io_buffer);
+//		return;
+//	}
 	while (file_size > 0)
 	{
 		if ((int)(file_size - b_to_read) < 0)
 		{
 			b_to_read = file_size;
 		}
-		b_read = read(f,io_buffer,b_to_read);
+		//b_read = read(f,io_buffer,b_to_read);
+		b_read = b_to_read;
 		ret = write_socket(client_sockfd,io_buffer,b_read);
 		if (ret < 0)
 		{
@@ -121,7 +131,7 @@ void process_request_3(int client_sockfd)
 		}
 		file_size -= b_read;
 	}
-	close(f);
+	//close(f);
 	free(io_buffer);
 }
 
@@ -258,7 +268,6 @@ void process_request(int client_sockfd)
 	f = open(path, O_RDWR | O_APPEND);
 	if (f == -1)
 	{
-		printf("file not found\n");
 		free(io_buffer);
 		free(http_response);
 		return;
@@ -293,4 +302,8 @@ void process_request(int client_sockfd)
 	close(f);
 	free(io_buffer);
 	free(http_response);
+}
+void process_request_4(int client_sockfd)
+{
+	return;
 }

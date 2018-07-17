@@ -27,8 +27,6 @@ void syscall_handler()
 
 	CURRENT_PROCESS_CONTEXT(tmp);
 	syscall_num=processor_reg.eax;
-	trace(tmp->pid,7,syscall_num);
-	trace(tmp->pid,7,tmp->user_mode_stack);
 
 	on_exit_action=0;
 	current_process_context=system.process_info->current_process->val;
@@ -249,7 +247,6 @@ void syscall_handler()
 //	EXIT_INT_HANDLER(on_exit_action,processor_reg)
 
 	CLI
-	trace(tmp->pid,8,syscall_num);
 	if (system.int_path_count == 0 && system.force_scheduling == 0)
 	{
 		equeue_packet(system.network_desc);
@@ -295,39 +292,6 @@ void syscall_handler()
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))
 		DO_STACK_FRAME(_processor_reg.esp-8);
 
-		_tmp = (int*)(_new_process_context.processor_reg.esp+4);
-		if (_new_process_context.pid > 2 && _new_process_context.pending_fork == 99)
-		{
-			((struct t_process_context*)(system.process_info->current_process->val))->pending_fork = 0;
-			if (*(int*)(_new_process_context.processor_reg.esp+4) != TEST_STACK)
-			{
-				//panic();
-			}
-			if (**_tmp != TEST_USER_SPACE)
-			{
-				//panic();
-			}
-
-			_tmp2 = _tmp + 3;
-			_tmp3 = (*_tmp2) + 24;
-			if (*_tmp3 != AFTER_FORK)
-			{
-				page_table_new = ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) _new_process_context.page_dir)[767]));
-				phy_fault_addr_new = ALIGN_4K(((unsigned int*) page_table_new)[1019]); 
-				if (phy_fault_addr_new == 0)
-				{
-					printk("!!\n");
-				}
-				page_table_old = ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) _old_process_context.page_dir)[767]));
-				phy_fault_addr_old = ALIGN_4K(((unsigned int*) page_table_old)[1019]); 
-				if (phy_fault_addr_old == 0)
-				{
-					printk("!!\n");
-				}
-				//panic();
-			}
-		}
-		
 		if (_action==2)                                                                              
 		{                                                                           
 			DO_STACK_FRAME(_processor_reg.esp-8);                                               
