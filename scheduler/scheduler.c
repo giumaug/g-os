@@ -13,6 +13,9 @@ extern int ggo;
 extern struct t_llist* kbc_wait_queue;
 extern unsigned int *master_page_dir;
 
+int start = 0;
+int end = 0;
+
 void do_context_switch(struct t_process_context *current_process_context,
 		       struct t_processor_reg *processor_reg,
 		       struct t_process_context *new_process_context)
@@ -75,7 +78,14 @@ void schedule(struct t_process_context *current_process_context,struct t_process
 	node=system.process_info->current_process;	
 	current_process_context=node->val;
 	
+	system.sched_tot++;
 	//check_process_context();
+
+	if (system.process_info->next_pid >= 2 && system.process_info->next_pid < 8)
+	{
+		trace(current_process_context->pid,6,0);
+	}
+
 	while(!stop && index<10)
 	{
 		sentinel_node=ll_sentinel(system.scheduler_desc->scheduler_queue[index]);
@@ -364,7 +374,6 @@ void _exit(int status)
 	system.out++;
 	//process 0 never die
 	CURRENT_PROCESS_CONTEXT(current_process);
-	
 	if (current_process->pid==0)
 	{
 		while(1) 
@@ -375,6 +384,10 @@ void _exit(int status)
 //   				current_process->tick=1;
 //				SUSPEND			
 //			}
+			if (system.process_info->next_pid > 10 )
+			{
+				system.sched_0++;
+			}
 			asm("sti;hlt");
 		}
 	}
@@ -407,20 +420,22 @@ void _exit(int status)
 		delete_mem_reg(current_process->heap_mem_reg);
 		delete_mem_reg(current_process->ustack_mem_reg);
 	}
-	system.exec_time += (system.time - current_process->start_time);
-	system.avg_exec_time = system.exec_time / system.proc_count;
-	if (system.time - current_process->start_time > 5000)
-	{
-		//panic();
-	}
+
+//	if (current_process->pid > 2)
+//	{
+//		system.exec_time += (system.time - current_process->start_time);
+//		system.avg_exec_time = system.exec_time / system.proc_count;
+//	}
+	
 	hashtable_free(current_process->file_desc);
 	hashtable_free(current_process->socket_desc);
+	//end = system.time - start;
+	//system.avg_exec_time = end;
 	RESTORE_IF_STATUS
 }
 
 int _fork(struct t_processor_reg processor_reg) 
 {
-	system.proc_count++;
 	system.fork++;
 	int i = 0;
  	struct t_process_context* child_process_context = NULL;
@@ -448,6 +463,18 @@ int _fork(struct t_processor_reg processor_reg)
 	child_process_context->phy_kernel_stack = FROM_VIRT_TO_PHY(kernel_stack_addr);
 	kmemcpy(kernel_stack_addr,FROM_PHY_TO_VIRT(parent_process_context->phy_kernel_stack),KERNEL_STACK_SIZE);
 	child_process_context->pid = system.process_info->next_pid++;
+
+//	if (child_process_context->pid > 2)
+//	{
+//		system.proc_count++;
+//	}
+
+	if (child_process_context->pid == 4)
+	{
+		panic();
+		trace(0,0,0);
+	}
+
 	child_process_context->parent = parent_process_context;
 //	TEMPORARY TRICK.CORRECT SOLUTION IS TO ADD A POINTER TO CLONER FUNTION IN HASMAP CLONE ALONSIDE DESTRUCTOR POINTER
 //	ALSO INODE SHOULD NOT BE CLONED!!!!!!!	

@@ -308,9 +308,15 @@ int enqueue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	u32 len_1;
 	u32 len_2;
 	int ret = 0;
+	struct t_process_context* tmp;	
 
 	SAVE_IF_STATUS
 	CLI
+
+	CURRENT_PROCESS_CONTEXT(tmp);
+	tcp_conn_desc->pid = tmp->pid;
+	tcp_conn_desc->start_time = tmp->start_time;
+
 	if (tcp_conn_desc->status == RESET)
 	{
 		panic();

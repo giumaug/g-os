@@ -44,6 +44,9 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	system.proc_count = 0;
 	system.avg_exec_time = 0;
 	system.exec_time = 0;
+	system.sched_tot = 0;
+	system.sched_0 = 0;
+	system.p0 = 0;
 	
 	system.preempt_network_flush = 0;
 	system.time = 0;

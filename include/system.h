@@ -103,6 +103,9 @@ typedef struct s_system
 	u32 proc_count;
 	u32 avg_exec_time;
 	u32 exec_time;
+	u32 sched_tot;
+	u32 sched_0;
+	u32 p0;
 }
 t_system;
 

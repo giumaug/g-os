@@ -139,8 +139,13 @@ void int_handler_ata()
 	EOI_TO_SLAVE_PIC
 	EOI_TO_MASTER_PIC
 	STI
-	
 	CURRENT_PROCESS_CONTEXT(current_process_context);
+	
+	if (system.process_info->next_pid >= 2 && system.process_info->next_pid < 8)
+	{
+		trace(current_process_context->pid,4,0);
+	}
+
 	io_request = system.device_desc->serving_request;
 	process_context = io_request->process_context;
 
@@ -170,7 +175,14 @@ void int_handler_ata()
 	static u32 phy_fault_addr_old;
         
 	CLI
+
+	if (system.process_info->next_pid >= 2 && system.process_info->next_pid < 8)
+	{
+		trace(current_process_context->pid,5,0);
+	}
+
 	if (system.int_path_count == 0 && system.force_scheduling == 0)
+	//if (system.int_path_count == 0)
 	{
 		equeue_packet(system.network_desc);
 		dequeue_packet(system.network_desc);

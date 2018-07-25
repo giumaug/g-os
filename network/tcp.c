@@ -119,6 +119,12 @@ t_tcp_conn_desc* tcp_conn_desc_int()
 
 void tcp_conn_desc_free(t_tcp_conn_desc* tcp_conn_desc)
 {
+	if (tcp_conn_desc->pid > 2)
+	{
+		system.proc_count++;
+		system.exec_time += (system.time - tcp_conn_desc->start_time);
+		system.avg_exec_time = system.exec_time / system.proc_count;
+	}
 	remove_tcp_conn(tcp_conn_desc->dst_port);
 	tcp_rcv_queue_free(tcp_conn_desc->rcv_queue);
 	tcp_snd_queue_free(tcp_conn_desc->snd_queue);
@@ -209,6 +215,17 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	t_tcp_conn_desc* pending_tcp_conn_desc = NULL;
 	struct t_process_context* process_context = NULL;
 	u8 flags;
+
+/*
+	int ii;
+	char* buff;
+	for (ii = 0;ii < 1300;ii++)
+	{
+		buff = kmalloc(30000);
+		kfree(buff);
+	}
+*/
+
 	
 	tcp_desc = system.network_desc->tcp_desc;
 	tcp_row_packet = data_sckt_buf->transport_hdr;
@@ -439,6 +456,12 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		{
 			_awake(tcp_conn_desc->process_context);
 		}
+//		if (tcp_conn_desc->pid > 2)
+//		{
+//			system.proc_count++;
+//			system.exec_time += (system.time - tcp_conn_desc->start_time);
+//			system.avg_exec_time = system.exec_time / system.proc_count;
+//		}
 	}
 	else if ((flags & FLG_ACK) 
 	    && tcp_conn_desc->status == LAST_ACK
@@ -649,6 +672,13 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 //	printk("---duplicated ack %d \n",tcp_conn_desc->duplicated_ack);
 //	printk("flight size %d \n",tcp_conn_desc->flight_size);
 //	printk("still to send %d \n",(tcp_queue->cur - tcp_queue->nxt_snd));
+//	printk("window size %d \n",tcp_queue->wnd_size);
+	
+//	if (tcp_queue->wnd_size > 5000)
+//	{
+//		panic();
+//	}
+ 
 //      printk("win min %d \n", tcp_queue->wnd_min);
 //      printk("nxt_snd %d \n", tcp_queue->nxt_snd);
 //      printk("ack_seq_num %d \n",ack_seq_num);
@@ -804,6 +834,12 @@ EXIT:
 		}
 		_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,ack_num,FLG_FIN | FLG_ACK,tcp_conn_desc->snd_queue->nxt_snd);
 		rtrsn_timer_set(tcp_conn_desc->rtrsn_timer,tcp_conn_desc->rto);	
+	}
+	if ((tcp_queue->cur - tcp_queue->nxt_snd) > 0) 
+	{
+		//printk("still to send %d ",(tcp_queue->cur - tcp_queue->nxt_snd));
+		//printk("  window size %d ",tcp_queue->wnd_size);
+		//printk("  port %d \n",tcp_conn_desc->dst_port);
 	}
 }
 

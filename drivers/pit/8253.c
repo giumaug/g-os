@@ -44,13 +44,18 @@ void int_handler_pit()
 	EOI_TO_MASTER_PIC
 	SWITCH_DS_TO_KERNEL_MODE
 
+	process_context = system.process_info->current_process->val;
+	if (system.process_info->next_pid >= 2 && system.process_info->next_pid < 8)
+	{
+		trace(process_context->pid,0,0);
+	}
+
 	system.time+=QUANTUM_DURATION;
 	if (system.int_path_count>0)
 	{
 		goto exit_handler;
 	}
 	sleeping_process=system.active_console_desc->sleeping_process;
-	
 	sentinel=ll_sentinel(system.process_info->sleep_wait_queue);
 	next=ll_first(system.process_info->sleep_wait_queue);
 	next_process=next->val;
@@ -80,6 +85,7 @@ void int_handler_pit()
 			old_node=next;
 			next=ll_next(next);
 			ll_delete_node(old_node);
+			is_schedule=1;
 		}
 		else 
 		{
@@ -97,7 +103,11 @@ void int_handler_pit()
 	{	
 		process_context=system.process_info->current_process->val;
 		process_context->sleep_time-=QUANTUM_DURATION;
-		
+//		if (process_context->pid==0 && )
+//		{
+//			p0++;
+//		}
+
 //		if (process_context->pid==0 && ggo==1)
 //		{
 //			p0++;
@@ -157,7 +167,12 @@ exit_handler:;
 	static u32 phy_fault_addr_old;
 	
 	CLI
-	if (system.int_path_count == 0 && system.force_scheduling == 0)           
+	if (system.process_info->next_pid >= 2 && system.process_info->next_pid < 8)
+	{
+		trace(process_context->pid,1,0);
+	}
+	if (system.int_path_count == 0 && system.force_scheduling == 0)  
+        //if (system.int_path_count == 0)
 	{
 		equeue_packet(system.network_desc);
 		dequeue_packet(system.network_desc);
