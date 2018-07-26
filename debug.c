@@ -12,6 +12,7 @@ unsigned int pending_port_index;
 unsigned int trace_buffer_1[10000];
 unsigned int trace_buffer_2[10000];
 unsigned int trace_buffer_3[10000];
+unsigned int trace_buffer_4[10000];
 int index_2=0;
 unsigned int collect_mem=0;
 unsigned int collected_mem[50005];
@@ -194,6 +195,9 @@ void check_not_released()
 	//printk("reset_2 = %d \n",system.reset_2);
 	//printk("reset_3 = %d \n",system.reset_3);
 	printk("avg exec time %d \n",system.avg_exec_time);
+	//printk("sched_tot = %d \n",system.sched_tot);
+	//printk("sched_0 = %d \n",system.sched_0);
+	//printk("p0 = %d \n",system.p0);
 	//panic();
 }
 
@@ -271,8 +275,7 @@ void check_tcp_conn()
 	}
 }
 
-
-void _trace(int pid,int trace_code,int call_num)
+void trace(int pid,int trace_code,int call_num)
 {
 	unsigned int static trace_index = 0;
 	trace_index++;
@@ -282,7 +285,8 @@ void _trace(int pid,int trace_code,int call_num)
 	}
 	trace_buffer_1[trace_index] = trace_code;
 	trace_buffer_2[trace_index] = pid;
-	trace_buffer_3[trace_index] = call_num;	
+	trace_buffer_3[trace_index] = call_num;
+	trace_buffer_4[trace_index] = system.time;
 }
 
 //USEFUL CODE TO CHECK STACK MEMORY CORRUPTION

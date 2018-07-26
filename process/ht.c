@@ -35,6 +35,7 @@ int main()
 	int index = 16;
 	int i,t;
 	unsigned int port=21846;
+	int age = 0;
 	struct sockaddr_in ssock;
 	
 	ssock.sin_family = AF_INET;
@@ -60,17 +61,23 @@ int main()
 	int pid;
 	while(1) 
 	{
-		printf("http server waiting\n");
-		//check_free_mem();
+		age++;
+		if (age >=400)
+		{
+			//printf("http server waiting\n");
+			check_free_mem();
+		}
 		client_len = sizeof(client_address);
 		client_sockfd = accept(server_sockfd,(struct sockaddr *)&client_address, &client_len);
 		//sleep(5000);
 
-		printf("accepted request %d \n",request_count++);
+		//printf("accepted request %d \n",request_count++);
 		if(fork() == 0) 
 		{
 			process_request_3(client_sockfd);
 			//sleep(10);
+			int i = 0;
+			for (i= 0;i<=100000;i++);
 			close_socket(client_sockfd);
 			exit(0);
 		}
@@ -108,21 +115,22 @@ void process_request_3(int client_sockfd)
 		close_socket(client_sockfd);
 		exit(0);
 	}
-//	f = open(path, O_RDWR | O_APPEND);
-//	if (f == -1)
-//	{
-//		printf("file not found\n");
-//		free(io_buffer);
-//		return;
-//	}
+	f = open(path, O_RDWR | O_APPEND);
+	if (f == -1)
+	{
+		printf("file not found\n");
+		free(io_buffer);
+		return;
+	}
+	int tot_read = 0;
 	while (file_size > 0)
 	{
 		if ((int)(file_size - b_to_read) < 0)
 		{
 			b_to_read = file_size;
 		}
-		//b_read = read(f,io_buffer,b_to_read);
-		b_read = b_to_read;
+		b_read = read(f,io_buffer,b_to_read);
+		//b_read = b_to_read;
 		ret = write_socket(client_sockfd,io_buffer,b_read);
 		if (ret < 0)
 		{
@@ -130,8 +138,10 @@ void process_request_3(int client_sockfd)
 			exit(0);
 		}
 		file_size -= b_read;
+		tot_read += b_read;
+		//printf("tot read= %d \n",tot_read);
 	}
-	//close(f);
+	close(f);
 	free(io_buffer);
 }
 
@@ -279,6 +289,7 @@ void process_request(int client_sockfd)
 		close_socket(client_sockfd);
 		exit(0);
 	}
+	
 	while (http_body_len > 0)
 	{
 		if (http_body_len - b_to_read < 0)

@@ -41,8 +41,11 @@ void equeue_packet(t_network_desc* network_desc)
 	t_data_sckt_buf* data_sckt_buf;
 	void* frame;
 	u16 frame_len;
+	u32 data_sent = 0;
 	
-//	u32 tot_sent = 0;
+	static u32 tot_sent = 0;
+	struct t_process_context* process_context = NULL;
+	CURRENT_PROCESS_CONTEXT(process_context);
 //	u32 static count = 0;
 //	u32 static tot_count = 0;
 //	u32 static avg = 0;
@@ -69,12 +72,17 @@ void equeue_packet(t_network_desc* network_desc)
 		send_packet_i8254x(network_desc->dev,frame,frame_len);
 		STI
 		free_sckt(data_sckt_buf);
-//		tot_sent += frame_len;
+		tot_sent += frame_len;
+		data_sent += frame_len;
 //		if (system.force_scheduling == 1 || system.preempt_network_flush == 1)
 //		{
 //			system.preempt_network_flush = 0;
 //			stop = 1;
 //		}
+	}
+	if (system.process_info->next_pid == 4 && data_sent != 0) 
+	{
+		//printk("data sent: %d \n",tot_sent);
 	}
 	CLI
 	ENABLE_PREEMPTION
@@ -112,7 +120,6 @@ void dequeue_packet(t_network_desc* network_desc)
 {
 	int i=0;
 	t_data_sckt_buf* data_sckt_buf;
-	
 //	static int iter = 0;
 //
 //	iter++;

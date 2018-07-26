@@ -1,3 +1,4 @@
+losetup -o 1048576 /dev/loop7 /opt/virtutech/simics-3.0.31/workspace/c.img
 /usr/sbin/tunctl -t tap0 -u peppe
 brctl addbr virbr0
 brctl addif virbr0 eth3

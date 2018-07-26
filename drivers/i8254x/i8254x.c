@@ -198,6 +198,7 @@ void free_8254x(t_i8254x* i8254x)
 
 void int_handler_i8254x()
 {
+	struct t_process_context* tmp;
 	t_i8254x* i8254x;
 	u16 cur;
 	u16 old_cur;
@@ -218,6 +219,13 @@ void int_handler_i8254x()
 	EOI_TO_SLAVE_PIC
 	EOI_TO_MASTER_PIC
 	STI
+
+	CURRENT_PROCESS_CONTEXT(tmp);
+	if (system.process_info->next_pid >= 2 && system.process_info->next_pid < 8)
+	{
+		trace(tmp->pid,2,0);
+	}
+
 	status=read_i8254x(i8254x,REG_ICR);
 	if (status & ICR_LSC)
 	{
@@ -269,6 +277,10 @@ exit:
 	enable_irq_line(i8254x->irq_line);
 	ENABLE_PREEMPTION
 	CLI
+	if (system.process_info->next_pid >= 2 && system.process_info->next_pid < 8)
+	{
+		trace(tmp->pid,3,0);
+	}
 	//EXIT_INT_HANDLER(0,processor_reg)
 
 	static struct t_process_context _current_process_context;
@@ -283,6 +295,7 @@ exit:
         
 	CLI
 	if (system.int_path_count == 0 && system.force_scheduling == 0)
+	//if (system.int_path_count == 0)
 	{
 		equeue_packet(system.network_desc);
 		dequeue_packet(system.network_desc);

@@ -48,7 +48,8 @@ void  _bigFree(void *address)
 	return buddy_free_page(system.buddy_desc,address);
 }
 
-void* kmalloc(unsigned int mem_size) 
+/*
+void* __kmalloc(unsigned int mem_size) 
 {		
 	void *mem_add;
 
@@ -145,8 +146,9 @@ void* kmalloc(unsigned int mem_size)
 	RESTORE_IF_STATUS
 	return mem_add;
 }
+*/
 
-void* kmalloc_old(unsigned int mem_size) 
+void* kmalloc(unsigned int mem_size) 
 {		
 	int i;	
 	void *mem_add;
@@ -171,7 +173,8 @@ void* kmalloc_old(unsigned int mem_size)
 	return mem_add;
 }
 
-void kfree(void *address) 
+/*
+void __kfree(void *address) 
 {	
 	int i;
 	unsigned int pool_index;
@@ -254,11 +257,6 @@ void kfree(void *address)
 			panic();
 		}
 	}
-		
-
-
-
-
 	while ((pool_index+1)*MEM_TO_POOL<(address-VIRT_MEM_START_ADDR-POOL_START_ADDR))
 	{
 		pool_index++;
@@ -267,9 +265,10 @@ void kfree(void *address)
 //	collect_mem_free(address);
 	RESTORE_IF_STATUS
 }
+*/
 
 
-void kfree_old(void *address) 
+void kfree(void *address) 
 {	
 	int i;
 	unsigned int pool_index;

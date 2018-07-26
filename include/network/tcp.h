@@ -8,7 +8,7 @@
 #include "network/common.h"
 #include "network/socket_buffer.h"
 
-#define SMSS 			1454			
+#define SMSS 			1454	
 #define TCP_RCV_SIZE 		16384
 #define TCP_SND_SIZE 		(16384*256)
 //#define TCP_SND_SIZE 		16384
@@ -140,6 +140,8 @@ typedef struct s_tcp_conn_desc
 	u32 last_seq_sent;
 	u32 debug_status;
 	u32 count;
+	u32 start_time;
+	u32 pid;
 }
 t_tcp_conn_desc;
 

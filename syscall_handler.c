@@ -34,6 +34,11 @@ void syscall_handler()
 	syscall_num=processor_reg.eax;
 	params=processor_reg.ecx;
 
+	if (system.process_info->next_pid >= 2 && system.process_info->next_pid < 8)
+	{
+		trace(tmp->pid,8,syscall_num);
+	}
+
 	switch (syscall_num) 
 	{
 		case 1:
@@ -247,7 +252,14 @@ void syscall_handler()
 //	EXIT_INT_HANDLER(on_exit_action,processor_reg)
 
 	CLI
+
+	if (system.process_info->next_pid >= 2 && system.process_info->next_pid < 8)
+	{
+		trace(tmp->pid,9,syscall_num);
+	}
+	
 	if (system.int_path_count == 0 && system.force_scheduling == 0)
+	//if (system.int_path_count == 0)
 	{
 		equeue_packet(system.network_desc);
 		dequeue_packet(system.network_desc);
