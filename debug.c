@@ -66,11 +66,6 @@ void check_free_mem()
 	RESTORE_IF_STATUS
 }
 
-void check_process_context()
-{
-	return;
-}
-
 void _check_process_context()
 {
 	t_llist_node* next;
@@ -95,7 +90,7 @@ void _check_process_context()
 	}
 }
 
-void is_phy_page_used(unsigned int phy_page_addr)
+void _is_phy_page_used(unsigned int phy_page_addr)
 {
 	u32 i = 0;
 	u32 page_addr;
@@ -184,7 +179,7 @@ void check_not_released()
 	//printk("trig = %d \n",system.trig);
 	//printk("cpanic = %d \n",system.cpanic);
 	printk("piggy = %d \n",system.piggy_timeout);
-	//printk("rtrsn = %d \n",system.rtrsn_timeout);
+	printk("rtrsn = %d \n",system.rtrsn_timeout);
 	printk("reset = %d \n",system.reset);
 	//printk("tcp_close_1 = %d \n",system.tcp_close_1);
 	//printk("tcp_close_2 = %d \n",system.tcp_close_2);
@@ -195,6 +190,7 @@ void check_not_released()
 	//printk("reset_2 = %d \n",system.reset_2);
 	//printk("reset_3 = %d \n",system.reset_3);
 	printk("avg exec time %d \n",system.avg_exec_time);
+	printk("lost tick %d \n",system.lost_tick);
 	//printk("sched_tot = %d \n",system.sched_tot);
 	//printk("sched_0 = %d \n",system.sched_0);
 	//printk("p0 = %d \n",system.p0);

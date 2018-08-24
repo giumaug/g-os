@@ -34,10 +34,10 @@ void syscall_handler()
 	syscall_num=processor_reg.eax;
 	params=processor_reg.ecx;
 
-	if (system.process_info->next_pid >= 2 && system.process_info->next_pid < 8)
-	{
-		trace(tmp->pid,8,syscall_num);
-	}
+//	if (system.process_info->next_pid >= 2 && system.process_info->next_pid < 8)
+//	{
+//		trace(tmp->pid,8,syscall_num);
+//	}
 
 	switch (syscall_num) 
 	{
@@ -253,16 +253,19 @@ void syscall_handler()
 
 	CLI
 
-	if (system.process_info->next_pid >= 2 && system.process_info->next_pid < 8)
-	{
-		trace(tmp->pid,9,syscall_num);
-	}
+//	if (system.process_info->next_pid >= 2 && system.process_info->next_pid < 8)
+//	{
+//		trace(tmp->pid,9,syscall_num);
+//	}
 	
-	if (system.int_path_count == 0 && system.force_scheduling == 0)
+	//if (system.int_path_count == 0 && system.force_scheduling == 0)
 	//if (system.int_path_count == 0)
+	if (syscall_num == 31 || syscall_num == 32)
 	{
-		equeue_packet(system.network_desc);
+		//equeue_packet(system.network_desc);
+		//dequeue_packet(system.network_desc);
 		dequeue_packet(system.network_desc);
+		equeue_packet(system.network_desc);
 	}
 	
 	static struct t_process_context _current_process_context;                                          

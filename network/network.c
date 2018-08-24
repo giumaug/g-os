@@ -42,113 +42,43 @@ void equeue_packet(t_network_desc* network_desc)
 	void* frame;
 	u16 frame_len;
 	u32 data_sent = 0;
-	
 	static u32 tot_sent = 0;
-	struct t_process_context* process_context = NULL;
-	CURRENT_PROCESS_CONTEXT(process_context);
-//	u32 static count = 0;
-//	u32 static tot_count = 0;
-//	u32 static avg = 0;
-//	static int tot = 0;
-//	static int t1 = 0;
-//	static int t2 = 0;
-//	static int iter = 0;
-//	
-//	iter++;
-//	if (iter > 1)
-//	{
-//		printk("race !!! \n"); 
-//	}
 	
-	DISABLE_PREEMPTION
-	STI
+//	DISABLE_PREEMPTION
+//	STI 
 	sckt_buf_desc=network_desc->tx_queue;
 	stop = 0;
 	while (stop == 0 && (data_sckt_buf=dequeue_sckt(sckt_buf_desc))!=NULL)
 	{
 		frame=data_sckt_buf->mac_hdr;
 		frame_len=data_sckt_buf->data_len;
-		CLI
+//		CLI 
 		send_packet_i8254x(network_desc->dev,frame,frame_len);
-		STI
+//		STI
 		free_sckt(data_sckt_buf);
-		tot_sent += frame_len;
-		data_sent += frame_len;
-//		if (system.force_scheduling == 1 || system.preempt_network_flush == 1)
-//		{
-//			system.preempt_network_flush = 0;
-//			stop = 1;
-//		}
 	}
-	if (system.process_info->next_pid == 4 && data_sent != 0) 
-	{
-		//printk("data sent: %d \n",tot_sent);
-	}
-	CLI
-	ENABLE_PREEMPTION
-	
-//	iter--;
-//	if (iter > 0)
-//	{
-//		printk("race !!! \n"); 
-//	}
-//	if (ggo == 1)
-//	{
-//		tot += tot_sent;
-//		tot_count++;
-//		if (tot_sent > 0)
-//		{
-//			count++;
-//			avg = tot / count;
-//		}
-//		if (tot_sent <= 16384)
-//		{
-//			t1++;
-//		}
-//		else 
-//		{
-//			t2++;
-//		}
-//		if (tot > 31200000)preempt_network_flush
-//		{
-//			printk("break!!! \n");
-//		}
-//	}
+//	CLI
+//	ENABLE_PREEMPTION
 }
 
 void dequeue_packet(t_network_desc* network_desc)
 {
-	int i=0;
 	t_data_sckt_buf* data_sckt_buf;
-//	static int iter = 0;
-//
-//	iter++;
-//	if (iter > 1)
-//	{
-//		printk("race !!! \n"); 
-//	}
 
-	DISABLE_PREEMPTION
-	STI
+//	DISABLE_PREEMPTION
+//	STI 
 	while ((data_sckt_buf=dequeue_sckt(network_desc->rx_queue))!=NULL)
 	{	
-		CLI
+//		CLI 
 		rcv_packet_mac(data_sckt_buf);
-		i++;
-		STI
+//		STI
 		if (system.force_scheduling != 0)
 		{
 			break;
 		}
 	}
-	CLI
-	ENABLE_PREEMPTION
-
-//	iter--;
-//	if (iter > 0)
-//	{
-//		printk("race !!! \n"); 
-//	}
+//	CLI
+//	ENABLE_PREEMPTION
 }
 
 void debug_network(char* data,u32 data_len)

@@ -24,6 +24,16 @@ void init_pit()
 	set_idt_entry(0x20,&i_desc);
 }
 
+void foo()
+{
+	char* xxx = kmalloc(1000);
+	if (xxx == 1000)
+	{
+		printk("sdd \n");
+	}
+	kfree(xxx);
+}
+
 void int_handler_pit()
 {
 	int is_schedule=0;
@@ -43,12 +53,26 @@ void int_handler_pit()
 	SAVE_PROCESSOR_REG
 	EOI_TO_MASTER_PIC
 	SWITCH_DS_TO_KERNEL_MODE
-
 	process_context = system.process_info->current_process->val;
-	if (system.process_info->next_pid >= 2 && system.process_info->next_pid < 8)
+//	if (system.process_info->next_pid >= 2 && system.process_info->next_pid < 8)
+//	{
+//		trace(process_context->pid,0,0);
+//	}
+
+	int i = 0;
+
+/*
+	t_tcp_conn_desc* xxx = NULL;
+	if (system.process_info->next_pid >= 2)
 	{
-		trace(process_context->pid,0,0);
+		for (i = 0;i < 3;i++)
+		{
+			//foo();
+			xxx = tcp_conn_desc_int();
+			tcp_conn_desc_free(xxx);
+		}
 	}
+*/
 
 	system.time+=QUANTUM_DURATION;
 	if (system.int_path_count>0)
@@ -80,7 +104,6 @@ void int_handler_pit()
 			next_process->assigned_sleep_time=0;
 			next_process->proc_status=RUNNING;
 			queue_index=next_process->curr_sched_queue_index;
-			check_process_context();
 			ll_append(system.scheduler_desc->scheduler_queue[queue_index],next_process);
 			old_node=next;
 			next=ll_next(next);
@@ -103,19 +126,6 @@ void int_handler_pit()
 	{	
 		process_context=system.process_info->current_process->val;
 		process_context->sleep_time-=QUANTUM_DURATION;
-//		if (process_context->pid==0 && )
-//		{
-//			p0++;
-//		}
-
-//		if (process_context->pid==0 && ggo==1)
-//		{
-//			p0++;
-//		}
-//		if (process_context->pid==3 && ggo==1)
-//		{
-//			p2++;
-//		}
 		if (process_context->sleep_time>1000) 	
 		{
 			process_context->sleep_time=1000;
@@ -167,15 +177,17 @@ exit_handler:;
 	static u32 phy_fault_addr_old;
 	
 	CLI
-	if (system.process_info->next_pid >= 2 && system.process_info->next_pid < 8)
-	{
-		trace(process_context->pid,1,0);
-	}
+//	if (system.process_info->next_pid >= 2 && system.process_info->next_pid < 8)
+//	{
+//		trace(process_context->pid,1,0);
+//	}
 	if (system.int_path_count == 0 && system.force_scheduling == 0)  
         //if (system.int_path_count == 0)
 	{
-		equeue_packet(system.network_desc);
-		dequeue_packet(system.network_desc);
+		//equeue_packet(system.network_desc);
+		//dequeue_packet(system.network_desc);
+		//dequeue_packet(system.network_desc);
+		//equeue_packet(system.network_desc);
 	}                                                    
 	_action2=is_schedule;                                                                                   
 	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;

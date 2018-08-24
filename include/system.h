@@ -106,6 +106,8 @@ typedef struct s_system
 	u32 sched_tot;
 	u32 sched_0;
 	u32 p0;
+	u32 kmalloc;
+	u32 lost_tick;
 }
 t_system;
 

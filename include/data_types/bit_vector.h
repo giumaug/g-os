@@ -10,5 +10,6 @@ void bit_vector_free(t_bit_vector* bit_vector);
 void bit_vector_set(t_bit_vector* bit_vector,u32 index);
 void bit_vector_reset(t_bit_vector* bit_vector,u32 index);
 u8 bit_vector_get(t_bit_vector* bit_vector,u32 index);
+void bit_vector_re_init(t_bit_vector* bit_vector,u32 size);
 
 #endif
