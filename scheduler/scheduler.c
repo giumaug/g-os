@@ -20,13 +20,6 @@ void do_context_switch(struct t_process_context *current_process_context,
 		       struct t_processor_reg *processor_reg,
 		       struct t_process_context *new_process_context)
 {
-	int a=current_process_context->pid;
-	int b=new_process_context->pid;
-	if (a!=0 && b!=0)
-	{
-		PRINTK("context switch from %d to %d \n",a,b);
-	}
-
 	*(system.process_info->tss.esp)=KERNEL_STACK;
 	//save current process state 
 	current_process_context->processor_reg.eax=processor_reg->eax;
@@ -79,12 +72,11 @@ void schedule(struct t_process_context *current_process_context,struct t_process
 	current_process_context=node->val;
 	
 	system.sched_tot++;
-	//check_process_context();
 
-	if (system.process_info->next_pid >= 2 && system.process_info->next_pid < 8)
-	{
-		trace(current_process_context->pid,6,0);
-	}
+//	if (system.process_info->next_pid >= 2 && system.process_info->next_pid < 8)
+//	{
+//		trace(current_process_context->pid,6,0);
+//	}
 
 	while(!stop && index<10)
 	{
@@ -102,7 +94,6 @@ void schedule(struct t_process_context *current_process_context,struct t_process
 					adjust_sched_queue(current_process_context);
 					ll_delete_node(node);
 					queue_index=current_process_context->curr_sched_queue_index;
-					check_process_context();
 					ll_append(system.scheduler_desc->scheduler_queue[queue_index],current_process_context);
 				}
 				else if (current_process_context->proc_status==SLEEPING)
@@ -139,9 +130,7 @@ void schedule(struct t_process_context *current_process_context,struct t_process
 			system.process_info->current_process = system.process_info->process_0;
 			if (current_process_context->proc_status==SLEEPING)
 			{
-				//check_process_context();
 				ll_delete_node(node);
-				//check_process_context();
 			}
 			else if (current_process_context->proc_status==EXITING)
 			{
@@ -335,7 +324,6 @@ void _awake(struct t_process_context *new_process)
 	new_process->sleep_time=(system.time-new_process->sleep_time>=1000) ? 1000 : (system.time-new_process->sleep_time);
 	new_process->proc_status=RUNNING;
 	adjust_sched_queue(new_process);
-	check_process_context();
 	//COULD ARRIVE AN ATA INTERRUPT DURING NETWORK FLUSH
 	if (process_context->pid != new_process->pid)
 	{
@@ -384,10 +372,6 @@ void _exit(int status)
 //   				current_process->tick=1;
 //				SUSPEND			
 //			}
-			if (system.process_info->next_pid > 10 )
-			{
-				system.sched_0++;
-			}
 			asm("sti;hlt");
 		}
 	}
@@ -464,16 +448,11 @@ int _fork(struct t_processor_reg processor_reg)
 	kmemcpy(kernel_stack_addr,FROM_PHY_TO_VIRT(parent_process_context->phy_kernel_stack),KERNEL_STACK_SIZE);
 	child_process_context->pid = system.process_info->next_pid++;
 
-//	if (child_process_context->pid > 2)
+//	if (child_process_context->pid == 8)
 //	{
-//		system.proc_count++;
+//		panic();
+//		trace(0,0,0);
 //	}
-
-	if (child_process_context->pid == 4)
-	{
-		panic();
-		trace(0,0,0);
-	}
 
 	child_process_context->parent = parent_process_context;
 //	TEMPORARY TRICK.CORRECT SOLUTION IS TO ADD A POINTER TO CLONER FUNTION IN HASMAP CLONE ALONSIDE DESTRUCTOR POINTER
@@ -496,7 +475,6 @@ int _fork(struct t_processor_reg processor_reg)
 		child_process_context->ustack_mem_reg = create_mem_reg(parent_process_context->ustack_mem_reg->start_addr,
 								     parent_process_context->ustack_mem_reg->end_addr);	
 	}
-	check_process_context();
 	ll_prepend(system.scheduler_desc->scheduler_queue[parent_process_context->curr_sched_queue_index],child_process_context);
 	child_process_context->page_dir = clone_vm_process(parent_process_context->page_dir,
 							 parent_process_context->process_type,

@@ -141,10 +141,10 @@ void int_handler_ata()
 	STI
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 	
-	if (system.process_info->next_pid >= 2 && system.process_info->next_pid < 8)
-	{
-		trace(current_process_context->pid,4,0);
-	}
+//	if (system.process_info->next_pid >= 2 && system.process_info->next_pid < 8)
+//	{
+//		trace(current_process_context->pid,4,0);
+//	}
 
 	io_request = system.device_desc->serving_request;
 	process_context = io_request->process_context;
@@ -176,16 +176,18 @@ void int_handler_ata()
         
 	CLI
 
-	if (system.process_info->next_pid >= 2 && system.process_info->next_pid < 8)
-	{
-		trace(current_process_context->pid,5,0);
-	}
+//	if (system.process_info->next_pid >= 2 && system.process_info->next_pid < 8)
+//	{
+//		trace(current_process_context->pid,5,0);
+//	}
 
 	if (system.int_path_count == 0 && system.force_scheduling == 0)
 	//if (system.int_path_count == 0)
 	{
-		equeue_packet(system.network_desc);
-		dequeue_packet(system.network_desc);
+		//equeue_packet(system.network_desc);
+		//dequeue_packet(system.network_desc);
+		//dequeue_packet(system.network_desc);
+		//equeue_packet(system.network_desc);
 	}
 	_action2=0;
 	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;

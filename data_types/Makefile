@@ -5,7 +5,7 @@ vpath %.h $(INCLUDE)/data_types
 all: 	dllist.o queue.o hashtable.o bit_vector.o
 
 dllist.o: dllist.c dllist.h
-	$(CC)  $(CPPFLAGS) $(CFLAGS) dllist.c
+	$(CC) $(CPPFLAGS) $(CPPFLAGS) $(CFLAGS) dllist.c
 
 queue.o: queue.c queue.h
 	$(CC)  $(CPPFLAGS) $(CFLAGS) queue.c

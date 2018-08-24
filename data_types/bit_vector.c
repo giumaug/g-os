@@ -14,8 +14,18 @@ t_bit_vector* bit_vector_init(u32 size)
 	return bit_vector;
 }
 
-void bit_vector_free(t_bit_vector* bit_vector)
+void bit_vector_re_init(t_bit_vector* bit_vector,u32 size)
 {
+	int i;
+
+	for (i=0 ; i < ((size/8)+1); i++)
+	{
+		bit_vector[i] = 0;
+	}
+}
+
+void bit_vector_free(t_bit_vector* bit_vector)
+{	
 	kfree(bit_vector);
 }
 

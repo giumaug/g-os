@@ -119,13 +119,13 @@ pmode:
 	mov     $TSS_ADD,%ecx;
 
 # Stack grows from botton to up (push decrement address stack,pop increment)
-	mov   	$(INIT_STACK+INIT_STACK_SIZE),%esp 
+	mov   	$(INIT_STACK+INIT_STACK_SIZE),%esp;
 #load tss       
 	mov 	$0x28,%ax;
         ltr 	%ax;	
 	push 	%ecx;   	
 	push  	%ebx                       	
-   	push  	%eax                       	
+   	push  	%eax               	
 	call  	kmain            		
 	cli
 

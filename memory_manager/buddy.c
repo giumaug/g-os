@@ -168,8 +168,6 @@ void buddy_free_page(t_buddy_desc* buddy,void* to_free_page_addr)
 			free_page_order=i+1;
 			page_addr&=buddy_page_addr;
 			buddy->order[BLOCK_INDEX(page_addr)]= buddy->order[BLOCK_INDEX(page_addr)] & 15;
-			is_phy_page_used(page_addr);
-			is_phy_page_used(buddy_page_addr);
 		}
 		else 
 		{

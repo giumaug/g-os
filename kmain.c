@@ -47,6 +47,12 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	system.sched_tot = 0;
 	system.sched_0 = 0;
 	system.p0 = 0;
+	system.kmalloc = 0;
+	system.lost_tick = 0;
+	//system.slab_1 = NULL;
+	//system.slab_2 = NULL;
+	//system.slab_3 = NULL;
+	//system.slab_4 = NULL;	
 	
 	system.preempt_network_flush = 0;
 	system.time = 0;
@@ -64,6 +70,10 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	system.scheduler_desc->scheduler_queue[0] = 0;
 	system.process_info->current_process = NULL;
 	init_kmalloc();
+
+	char* xxx = kmalloc(2);
+	kfree(xxx);
+
    	init_idt();
    	init_pic();
    	init_pit();
@@ -116,13 +126,17 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	*(system.process_info->tss.ss) = 0x18;
 	*(system.process_info->tss.esp) = KERNEL_STACK;
 	system.network_desc = network_init();
-	system.timer_list = new_dllist();
-                       		
+	system.timer_list = new_dllist();                       		
 	kernel_stack = KERNEL_STACK - 100;
-	asm("movl %0,%%ebp;"::"r"(kernel_stack));
-	asm("movl %0,%%esp;"::"r"(kernel_stack));
+	asm volatile ("movl %0,%%ebp;"::"r"(kernel_stack));
+	asm volatile ("movl %0,%%esp;"::"r"(kernel_stack));
 	STI
-	process_0();				       	
+	process_0();
+//	long ebp;
+//	long esp;
+//	asm("mov %%ebp,%0;":"=r"(ebp));
+//	asm("mov %%esp,%0;":"=r"(esp));
+//	if (ebp == esp == 0) while(1);			       	
 }
 
 void panic()

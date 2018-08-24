@@ -62,9 +62,8 @@ int main()
 	while(1) 
 	{
 		age++;
-		if (age >=400)
+		//if (((age % 10000) == 0) || age > 80000)
 		{
-			//printf("http server waiting\n");
 			check_free_mem();
 		}
 		client_len = sizeof(client_address);
@@ -74,11 +73,13 @@ int main()
 		//printf("accepted request %d \n",request_count++);
 		if(fork() == 0) 
 		{
-			process_request_3(client_sockfd);
-			//sleep(10);
-			int i = 0;
-			for (i= 0;i<=100000;i++);
+			process_request(client_sockfd);
+			//sleep(10000);
+			//printf("end child!!! \n");
+			//for (i = 0;i <= 5000;i++);
 			close_socket(client_sockfd);
+			//sleep(10000);
+			//printf("end child!!! \n");
 			exit(0);
 		}
 		else 
@@ -130,7 +131,7 @@ void process_request_3(int client_sockfd)
 			b_to_read = file_size;
 		}
 		b_read = read(f,io_buffer,b_to_read);
-		//b_read = b_to_read;
+//		b_read = b_to_read;
 		ret = write_socket(client_sockfd,io_buffer,b_read);
 		if (ret < 0)
 		{

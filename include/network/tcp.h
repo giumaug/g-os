@@ -154,6 +154,10 @@ typedef struct s_tcp_desc
 	struct s_tcp_conn_map* req_map;			//REQUESTED CONNECTIONS MAP
 	struct s_tcp_conn_map* listen_map;		//LISTENING CONNECTIONS MAP
 	u32 listen_port_index;
+	t_tcp_conn_desc* slab_1;
+	t_tcp_conn_desc* slab_2;
+	t_tcp_conn_desc* slab_3;
+	t_tcp_conn_desc* slab_4;
 }
 t_tcp_desc;
 

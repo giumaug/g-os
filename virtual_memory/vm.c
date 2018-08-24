@@ -173,6 +173,12 @@ void* clone_vm_process(void* parent_page_dir,u32 process_type,u32 kernel_stack_a
 }
 
 //NO SWITCH_PAGE_DIR NEEDED BECAUSE IT WORKS ON OLD PROCESS
+
+void _free_vm_process(struct t_process_context* process_context)
+{
+	return;
+} 
+
 void free_vm_process(struct t_process_context* process_context)
 {
 	SAVE_IF_STATUS
