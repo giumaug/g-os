@@ -396,7 +396,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 //				trace(process_context->pid,10,0);
 //			}
 
-			t_tcp_conn_desc* xxx = NULL;
 			new_tcp_conn_desc = tcp_conn_desc_int();
 			new_tcp_conn_desc->src_ip = dst_ip;
 			new_tcp_conn_desc->dst_ip = src_ip;
@@ -409,6 +408,10 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			new_tcp_conn_desc->rcv_queue->nxt_rcv = ack_num;
 			new_tcp_conn_desc->rcv_queue->wnd_min = ack_num;
 			rtrsn_timer_set(new_tcp_conn_desc->rtrsn_timer,new_tcp_conn_desc->rto);
+		}
+		//Workaround to avoid new connection on still open port (issue with cell network) 
+		else if (new_tcp_conn_desc->status != SYN_RCVD) {
+			goto EXIT;
 		}
 		upd_max_adv_wnd(new_tcp_conn_desc,rcv_wmd_adv);
 		_SEND_PACKET_TCP(new_tcp_conn_desc,NULL,0,ack_num,(FLG_SYN | FLG_ACK),new_tcp_conn_desc->snd_queue->nxt_snd);
@@ -499,6 +502,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	    	 && data_len > 0)
 	{
 		//TO CHECK RETRY SU FIN WITH WRONG ACK
+		panic();
 	}
 	else if (flags & FLG_FIN && tcp_conn_desc->status == FIN_WAIT_2)
 	{
@@ -636,7 +640,10 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	}
 EXIT:
 		free_sckt(data_sckt_buf);
-		//printk("--exit %d \n",src_port);	
+		//printk("status= %d \n",tcp_conn_desc->status);
+		//printk("fin_num= %d \n",fin_num);
+		//printk("ack_seq_num= %d \n",ack_seq_num);
+		//printk("seq_num= %d \n",seq_num);
 }
 	
 static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 data_len)
