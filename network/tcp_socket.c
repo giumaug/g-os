@@ -1,6 +1,5 @@
 #include "network/tcp_socket.h"
 
-int ggo = 0;
 static int free_port_search()
 {
 	int i;

@@ -4,17 +4,8 @@
 #include "asm.h"
 #include "lib/lib.h"
 
-extern int tcpdump_val[100];
-extern int tcpdump_desc[100];
-extern int tcpdump_index;
-int go = 0;
-extern int ggo;
-
 extern struct t_llist* kbc_wait_queue;
 extern unsigned int *master_page_dir;
-
-int start = 0;
-int end = 0;
 
 void do_context_switch(struct t_process_context *current_process_context,
 		       struct t_processor_reg *processor_reg,
@@ -70,13 +61,6 @@ void schedule(struct t_process_context *current_process_context,struct t_process
 	index=0;
 	node=system.process_info->current_process;	
 	current_process_context=node->val;
-	
-	system.sched_tot++;
-
-//	if (system.process_info->next_pid >= 2 && system.process_info->next_pid < 8)
-//	{
-//		trace(current_process_context->pid,6,0);
-//	}
 
 	while(!stop && index<10)
 	{
@@ -116,10 +100,6 @@ void schedule(struct t_process_context *current_process_context,struct t_process
 	}
 	if (stop == 0)
 	{
-//		if (ggo == 1)
-//		{
-//			printk("wwww \n");
-//		}
 		if (current_process_context->proc_status == RUNNING)
 		{
 			adjust_sched_queue(current_process_context);
@@ -139,85 +119,6 @@ void schedule(struct t_process_context *current_process_context,struct t_process
 			}
 		}
 	}
-}
-
-void _adjust_sched_queue(struct t_process_context *current_process_context)
-{
-	int priority;
-	unsigned int queue_index;
-		
-	//static prioriry range from -10 to 10 default value is 0;
-	priority=current_process_context->sleep_time+(current_process_context->static_priority*10);
-
-	if (priority>=0 && priority<100)
-	{
-		queue_index=9;
-	}
-	else 
-	{	
-		if (priority>=100 && priority<200)
-		{
-			queue_index=8;
-		}
-		else 
-		{
-			if (priority>=200 && priority<300)
-			{
-				queue_index=7;
-			}
-			else 
-			{
-				if (priority>=300 && priority<400)
-				{
-					queue_index=6;
-				}
-				else 
-				{
-					if (priority>=400 && priority<500)
-					{
-						queue_index=5;
-					}
-					else
-					{
-						if (priority>=500 && priority<600)
-						{
-							queue_index=4;
-						}
-						else
-						{
-							if (priority>=600 && priority<700)
-							{
-								queue_index=3;
-							}
-							else
-							{
-								if (priority>=700 && priority<800)
-								{
-									queue_index=2;
-								}
-								else
-								{
-									if (priority>=800 && priority<900)
-									{
-										queue_index=1;
-									}
-									else
-									{
-										if (priority>=900 && priority<=1000)
-										{
-											queue_index=0;
-										}	
-									}	
-								}	
-							}	
-						}
-					}	
-				}	
-			}
-		}		
-	}
-	current_process_context->curr_sched_queue_index=queue_index;
-	return;
 }
 
 void adjust_sched_queue(struct t_process_context *current_process_context)
@@ -317,10 +218,6 @@ void _awake(struct t_process_context *new_process)
 	SAVE_IF_STATUS
 	CLI
 	CURRENT_PROCESS_CONTEXT(process_context);
-	if (new_process->pid==2)
-	{
-		//printk("qui!! \n");
-	}
 	new_process->sleep_time=(system.time-new_process->sleep_time>=1000) ? 1000 : (system.time-new_process->sleep_time);
 	new_process->proc_status=RUNNING;
 	adjust_sched_queue(new_process);
@@ -366,12 +263,6 @@ void _exit(int status)
 	{
 		while(1) 
 		{
-//			current_process->tick=1;
-//			while(system.force_scheduling == 1) 
-//			{
-//   				current_process->tick=1;
-//				SUSPEND			
-//			}
 			asm("sti;hlt");
 		}
 	}
@@ -404,17 +295,9 @@ void _exit(int status)
 		delete_mem_reg(current_process->heap_mem_reg);
 		delete_mem_reg(current_process->ustack_mem_reg);
 	}
-
-//	if (current_process->pid > 2)
-//	{
-//		system.exec_time += (system.time - current_process->start_time);
-//		system.avg_exec_time = system.exec_time / system.proc_count;
-//	}
 	
 	hashtable_free(current_process->file_desc);
 	hashtable_free(current_process->socket_desc);
-	//end = system.time - start;
-	//system.avg_exec_time = end;
 	RESTORE_IF_STATUS
 }
 
@@ -433,10 +316,6 @@ int _fork(struct t_processor_reg processor_reg)
 	SAVE_IF_STATUS
 	CLI
 	CURRENT_PROCESS_CONTEXT(parent_process_context);
-	if (parent_process_context->pid != 2)
-	{
-		//panic();
-	}
 	if (parent_process_context->pid == 0)
 	{
 		system.process_info->process_0 = system.process_info->current_process;
@@ -447,12 +326,6 @@ int _fork(struct t_processor_reg processor_reg)
 	child_process_context->phy_kernel_stack = FROM_VIRT_TO_PHY(kernel_stack_addr);
 	kmemcpy(kernel_stack_addr,FROM_PHY_TO_VIRT(parent_process_context->phy_kernel_stack),KERNEL_STACK_SIZE);
 	child_process_context->pid = system.process_info->next_pid++;
-
-//	if (child_process_context->pid == 8)
-//	{
-//		panic();
-//		trace(0,0,0);
-//	}
 
 	child_process_context->parent = parent_process_context;
 //	TEMPORARY TRICK.CORRECT SOLUTION IS TO ADD A POINTER TO CLONER FUNTION IN HASMAP CLONE ALONSIDE DESTRUCTOR POINTER
@@ -505,19 +378,7 @@ u32 _exec(char* path,char* argv[])
 	u32 process_size;
 	t_elf_desc* elf_desc;
 
-//	CLI  ----------non serve
 	CURRENT_PROCESS_CONTEXT(current_process_context);
-
-
-	if (current_process_context->pid >=1)
-	{
-		//collect_mem=1;
-	}
-	if (current_process_context->pid >1)
-	{
-		go = 1;
-	}
-
 	if (current_process_context->elf_desc == NULL)
 	{
 		elf_desc=kmalloc(sizeof(t_elf_desc));
@@ -568,9 +429,6 @@ u32 _exec(char* path,char* argv[])
 		}
 		bk_area[k][i++] = '\0';
 	}		
-	//init_vm_process(current_process_context);
-	//SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 
-
 	if (current_process_context->process_type == KERNEL_THREAD)
 	{
 		current_process_context->process_mem_reg = create_mem_reg(PROC_VIRT_MEM_START_ADDR,PROC_VIRT_MEM_START_ADDR+process_size);

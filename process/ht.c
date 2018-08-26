@@ -74,7 +74,7 @@ int main()
 		if(fork() == 0) 
 		{
 			process_request(client_sockfd);
-			sleep(2000);
+			//sleep(2000);
 			//printf("end child!!! \n");
 			//for (i = 0;i <= 5000;i++);
 			close_socket(client_sockfd);

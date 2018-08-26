@@ -172,18 +172,6 @@ void* kmalloc(unsigned int mem_size)
 	return mem_add;
 }
 
-/*
-4	0 1159986
-8	1159987  2319973
-16	2319974  3479960
-32	3479961  4639947
-
-1159987
-2319974
-3479961
-4639948
-*/
-
 void _kfree(void *address) 
 {	
 	int i;
@@ -286,12 +274,6 @@ void _kfree(void *address)
 			panic();
 		}
 	}
-//	while ((pool_index+1)*MEM_TO_POOL<(address-VIRT_MEM_START_ADDR-POOL_START_ADDR))
-//	{
-//		pool_index++;
-//	}
-//	a_fixed_size_free(&a_fixed_size_desc[pool_index],address);
-//	collect_mem_free(address);
 	RESTORE_IF_STATUS
 }
 
@@ -322,7 +304,6 @@ unsigned int kfree_mem()
 	{
 		free_mem_list[i]=a_fixed_size_desc[i].current_free_block;
 		int xx = a_fixed_size_desc[i].current_free_block;
-		//printk("val is %d \n",xx);
 		tot+=a_fixed_size_desc[i].current_free_block;
 	}
 	return tot;

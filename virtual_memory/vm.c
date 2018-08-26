@@ -182,8 +182,7 @@ void _free_vm_process(struct t_process_context* process_context)
 void free_vm_process(struct t_process_context* process_context)
 {
 	SAVE_IF_STATUS
-	CLI
-	system.free_vm++;	
+	CLI	
 	if (process_context->process_type==USERSPACE_PROCESS)
 	{
 		free_vm_process_user_space(process_context);
@@ -449,7 +448,7 @@ void page_fault_handler()
 		}
 		else
 		{
-			printk("ssssssssssssssssssssss\n");
+			printk("Unexpected path!!! \n");
 		}
 	}
 	else if ((fault_code & 0x4)==USER && ((*(u32*)(processor_reg.esp+20))-32)<=fault_addr)
@@ -462,7 +461,6 @@ void page_fault_handler()
 	else
 	{
 		printk("\n ...Segmentation fault. \n");
-		system.cpanic++;
 		panic();
 		_exit(0);
 		on_exit_action=2;
