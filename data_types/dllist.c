@@ -14,7 +14,6 @@ t_llist* dc_new_dllist(void (*data_destructor)(void*))
  	t_llist *d;
   	t_llist_node *node;
   
-	system.kmalloc++;
  	d = (t_llist *) kmalloc (sizeof(t_llist));
 	d->data_destructor=data_destructor;
  	node = (t_llist_node *)kmalloc(sizeof(t_llist_node));

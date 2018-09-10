@@ -18,26 +18,19 @@ void syscall_handler()
 	int* params;
 	char data;
 	unsigned int on_exit_action;
-	struct t_process_context* tmp;
+	u8 flush_network;
 
  	SAVE_PROCESSOR_REG
 	//CLI
 	//call can come from kernel mode (sleep)
 	SWITCH_DS_TO_KERNEL_MODE
-
-	CURRENT_PROCESS_CONTEXT(tmp);
 	syscall_num=processor_reg.eax;
-
 	on_exit_action=0;
 	current_process_context=system.process_info->current_process->val;
 	t_console_desc *console_desc=current_process_context->console_desc;
 	syscall_num=processor_reg.eax;
 	params=processor_reg.ecx;
-
-//	if (system.process_info->next_pid >= 2 && system.process_info->next_pid < 8)
-//	{
-//		trace(tmp->pid,8,syscall_num);
-//	}
+	flush_network = 0;
 
 	switch (syscall_num) 
 	{
@@ -104,10 +97,8 @@ void syscall_handler()
 		break;
 
 		case 13:
-		system.exit_0++;
 		_exit(params[0]);
 		on_exit_action=2;
-		system.exit_1++;
 		break;
 	
 		case 14: 
@@ -249,25 +240,19 @@ void syscall_handler()
 		default:
 		panic();
 	}
-//	EXIT_INT_HANDLER(on_exit_action,processor_reg)
-
-	CLI
-
-//	if (system.process_info->next_pid >= 2 && system.process_info->next_pid < 8)
-//	{
-//		trace(tmp->pid,9,syscall_num);
-//	}
-	
-	//if (system.int_path_count == 0 && system.force_scheduling == 0)
-	//if (system.int_path_count == 0)
 	if (syscall_num == 31 || syscall_num == 32)
 	{
-		//equeue_packet(system.network_desc);
-		//dequeue_packet(system.network_desc);
+		flush_network = 1;
+	}
+	EXIT_INT_HANDLER(on_exit_action,processor_reg,flush_network)
+
+/*
+	CLI
+	if (syscall_num == 31 || syscall_num == 32)
+	{
 		dequeue_packet(system.network_desc);
 		equeue_packet(system.network_desc);
 	}
-	
 	static struct t_process_context _current_process_context;                                          
 	static struct t_process_context _old_process_context;                                              
 	static struct t_process_context _new_process_context;	                                            
@@ -322,4 +307,5 @@ void syscall_handler()
 		RESTORE_PROCESSOR_REG                                                                       
 		RET_FROM_INT_HANDLER                                                                        
 	}
+*/
 }

@@ -1,11 +1,6 @@
 #include "common.h"
 #include "network/network.h"
 
-//extern int go;
-//extern int ggo;
-//int pp1 = 0;
-//int pp2 = 0;
-
 //ONLY ONE INSTANCE FOR ALL POSSIBLE INTERFACES!!!!!
 t_network_desc* network_init()
 {

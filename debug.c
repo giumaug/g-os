@@ -166,35 +166,11 @@ void check_not_released()
 	int i = 0;
 	int index = 0;
 	
-	//printk("not releaed=%d \n",index);
-	//printk("collected_mem_index= %d \n",collected_mem_index);
-	//printk("tcp_1 = %d \n",system.tcp_1);
-	//printk("tcp_2 = %d \n",system.tcp_2);
 	printk("fork = %d \n",system.fork);
-	//printk("exit_0 = %d \n",system.exit_0);
-	//printk("exit_1 = %d \n",system.exit_1);
-	//printk("free_vm = %d \n",system.free_vm);
 	printk("out = %d \n",system.out);
-	//printk("action2 = %d \n",system.action2);
-	//printk("trig = %d \n",system.trig);
-	//printk("cpanic = %d \n",system.cpanic);
 	printk("piggy = %d \n",system.piggy_timeout);
 	printk("rtrsn = %d \n",system.rtrsn_timeout);
 	printk("reset = %d \n",system.reset);
-	//printk("tcp_close_1 = %d \n",system.tcp_close_1);
-	//printk("tcp_close_2 = %d \n",system.tcp_close_2);
-	//printk("fin_1 = %d \n",system.fin_1);
-	//printk("fin_2 = %d \n",system.fin_2);
-	//printk("fin_3 = %d \n",system.fin_3);
-	//printk("reset_1 = %d \n",system.reset_1);
-	//printk("reset_2 = %d \n",system.reset_2);
-	//printk("reset_3 = %d \n",system.reset_3);
-	printk("avg exec time %d \n",system.avg_exec_time);
-	printk("lost tick %d \n",system.lost_tick);
-	//printk("sched_tot = %d \n",system.sched_tot);
-	//printk("sched_0 = %d \n",system.sched_0);
-	//printk("p0 = %d \n",system.p0);
-	//panic();
 }
 
 void reset_counter()

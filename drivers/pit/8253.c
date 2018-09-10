@@ -6,10 +6,6 @@
 #include "drivers/pic/8259A.h" 
 
 #define K_STACK 0x1FFFFB
-//extern ggo;
-//extern go;
-//static int p0=0;
-//static int p2=0;
 
 void init_pit()
 {	
@@ -22,16 +18,6 @@ void init_pit()
 	i_desc.flags=0x08e00; //0x0EF00;
 	i_desc.baseHi=((int)&int_handler_pit)>>0x10;
 	set_idt_entry(0x20,&i_desc);
-}
-
-void foo()
-{
-	char* xxx = kmalloc(1000);
-	if (xxx == 1000)
-	{
-		printk("sdd \n");
-	}
-	kfree(xxx);
 }
 
 void int_handler_pit()
@@ -54,25 +40,6 @@ void int_handler_pit()
 	EOI_TO_MASTER_PIC
 	SWITCH_DS_TO_KERNEL_MODE
 	process_context = system.process_info->current_process->val;
-//	if (system.process_info->next_pid >= 2 && system.process_info->next_pid < 8)
-//	{
-//		trace(process_context->pid,0,0);
-//	}
-
-	int i = 0;
-
-/*
-	t_tcp_conn_desc* xxx = NULL;
-	if (system.process_info->next_pid >= 2)
-	{
-		for (i = 0;i < 3;i++)
-		{
-			//foo();
-			xxx = tcp_conn_desc_int();
-			tcp_conn_desc_free(xxx);
-		}
-	}
-*/
 
 	system.time+=QUANTUM_DURATION;
 	if (system.int_path_count>0)
@@ -164,8 +131,9 @@ void int_handler_pit()
 	}
 
 exit_handler:;
-//	EXIT_INT_HANDLER(is_schedule,processor_reg);
+	EXIT_INT_HANDLER(is_schedule,processor_reg,0);
 
+/*
 	static struct t_process_context _current_process_context;                                          
 	static struct t_process_context _old_process_context;                                              
 	static struct t_process_context _new_process_context;	                                            
@@ -176,19 +144,7 @@ exit_handler:;
 	static u32* page_table_old;
 	static u32 phy_fault_addr_old;
 	
-	CLI
-//	if (system.process_info->next_pid >= 2 && system.process_info->next_pid < 8)
-//	{
-//		trace(process_context->pid,1,0);
-//	}
-	if (system.int_path_count == 0 && system.force_scheduling == 0)  
-        //if (system.int_path_count == 0)
-	{
-		//equeue_packet(system.network_desc);
-		//dequeue_packet(system.network_desc);
-		//dequeue_packet(system.network_desc);
-		//equeue_packet(system.network_desc);
-	}                                                    
+	CLI                                                  
 	_action2=is_schedule;                                                                                   
 	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;
 	_old_process_context=_current_process_context;                                                      
@@ -230,4 +186,5 @@ exit_handler:;
 		//TO FIX: SHOULD BE REPLACED BY EXIT_SYSCALL_HANDLER
 		RET_FROM_INT_HANDLER                                                                      
 	}
+*/
 }

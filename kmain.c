@@ -29,33 +29,13 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	static t_device_desc device_desc;
 	static u32 kernel_stack;
 
-	system.tcp_1 = 0;
-	system.tcp_2 = 0;
-	system.free_vm = 0;
 	system.fork = 0;
 	system.out = 0;
-	system.action2 = 0;
-	system.trig = 0;
-	system.exit_0 = 0;
-	system.exit_1 = 0;
-	system.cpanic = 0;
+	system.tcp_1 = 0;
 	system.piggy_timeout = 0;
 	system.rtrsn_timeout = 0;
-	system.proc_count = 0;
-	system.avg_exec_time = 0;
-	system.exec_time = 0;
-	system.sched_tot = 0;
-	system.sched_0 = 0;
-	system.p0 = 0;
-	system.kmalloc = 0;
-	system.lost_tick = 0;
-	//system.slab_1 = NULL;
-	//system.slab_2 = NULL;
-	//system.slab_3 = NULL;
-	//system.slab_4 = NULL;	
-	
-	system.preempt_network_flush = 0;
 	system.time = 0;
+
 	init_data = init_data_add;
 	if ( magic != 0x2BADB002 )
    	{

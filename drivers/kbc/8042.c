@@ -276,10 +276,8 @@ void static int_handler_kbc();
 
 void init_kbc()
 {	
-	int i=0;
 	struct t_i_desc i_desc;
 	
-	//printk("kbc init \n");
 	in_buf=new_queue();
 	i_desc.baseLow=((int)&int_handler_kbc) & 0xFFFF;
 	i_desc.selector=0x8;
@@ -304,7 +302,6 @@ void int_handler_kbc()
 	struct t_processor_reg processor_reg;
 	
 	SAVE_PROCESSOR_REG
-//	CLI
 	DISABLE_PREEMPTION
 	disable_irq_line(1);
 	EOI_TO_MASTER_PIC
@@ -323,7 +320,6 @@ void int_handler_kbc()
 		// need exclude 56 and 29 because i use ctrl+alt in debug mode 
 		if (!(scan_code & 0x80) && scan_code!=29 && scan_code!=56) 
 		{
-			//printk("key pressed \n");
 			char_code=&(shift_state ? uppercase_charset:lowercase_charset)[scan_code];
 			enqueue(in_buf,char_code);
 			system.active_console_desc->is_empty=0;
@@ -332,8 +328,9 @@ void int_handler_kbc()
 	}
 	enable_irq_line(1);
 	ENABLE_PREEMPTION
-	//EXIT_INT_HANDLER(0,processor_reg)               
-                                                                                                                                \
+	EXIT_INT_HANDLER(0,processor_reg,0)               
+        
+/*                                                                                                                        \
 	static struct t_process_context _current_process_context;
 	static struct t_process_context _old_process_context;
 	static struct t_process_context _new_process_context;
@@ -345,11 +342,6 @@ void int_handler_kbc()
 	static u32 phy_fault_addr_old; 
         
 	CLI
-	if (system.int_path_count == 0 && system.force_scheduling == 0)
-	{
-		equeue_packet(system.network_desc);
-		dequeue_packet(system.network_desc);
-	}
 	_action2=0;
 	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;
 	_old_process_context=_current_process_context;
@@ -388,6 +380,7 @@ void int_handler_kbc()
 		RESTORE_PROCESSOR_REG
 		RET_FROM_INT_HANDLER
 	}
+*/
 }
 
 char read_buf()
@@ -401,9 +394,3 @@ char read_buf()
 	else system.active_console_desc->is_empty=1;
 	return 0;
 }
-
-
-
-
-
-

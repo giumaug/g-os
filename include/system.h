@@ -84,30 +84,12 @@ typedef struct s_system
 	unsigned int panic;
 	t_llist* timer_list;
 	u8 force_scheduling;
-	u8 preempt_network_flush;
-	u32 tcp_1;
-	u32 tcp_2;
 	u32 fork;
-	u32 free_vm;
 	u32 out;
-	u32 action2;
-	u32 trig;
-	u32 exit_0;
-	u32 exit_1;
-	u32 cpanic;
-	u32 shell_u_stack;
-	u32 shell_u_s_addr;
 	u32 piggy_timeout;
 	u32 rtrsn_timeout;
-	u32 reset;
-	u32 proc_count;
-	u32 avg_exec_time;
-	u32 exec_time;
-	u32 sched_tot;
-	u32 sched_0;
-	u32 p0;
-	u32 kmalloc;
-	u32 lost_tick;
+	u32 reset;	
+	u32 tcp_1;
 }
 t_system;
 

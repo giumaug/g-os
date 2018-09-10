@@ -220,12 +220,6 @@ void int_handler_i8254x()
 	EOI_TO_MASTER_PIC
 	STI
 
-//	CURRENT_PROCESS_CONTEXT(tmp);
-//	if (system.process_info->next_pid >= 2 && system.process_info->next_pid < 8)
-//	{
-//		trace(tmp->pid,2,0);
-//	}
-
 	status=read_i8254x(i8254x,REG_ICR);
 	if (status & ICR_LSC)
 	{
@@ -277,12 +271,9 @@ exit:
 	enable_irq_line(i8254x->irq_line);
 	ENABLE_PREEMPTION
 	CLI
-//	if (system.process_info->next_pid >= 2 && system.process_info->next_pid < 8)
-//	{
-//		trace(tmp->pid,3,0);
-//	}
-	//EXIT_INT_HANDLER(0,processor_reg)
+	EXIT_INT_HANDLER(0,processor_reg,1)
 
+/*
 	static struct t_process_context _current_process_context;
 	static struct t_process_context _old_process_context;
 	static struct t_process_context _new_process_context;
@@ -294,14 +285,8 @@ exit:
 	static u32 phy_fault_addr_old;
         
 	CLI
-	//if (system.int_path_count == 0 && system.force_scheduling == 0)
-	//if (system.int_path_count == 0)
-	{
-		//equeue_packet(system.network_desc);
-		//dequeue_packet(system.network_desc);
-		dequeue_packet(system.network_desc);
-		equeue_packet(system.network_desc);
-	}
+	dequeue_packet(system.network_desc);
+	equeue_packet(system.network_desc);
 	_action2=0;
 	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;
 	_old_process_context=_current_process_context;
@@ -340,6 +325,7 @@ exit:
 		RESTORE_PROCESSOR_REG
 		RET_FROM_INT_HANDLER
 	}
+*/
 }
 
 void send_packet_i8254x(t_i8254x* i8254x,void* frame_addr,u16 frame_len)

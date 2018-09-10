@@ -4,7 +4,6 @@ t_tcp_conn_map* tcp_conn_map_init()
 {
 	t_tcp_conn_map* tcp_conn_map;
 	
-	system.kmalloc++;
 	tcp_conn_map = kmalloc(sizeof(t_tcp_conn_map));
 	tcp_conn_map->conn_map = hashtable_init(TCP_CONN_MAP_SIZE);
 	tcp_conn_map->duplicate_conn_list = new_dllist();

@@ -1,7 +1,6 @@
 #include "network/socket_buffer.h"
 #include "debug.h"
 
-//FROM NOW EVERY INIT MUST FOLLOW THIS PATTERN!!!!!!!!!!!!!!!!!!!!!!!!!!
 t_sckt_buf_desc* sckt_buf_desc_init()
 {
 	t_sckt_buf_desc* sckt_buf_desc=kmalloc(sizeof(t_sckt_buf_desc));
@@ -25,8 +24,7 @@ void enqueue_sckt(t_sckt_buf_desc* sckt_buf_desc,t_data_sckt_buf* data_sckt_buf)
 	{						
 		enqueue(sckt_buf_desc->buf,data_sckt_buf);	
 		sckt_buf_desc->buf_index++;			
-	}
-//	STI							
+	}							
 	RESTORE_IF_STATUS
 }
 
@@ -41,7 +39,6 @@ t_data_sckt_buf* dequeue_sckt(t_sckt_buf_desc* sckt_buf_desc)
 		data_sckt_buf=dequeue(sckt_buf_desc->buf);
 		sckt_buf_desc->buf_index--;
 	}
-//	STI
 	RESTORE_IF_STATUS
 	return data_sckt_buf;
 }
@@ -56,7 +53,6 @@ t_data_sckt_buf* alloc_sckt(u16 data_len)
 	data=kmalloc(data_len);
 	data_sckt_buf->data=data;
 	data_sckt_buf->data_len=data_len;
-	//collect_mem_alloc(data_sckt_buf);
 	RESTORE_IF_STATUS
 	return data_sckt_buf;
 }
@@ -70,7 +66,6 @@ t_data_sckt_buf* alloc_void_sckt()
 	data_sckt_buf=kmalloc(sizeof(t_data_sckt_buf));
 	data_sckt_buf->data=NULL;
 	data_sckt_buf->data_len=0;
-	//collect_mem_alloc(data_sckt_buf);
 	RESTORE_IF_STATUS
 	return data_sckt_buf;
 }
@@ -83,7 +78,6 @@ void free_sckt(t_data_sckt_buf* data_sckt_buf)
 	{
 		kfree(data_sckt_buf->data);
 	}
-	//collect_mem_free(data_sckt_buf);
 	kfree(data_sckt_buf);
 	RESTORE_IF_STATUS
 }
