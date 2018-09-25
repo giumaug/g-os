@@ -84,6 +84,7 @@ typedef struct s_system
 	unsigned int panic;
 	t_llist* timer_list;
 	u8 force_scheduling;
+	u8 flush_network;
 	u32 fork;
 	u32 out;
 	u32 piggy_timeout;

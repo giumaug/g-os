@@ -47,7 +47,8 @@ void equeue_packet(t_network_desc* network_desc)
 	{
 		frame=data_sckt_buf->mac_hdr;
 		frame_len=data_sckt_buf->data_len;
-//		CLI 
+//		CLI
+		printk("enq \n"); 
 		send_packet_i8254x(network_desc->dev,frame,frame_len);
 //		STI
 		free_sckt(data_sckt_buf);

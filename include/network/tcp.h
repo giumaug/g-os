@@ -59,8 +59,11 @@
 //timout=200 ms (quantum = 10 ms)
 #define PIGGYBACKING_TIMEOUT 20
 //3 sec should be 300
-#define DEFAULT_RTO 100
 #define SRTT_FACTOR 0.8
+#define RTO_UBOUND 6000
+#define RTO_LBOUND 100
+#define RTO_VARIANCE 1.5
+#define DEFAULT_RTO 100
 
 #define _SEND_PACKET_TCP(tcp_conn_desc,data,data_len,ack_num,flags,seq_num) \
         send_packet_tcp(tcp_conn_desc->src_ip,                              \
@@ -111,6 +114,7 @@ typedef struct s_tcp_conn_desc
 {
 	u32 duplicated_ack;
 	u32 rto;
+	u32 srtt;
 	t_timer* rtrsn_timer;
 	t_timer* pgybg_timer;
 	u32 cwnd;
@@ -129,24 +133,18 @@ typedef struct s_tcp_conn_desc
 	//AFTER 75 SECONDS
 	struct s_tcp_conn_map* back_log_i_map;
 	t_queue* back_log_c_queue;
-	t_queue* data_wait_queue;
+//	t_queue* data_wait_queue;
 	struct t_process_context* process_context;
 	u32 ref_count;
 	t_spinlock_desc lock;
 	u32 last_sent_time;
 	u32 flight_size;
 	u32 last_ack_sent;
-	//introsuced to test congestion only.
 	u32 last_seq_sent;
-	u32 debug_status;
-	u32 count;
-	u32 start_time;
-	u32 pid;
 }
 t_tcp_conn_desc;
 
 struct s_tcp_conn_map;
-
 //For evert s_tcp_conn_map struct src is this machine dst remote endpoint
 typedef struct s_tcp_desc
 {

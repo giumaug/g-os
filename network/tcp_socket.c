@@ -104,8 +104,12 @@ int connect_tcp(u32 dst_ip,u16 dst_port,t_socket* socket)
 	rtrsn_timer_set(tcp_conn_desc->rtrsn_timer,tcp_conn_desc->rto);
 	socket->tcp_conn_desc = tcp_conn_desc;
 	tcp_conn_map_put(tcp_req_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
-	//SYN NEED RETRASMISSION TIMEOUT MANAGEMENT ONLY.NO RETRY	
+	//SYN NEED RETRASMISSION TIMEOUT MANAGEMENT ONLY.NO RETRY
+	STI	
 	_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,0,FLG_SYN,tcp_conn_desc->snd_queue->nxt_snd);
+	//equeue_packet(system.network_desc);
+	system.flush_network = 1;
+	CLI
 	CURRENT_PROCESS_CONTEXT(tcp_conn_desc->process_context);
 	_sleep();
 	RESTORE_IF_STATUS
@@ -196,7 +200,6 @@ void close_tcp(t_tcp_conn_desc* tcp_conn_desc)
 			{
 				//FIN from server to client
 				tcp_conn_desc->status = LAST_ACK;
-				tcp_conn_desc->debug_status = 2;
 			}
 		}
 		if (tcp_conn_desc->status == ESTABILISHED)
@@ -216,6 +219,7 @@ void close_tcp(t_tcp_conn_desc* tcp_conn_desc)
 
 int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 {
+	static u32 tot = 0;
 	int ret = 0;
 	u32 i = 0;
 	u32 len_1 = 0;
@@ -243,7 +247,8 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		available_data = tcp_queue->nxt_rcv - tcp_queue->wnd_min;
 		while (available_data == 0)
 		{
-			enqueue(tcp_conn_desc->data_wait_queue,current_process_context);
+//			enqueue(tcp_conn_desc->data_wait_queue,current_process_context);
+			tcp_conn_desc->process_context = current_process_context;
 			_sleep();
 			available_data = tcp_queue->nxt_rcv - tcp_queue->wnd_min;
 			if (available_data == 0)
@@ -252,13 +257,11 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 				goto EXIT;
 			}	
 		}
-
 		if (available_data > 0 && available_data < data_len)
 		{
 			data_len = available_data;
-			ret = data_len;
 		}
-
+		ret = data_len;
 		low_index = SLOT_WND(tcp_queue->wnd_min,tcp_queue->buf_size);
 		hi_index = SLOT_WND((tcp_queue->wnd_min + data_len),tcp_queue->buf_size);
 
@@ -290,6 +293,9 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		tcp_queue->wnd_min += data_len;
 	}
 EXIT:
+	tot += ret;
+	//printk("next %d \n",tcp_queue->nxt_rcv);
+	//printk("available data is %d \n",tot);
 	RESTORE_IF_STATUS
 	return ret;
 }
@@ -306,16 +312,10 @@ int enqueue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	u32 wnd_max;
 	u32 len_1;
 	u32 len_2;
-	int ret = 0;
-	struct t_process_context* tmp;	
+	int ret = 0;	
 
 	SAVE_IF_STATUS
 	CLI
-
-	CURRENT_PROCESS_CONTEXT(tmp);
-	tcp_conn_desc->pid = tmp->pid;
-	tcp_conn_desc->start_time = tmp->start_time;
-
 	if (tcp_conn_desc->status == RESET)
 	{
 		panic();

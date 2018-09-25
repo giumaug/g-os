@@ -271,7 +271,8 @@ exit:
 	enable_irq_line(i8254x->irq_line);
 	ENABLE_PREEMPTION
 	CLI
-	EXIT_INT_HANDLER(0,processor_reg,1)
+	system.flush_network = 1;
+	EXIT_INT_HANDLER(0,processor_reg)
 
 /*
 	static struct t_process_context _current_process_context;

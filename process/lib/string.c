@@ -34,3 +34,36 @@ unsigned int strlen(const char* s)
 	while (*s++!='\0') i++;
 	return i;
 }
+
+char* strstr(char* string, char* substring)	
+{
+	char* a;
+	char* b;
+
+	b = substring;
+    	if (*b == 0) 
+	{
+		return string;
+    	}
+    	for ( ; *string != 0; string += 1) 
+	{
+		if (*string != *b) 
+		{
+	    		continue;
+		}
+		a = string;
+		while (1) 
+		{
+	    		if (*b == 0) 
+			{
+				return string;
+	    		}
+	    		if (*a++ != *b++) 
+			{
+				break;
+	    		}
+		}
+		b = substring;
+    }
+    return (char *) 0;
+}
