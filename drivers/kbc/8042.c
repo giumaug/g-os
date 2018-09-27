@@ -328,7 +328,7 @@ void int_handler_kbc()
 	}
 	enable_irq_line(1);
 	ENABLE_PREEMPTION
-	EXIT_INT_HANDLER(0,processor_reg,0)               
+	EXIT_INT_HANDLER(0,processor_reg)               
         
 /*                                                                                                                        \
 	static struct t_process_context _current_process_context;

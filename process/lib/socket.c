@@ -92,7 +92,7 @@ int connect(int sockfd, const struct sockaddr *address,socklen_t len)
 	params[0] = sockfd;
 	params[1] = (((unsigned char) ip[0]) <<24) + (((unsigned char) ip[1])<<16) + (((unsigned char) ip[2]) <<8) + (((unsigned char) ip[3]));;
 	params[2] = ((port[0])<<8)+port[1];
-	SYSCALL(33,params);
+	SYSCALL(35,params);
 	return  params[4];
 }
 

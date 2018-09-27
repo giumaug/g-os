@@ -95,6 +95,7 @@ int getc();
 int strcmp(const char* s1, const char* s2);
 int strncmp(const char* s1, const char* s2,unsigned int n);
 unsigned int strlen(const char* s);
+char* strstr(char* string, char* substring);
 
 //unistd.h
 int exec(char* path,char* argv[]);

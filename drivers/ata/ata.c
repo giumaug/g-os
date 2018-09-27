@@ -155,7 +155,7 @@ void int_handler_ata()
 	system.device_desc->status=DEVICE_IDLE;
 	enable_irq_line(14);
 	ENABLE_PREEMPTION
-	EXIT_INT_HANDLER(0,processor_reg,0)
+	EXIT_INT_HANDLER(0,processor_reg)
 
 /*
 	static struct t_process_context _current_process_context;

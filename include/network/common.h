@@ -5,7 +5,7 @@
 //#define WORK_PC
 //#define AMAZON
 
-#define ARP_REQUEST_TIMEOUT   2000
+#define ARP_REQUEST_TIMEOUT   200
 #define ARP_ATTEMPT 	      3
 #define NETWORK_PROTOCOL_TYPE 0x800
 #define ARP_PROTOCOL_TYPE     0x806

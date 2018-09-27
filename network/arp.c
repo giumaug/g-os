@@ -34,7 +34,9 @@ t_mac_addr* lookup_mac(u32 dst_ip)
 
 		for (i=0;i<ARP_ATTEMPT;i++)
 		{
+			printk("arp....\n");
 			send_packet_arp(src_mac,dst_mac,src_ip,dst_ip,1);
+			system.flush_network = 1;
 			_sleep_time(ARP_REQUEST_TIMEOUT);
 			mac_addr=hashtable_get(arp_cache,dst_ip);
 			if (mac_addr!=NULL)
@@ -45,20 +47,6 @@ t_mac_addr* lookup_mac(u32 dst_ip)
 	}
 	return mac_addr;
 }
-
-//u8 lookup_mac(u32 target_ip,t_mac_addr* mac_addr)
-//{
-//	u8 status=0;
-//	t_mac_addr* _mac_addr=NULL;
-//	
-//	_mac_addr=hashtable_get(arp_cache,target_ip);
-//	if (_mac_addr!=NULL) 
-//	{
-//		*mac_addr=*_mac_addr;
-//		status=1;
-//	}
-//	return status;
-//}
 
 void send_packet_arp(t_mac_addr src_mac,t_mac_addr dst_mac,u32 src_ip,u32 dst_ip,u8 op_type)
 {

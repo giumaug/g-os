@@ -131,7 +131,7 @@ void int_handler_pit()
 	}
 
 exit_handler:;
-	EXIT_INT_HANDLER(is_schedule,processor_reg,0);
+	EXIT_INT_HANDLER(is_schedule,processor_reg);
 
 /*
 	static struct t_process_context _current_process_context;                                          

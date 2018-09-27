@@ -5,6 +5,7 @@
 #include "drivers/ata/ata.h"
 #include "syscall_handler.h"
 #include "debug.h"
+#include "ext2/ext2.h"
 
 #define K_STACK 0x1FFFFB
 
@@ -240,11 +241,11 @@ void syscall_handler()
 		default:
 		panic();
 	}
-	if (syscall_num == 31 || syscall_num == 32)
+	if (syscall_num == 31 || syscall_num == 32 || syscall_num == 35)
 	{
-		flush_network = 1;
+		system.flush_network = 1;
 	}
-	EXIT_INT_HANDLER(on_exit_action,processor_reg,flush_network)
+	EXIT_INT_HANDLER(on_exit_action,processor_reg)
 
 /*
 	CLI
