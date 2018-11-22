@@ -20,3 +20,26 @@ void timer_free(t_timer* timer)
 	}
 	kfree(timer);
 }
+
+void timer_set(t_timer* timer,long val)
+{
+	if (timer->ref == NULL)
+	{
+		timer->val = val;
+		timer->ref = ll_append(system.timer_list,timer);
+	}
+	else
+	{
+		timer->val = val;
+	}
+}
+
+void timer_reset(t_timer* timer)
+{
+	if (timer->ref != NULL)
+	{
+		ll_delete_node(timer->ref);
+		timer->ref = NULL;
+		timer->val = 0;
+	}
+}

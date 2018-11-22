@@ -9,7 +9,7 @@
 #include "network/socket_buffer.h"
 
 #define SMSS 			1454	
-#define TCP_RCV_SIZE 		16384
+#define TCP_RCV_SIZE 		(16384) 
 #define TCP_SND_SIZE 		(16384*256)
 //#define TCP_SND_SIZE 		16384
 //SPECS SAYS WND_ADV SHOULD BE TCP_RCV_SIZE. I USE TCP_RCV_SIZE FOR TEST
@@ -65,7 +65,7 @@
 #define RTO_VARIANCE 1.5
 #define DEFAULT_RTO 100
 
-#define _SEND_PACKET_TCP(tcp_conn_desc,data,data_len,ack_num,flags,seq_num) \
+//#define _SEND_PACKET_TCP(tcp_conn_desc,data,data_len,ack_num,flags,seq_num) \
         send_packet_tcp(tcp_conn_desc->src_ip,                              \
                         tcp_conn_desc->dst_ip,                              \
                         tcp_conn_desc->src_port,                            \
@@ -82,6 +82,20 @@
 				tcp_conn_desc->last_sent_time = system.time;\
 				tcp_conn_desc->last_seq_sent = seq_num;     \
 			}
+
+/*tcp_conn_desc->rcv_queue->wnd_size */
+
+#define _SEND_PACKET_TCP(tcp_conn_desc,data,data_len,ack_num,flags,seq_num) \
+        send_packet_tcp(tcp_conn_desc->src_ip,                              \
+                        tcp_conn_desc->dst_ip,                              \
+                        tcp_conn_desc->src_port,                            \
+                        tcp_conn_desc->dst_port,                            \
+			tcp_conn_desc->rcv_queue->wnd_size,                 \
+                        data,                                               \
+                        data_len,                                           \
+                        ack_num,                                            \
+                        flags,                                              \
+                        seq_num);                                           \
 
 typedef struct s_tcp_snd_queue
 {
@@ -107,6 +121,7 @@ typedef struct s_tcp_rcv_queue
 	u32 data_len;
 	u32 low_index;
 	u32 hi_index;
+	u32 last_adv_wnd;
 }
 t_tcp_rcv_queue;
 
@@ -115,15 +130,14 @@ typedef struct s_tcp_conn_desc
 	u32 duplicated_ack;
 	u32 rto;
 	u32 srtt;
-	t_timer* rtrsn_timer;
-	t_timer* pgybg_timer;
+	struct s_timer* rtrsn_timer;
+	struct s_timer* pgybg_timer;
 	u32 cwnd;
 	u32 ssthresh;
 	u32 rcv_wmd_adv;
 	u32 max_adv_wnd;
 	t_tcp_rcv_queue* rcv_queue;
 	t_tcp_snd_queue* snd_queue;
-	//u32 first_seq_num;
 	u32 src_ip;
 	u32 dst_ip;
 	u16 src_port;
@@ -133,14 +147,15 @@ typedef struct s_tcp_conn_desc
 	//AFTER 75 SECONDS
 	struct s_tcp_conn_map* back_log_i_map;
 	t_queue* back_log_c_queue;
-//	t_queue* data_wait_queue;
 	struct t_process_context* process_context;
 	u32 ref_count;
 	t_spinlock_desc lock;
 	u32 last_sent_time;
 	u32 flight_size;
-	u32 last_ack_sent;
-	u32 last_seq_sent;
+//	u32 last_ack_sent;
+//	u32 last_seq_sent;
+	u8 pending_ack;
+	u8 force_ack;
 }
 t_tcp_conn_desc;
 
@@ -170,7 +185,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 void rtrsn_timer_handler(void* arg);
 void pgybg_timer_handler(void* arg);
 int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size,char* data,u32 data_len,u32 ack_num,u8 flags,u32 seq_num);
-void rtrsn_timer_set(t_timer* rtrsn_timer,long rto);
-void rtrsn_timer_reset(t_timer* rtrsn_timer);
+//void rtrsn_timer_set(t_timer* rtrsn_timer,long rto);
+//void rtrsn_timer_reset(t_timer* rtrsn_timer);
 
 #endif

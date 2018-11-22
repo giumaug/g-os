@@ -62,9 +62,9 @@ int main()
 	while(1) 
 	{
 		age++;
-		//if (((age % 10000) == 0) || age > 80000)
+		if (((age % 1) == 0) || age > 80000)
 		{
-			check_free_mem();
+			//check_free_mem();
 		}
 		client_len = sizeof(client_address);
 		client_sockfd = accept(server_sockfd,(struct sockaddr *)&client_address, &client_len);
@@ -73,7 +73,7 @@ int main()
 		//printf("accepted request %d \n",request_count++);
 		if(fork() == 0) 
 		{
-			process_request(client_sockfd);
+			process_request_3(client_sockfd);
 			//sleep(2000);
 			//printf("end child!!! \n");
 			//for (i = 0;i <= 5000;i++);
@@ -102,10 +102,10 @@ void process_request_3(int client_sockfd)
 	unsigned char* io_buffer = NULL;
 	unsigned int b_read = 0;
 	unsigned int b_to_read = 4096;
-	unsigned int file_size = 32617;
-	const char path[] = "/usr/src/kernels/g-os/network/tcp.c";
+	unsigned int file_size = 83424;//83424
+	const char path[] = "/usr/src/kernels/g-os/network/xxx.c";
 	const char body[]  = "ciao";
-	const char http_header[]  = "HTTP/1.1 200 OK\nConnection: close\nContent-Type:text/plain;\nContent-Disposition: inline;charset=utf-8\nContent-Length:32617\n\n";
+	const char http_header[]  = "HTTP/1.1 200 OK\nConnection: close\nContent-Type:text/plain;\nContent-Disposition: inline;charset=utf-8\nContent-Length:83424\n\n";
 
 	//stat(path,&stat_data);
 	io_buffer = malloc(b_to_read + 1 );
@@ -116,13 +116,13 @@ void process_request_3(int client_sockfd)
 		close_socket(client_sockfd);
 		exit(0);
 	}
-	f = open(path, O_RDWR | O_APPEND);
-	if (f == -1)
-	{
-		printf("file not found\n");
-		free(io_buffer);
-		return;
-	}
+//	f = open(path, O_RDWR | O_APPEND);
+//	if (f == -1)
+//	{
+//		printf("file not found\n");
+//		free(io_buffer);
+//		return;
+//	}
 	int tot_read = 0;
 	while (file_size > 0)
 	{
@@ -130,8 +130,8 @@ void process_request_3(int client_sockfd)
 		{
 			b_to_read = file_size;
 		}
-		b_read = read(f,io_buffer,b_to_read);
-//		b_read = b_to_read;
+//		b_read = read(f,io_buffer,b_to_read);
+		b_read = b_to_read;
 		ret = write_socket(client_sockfd,io_buffer,b_read);
 		if (ret < 0)
 		{
@@ -142,7 +142,7 @@ void process_request_3(int client_sockfd)
 		tot_read += b_read;
 		//printf("tot read= %d \n",tot_read);
 	}
-	close(f);
+//	close(f);
 	free(io_buffer);
 }
 

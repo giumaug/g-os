@@ -96,6 +96,7 @@ static rx_init_i8254x(t_i8254x* i8254x)
 	write_i8254x(i8254x,RHD_REG,0);
 	write_i8254x(i8254x,RDT_REG,NUM_RX_DESC-1);
 	write_i8254x(i8254x,RCTRL_REG, (RCTL_EN | RCTL_SBP | RCTL_UPE | RCTL_MPE | RCTL_LBM_NONE | RTCL_RDMTS_HALF | RCTL_BAM | RCTL_SECRC  | RCTL_BSIZE_8192));
+	//write_i8254x(i8254x,0xc4,4096);
 }
 
 static tx_init_i8254x(t_i8254x* i8254x)
@@ -179,12 +180,14 @@ t_i8254x* init_8254x()
 	i_desc.selector=0x8;
 	i_desc.flags=0x08e00;
 	i_desc.baseHi=((int)&int_handler_i8254x)>>0x10;
+	//OKKIO
 	set_idt_entry(0x20+i8254x->irq_line,&i_desc);
 
 	reset_multicast_array(i8254x);
 	rx_init_i8254x(i8254x);
 	tx_init_i8254x(i8254x);
 
+	//OKKIO
 	write_i8254x(i8254x,REG_IMS,(IMS_RXT0 | IMS_RXO));
 	read_i8254x(i8254x,REG_ICR);
 	return i8254x;
@@ -211,6 +214,7 @@ void int_handler_i8254x()
 	t_data_sckt_buf* data_sckt_buf;
 	char* data_buffer;
 	struct t_processor_reg processor_reg;
+	u32 int_count = 0;
 
 	SAVE_PROCESSOR_REG
 	i8254x=system.network_desc->dev;
@@ -224,6 +228,7 @@ void int_handler_i8254x()
 	if (status & ICR_LSC)
 	{
 		start_link_i8254x(i8254x);
+		printk("what a fuck!!!! \n");
 	}
 	else if(status & ICR_RXO)
 	{
@@ -234,8 +239,11 @@ void int_handler_i8254x()
 		cur=i8254x->rx_cur;
 		rx_desc=i8254x->rx_desc;
 		old_cur=cur;
+		system.tot_int++;
+                int xxx = read_i8254x(i8254x,0xc4);
 		while(rx_desc[cur].status & 0x1)
 		{
+			int_count++;
 			//I use 32 bit addressing
 			low_addr=rx_desc[cur].low_addr;
 			hi_addr=rx_desc[cur].hi_addr;
@@ -266,6 +274,7 @@ void int_handler_i8254x()
 			i8254x->rx_cur=cur;
 			write_i8254x(i8254x,RDT_REG,old_cur);
 		}
+		//printk("int count: %d \n",int_count);
 	}
 exit:
 	enable_irq_line(i8254x->irq_line);
@@ -352,4 +361,58 @@ void send_packet_i8254x(t_i8254x* i8254x,void* frame_addr,u16 frame_len)
 	i8254x->tx_cur = (cur + 1) % NUM_TX_DESC;	
 	write_i8254x(i8254x,TDT_REG,i8254x->tx_cur);
 	//DON'T WAIT TO AVOID RACE WITH INTERRUPT HANDLER?????
+}
+
+void pooling()
+{
+	struct t_process_context* tmp;
+	t_i8254x* i8254x;
+	u16 cur;
+	u16 old_cur;
+	u32 status;
+	t_rx_desc_i8254x* rx_desc;
+	char* frame_addr;
+	u32 low_addr;
+	u32 hi_addr;
+	u16 frame_len;
+	t_data_sckt_buf* data_sckt_buf;
+	char* data_buffer;
+	struct t_processor_reg processor_reg;
+	u32 int_count = 0;
+
+	i8254x=system.network_desc->dev;
+	status=read_i8254x(i8254x,REG_ICR);
+	cur=i8254x->rx_cur;
+	rx_desc=i8254x->rx_desc;
+	old_cur=cur;
+        while(rx_desc[cur].status & 0x1)
+	{
+		int_count++;
+		//I use 32 bit addressing
+		low_addr=rx_desc[cur].low_addr;
+		hi_addr=rx_desc[cur].hi_addr;
+		frame_addr=FROM_PHY_TO_VIRT(low_addr);
+		frame_len=rx_desc[cur].length;
+
+		data_sckt_buf=alloc_void_sckt();
+		data_sckt_buf->mac_hdr=frame_addr;
+		data_sckt_buf->data=frame_addr;
+		data_sckt_buf->data_len=frame_len;
+
+		data_buffer=kmalloc(MTU_ETH);
+		rx_desc[cur].hi_addr=0;
+		rx_desc[cur].low_addr=FROM_VIRT_TO_PHY((u32)data_buffer);
+		rx_desc[cur].status=0;
+		rx_desc[cur].length=0;
+		rx_desc[cur].checksum=0;
+		rx_desc[cur].errors=0;
+		rx_desc[cur].special=0;
+		enqueue_sckt(system.network_desc->rx_queue,data_sckt_buf);
+		rx_desc[cur].status=0;
+		old_cur=cur;
+		cur =(cur + 1) % NUM_RX_DESC;
+		i8254x->rx_cur=cur;
+		write_i8254x(i8254x,RDT_REG,old_cur);
+	}
+		//printk("int count: %d \n",int_count);
 }

@@ -218,6 +218,10 @@ void _awake(struct t_process_context *new_process)
 	SAVE_IF_STATUS
 	CLI
 	CURRENT_PROCESS_CONTEXT(process_context);
+	if (new_process < 0xc0000000)
+	{
+		panic();
+	}
 	new_process->sleep_time=(system.time-new_process->sleep_time>=1000) ? 1000 : (system.time-new_process->sleep_time);
 	new_process->proc_status=RUNNING;
 	adjust_sched_queue(new_process);

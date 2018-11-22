@@ -194,6 +194,7 @@ void syscall_handler()
 		break;	
 
 		case 30:
+		//printk("redc ");
  		params[5]=_recvfrom(params[0],params[1],params[2],params[3],params[4]);
 		break;
 	

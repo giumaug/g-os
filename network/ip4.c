@@ -119,10 +119,16 @@ void rcv_packet_ip4(t_data_sckt_buf* data_sckt_buf,t_mac_addr* src_mac)
 		else if(ip_row_packet[9]==ICMP_PROTOCOL)
 		{
 			free_sckt(data_sckt_buf);
+			printk("unknow protocol \n");
+		}
+		else
+		{
+			printk("unknow protocol \n");
 		}
 	}
 	else 
 	{
+		printk("bad checksum \n");
 		free_sckt(data_sckt_buf);
 		kfree(src_mac);
 	}

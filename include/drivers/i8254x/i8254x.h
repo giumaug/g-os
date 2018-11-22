@@ -64,8 +64,8 @@
 #define	RCTL_SECRC             	(1 << 26)   			//Strip Ethernet CRC
 #define	RCTL_BSIZE_8192        	((2 << 16) | (1 << 25))
 
-#define NUM_RX_DESC_BIT         0x03
-#define NUM_RX_DESC             0x08   				//Receive payload buffer size
+#define NUM_RX_DESC_BIT         0x10
+#define NUM_RX_DESC             0x10 				//Receive payload buffer size
 #define NUM_TX_DESC             0x10   				//Transmit payload buffer size
 
 #define TSTA_DD                 (1 << 0)    			//Descriptor Done
