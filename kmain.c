@@ -36,6 +36,9 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	system.rtrsn_timeout = 0;
 	system.time = 0;
 	system.flush_network = 0;
+	system.tot_int = 0;
+	system.packet_sent = 0;
+	system.packet_received = 0;
 
 	init_data = init_data_add;
 	if ( magic != 0x2BADB002 )

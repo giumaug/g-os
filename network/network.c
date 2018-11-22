@@ -31,27 +31,31 @@ void network_free(t_network_desc* network_desc)
 
 void equeue_packet(t_network_desc* network_desc)
 {
-	int stop;
+	//int stop;
 	t_sckt_buf_desc* sckt_buf_desc;
 	t_data_sckt_buf* data_sckt_buf;
 	void* frame;
 	u16 frame_len;
 	u32 data_sent = 0;
 	static u32 tot_sent = 0;
+	int x = 0;
 	
 //	DISABLE_PREEMPTION
 //	STI 
 	sckt_buf_desc=network_desc->tx_queue;
-	stop = 0;
-	while (stop == 0 && (data_sckt_buf=dequeue_sckt(sckt_buf_desc))!=NULL)
+	while ((data_sckt_buf=dequeue_sckt(sckt_buf_desc))!=NULL)
 	{
+		x++;
 		frame=data_sckt_buf->mac_hdr;
 		frame_len=data_sckt_buf->data_len;
-//		CLI
-		printk("enq \n"); 
+		//CLI
 		send_packet_i8254x(network_desc->dev,frame,frame_len);
-//		STI
+		//STI
 		free_sckt(data_sckt_buf);
+	}
+	if (x > 0)
+	{//system.flush_network = 1;
+		//printk("inside enqueue....%d \n",x);
 	}
 //	CLI
 //	ENABLE_PREEMPTION
@@ -60,18 +64,30 @@ void equeue_packet(t_network_desc* network_desc)
 void dequeue_packet(t_network_desc* network_desc)
 {
 	t_data_sckt_buf* data_sckt_buf;
+	int x = 0;
 
 //	DISABLE_PREEMPTION
-//	STI 
+//	STI
 	while ((data_sckt_buf=dequeue_sckt(network_desc->rx_queue))!=NULL)
-	{	
-//		CLI 
+	{
+		//printk("deq ");
+		x++;	
+		//CLI 
 		rcv_packet_mac(data_sckt_buf);
-//		STI
+		//STI
 		if (system.force_scheduling != 0)
+		{
+		//	break;
+		}
+		if (x >= 1)
 		{
 			break;
 		}
+	}
+	system.flush_network = 1;
+	if (x == 0)
+	{
+		//printk("inside denqueue....%d \n",x);
 	}
 //	CLI
 //	ENABLE_PREEMPTION

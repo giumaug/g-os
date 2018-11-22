@@ -91,6 +91,9 @@ typedef struct s_system
 	u32 rtrsn_timeout;
 	u32 reset;	
 	u32 tcp_1;
+	u32 tot_int;
+	u32 packet_sent;
+	u32 packet_received;
 }
 t_system;
 

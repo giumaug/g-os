@@ -462,9 +462,9 @@ void page_fault_handler()
 	{
 		printk("\n ...Segmentation fault. \n");
 		panic();
-		_exit(0);
-		on_exit_action=2;
-		//on_exit_action = 0;
+		//_exit(0);
+		//on_exit_action=2;
+		on_exit_action = 0;
 	}
 
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 	

@@ -100,17 +100,19 @@ int connect_tcp(u32 dst_ip,u16 dst_port,t_socket* socket)
 	tcp_conn_desc->src_ip = src_ip;
 	tcp_conn_desc->src_port = src_port;
 	tcp_conn_desc->status = SYN_SENT;
-	tcp_conn_desc->rtrsn_timer->val = tcp_conn_desc->rto;
-	rtrsn_timer_set(tcp_conn_desc->rtrsn_timer,tcp_conn_desc->rto);
+//	tcp_conn_desc->rtrsn_timer->val = tcp_conn_desc->rto;
+//	rtrsn_timer_set(tcp_conn_desc->rtrsn_timer,tcp_conn_desc->rto);
+	timer_set(tcp_conn_desc->rtrsn_timer,tcp_conn_desc->rto);
 	socket->tcp_conn_desc = tcp_conn_desc;
 	tcp_conn_map_put(tcp_req_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
 	//SYN NEED RETRASMISSION TIMEOUT MANAGEMENT ONLY.NO RETRY
-	STI	
+	//STI	
 	_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,0,FLG_SYN,tcp_conn_desc->snd_queue->nxt_snd);
 	//equeue_packet(system.network_desc);
-	system.flush_network = 1;
-	CLI
+	//system.flush_network = 1;
+	//CLI
 	CURRENT_PROCESS_CONTEXT(tcp_conn_desc->process_context);
+	system.flush_network = 1;
 	_sleep();
 	RESTORE_IF_STATUS
 	return 0;
@@ -130,7 +132,8 @@ void close_tcp(t_tcp_conn_desc* tcp_conn_desc)
 	tcp_desc = system.network_desc->tcp_desc;
 	flags = FLG_FIN | FLG_ACK;
 	seq_num = seq_num = tcp_conn_desc->snd_queue->nxt_snd;
-	ack_num = tcp_conn_desc->last_ack_sent;
+//	ack_num = tcp_conn_desc->last_ack_sent;
+	ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;
 
 	struct t_process_context* tmp;	
 	CURRENT_PROCESS_CONTEXT(tmp);
@@ -182,15 +185,17 @@ void close_tcp(t_tcp_conn_desc* tcp_conn_desc)
 		}
 		if (tcp_conn_desc->snd_queue->wnd_min == tcp_conn_desc->snd_queue->cur)
 		{
-			if (tcp_conn_desc->pgybg_timer->ref != NULL)
-			{
-				ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;
-				ll_delete_node(tcp_conn_desc->pgybg_timer->ref);
-				tcp_conn_desc->pgybg_timer->ref = NULL;
-			}
+//			if (tcp_conn_desc->pgybg_timer->ref != NULL)
+//			{
+//				ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;
+//				ll_delete_node(tcp_conn_desc->pgybg_timer->ref);
+//				tcp_conn_desc->pgybg_timer->ref = NULL;
+//			}
+			
+			
 			flags |= FLG_ACK;
 			_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,ack_num,flags,seq_num);
-			rtrsn_timer_set(tcp_conn_desc->rtrsn_timer,tcp_conn_desc->rto);
+			timer_set(tcp_conn_desc->rtrsn_timer,tcp_conn_desc->rto);
 			if (tcp_conn_desc->status == ESTABILISHED)
 			{
 				//FIN from client to server
@@ -234,7 +239,6 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	SAVE_IF_STATUS
 	CLI
 	CURRENT_PROCESS_CONTEXT(current_process_context);
-
 	if (tcp_conn_desc->status == RESET)
 	{
 		panic();
@@ -247,15 +251,19 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		available_data = tcp_queue->nxt_rcv - tcp_queue->wnd_min;
 		while (available_data == 0)
 		{
+			//printk("sli \n");
 //			enqueue(tcp_conn_desc->data_wait_queue,current_process_context);
 			tcp_conn_desc->process_context = current_process_context;
+			//printk("sleeping ....%d \n",tcp_conn_desc->rcv_queue->wnd_size);
+			system.flush_network = 1;
 			_sleep();
 			available_data = tcp_queue->nxt_rcv - tcp_queue->wnd_min;
 			if (available_data == 0)
 			{
 				ret = -1;
+				printk("error ....\n");
 				goto EXIT;
-			}	
+			}
 		}
 		if (available_data > 0 && available_data < data_len)
 		{
@@ -267,7 +275,7 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 
 		if (low_index < hi_index) 
 		{
-			kmemcpy(data,(tcp_queue->buf + low_index),data_len);
+			kmemcpy(data,(tcp_queue->buf + low_index),data_len);	
 			for (i = low_index;i < hi_index;i++)
 			{
 				bit_vector_reset(tcp_queue->buf_state,i);
@@ -278,8 +286,7 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 			len_1 = tcp_queue->buf_size - low_index;
 			len_2 = data_len - len_1;
 			kmemcpy(data,(tcp_queue->buf + low_index),len_1);
-			kmemcpy(data + len_1,tcp_queue->buf,len_2);
-
+			kmemcpy(data + len_1,tcp_queue->buf,len_2);	
 			for (i = low_index ; i < (low_index + len_1) ; i++)
 			{
 				bit_vector_reset(tcp_queue->buf_state,i);
@@ -291,9 +298,13 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		}
 		tcp_queue->wnd_size += data_len;
 		tcp_queue->wnd_min += data_len;
+		//printk("red ");
 	}
 EXIT:
+	tcp_conn_desc->force_ack = 1;
 	tot += ret;
+	system.flush_network = 1;
+	system.packet_received += data_len;
 	//printk("next %d \n",tcp_queue->nxt_rcv);
 	//printk("available data is %d \n",tot);
 	RESTORE_IF_STATUS

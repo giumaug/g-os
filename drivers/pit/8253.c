@@ -34,6 +34,7 @@ void int_handler_pit()
 	unsigned int priority;
 	t_llist_node* sentinel_node;
 	t_llist_node* node;
+	t_llist_node* first_node;
 	t_timer* timer;
 	
 	SAVE_PROCESSOR_REG
@@ -116,21 +117,27 @@ void int_handler_pit()
 			}
 		}
 	}
+
 	//MANAGE TIMERS
+exit_handler:;
 	sentinel_node = ll_sentinel(system.timer_list);
 	node = ll_first(system.timer_list);
-	while(node != sentinel_node)
+	first_node = node;
+	//while(node != sentinel_node)
+	do
 	{
 		timer = node->val;
 		timer->val --;
 		if (timer->val <= 0 )
 		{
 			(*timer->handler)(timer->handler_arg);
+			break;
 		}
 		node = ll_next(node);
 	}
+	while(node != ll_first(system.timer_list));
 
-exit_handler:;
+//exit_handler:;
 	EXIT_INT_HANDLER(is_schedule,processor_reg);
 
 /*
