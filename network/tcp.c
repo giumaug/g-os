@@ -128,12 +128,10 @@ t_tcp_conn_desc* tcp_conn_desc_int()
 	tcp_conn_desc->last_sent_time = 0;
 	tcp_conn_desc->flight_size = 0;
 	tcp_conn_desc->ref_count = 1;
-//	tcp_conn_desc->last_seq_sent = 0;
 	tcp_conn_desc->last_sent_time = 0;
-//	tcp_conn_desc->last_ack_sent = 0;
+	tcp_conn_desc->isActive = 0;
 	tcp_conn_desc->process_context = NULL;
 	tcp_conn_desc->pending_ack = 0;
-	tcp_conn_desc->force_ack = 0;
 	return tcp_conn_desc;
 }
 
@@ -149,6 +147,10 @@ void tcp_conn_desc_free(t_tcp_conn_desc* tcp_conn_desc)
 //	free_queue(tcp_conn_desc->data_wait_queue);
 	timer_free(tcp_conn_desc->rtrsn_timer);
 	timer_free(tcp_conn_desc->pgybg_timer);
+	if (tcp_conn_desc->isActive)
+	{
+		hashtable_remove(system.network_desc->tcp_desc->ep_port_map,tcp_conn_desc->src_port);
+	}
 	kfree(tcp_conn_desc);
 }
 
@@ -160,7 +162,9 @@ t_tcp_desc* tcp_init()
 	tcp_desc->conn_map = tcp_conn_map_init();
 	tcp_desc->listen_map = tcp_conn_map_init();
 	tcp_desc->req_map = tcp_conn_map_init();
-	tcp_desc->listen_port_index = 32767;
+	tcp_desc->ep_port_map = hashtable_init(EPHEMERAL_PORT_MAP_SIZE);
+	tcp_desc->ep_port_index = 32767;
+	//tcp_desc->ep_port_index = 65534;
 	return tcp_desc;
 }
 
@@ -169,6 +173,7 @@ void tcp_free(t_tcp_desc* tcp_desc)
 	tcp_conn_map_free(tcp_desc->conn_map);
 	tcp_conn_map_free(tcp_desc->listen_map);
 	tcp_conn_map_free(tcp_desc->req_map);
+	hashtable_free(tcp_desc->ep_port_map);
 	kfree(tcp_desc);
 }
 
@@ -238,6 +243,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	u8 is_new_data;
 	u8 free_conn;
 	u8 no_piggy = 0;
+	u32 adv_wnd_size = 0;
 
 	free_conn = 0;
 	tcp_desc = system.network_desc->tcp_desc;
@@ -512,7 +518,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	//printk("adv %d \n",tcp_conn_desc->rcv_queue->last_adv_wnd);
 	if (data_len != 0)
 	{
-		delay();
+		//delay();
 		//delay();
 		//delay();
 		tcp_queue->seq_num = seq_num;
@@ -520,7 +526,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		tcp_queue->low_index = SLOT_WND(seq_num,tcp_queue->buf_size);
 		tcp_queue->hi_index = SLOT_WND((seq_num + data_len),tcp_queue->buf_size);
 		
-		if (tcp_conn_desc->pgybg_timer->val == 2 && no_piggy == 0)
+		if (tcp_conn_desc->pgybg_timer->val == 0 && no_piggy == 0)
 		{
 //			tcp_conn_desc->pgybg_timer->val = PIGGYBACKING_TIMEOUT;
 //			tcp_conn_desc->pgybg_timer->ref = ll_append(system.timer_list,tcp_conn_desc->pgybg_timer);
@@ -528,42 +534,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			timer_set(tcp_conn_desc->pgybg_timer,PIGGYBACKING_TIMEOUT);
 			//printk("set piggy \n");
 		}
-
-/*-------------------------------------------------------------------
-		if (tcp_conn_desc->pending_ack == 1)
-		{
-			//printk("ack!! \n");
-			tcp_conn_desc->pending_ack = 0;
-			_SEND_PACKET_TCP(tcp_conn_desc,
-					 NULL,
-					 0,
-					 tcp_conn_desc->rcv_queue->nxt_rcv,
-					 FLG_ACK,
-					 tcp_conn_desc->snd_queue->nxt_snd);
-			if (tcp_conn_desc->rcv_queue->wnd_size < 20000)
-			{
-				//printk("windows is %d \n",tcp_conn_desc->rcv_queue->wnd_size);
-			}
-
-
-			t_sckt_buf_desc* sckt_buf_desc = NULL;
-			t_data_sckt_buf* data_sckt_buf = NULL;
-			void* frame = NULL;
-			u16 frame_len;
-
-
-			sckt_buf_desc=system.network_desc->tx_queue;
-			data_sckt_buf=dequeue_sckt(sckt_buf_desc);
-			frame=data_sckt_buf->mac_hdr;
-			frame_len=data_sckt_buf->data_len;
-			send_packet_i8254x(system.network_desc->dev,frame,frame_len);
-			free_sckt(data_sckt_buf);
-		}
-		else 
-		{
-			tcp_conn_desc->pending_ack++;
-		}
--------------------------------------------------------------------------*/
 
 		//wnd_max = tcp_queue->wnd_min + (long long) tcp_queue->wnd_size;
 		//if (seq_num >= tcp_queue->wnd_min && seq_num + data_len <= wnd_max)
@@ -647,47 +617,49 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 EXIT:
 		if (tcp_conn_desc != NULL)
 		{
-
-		if ((data_len != 0 || tcp_conn_desc->force_ack == 1) && 
-			(tcp_conn_desc->rcv_queue->wnd_size >= (tcp_conn_desc->rcv_queue->last_adv_wnd + SMSS) ||
-			(tcp_conn_desc->rcv_queue->wnd_size >= (TCP_RCV_SIZE - SMSS))))
-			//(tcp_conn_desc->rcv_queue->wnd_size <= tcp_conn_desc->rcv_queue->last_adv_wnd )))
-		{
-			tcp_conn_desc->force_ack = 1;
-			if (tcp_conn_desc->pending_ack == 0)
+			if (data_len != 0) 
 			{
-				//printk("ack with %d \n",tcp_conn_desc->rcv_queue->wnd_size);
-				//printk("ack ");
-				tcp_conn_desc->pending_ack = 0;
-				tcp_conn_desc->rcv_queue->last_adv_wnd = tcp_conn_desc->rcv_queue->wnd_size;
-				_SEND_PACKET_TCP(tcp_conn_desc,
-					NULL,
-					0,
-					tcp_conn_desc->rcv_queue->nxt_rcv,
-					FLG_ACK,
-					tcp_conn_desc->snd_queue->nxt_snd);
+				if (tcp_conn_desc->rcv_queue->wnd_size >= (tcp_conn_desc->rcv_queue->last_adv_wnd + SMSS) ||
+				    tcp_conn_desc->rcv_queue->wnd_size >= (TCP_RCV_SIZE - SMSS) || 1 == 1)
+				{  
 
-				t_sckt_buf_desc* sckt_buf_desc = NULL;
-				t_data_sckt_buf* data_sckt_buf = NULL;
-				void* frame = NULL;
-				u16 frame_len;
+					if (tcp_conn_desc->pending_ack == 1)
+					{
+						tcp_conn_desc->pending_ack = 0;
+						tcp_conn_desc->rcv_queue->last_adv_wnd = tcp_conn_desc->rcv_queue->wnd_size;
 
-				sckt_buf_desc=system.network_desc->tx_queue;
-				data_sckt_buf=dequeue_sckt(sckt_buf_desc);
-				frame=data_sckt_buf->mac_hdr;
-				frame_len=data_sckt_buf->data_len;
-				send_packet_i8254x(system.network_desc->dev,frame,frame_len);
-				free_sckt(data_sckt_buf);
-				system.packet_sent += data_len;
+						timer_reset(tcp_conn_desc->pgybg_timer);
+						send_packet_tcp(tcp_conn_desc->src_ip,
+                        					tcp_conn_desc->dst_ip,
+                        					tcp_conn_desc->src_port,
+                        					tcp_conn_desc->dst_port,
+								tcp_conn_desc->rcv_queue->wnd_size,
+                        					NULL,
+                        					0,
+                        					tcp_conn_desc->rcv_queue->nxt_rcv,
+                        					FLG_ACK,
+                        					tcp_conn_desc->snd_queue->nxt_snd);  
+
+						u16 frame_len;
+						t_sckt_buf_desc* sckt_buf_desc;
+						t_data_sckt_buf* data_sckt_buf;
+						void* frame;
+						sckt_buf_desc = system.network_desc->tx_queue;
+						data_sckt_buf = dequeue_sckt(sckt_buf_desc);
+						frame = data_sckt_buf->mac_hdr;
+						frame_len = data_sckt_buf->data_len;
+						send_packet_i8254x(system.network_desc->dev,frame,frame_len);
+						free_sckt(data_sckt_buf);
+						//printk("ack ");
+
+					}
+					else 
+					{
+						tcp_conn_desc->pending_ack++;
+					}
+				}
 			}
-			else 
-			{
-				tcp_conn_desc->pending_ack++;
-			}
-		}
-
 		}	
-
 		free_sckt(data_sckt_buf);
 		if (free_conn)
 		{
@@ -697,6 +669,49 @@ EXIT:
 		//printk("fin_num= %d \n",fin_num);
 		//printk("ack_seq_num= %d \n",ack_seq_num);
 		//printk("seq_num= %d \n",seq_num);
+}
+
+void update_adv_wnd(t_tcp_conn_desc* tcp_conn_desc)
+{
+	send_packet_tcp(tcp_conn_desc->src_ip,
+                        tcp_conn_desc->dst_ip,
+                        tcp_conn_desc->src_port,
+                        tcp_conn_desc->dst_port,
+			tcp_conn_desc->rcv_queue->wnd_size,
+                        NULL,
+                        0,
+                        tcp_conn_desc->rcv_queue->nxt_rcv,
+                        FLG_ACK,
+                        tcp_conn_desc->snd_queue->nxt_snd);  
+}
+
+void _update_adv_wnd(t_tcp_conn_desc* tcp_conn_desc)
+{
+	if (tcp_conn_desc->rcv_queue->wnd_size >= (tcp_conn_desc->rcv_queue->last_adv_wnd + SMSS) ||
+		tcp_conn_desc->rcv_queue->wnd_size >= (TCP_RCV_SIZE - SMSS))
+	{
+		if (tcp_conn_desc->pending_ack == 0)
+		{
+			tcp_conn_desc->rcv_queue->last_adv_wnd = tcp_conn_desc->rcv_queue->wnd_size;
+			tcp_conn_desc->pending_ack = 0;
+			tcp_conn_desc->rcv_queue->last_adv_wnd = tcp_conn_desc->rcv_queue->wnd_size;
+
+			send_packet_tcp(tcp_conn_desc->src_ip,
+                        		tcp_conn_desc->dst_ip,
+                        		tcp_conn_desc->src_port,
+                        		tcp_conn_desc->dst_port,
+					tcp_conn_desc->rcv_queue->wnd_size,
+                        		NULL,
+                        		0,
+                        		tcp_conn_desc->rcv_queue->nxt_rcv,
+                        		FLG_ACK,
+                        		tcp_conn_desc->snd_queue->nxt_snd);  
+		}
+		else 
+		{
+			tcp_conn_desc->pending_ack++;
+		}
+	}
 }
 	
 static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 data_len)
@@ -923,12 +938,14 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 	if (data_to_send > 0)
 	{
 		flags = FLG_ACK;
-		if (tcp_conn_desc->pgybg_timer->val != 0 && tcp_conn_desc->pgybg_timer->ref != NULL)
-		{
-			ll_delete_node(tcp_conn_desc->pgybg_timer->ref);
-			tcp_conn_desc->pgybg_timer->val = 0;
-			tcp_conn_desc->pgybg_timer->ref = NULL;
-		}
+		timer_reset(tcp_conn_desc->pgybg_timer);
+//		if (tcp_conn_desc->pgybg_timer->val != 0 && tcp_conn_desc->pgybg_timer->ref != NULL)
+//		{
+//			ll_delete_node(tcp_conn_desc->pgybg_timer->ref);
+//			tcp_conn_desc->pgybg_timer->val = 0;
+//			tcp_conn_desc->pgybg_timer->ref = NULL;
+//			timer_reset(tcp_conn_desc->pgybg_timer);
+//		}
 
 		while (data_to_send >= SMSS)
 		{
@@ -1049,7 +1066,10 @@ void pgybg_timer_handler(void* arg)
 	u32 seq_num = 0;
 	t_tcp_conn_desc* tcp_conn_desc = NULL;
 
-	//printk("piggy timeout !!!\n ");
+	static int piggy_count = 0;
+
+	piggy_count++;
+	printk("piggy timeout !!! %d \n ",piggy_count);
 	tcp_conn_desc = (t_tcp_conn_desc*) arg;
 	flags = FLG_ACK;
 	ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;
@@ -1059,15 +1079,18 @@ void pgybg_timer_handler(void* arg)
 	//printk("win is %d \n",tcp_conn_desc->rcv_queue->wnd_size);
 	if (tcp_conn_desc->pgybg_timer->ref != NULL && tcp_conn_desc->rcv_queue->wnd_size > 1400)
 	{
-		ll_delete_node(tcp_conn_desc->pgybg_timer->ref);
-		tcp_conn_desc->pgybg_timer->ref = NULL;
-		tcp_conn_desc->pgybg_timer->val = 0;
+//		ll_delete_node(tcp_conn_desc->pgybg_timer->ref);
+//		tcp_conn_desc->pgybg_timer->ref = NULL;
+//		tcp_conn_desc->pgybg_timer->val = 0;
 		_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,ack_num,flags,seq_num);
+		timer_reset(tcp_conn_desc->pgybg_timer);
+		tcp_conn_desc->rcv_queue->last_adv_wnd = tcp_conn_desc->rcv_queue->wnd_size;
 		//printk("sent pig \n");
 	}
 	else
 	{
 		tcp_conn_desc->pgybg_timer->val = PIGGYBACKING_TIMEOUT;
+		printk("renew timeout \n");
 	}
 	system.piggy_timeout++;
 }

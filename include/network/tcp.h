@@ -9,27 +9,27 @@
 #include "network/socket_buffer.h"
 
 #define SMSS 			1454	
-#define TCP_RCV_SIZE 		(16384) 
+#define TCP_RCV_SIZE 		(16384*2) 
 #define TCP_SND_SIZE 		(16384*256)
 //#define TCP_SND_SIZE 		16384
 //SPECS SAYS WND_ADV SHOULD BE TCP_RCV_SIZE. I USE TCP_RCV_SIZE FOR TEST
 #define WND_ADV         	2048
 #define TCP_CONN_MAP_SIZE 	20
+#define EPHEMERAL_PORT_MAP_SIZE 20
 
 //#define INC_WND(cur,wnd_size,offset)  (cur + offset) % wnd_size
 #define INC_WND(cur,wnd_size,offset) (((cur + offset) <= wnd_size) ? (cur = cur + offset) : (cur = ((cur + offset) % wnd_size)))
 #define SLOT_WND(cur,wnd_size) (cur % wnd_size)
-#define DATA_IN_WND(min,max,index)										\
-(																		\
-	(min <= max) ?														\
-	(																	\
+#define DATA_IN_WND(min,max,index)								        \
+(												        \
+	(min <= max) ?											\	(												        \
 		(index >= min && index <= max) ? 1 : 0							\
-	)																	\
-	:																	\
-	(																	\
+	)												\
+	:											        \
+	(												\
 		(index >= max && index <= min) ? 1 : 0							\
-	)																	\
-)																		\
+	)												\
+)													\
 
 #define DATA_LF_OUT_WND(min,max,index) ((index < min) ? 1 : 0)
 #define DATA_RH_OUT_WND(min,max,index) ((index > min) ? 1 : 0)
@@ -57,33 +57,14 @@
 #define RESET                  11
 
 //timout=200 ms (quantum = 10 ms)
-#define PIGGYBACKING_TIMEOUT 20
+//#define PIGGYBACKING_TIMEOUT 4
+#define PIGGYBACKING_TIMEOUT 4
 //3 sec should be 300
 #define SRTT_FACTOR 0.8
 #define RTO_UBOUND 6000
 #define RTO_LBOUND 100
 #define RTO_VARIANCE 1.5
 #define DEFAULT_RTO 100
-
-//#define _SEND_PACKET_TCP(tcp_conn_desc,data,data_len,ack_num,flags,seq_num) \
-        send_packet_tcp(tcp_conn_desc->src_ip,                              \
-                        tcp_conn_desc->dst_ip,                              \
-                        tcp_conn_desc->src_port,                            \
-                        tcp_conn_desc->dst_port,                            \
-                        tcp_conn_desc->rcv_queue->wnd_size,                 \
-                        data,                                               \
-                        data_len,                                           \
-                        ack_num,                                            \
-                        flags,                                              \
-                        seq_num);                                           \
-	                tcp_conn_desc->last_ack_sent = ack_num;             \
-			if (tcp_conn_desc->last_seq_sent == 0)              \
-			{                                                   \
-				tcp_conn_desc->last_sent_time = system.time;\
-				tcp_conn_desc->last_seq_sent = seq_num;     \
-			}
-
-/*tcp_conn_desc->rcv_queue->wnd_size */
 
 #define _SEND_PACKET_TCP(tcp_conn_desc,data,data_len,ack_num,flags,seq_num) \
         send_packet_tcp(tcp_conn_desc->src_ip,                              \
@@ -152,10 +133,8 @@ typedef struct s_tcp_conn_desc
 	t_spinlock_desc lock;
 	u32 last_sent_time;
 	u32 flight_size;
-//	u32 last_ack_sent;
-//	u32 last_seq_sent;
 	u8 pending_ack;
-	u8 force_ack;
+	u8 isActive;
 }
 t_tcp_conn_desc;
 
@@ -166,11 +145,8 @@ typedef struct s_tcp_desc
 	struct s_tcp_conn_map* conn_map;		//ESTABILISHED CONNECTIONS MAP
 	struct s_tcp_conn_map* req_map;			//REQUESTED CONNECTIONS MAP
 	struct s_tcp_conn_map* listen_map;		//LISTENING CONNECTIONS MAP
-	u32 listen_port_index;
-	t_tcp_conn_desc* slab_1;
-	t_tcp_conn_desc* slab_2;
-	t_tcp_conn_desc* slab_3;
-	t_tcp_conn_desc* slab_4;
+	u32 ep_port_index;
+	struct s_hashtable* ep_port_map;
 }
 t_tcp_desc;
 
@@ -185,7 +161,6 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 void rtrsn_timer_handler(void* arg);
 void pgybg_timer_handler(void* arg);
 int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size,char* data,u32 data_len,u32 ack_num,u8 flags,u32 seq_num);
-//void rtrsn_timer_set(t_timer* rtrsn_timer,long rto);
-//void rtrsn_timer_reset(t_timer* rtrsn_timer);
+void update_adv_wnd(t_tcp_conn_desc* tcp_conn_desc);
 
 #endif

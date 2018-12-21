@@ -1,0 +1,18 @@
+Inline puo' essere usato sia nella definizione che nella dichiarazione della funzione (o entrambi).
+Tre casi:
+
+1)Inline.L'inline agisce solo sulla stessa traslational unit,
+l'inline non ha effetti su eventuali altre chiamate alla funzione da altre traslational unit.
+Se la funzione e' chiamata da altre traslational unit verra' prodotto il codice oggetto e l'inline varra' solo nella stessa
+traslational unit.
+
+2)Inline + static.Come punto 1).In questo caso non e' possibile referenziare la funzione da altre traslational unit.
+Il codice oggetto della funzione puo' essere generato.
+
+3)inline + extern.Come punto 2).In questo caso pero' non viene mai generato il codice oggetto della funzione.
+Se si exclude extern dalla definizione il comportamento sara' come al punto 1).
+
+Se si vuole che una data funzione possa essere utilizzata come inline da piu' translational unit occorre definire la funzione su  un header  file utilizzando sia extern che inline.L'header file andra' incluso in tutti i file in cui si vuole usare la funzione.
+Questa tecnica non comporta la creazione del codice oggetto della funzione.
+
+Per forzare l'inline quando le ottimizzazioni non sono abilitate occorre pure usare l'attributo __attribute__((always_inline)). 
