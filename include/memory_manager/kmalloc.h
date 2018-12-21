@@ -3,7 +3,7 @@
 
 #include "system.h"
 
-void init_kmoalloc();
+void init_kmalloc();
 void* kmalloc(unsigned int mem_size);
 void kfree(void *address);
 void* _malloc(unsigned int mem_size);

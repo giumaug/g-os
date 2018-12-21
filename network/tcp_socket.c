@@ -5,24 +5,49 @@ static int free_port_search()
 	int i;
 	void* port = NULL;
 	t_tcp_desc* tcp_desc = NULL;
-	t_tcp_conn_desc* tmp = NULL;
 
 	tcp_desc = system.network_desc->tcp_desc;
 
 	for (i=0;i<32767;i++)
 	{
-		if (tcp_desc->listen_port_index++ > 65535) 
+		tcp_desc->ep_port_index++;
+		if (tcp_desc->ep_port_index > 65535) 
 		{
-			tcp_desc->listen_port_index = 32767;
+			tcp_desc->ep_port_index = 32767;
 		}
-		tmp = tcp_conn_map_get(tcp_desc->listen_map,system.network_desc->ip,0,tcp_desc->listen_port_index,0);
-		if (tmp == NULL)
+		port = hashtable_get(tcp_desc->ep_port_map,tcp_desc->ep_port_index);
+		if (port == NULL)
 		{
-			return tcp_desc->listen_port_index;
+			hashtable_put(tcp_desc->ep_port_map,tcp_desc->ep_port_index,1);
+			return tcp_desc->ep_port_index;
 		}
 	}
 	return 0;
 }
+
+//static int free_port_search()
+//{
+//	int i;
+//	void* port = NULL;
+//	t_tcp_desc* tcp_desc = NULL;
+//	t_tcp_conn_desc* tmp = NULL;
+//
+//	tcp_desc = system.network_desc->tcp_desc;
+//
+//	for (i=0;i<32767;i++)
+//	{
+//		if (tcp_desc->listen_port_index++ > 65535) 
+//		{
+//			tcp_desc->listen_port_index = 32767;
+//		}
+//		tmp = tcp_conn_map_get(tcp_desc->listen_map,system.network_desc->ip,0,tcp_desc->listen_port_index,0);
+//		if (tmp == NULL)
+//		{
+//			return tcp_desc->listen_port_index;
+//		}
+//	}
+//	return 0;
+//}
 
 int bind_tcp(t_tcp_conn_desc* tcp_conn_desc,u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port)
 {
@@ -89,11 +114,13 @@ int connect_tcp(u32 dst_ip,u16 dst_port,t_socket* socket)
 	src_port = free_port_search();
 	if (src_port == NULL)
 	{
+		printk("no port found \n");
 		RESTORE_IF_STATUS
 		return -1;
 	}
 	src_ip = system.network_desc->ip;
-	tcp_conn_desc = tcp_conn_desc_int();
+	tcp_conn_desc = tcp_conn_desc_int(EPHEMERAL_PORT_MAP_SIZE);
+	tcp_conn_desc->isActive = 1;
 	tcp_conn_desc->ref_count = 1;
 	tcp_conn_desc->dst_ip = dst_ip;
 	tcp_conn_desc->dst_port = dst_port;
@@ -299,9 +326,12 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		tcp_queue->wnd_size += data_len;
 		tcp_queue->wnd_min += data_len;
 		//printk("red ");
+		if (tcp_queue->wnd_size == data_len)
+		{
+			update_adv_wnd(tcp_conn_desc);
+		}
 	}
 EXIT:
-	tcp_conn_desc->force_ack = 1;
 	tot += ret;
 	system.flush_network = 1;
 	system.packet_received += data_len;

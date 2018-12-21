@@ -66,31 +66,36 @@ void dequeue_packet(t_network_desc* network_desc)
 	t_data_sckt_buf* data_sckt_buf;
 	int x = 0;
 
-//	DISABLE_PREEMPTION
-//	STI
+	DISABLE_PREEMPTION
+	STI
 	while ((data_sckt_buf=dequeue_sckt(network_desc->rx_queue))!=NULL)
 	{
 		//printk("deq ");
 		x++;	
-		//CLI 
+		CLI 
 		rcv_packet_mac(data_sckt_buf);
-		//STI
+		STI
 		if (system.force_scheduling != 0)
 		{
 		//	break;
 		}
-		if (x >= 1)
+		if (x >= 3)
 		{
+			system.flush_network = 1;
 			break;
+		}
+		else 
+		{
+			system.flush_network = 0;	
 		}
 	}
 	system.flush_network = 1;
-	if (x == 0)
+	if (x > 0)
 	{
-		//printk("inside denqueue....%d \n",x);
+		//printk("deq-end ");
 	}
-//	CLI
-//	ENABLE_PREEMPTION
+	CLI
+	ENABLE_PREEMPTION
 }
 
 void debug_network(char* data,u32 data_len)
