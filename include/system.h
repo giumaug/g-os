@@ -94,6 +94,7 @@ typedef struct s_system
 	u32 tot_int;
 	u32 packet_sent;
 	u32 packet_received;
+	u32 counter;
 }
 t_system;
 

@@ -242,7 +242,7 @@ void syscall_handler()
 		default:
 		panic();
 	}
-	if (syscall_num == 31 || syscall_num == 32 || syscall_num == 35)
+	if (syscall_num == 30 || syscall_num == 31 || syscall_num == 32 || syscall_num == 35)
 	{
 		system.flush_network = 1;
 	}

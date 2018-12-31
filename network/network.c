@@ -89,7 +89,7 @@ void dequeue_packet(t_network_desc* network_desc)
 			system.flush_network = 0;	
 		}
 	}
-	system.flush_network = 1;
+	//system.flush_network = 1;
 	if (x > 0)
 	{
 		//printk("deq-end ");

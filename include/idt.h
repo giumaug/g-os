@@ -22,7 +22,6 @@ void set_idt_entry(int entry,struct t_i_desc* i_desc);
 
 #define EXIT_INT_HANDLER(action,processor_reg)                                                                                  \
                                                                                                                                 \
-        static int flush = 0;                                                                                                     \
 	static struct t_process_context _current_process_context;                                                  		\
 	static struct t_process_context _old_process_context;                                                      		\
 	static struct t_process_context _new_process_context;	                                                   		\
@@ -33,20 +32,8 @@ void set_idt_entry(int entry,struct t_i_desc* i_desc);
 	if (system.int_path_count == 0 && system.force_scheduling == 0 && system.flush_network == 1)                            \
 	/*if (system.int_path_count == 0 && system.force_scheduling == 0)*/	                                                \
 	{                                                                                                                       \
-                if (flush == 0)                                \
-		{                                              \
-			dequeue_packet(system.network_desc);   \
-			equeue_packet(system.network_desc);    \
-			flush = 0;                             \
-		}                                              \
-		else  if(flush == 3)                           \
-		{                                              \
-			flush = 0;                             \
-		}                                              \
-                else                                           \
-		{                                              \
-			flush++;                               \
-		}                                              \
+			dequeue_packet(system.network_desc);                                                                    \
+			equeue_packet(system.network_desc);                                                                     \
 	}                                                                                                                       \
 	_action2=action;                                                                                           		\
 	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;             		\

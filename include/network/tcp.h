@@ -9,7 +9,7 @@
 #include "network/socket_buffer.h"
 
 #define SMSS 			1454	
-#define TCP_RCV_SIZE 		(16384*2) 
+#define TCP_RCV_SIZE 		(32768) 
 #define TCP_SND_SIZE 		(16384*256)
 //#define TCP_SND_SIZE 		16384
 //SPECS SAYS WND_ADV SHOULD BE TCP_RCV_SIZE. I USE TCP_RCV_SIZE FOR TEST
