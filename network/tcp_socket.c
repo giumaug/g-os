@@ -330,13 +330,43 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		{
 			update_adv_wnd(tcp_conn_desc);
 		}
+		else
+		{
+			//update_adv_wnd_2(tcp_conn_desc);
+			
+			if (tcp_conn_desc->rcv_queue->wnd_size >= (tcp_conn_desc->rcv_queue->last_adv_wnd + SMSS) ||
+				tcp_conn_desc->rcv_queue->wnd_size >= (TCP_RCV_SIZE - SMSS))
+			{
+				if (tcp_conn_desc->pending_ack >= 2)
+				{
+					tcp_conn_desc->pending_ack = 0;
+					tcp_conn_desc->rcv_queue->last_adv_wnd = tcp_conn_desc->rcv_queue->wnd_size;
+
+					timer_reset(tcp_conn_desc->pgybg_timer);
+					send_packet_tcp(tcp_conn_desc->src_ip,
+                        			tcp_conn_desc->dst_ip,
+                        			tcp_conn_desc->src_port,
+                        			tcp_conn_desc->dst_port,
+						tcp_conn_desc->rcv_queue->wnd_size,
+                        			NULL,
+                        			0,
+                        			tcp_conn_desc->rcv_queue->nxt_rcv,
+                        			FLG_ACK,
+                        			tcp_conn_desc->snd_queue->nxt_snd); 
+						//printk("ack( %d).. ",tcp_conn_desc->rcv_queue->wnd_size); 
+				}
+			}
+			
+		}
 	}
 EXIT:
 	tot += ret;
 	system.flush_network = 1;
 	system.packet_received += data_len;
+	system.counter -= ret;
 	//printk("next %d \n",tcp_queue->nxt_rcv);
 	//printk("available data is %d \n",tot);
+	//printk("counter is %d ",system.counter);
 	RESTORE_IF_STATUS
 	return ret;
 }
