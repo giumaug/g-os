@@ -1,0 +1,68 @@
+--------------------------------------benchmark over intranet--------------------
+g-os
+40000x4(casa)  		32.52m 19.7s media 400
+40000x1(casa) 		34.20m 20.6s media 400
+40000x4(casa) no io 27.07m 16.2s media 400
+40000x1(casa) no io 28.45m 17.2s media 400
+
+40000x4(work)  36.49m  22.0s media 400 
+40000x1(work)  33.56m  20.3s media 400
+
+400x4(casa) 	  18.5s
+400x1(casa) 	  19.5s
+400x4(casa) no io 14.1s
+400x1(casa) no io 15.2s
+
+ubuntu 
+40000x4(work) 28.18m 16.8s media 400
+40000x1(work) 23.40m 14.2s media 400
+40000x1(work) 25.17m 15.1  media 400
+
+40000x4(casa) 		 23.24m 14s   media 400
+40000x1(casa) 		 21.05m 12s   media 400
+40000x4 no io (casa) 24.02m 14.4s media 400
+40000x1 no io (casa) 21.38m 12.9s media 400
+
+400x4(casa) 	  14.5s   
+400x1(casa)       13.5s	  
+400x4(casa) no io 14.5s
+400x1(casa) no io 13.5s 
+
+1404:4000=x:400
+
+--------------------------------------benchmark over internet--------------------
+ubuntu
+400x1(work) cell 0.2  --> 2.54m
+400x1(work) net  0.08 --> 1.14m
+400x1(casa) cell 0.2  --> 2.43m
+
+--------------------------------------tcpf---------------------------------------
+
+ubuntu 5000 request 2.30m (17K)
+ubuntu 500 request 15s (17K)
+ubuntu 500 request 21s (32K)
+
+ubuntu 500 request 27s (80K) gro off an no screen
+g-os(no softirq logic 32k windows 1 ack for 2 packets) 34.5 s (this is an average number could swing)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

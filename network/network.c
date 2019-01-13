@@ -65,21 +65,24 @@ void dequeue_packet(t_network_desc* network_desc)
 {
 	t_data_sckt_buf* data_sckt_buf;
 	int x = 0;
+	u32 current_time;
 
+	current_time = system.time;
 	DISABLE_PREEMPTION
 	STI
 	while ((data_sckt_buf=dequeue_sckt(network_desc->rx_queue))!=NULL)
 	{
 		//printk("deq ");
 		x++;	
-		CLI 
+		//CLI 
 		rcv_packet_mac(data_sckt_buf);
-		STI
+		//STI
 		if (system.force_scheduling != 0)
 		{
 		//	break;
 		}
-		if (x >= 3)
+		//if (current_time < system.time)
+		if (x >= 1)
 		{
 			system.flush_network = 1;
 			break;
@@ -89,10 +92,10 @@ void dequeue_packet(t_network_desc* network_desc)
 			system.flush_network = 0;	
 		}
 	}
-	//system.flush_network = 1;
-	if (x > 0)
+	CLI
+	if (x > system.max_processed_packet)
 	{
-		//printk("deq-end ");
+		system.max_processed_packet = x;
 	}
 	CLI
 	ENABLE_PREEMPTION

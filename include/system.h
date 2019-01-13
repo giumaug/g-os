@@ -95,6 +95,7 @@ typedef struct s_system
 	u32 packet_sent;
 	u32 packet_received;
 	u32 counter;
+	u32 max_processed_packet;
 }
 t_system;
 
