@@ -13,7 +13,7 @@ unsigned int trace_buffer_1[10000];
 unsigned int trace_buffer_2[10000];
 unsigned int trace_buffer_3[10000];
 unsigned int trace_buffer_4[10000];
-int index_2=0;
+int indx_2=0;
 unsigned int collect_mem=0;
 unsigned int collected_mem[50005];
 unsigned int collected_mem_index=0;
@@ -83,10 +83,18 @@ void _check_process_context()
 			process_context=next->val;
 			{
 				count++;
+				if (system.fork > 2 && process_context->proc_status == SLEEPING)
+				{
+					//panic();
+				}
 			}
 			next=next=ll_next(next);
 		}
 		index++;
+	}
+	if (count > 7 )
+	{
+		panic();
 	}
 }
 

@@ -27,7 +27,7 @@
 #define LOCAL_IP 	0xC0A8F765   
 #define LOCAL_NETMASK   0xFFFFFF00
 
-#define DEFAULT_GW_IP 0xC0A87C02
+#define DEFAULT_GW_IP 0xC0A8F702
 #endif
 
 #ifdef WORK_PC

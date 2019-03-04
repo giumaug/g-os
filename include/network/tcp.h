@@ -10,6 +10,7 @@
 
 #define SMSS 			1454	
 #define TCP_RCV_SIZE 		(32768) 
+#define TCP_USR_SIZE            (16384)
 #define TCP_SND_SIZE 		(16384*256)
 //#define TCP_SND_SIZE 		16384
 //SPECS SAYS WND_ADV SHOULD BE TCP_RCV_SIZE. I USE TCP_RCV_SIZE FOR TEST
@@ -75,8 +76,9 @@
                         data,                                               \
                         data_len,                                           \
                         ack_num,                                            \
-                        flags,                                              \
-                        seq_num);                                           \
+                        flags, seq_num);                                    \
+                        /*equeue_packet_2(system.network_desc);*/
+		
 
 typedef struct s_tcp_snd_queue
 {
@@ -100,9 +102,9 @@ typedef struct s_tcp_rcv_queue
 	t_bit_vector* buf_state;
 	u32 seq_num;
 	u32 data_len;
-	u32 low_index;
-	u32 hi_index;
 	u32 last_adv_wnd;
+	u32 buf_size_in_order;
+	//u32 next_to_read;
 }
 t_tcp_rcv_queue;
 

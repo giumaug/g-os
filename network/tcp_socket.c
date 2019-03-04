@@ -25,30 +25,6 @@ static int free_port_search()
 	return 0;
 }
 
-//static int free_port_search()
-//{
-//	int i;
-//	void* port = NULL;
-//	t_tcp_desc* tcp_desc = NULL;
-//	t_tcp_conn_desc* tmp = NULL;
-//
-//	tcp_desc = system.network_desc->tcp_desc;
-//
-//	for (i=0;i<32767;i++)
-//	{
-//		if (tcp_desc->listen_port_index++ > 65535) 
-//		{
-//			tcp_desc->listen_port_index = 32767;
-//		}
-//		tmp = tcp_conn_map_get(tcp_desc->listen_map,system.network_desc->ip,0,tcp_desc->listen_port_index,0);
-//		if (tmp == NULL)
-//		{
-//			return tcp_desc->listen_port_index;
-//		}
-//	}
-//	return 0;
-//}
-
 int bind_tcp(t_tcp_conn_desc* tcp_conn_desc,u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port)
 {
 	SAVE_IF_STATUS
@@ -127,17 +103,10 @@ int connect_tcp(u32 dst_ip,u16 dst_port,t_socket* socket)
 	tcp_conn_desc->src_ip = src_ip;
 	tcp_conn_desc->src_port = src_port;
 	tcp_conn_desc->status = SYN_SENT;
-//	tcp_conn_desc->rtrsn_timer->val = tcp_conn_desc->rto;
-//	rtrsn_timer_set(tcp_conn_desc->rtrsn_timer,tcp_conn_desc->rto);
 	timer_set(tcp_conn_desc->rtrsn_timer,tcp_conn_desc->rto);
 	socket->tcp_conn_desc = tcp_conn_desc;
 	tcp_conn_map_put(tcp_req_map,src_ip,dst_ip,src_port,dst_port,tcp_conn_desc);
-	//SYN NEED RETRASMISSION TIMEOUT MANAGEMENT ONLY.NO RETRY
-	//STI	
 	_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,0,FLG_SYN,tcp_conn_desc->snd_queue->nxt_snd);
-	//equeue_packet(system.network_desc);
-	//system.flush_network = 1;
-	//CLI
 	CURRENT_PROCESS_CONTEXT(tcp_conn_desc->process_context);
 	system.flush_network = 1;
 	_sleep();
@@ -159,7 +128,6 @@ void close_tcp(t_tcp_conn_desc* tcp_conn_desc)
 	tcp_desc = system.network_desc->tcp_desc;
 	flags = FLG_FIN | FLG_ACK;
 	seq_num = seq_num = tcp_conn_desc->snd_queue->nxt_snd;
-//	ack_num = tcp_conn_desc->last_ack_sent;
 	ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;
 
 	struct t_process_context* tmp;	
@@ -212,14 +180,6 @@ void close_tcp(t_tcp_conn_desc* tcp_conn_desc)
 		}
 		if (tcp_conn_desc->snd_queue->wnd_min == tcp_conn_desc->snd_queue->cur)
 		{
-//			if (tcp_conn_desc->pgybg_timer->ref != NULL)
-//			{
-//				ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;
-//				ll_delete_node(tcp_conn_desc->pgybg_timer->ref);
-//				tcp_conn_desc->pgybg_timer->ref = NULL;
-//			}
-			
-			
 			flags |= FLG_ACK;
 			_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,ack_num,flags,seq_num);
 			timer_set(tcp_conn_desc->rtrsn_timer,tcp_conn_desc->rto);
@@ -251,7 +211,6 @@ void close_tcp(t_tcp_conn_desc* tcp_conn_desc)
 
 int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 {
-	static u32 tot = 0;
 	int ret = 0;
 	u32 i = 0;
 	u32 len_1 = 0;
@@ -278,11 +237,9 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		available_data = tcp_queue->nxt_rcv - tcp_queue->wnd_min;
 		while (available_data == 0)
 		{
-			//printk("sli \n");
-//			enqueue(tcp_conn_desc->data_wait_queue,current_process_context);
 			tcp_conn_desc->process_context = current_process_context;
-			//printk("sleeping ....%d \n",tcp_conn_desc->rcv_queue->wnd_size);
 			system.flush_network = 1;
+			t_tcp_rcv_queue aaa = *tcp_queue;
 			_sleep();
 			available_data = tcp_queue->nxt_rcv - tcp_queue->wnd_min;
 			if (available_data == 0)
@@ -325,15 +282,13 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		}
 		tcp_queue->wnd_size += data_len;
 		tcp_queue->wnd_min += data_len;
-		//printk("red ");
-		if (tcp_queue->wnd_size == data_len)
-		{
-			update_adv_wnd(tcp_conn_desc);
-		}
-		else
-		{
-			//update_adv_wnd_2(tcp_conn_desc);
-			
+//		if (tcp_queue->wnd_size == data_len)
+//		{
+//			update_adv_wnd(tcp_conn_desc);
+//			printk(".... ");
+//		}
+//		else
+		{	
 			if (tcp_conn_desc->rcv_queue->wnd_size >= (tcp_conn_desc->rcv_queue->last_adv_wnd + SMSS) ||
 				tcp_conn_desc->rcv_queue->wnd_size >= (TCP_RCV_SIZE - SMSS))
 			{
@@ -352,21 +307,27 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
                         			0,
                         			tcp_conn_desc->rcv_queue->nxt_rcv,
                         			FLG_ACK,
-                        			tcp_conn_desc->snd_queue->nxt_snd); 
-						//printk("ack( %d).. ",tcp_conn_desc->rcv_queue->wnd_size); 
+                        			tcp_conn_desc->snd_queue->nxt_snd);
+
+/*	
+						u16 frame_len;
+						t_sckt_buf_desc* sckt_buf_desc;
+						t_data_sckt_buf* data_sckt_buf;
+						void* frame;
+						sckt_buf_desc = system.network_desc->tx_queue;
+						data_sckt_buf = dequeue_sckt(sckt_buf_desc);
+						frame = data_sckt_buf->mac_hdr;
+						frame_len = data_sckt_buf->data_len;
+						send_packet_i8254x(system.network_desc->dev,frame,frame_len);
+						free_sckt(data_sckt_buf);
+*/
 				}
 			}
 			
 		}
 	}
 EXIT:
-	tot += ret;
 	system.flush_network = 1;
-	system.packet_received += data_len;
-	system.counter -= ret;
-	//printk("next %d \n",tcp_queue->nxt_rcv);
-	//printk("available data is %d \n",tot);
-	//printk("counter is %d ",system.counter);
 	RESTORE_IF_STATUS
 	return ret;
 }
@@ -398,7 +359,6 @@ int enqueue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		tcp_queue = tcp_conn_desc->snd_queue;
 		wnd_max = tcp_queue->wnd_min + tcp_queue->buf_size;
 		b_free_size = wnd_max - tcp_queue->cur;
-		//printk("free size is:%d \n",b_free_size);
 		if (b_free_size < data_len)
 		{
 			RESTORE_IF_STATUS
