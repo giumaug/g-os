@@ -87,16 +87,15 @@ static rx_init_i8254x(t_i8254x* i8254x)
 		rx_desc[i].errors=0;
 		rx_desc[i].special=0;
 	}
+
 	i8254x->rx_desc=rx_desc;
 	write_i8254x(i8254x,RDBAL_REG,FROM_VIRT_TO_PHY((u32)rx_desc));
 	write_i8254x(i8254x,RDBAH_REG,0);
 	write_i8254x(i8254x,RDLEN_REG,NUM_RX_DESC*16);
 	i8254x->rx_cur=0;
-	
 	write_i8254x(i8254x,RHD_REG,0);
 	write_i8254x(i8254x,RDT_REG,NUM_RX_DESC-1);
 	write_i8254x(i8254x,RCTRL_REG, (RCTL_EN | RCTL_SBP | RCTL_UPE | RCTL_MPE | RCTL_LBM_NONE | RTCL_RDMTS_HALF | RCTL_BAM | RCTL_SECRC  | RCTL_BSIZE_8192));
-	//write_i8254x(i8254x,0xc4,4096);
 }
 
 static tx_init_i8254x(t_i8254x* i8254x)
@@ -180,16 +179,16 @@ t_i8254x* init_8254x()
 	i_desc.selector=0x8;
 	i_desc.flags=0x08e00;
 	i_desc.baseHi=((int)&int_handler_i8254x)>>0x10;
-	//OKKIO
 	set_idt_entry(0x20+i8254x->irq_line,&i_desc);
+	//qui ok!!
 
 	reset_multicast_array(i8254x);
 	rx_init_i8254x(i8254x);
 	tx_init_i8254x(i8254x);
 
-	//OKKIO
 	write_i8254x(i8254x,REG_IMS,(IMS_RXT0 | IMS_RXO));
-	read_i8254x(i8254x,REG_ICR);
+	//read_i8254x(i8254x,REG_ICR);
+
 	return i8254x;
 }
 

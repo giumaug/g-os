@@ -7,7 +7,8 @@
 
 typedef char t_bit_vector;
 
-inline extern __attribute__((always_inline)) t_bit_vector* bit_vector_init(u32 size)
+//inline extern __attribute__((always_inline)) t_bit_vector* bit_vector_init(u32 size)
+inline static __attribute__((always_inline)) t_bit_vector* bit_vector_init(u32 size)
 {
 	int i = 0;
 	t_bit_vector* bit_vector;
@@ -20,7 +21,8 @@ inline extern __attribute__((always_inline)) t_bit_vector* bit_vector_init(u32 s
 	return bit_vector;
 }
 
-inline extern __attribute__((always_inline)) void bit_vector_re_init(t_bit_vector* bit_vector,u32 size)
+//inline extern __attribute__((always_inline)) void bit_vector_re_init(t_bit_vector* bit_vector,u32 size)
+inline static __attribute__((always_inline)) void bit_vector_re_init(t_bit_vector* bit_vector,u32 size)
 {
 	int i;
 
@@ -30,12 +32,14 @@ inline extern __attribute__((always_inline)) void bit_vector_re_init(t_bit_vecto
 	}
 }
 
-inline extern __attribute__((always_inline)) void bit_vector_free(t_bit_vector* bit_vector)
+//inline extern __attribute__((always_inline)) void bit_vector_free(t_bit_vector* bit_vector)
+inline static __attribute__((always_inline)) void bit_vector_free(t_bit_vector* bit_vector)
 {	
 	kfree(bit_vector);
 }
 
-inline extern __attribute__((always_inline)) void bit_vector_set(t_bit_vector* bit_vector,u32 index)
+//inline extern __attribute__((always_inline)) void bit_vector_set(t_bit_vector* bit_vector,u32 index)
+inline static __attribute__((always_inline)) void bit_vector_set(t_bit_vector* bit_vector,u32 index)
 {
 	u32 block_index;
 	u32 block_offset;
@@ -45,7 +49,8 @@ inline extern __attribute__((always_inline)) void bit_vector_set(t_bit_vector* b
 	bit_vector[block_index] |= (1 << block_offset);
 }
 
-inline extern __attribute__((always_inline)) void bit_vector_reset(t_bit_vector* bit_vector,u32 index)
+//inline extern __attribute__((always_inline)) void bit_vector_reset(t_bit_vector* bit_vector,u32 index)
+inline static __attribute__((always_inline)) void bit_vector_reset(t_bit_vector* bit_vector,u32 index)
 {
 	u32 block_index;
 	u32 block_offset;
@@ -55,7 +60,8 @@ inline extern __attribute__((always_inline)) void bit_vector_reset(t_bit_vector*
 	bit_vector[block_index] &= (~(1 << block_offset));	
 }
 
-inline extern __attribute__((always_inline)) u8 bit_vector_get(t_bit_vector* bit_vector,u32 index)
+//inline extern __attribute__((always_inline)) u8 bit_vector_get(t_bit_vector* bit_vector,u32 index)
+inline static __attribute__((always_inline)) u8 bit_vector_get(t_bit_vector* bit_vector,u32 index)
 {
 	u8 ret;
 	u32 block_index;
@@ -67,7 +73,8 @@ inline extern __attribute__((always_inline)) u8 bit_vector_get(t_bit_vector* bit
 	return ret & 1;
 }
 
-inline extern __attribute__((always_inline)) u8 bit_vector_reset_if_set(t_bit_vector* bit_vector,u32 index)
+//inline extern __attribute__((always_inline)) u8 bit_vector_reset_if_set(t_bit_vector* bit_vector,u32 index)
+inline static __attribute__((always_inline)) u8 bit_vector_reset_if_set(t_bit_vector* bit_vector,u32 index)
 {
 	u8 ret;
 	u32 block_index;

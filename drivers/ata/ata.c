@@ -76,6 +76,16 @@ static void write_ata_config_byte(t_device_desc* device_desc,u32 address,u8 valu
 	}
 }
 
+void init_ata_test()
+{
+	struct t_i_desc i_desc;
+	i_desc.baseLow = ((int)&int_handler_ata) & 0xFFFF;
+	i_desc.selector = 0x8;
+	i_desc.flags = 0x08e00;
+	i_desc.baseHi = ((int)&int_handler_ata)>>0x10;
+	set_idt_entry(0x2E,&i_desc);
+}
+
 void init_ata(t_device_desc* device_desc)
 {	
 	struct t_i_desc i_desc;
@@ -269,6 +279,12 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 	sem_up(&device_desc->mutex);
 	kfree(prd);	
 	return ret;
+}
+
+static unsigned int _read_write_28_ata(t_io_request* io_request);
+unsigned int ___read_write_28_ata(t_io_request* io_request)
+{
+	_read_write_28_ata(io_request);
 }
 
 static unsigned int _read_write_28_ata(t_io_request* io_request)

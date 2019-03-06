@@ -411,8 +411,7 @@ u32 _exec(char* path,char* argv[])
 		 argc++;
 	}
 
-	bk_area = kmalloc(sizeof(char*)*argc);
-				
+	bk_area = kmalloc(sizeof(char*)*argc);				
 	for(k = 0;k < argc;k++)
 	{
 		i=0;

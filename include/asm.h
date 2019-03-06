@@ -134,6 +134,17 @@
 		:                              \
 		:"%eax");
 
+#define _SAVE_IF_STATUS                                                         \
+	asm("                   push %eax;                       		\
+				pushfl;                          		\
+				movl (%esp),%eax;                		\
+				andl $0x200,%eax;                		\
+	");	                                                 		\
+        asm("                   movl %%eax,%0;":"=r"(if_status)::"%eax");	\
+	asm("	                popfl;                           		\
+				pop %eax;                        		\
+        ");
+
 #define SAVE_IF_STATUS          unsigned int if_status;          		\
 	asm("                   push %eax;                       		\
 				pushfl;                          		\

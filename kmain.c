@@ -41,6 +41,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	system.packet_received = 0;
 	system.counter = 0;
 	system.max_processed_packet = 0;
+	system.sleep_count = 0;
 
 	init_data = init_data_add;
 	if ( magic != 0x2BADB002 )
@@ -56,10 +57,6 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	system.scheduler_desc->scheduler_queue[0] = 0;
 	system.process_info->current_process = NULL;
 	init_kmalloc();
-
-	char* xxx = kmalloc(2);
-	kfree(xxx);
-
    	init_idt();
    	init_pic();
    	init_pit();

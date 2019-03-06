@@ -305,7 +305,6 @@ u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode)
 
 	ret=-1;
 	found_inode=0;
-
 	if (path[0]=='/' && path[1]=='\0')
 	{
 		inode->i_number=current_process_context->root_dir_inode_number;

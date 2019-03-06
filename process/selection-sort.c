@@ -1,7 +1,7 @@
 #include "lib/lib.h"  
 #include "selection-sort.h"
 
-#define MAXSIZE 0x100
+#define MAXSIZE 0x7000
 //#define MAXSIZE 0x100
 //static int elements[MAXSIZE];
 static int maxsize;

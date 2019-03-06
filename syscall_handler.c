@@ -228,7 +228,8 @@ void syscall_handler()
 	
 		//DEBUG WRAPPER
 		case 103:
-		check_free_mem();
+		_check_free_mem();
+		system.flush_network = 0;
 		break;
 	
 		case 104:

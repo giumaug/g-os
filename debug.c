@@ -25,6 +25,11 @@ void add_tcp_conn(u32 port,t_tcp_conn_desc* conn);
 void remove_tcp_conn(u32 port);
 void check_tcp_conn();
 
+void _check_free_mem()
+{
+	return;
+}
+
 void check_free_mem()
 {
 	int last_block;
@@ -301,3 +306,39 @@ void trace(int pid,int trace_code,int call_num)
 //		panic();
 //	}
 //}
+
+#define MAXSIZE 0x3E8
+static int maxsize;
+int sort()
+{
+	int elements[MAXSIZE];
+	int i;
+	for (i=MAXSIZE;i>0;i--) 
+	{	
+		elements[MAXSIZE-i]=i;
+	} 
+        maxsize=MAXSIZE;
+	selection(elements, maxsize);
+}
+
+void selection(int elements[], int array_size)
+{
+	int i, j, k;
+	int min, temp;
+	int lll = 0;
+
+	for (i = 0; i < maxsize-1; i++)
+	{
+		lll++;
+		min = i;
+		for (j = i+1; j < maxsize; j++)
+		{
+			if (elements[j] < elements[min])
+			min = j;
+			lll++;
+		}
+		temp = elements[i];
+		elements[i] = elements[min];
+		elements[min] = temp;
+	}
+}

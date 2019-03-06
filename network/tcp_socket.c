@@ -221,9 +221,12 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	u32 available_data = 0;
 	struct t_process_context* current_process_context;
 	t_tcp_rcv_queue* tcp_queue = NULL;
+	unsigned int if_status;
 	
-	SAVE_IF_STATUS
+	_SAVE_IF_STATUS
 	CLI
+	system.flush_network = 0;
+	RESTORE_IF_STATUS
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 	if (tcp_conn_desc->status == RESET)
 	{
@@ -327,6 +330,8 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		}
 	}
 EXIT:
+	_SAVE_IF_STATUS
+	CLI
 	system.flush_network = 1;
 	RESTORE_IF_STATUS
 	return ret;
@@ -361,30 +366,39 @@ int enqueue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		b_free_size = wnd_max - tcp_queue->cur;
 		if (b_free_size < data_len)
 		{
-			RESTORE_IF_STATUS
-			ret = -1;
+			CURRENT_PROCESS_CONTEXT(tcp_conn_desc->process_context);
+			tcp_queue->pnd_data = data_len;
+			_sleep();
+			system.sleep_count++;
+			wnd_max = tcp_queue->wnd_min + tcp_queue->buf_size;
+			b_free_size = wnd_max - tcp_queue->cur;
+			if (b_free_size < data_len)
+			{
+				ret = -1;
+				printk("error +++\n");
+				goto EXIT;
+			}
+		}
+		ret = data_len;
+		cur_index = SLOT_WND(tcp_queue->cur,tcp_queue->buf_size);
+		if ((tcp_queue->buf_size - cur_index) > data_len)
+		{
+			kmemcpy(tcp_queue->buf + cur_index,data,data_len);
+			tcp_queue->cur += data_len;
 		}
 		else
 		{
-			ret = data_len;
-			cur_index = SLOT_WND(tcp_queue->cur,tcp_queue->buf_size);
-			if ((tcp_queue->buf_size - cur_index) > data_len)
-			{
-				kmemcpy(tcp_queue->buf + cur_index,data,data_len);
-				tcp_queue->cur += data_len;
-			}
-			else
-			{
-				len_1 = tcp_queue->buf_size - cur_index;
-				len_2 = data_len - len_1;
-				kmemcpy(tcp_queue->buf + cur_index,data,len_1);
-				kmemcpy(tcp_queue->buf,data,len_2);
-				tcp_queue->cur += data_len;
-			}
+			len_1 = tcp_queue->buf_size - cur_index;
+			len_2 = data_len - len_1;
+			kmemcpy(tcp_queue->buf + cur_index,data,len_1);
+			kmemcpy(tcp_queue->buf,data,len_2);
+			tcp_queue->cur += data_len;
 		}
 		//vedi commento sopra
 		update_snd_window(tcp_conn_desc,0,1);
+		system.flush_network = 1;
 	}
+EXIT:
 	RESTORE_IF_STATUS
 	return ret;
 }

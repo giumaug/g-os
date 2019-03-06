@@ -88,6 +88,7 @@ typedef struct s_tcp_snd_queue
 	u32 wnd_min;
 	u32 wnd_size;
 	u32 nxt_snd;
+	u32 pnd_data;
 	//t_spinlock_desc lock;
 }
 t_tcp_snd_queue;

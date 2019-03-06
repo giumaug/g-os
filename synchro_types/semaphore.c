@@ -49,7 +49,7 @@ void sem_down(t_sem_desc* sem_desc)
 	{
 		_sleep();
 	}
-	RESTORE_IF_STATUS
+	//RESTORE_IF_STATUS
 }
 
 void sem_up(t_sem_desc* sem_desc)

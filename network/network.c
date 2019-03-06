@@ -1,5 +1,6 @@
 #include "common.h"
 #include "network/network.h"
+#include "lib/lib.h"
 
 //ONLY ONE INSTANCE FOR ALL POSSIBLE INTERFACES!!!!!
 t_network_desc* network_init()
@@ -54,8 +55,8 @@ void equeue_packet(t_network_desc* network_desc)
 	void* frame;
 	u16 frame_len;
 	
-//	DISABLE_PREEMPTION
-//	STI 
+	DISABLE_PREEMPTION
+	STI 
 	sckt_buf_desc=network_desc->tx_queue;
 	//while ((data_sckt_buf=dequeue_sckt(sckt_buf_desc))!=NULL)
 	data_sckt_buf=dequeue_sckt(sckt_buf_desc);
@@ -68,24 +69,29 @@ void equeue_packet(t_network_desc* network_desc)
 //		STI
 		free_sckt(data_sckt_buf);
 	}
-//	CLI
-//	ENABLE_PREEMPTION
+	CLI
+	ENABLE_PREEMPTION
 }
 
+
+//TO VERIFY NEW LOGIC WITH INTERRUPT DISABLED!!!!
 void dequeue_packet(t_network_desc* network_desc)
 {
 	t_data_sckt_buf* data_sckt_buf;
 	system.flush_network = 0;
+	int counter = 0;
 
 	DISABLE_PREEMPTION
 	STI
 	data_sckt_buf = dequeue_sckt(network_desc->rx_queue);
 	if (data_sckt_buf != NULL)
+//	while ((data_sckt_buf=dequeue_sckt(network_desc->rx_queue))!=NULL)
 	{
-		CLI 
+//		CLI 
 		rcv_packet_mac(data_sckt_buf);
-		STI
-		system.flush_network = 1;
+//		STI
+//		system.flush_network = 1;
+		//break;
 	}
 	CLI
 	ENABLE_PREEMPTION

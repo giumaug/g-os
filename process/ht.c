@@ -102,10 +102,10 @@ void process_request_3(int client_sockfd)
 	unsigned char* io_buffer = NULL;
 	unsigned int b_read = 0;
 	unsigned int b_to_read = 4096;
-	unsigned int file_size = 32716;//83424
-	const char path[] = "/usr/src/kernels/g-os/network/tcp.c";
+	unsigned int file_size = 83424;  //32716
+	const char path[] = "/usr/src/kernels/g-os/network/xxx.c";
 	const char body[]  = "ciao";
-	const char http_header[]  = "HTTP/1.1 200 OK\nConnection: close\nContent-Type:text/plain;\nContent-Disposition: inline;charset=utf-8\nContent-Length:32716\n\n";
+	const char http_header[]  = "HTTP/1.1 200 OK\nConnection: close\nContent-Type:text/plain;\nContent-Disposition: inline;charset=utf-8\nContent-Length:83424\n\n";
 
 	//stat(path,&stat_data);
 	io_buffer = malloc(b_to_read + 1 );
@@ -131,7 +131,7 @@ void process_request_3(int client_sockfd)
 			b_to_read = file_size;
 		}
 		b_read = read(f,io_buffer,b_to_read);
-		b_read = b_to_read;
+		//b_read = b_to_read;
 		ret = write_socket(client_sockfd,io_buffer,b_read);
 		if (ret < 0)
 		{
