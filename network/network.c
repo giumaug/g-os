@@ -29,33 +29,44 @@ void network_free(t_network_desc* network_desc)
 	kfree(network_desc);
 }
 
-void equeue_packet(t_network_desc* network_desc)
+void equeue_packet_2(t_network_desc* network_desc)
 {
-	//int stop;
 	t_sckt_buf_desc* sckt_buf_desc;
 	t_data_sckt_buf* data_sckt_buf;
 	void* frame;
 	u16 frame_len;
-	u32 data_sent = 0;
-	static u32 tot_sent = 0;
-	int x = 0;
+	
+	sckt_buf_desc=network_desc->tx_queue;
+	data_sckt_buf=dequeue_sckt(sckt_buf_desc);
+	if (data_sckt_buf != NULL)
+	{
+		frame=data_sckt_buf->mac_hdr;
+		frame_len=data_sckt_buf->data_len;
+		send_packet_i8254x(network_desc->dev,frame,frame_len);
+		free_sckt(data_sckt_buf);
+	}
+}
+
+void equeue_packet(t_network_desc* network_desc)
+{
+	t_sckt_buf_desc* sckt_buf_desc;
+	t_data_sckt_buf* data_sckt_buf;
+	void* frame;
+	u16 frame_len;
 	
 //	DISABLE_PREEMPTION
 //	STI 
 	sckt_buf_desc=network_desc->tx_queue;
-	while ((data_sckt_buf=dequeue_sckt(sckt_buf_desc))!=NULL)
+	//while ((data_sckt_buf=dequeue_sckt(sckt_buf_desc))!=NULL)
+	data_sckt_buf=dequeue_sckt(sckt_buf_desc);
+	if (data_sckt_buf != NULL)
 	{
-		x++;
 		frame=data_sckt_buf->mac_hdr;
 		frame_len=data_sckt_buf->data_len;
-		//CLI
+//		CLI
 		send_packet_i8254x(network_desc->dev,frame,frame_len);
-		//STI
+//		STI
 		free_sckt(data_sckt_buf);
-	}
-	if (x > 0)
-	{//system.flush_network = 1;
-		//printk("inside enqueue....%d \n",x);
 	}
 //	CLI
 //	ENABLE_PREEMPTION
@@ -64,38 +75,17 @@ void equeue_packet(t_network_desc* network_desc)
 void dequeue_packet(t_network_desc* network_desc)
 {
 	t_data_sckt_buf* data_sckt_buf;
-	int x = 0;
-	u32 current_time;
+	system.flush_network = 0;
 
-	current_time = system.time;
 	DISABLE_PREEMPTION
 	STI
-	while ((data_sckt_buf=dequeue_sckt(network_desc->rx_queue))!=NULL)
+	data_sckt_buf = dequeue_sckt(network_desc->rx_queue);
+	if (data_sckt_buf != NULL)
 	{
-		//printk("deq ");
-		x++;	
-		//CLI 
+		CLI 
 		rcv_packet_mac(data_sckt_buf);
-		//STI
-		if (system.force_scheduling != 0)
-		{
-		//	break;
-		}
-		//if (current_time < system.time)
-		if (x >= 1)
-		{
-			system.flush_network = 1;
-			break;
-		}
-		else 
-		{
-			system.flush_network = 0;	
-		}
-	}
-	CLI
-	if (x > system.max_processed_packet)
-	{
-		system.max_processed_packet = x;
+		STI
+		system.flush_network = 1;
 	}
 	CLI
 	ENABLE_PREEMPTION

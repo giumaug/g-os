@@ -67,4 +67,19 @@ inline extern __attribute__((always_inline)) u8 bit_vector_get(t_bit_vector* bit
 	return ret & 1;
 }
 
+inline extern __attribute__((always_inline)) u8 bit_vector_reset_if_set(t_bit_vector* bit_vector,u32 index)
+{
+	u8 ret;
+	u32 block_index;
+	u32 block_offset;
+
+	block_index = index / 8;
+	block_offset = index % 8;
+	ret =  bit_vector[block_index] >> block_offset;
+	if (ret == 1)
+	{
+		bit_vector[block_index] &= (~(1 << block_offset));
+	}
+	return ret & 1;
+}
 #endif

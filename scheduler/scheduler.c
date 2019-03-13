@@ -200,6 +200,7 @@ void _sleep_and_unlock(t_spinlock_desc* lock)
 	current_process=system.process_info->current_process->val;
 	current_process->sleep_time=system.time;
 	t_llist_node* current_node=system.process_info->current_process;
+	int xxx = current_process->proc_status;
 	current_process->proc_status=SLEEPING;
 	if (lock!=NULL)
 	{
