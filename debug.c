@@ -25,8 +25,13 @@ void add_tcp_conn(u32 port,t_tcp_conn_desc* conn);
 void remove_tcp_conn(u32 port);
 void check_tcp_conn();
 
-void _check_free_mem()
+void reg_time(long long *timeboard,int* counter)
 {
+	long long time;
+
+	rdtscl(&time);
+	(*counter)++;
+	timeboard[*counter] = time;
 	return;
 }
 

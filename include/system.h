@@ -1,3 +1,5 @@
+//#define PROFILE
+
 #ifndef SYSTEM_H                
 #define SYSTEM_H
 
@@ -97,6 +99,47 @@ typedef struct s_system
 	u32 counter;
 	u32 max_processed_packet;
 	u32 sleep_count;
+	#ifdef PROFILE
+	long long timeboard_1[10000];
+	int time_counter_1;
+	long long timeboard_2[10000];
+	int time_counter_2;
+	long long timeboard_3[10000];
+	int time_counter_3;
+	long long timeboard_4[200];
+	int time_counter_4;
+	long long timeboard_5[10000];
+	int time_counter_5;
+	long long timeboard_6[10000];
+	int time_counter_6;
+	long long timeboard_7[10000];
+	int time_counter_7;
+	long long timeboard_8[10000];
+	int time_counter_8;
+	long long timeboard_9[10000];
+	int time_counter_9;
+	long long timeboard_10[10000];
+	int time_counter_10;
+	long long timeboard_11[15000];
+	int time_counter_11;
+	long long timeboard_12[15000];
+	int time_counter_12;
+
+	long long exec_time_1;
+	long long exec_time_2;
+	long long exec_time_3;
+	long long exec_time_4;
+	long long exec_time_5;
+	long long exec_time_6;
+	long long exec_time_7;
+	long long exec_time_8;
+	long long exec_time_9;
+	long long exec_time_10;
+	long long exec_time_11;
+	long long exec_time_12;
+	long long tot_mem_kmemcpy;
+	#endif
+	long tot_sent;
 }
 t_system;
 

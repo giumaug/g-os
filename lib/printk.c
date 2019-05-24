@@ -8,13 +8,13 @@ static void itoa(unsigned int val,char *char_val,unsigned int base)
 	unsigned index=-1;
 	unsigned int i;
 	char digit;
-	char _char_val[11];
+	char _char_val[11]; 
 	if (val<0) *char_val='-';
 	res=val;	
 	do
 	{
 		val=res;
-		mod=val % 10;
+		mod=val % 10; 
 		res=val/10;
 		if (res==0) digit=48+val;
 		else digit=48+mod;
@@ -49,7 +49,7 @@ void printk(char *text,...)
 {
 	int index=-1;
 	int param_index=0;
-	int** param_val;
+	long long **param_val;
 	int params[2];
 	struct t_process_context *current_process_context=system.process_info->current_process->val;
 	t_console_desc *console_desc=current_process_context->console_desc;

@@ -1,3 +1,4 @@
+#include "lib/lib.h"
 #include "network/tcp_socket.h"
 
 static int free_port_search()
@@ -226,6 +227,13 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	_SAVE_IF_STATUS
 	CLI
 	system.flush_network = 0;
+
+	long long time_1;
+	long long time_2;
+	long long time_2_1;
+	long long time_2_2;
+	rdtscl(&time_1);
+
 	RESTORE_IF_STATUS
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 	if (tcp_conn_desc->status == RESET)
@@ -260,29 +268,35 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		low_index = SLOT_WND(tcp_queue->wnd_min,tcp_queue->buf_size);
 		hi_index = SLOT_WND((tcp_queue->wnd_min + data_len),tcp_queue->buf_size);
 
+		rdtscl(&time_2_1);
 		if (low_index < hi_index) 
 		{
-			kmemcpy(data,(tcp_queue->buf + low_index),data_len);	
+			kmemcpy_2(data,(tcp_queue->buf + low_index),data_len);	
 			for (i = low_index;i < hi_index;i++)
 			{
-				bit_vector_reset(tcp_queue->buf_state,i);
+				tcp_queue->buf_state[i] = 0;
 			}
 		}
 		else 
 		{
 			len_1 = tcp_queue->buf_size - low_index;
 			len_2 = data_len - len_1;
-			kmemcpy(data,(tcp_queue->buf + low_index),len_1);
-			kmemcpy(data + len_1,tcp_queue->buf,len_2);	
+			kmemcpy_2(data,(tcp_queue->buf + low_index),len_1);
+			kmemcpy_2(data + len_1,tcp_queue->buf,len_2);	
 			for (i = low_index ; i < (low_index + len_1) ; i++)
 			{
-				bit_vector_reset(tcp_queue->buf_state,i);
+				tcp_queue->buf_state[i] = 0;
 			}
 			for (i = 0;i < len_2;i++)
 			{
-				bit_vector_reset(tcp_queue->buf_state,i);
+				tcp_queue->buf_state[i] = 0;
 			}
 		}
+		#ifdef PROFILE		
+		rdtscl(&time_2_2);
+		system.time_counter_11++;
+		system.timeboard_11[system.time_counter_11] = (time_2_2 - time_2_1);
+		#endif
 		tcp_queue->wnd_size += data_len;
 		tcp_queue->wnd_min += data_len;
 //		if (tcp_queue->wnd_size == data_len)
@@ -295,7 +309,7 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 			if (tcp_conn_desc->rcv_queue->wnd_size >= (tcp_conn_desc->rcv_queue->last_adv_wnd + SMSS) ||
 				tcp_conn_desc->rcv_queue->wnd_size >= (TCP_RCV_SIZE - SMSS))
 			{
-				if (tcp_conn_desc->pending_ack >= 2)
+				if (tcp_conn_desc->pending_ack >= 4)
 				{
 					tcp_conn_desc->pending_ack = 0;
 					tcp_conn_desc->rcv_queue->last_adv_wnd = tcp_conn_desc->rcv_queue->wnd_size;
@@ -311,25 +325,17 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
                         			tcp_conn_desc->rcv_queue->nxt_rcv,
                         			FLG_ACK,
                         			tcp_conn_desc->snd_queue->nxt_snd);
-
-/*	
-						u16 frame_len;
-						t_sckt_buf_desc* sckt_buf_desc;
-						t_data_sckt_buf* data_sckt_buf;
-						void* frame;
-						sckt_buf_desc = system.network_desc->tx_queue;
-						data_sckt_buf = dequeue_sckt(sckt_buf_desc);
-						frame = data_sckt_buf->mac_hdr;
-						frame_len = data_sckt_buf->data_len;
-						send_packet_i8254x(system.network_desc->dev,frame,frame_len);
-						free_sckt(data_sckt_buf);
-*/
 				}
 			}
 			
 		}
 	}
 EXIT:
+	#ifdef PROFILE
+	rdtscl(&time_2);
+	system.time_counter_3++;
+	system.timeboard_3[system.time_counter_3] = (time_2 - time_1);
+	#endif
 	_SAVE_IF_STATUS
 	CLI
 	system.flush_network = 1;
@@ -381,19 +387,29 @@ int enqueue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		}
 		ret = data_len;
 		cur_index = SLOT_WND(tcp_queue->cur,tcp_queue->buf_size);
+
+		long long time_1;
+		long long time_2;
+		rdtscl(&time_1);
+
 		if ((tcp_queue->buf_size - cur_index) > data_len)
 		{
-			kmemcpy(tcp_queue->buf + cur_index,data,data_len);
+			kmemcpy_2(tcp_queue->buf + cur_index,data,data_len);
 			tcp_queue->cur += data_len;
 		}
 		else
 		{
 			len_1 = tcp_queue->buf_size - cur_index;
 			len_2 = data_len - len_1;
-			kmemcpy(tcp_queue->buf + cur_index,data,len_1);
-			kmemcpy(tcp_queue->buf,data,len_2);
+			kmemcpy_2(tcp_queue->buf + cur_index,data,len_1);
+			kmemcpy_2(tcp_queue->buf,data,len_2);
 			tcp_queue->cur += data_len;
 		}
+		#ifdef PROFILE
+		rdtscl(&time_2);
+		system.time_counter_11++;
+		system.timeboard_11[system.time_counter_11] = (time_2 - time_1);
+		#endif
 		//vedi commento sopra
 		update_snd_window(tcp_conn_desc,0,1);
 		system.flush_network = 1;

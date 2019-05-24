@@ -1,9 +1,9 @@
 #include "memory_manager/kmalloc.h"
-#include "asm.h"
-#include "memory_manager/fixed_size.h"
-#include "memory_manager/general.h"
-#include "virtual_memory/vm.h"
-#include "debug.h"
+//#include "asm.h"
+//#include "memory_manager/fixed_size.h"
+//#include "memory_manager/general.h"
+//#include "virtual_memory/vm.h"
+//#include "debug.h"
 
 extern unsigned int collect_mem;
 extern unsigned int collected_mem[15000];
@@ -167,7 +167,6 @@ void* kmalloc(unsigned int mem_size)
 	{
 		panic();
 	}
-//	collect_mem_alloc(mem_add);
 	RESTORE_IF_STATUS
 	return mem_add;
 }
@@ -290,7 +289,6 @@ void kfree(void *address)
 		pool_index++;
 	}
 	a_fixed_size_free(&a_fixed_size_desc[pool_index],address);
-//	collect_mem_free(address);
 	RESTORE_IF_STATUS
 }
 

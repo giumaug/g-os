@@ -3,8 +3,21 @@
 
 #include "system.h"
 
+/*
+inline static __attribute__((always_inline)) kmemcpy(void *dest, const void *src, unsigned int size)
+{
+	char *dest_addr = dest;
+	while (size-- > 0)
+	{
+    		*(char*)dest++ = *(char*)src++;
+	}
+  	return dest_addr;
+}
+*/
+
 void printk(char *text,...);
 void kmemcpy(void *dest, const void *src, unsigned int size);
+void kmemcpy_2(void *dest, const void *src, unsigned int size);
 void kfillmem(void *dest, const int val, unsigned int size);
 unsigned int pow2(unsigned int x);
 unsigned int log2(unsigned int x);

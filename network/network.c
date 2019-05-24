@@ -87,9 +87,9 @@ void dequeue_packet(t_network_desc* network_desc)
 	if (data_sckt_buf != NULL)
 //	while ((data_sckt_buf=dequeue_sckt(network_desc->rx_queue))!=NULL)
 	{
-//		CLI 
+		CLI 
 		rcv_packet_mac(data_sckt_buf);
-//		STI
+		STI
 //		system.flush_network = 1;
 		//break;
 	}
