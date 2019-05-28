@@ -1,3 +1,4 @@
+#include "lib/lib.h"
 #include "network/socket.h"
 
 //TO DO:More sockects can point to same tcp connection.

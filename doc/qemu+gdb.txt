@@ -113,6 +113,10 @@ xxx = (lba + 1024) / 2
 
 debugfs numera i blocchi non considerando il mbr (512) e 
 
+set print elements 100
+set print repeat 200
+p x[50]@3
+
 
 
 

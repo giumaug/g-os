@@ -16,9 +16,6 @@ int main (int _argc, char* _argv[])
 	unsigned int index;
 	
 	printf("g-shell v 0.1 \n");
-	printf("argc=%d \n",_argc);
-	printf("argv[0]=%s \n",_argv[0]);
-
 	while(1)
 	{
 		argc=0;
@@ -101,7 +98,6 @@ int main (int _argc, char* _argv[])
 
 			if (pid==0)
 			{
-				//ret=execv(argv[0],argv);
 				ret=exec(argv[0],argv);
 
 				if (ret==-1)

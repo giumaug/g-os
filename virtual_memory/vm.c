@@ -7,6 +7,7 @@ variable can be observed abroad. map_vm_mem doesn't lock because corrupted state
 observed abroad.
 */
 
+#include "lib/lib.h"
 #include "idt.h"
 #include "asm.h"
 #include "memory_manager/general.h"

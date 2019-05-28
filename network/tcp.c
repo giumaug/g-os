@@ -48,7 +48,7 @@ static t_tcp_rcv_queue* tcp_rcv_queue_init(u32 size)
 
 	tcp_rcv_queue = kmalloc(sizeof(t_tcp_rcv_queue));
 	tcp_rcv_queue->buf = kmalloc(TCP_RCV_SIZE);
-	tcp_rcv_queue->buf_state = bit_vector_init(TCP_RCV_SIZE);
+	tcp_rcv_queue->buf_state = kmalloc(TCP_RCV_SIZE);
 	tcp_rcv_queue->wnd_min = 0;
 	tcp_rcv_queue->wnd_size = TCP_RCV_SIZE;
 	tcp_rcv_queue->buf_size = TCP_RCV_SIZE;
@@ -56,12 +56,14 @@ static t_tcp_rcv_queue* tcp_rcv_queue_init(u32 size)
 	tcp_rcv_queue->nxt_rcv = 0; 
 	tcp_rcv_queue->seq_num = 0;
 	tcp_rcv_queue->data_len = 0;
+	tcp_rcv_queue->is_wnd_hole = 0;
+	tcp_rcv_queue->max_seq_num = 0;
 	return tcp_rcv_queue;
 }
 
 static void tcp_rcv_queue_free(t_tcp_rcv_queue* tcp_rcv_queue)
 {
-	bit_vector_free(tcp_rcv_queue->buf_state);
+	kfree(tcp_rcv_queue->buf_state);
 	kfree(tcp_rcv_queue->buf);
 	kfree(tcp_rcv_queue);
 }
@@ -169,26 +171,33 @@ void tcp_free(t_tcp_desc* tcp_desc)
 	kfree(tcp_desc);
 }
 
-static u8 update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue,int data_len)
+static u8 _update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue,int data_len,t_tcp_conn_desc* tcp_conn_desc) //DEBUG ONLY!!!!!!!!!!!!!!!!!
 {
+	int i;
 	u32 ack_seq_num;
 	u32 min;
 	u32 offset;
 	unsigned long long index;
+	
 	u32 state_index;
 	unsigned long long wnd_max;
 	u8 slot_state;
 	u8 ret;
 
+	long long time_1;
+	long long time_2;
+	rdtscl(&time_1);
+
 	ret = 0;
-	offset = 0;
 	index = tcp_queue->wnd_min;
 	wnd_max = index + (long long)tcp_queue->buf_size;
-	while(index < wnd_max)
+	
+	//Second condition in order to manage buffer overflow.
+	while(index < wnd_max && index < tcp_queue->max_seq_num)
 	{
 		state_index = SLOT_WND((u32)index,tcp_queue->buf_size);
-		slot_state = bit_vector_get(tcp_queue->buf_state,state_index);
-		if (slot_state == 0)
+		//state_index = index & TCP_RCV_SIZE;
+		if (tcp_queue->buf_state[state_index] == 0)
 		{
 			break;
 		}
@@ -198,6 +207,40 @@ static u8 update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue,int data_len)
 	if (tcp_queue->nxt_rcv > tcp_queue->wnd_min)
 	{
 		ret = 1;
+		if (index < tcp_queue->max_seq_num)
+		{
+			panic();
+		}
+	}
+	if (tcp_queue->nxt_rcv == tcp_queue->max_seq_num)
+	{
+		tcp_queue->is_wnd_hole = 0;
+		for (i = 0; i <= TCP_RCV_SIZE;i++)
+		{
+			tcp_queue->buf_state[i]	= 0;
+		}
+		tcp_queue->max_seq_num = 0;
+	}
+	#ifdef PROFILE
+	rdtscl(&time_2);
+	system.time_counter_9++;
+	system.timeboard_9[system.time_counter_9] = (time_2 - time_1);
+	#endif
+	return ret;
+}
+
+static u8 update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue,int data_len,u32 seq_num,t_tcp_conn_desc* tcp_conn_desc)
+{
+	u8 ret = 1;
+
+	if (tcp_queue->nxt_rcv == seq_num && tcp_queue->is_wnd_hole == 0)
+	{
+		tcp_queue->nxt_rcv += data_len;
+		tcp_queue->wnd_size -= data_len;
+	}
+	else
+	{
+		ret = _update_rcv_window_and_ack(tcp_queue,data_len,tcp_conn_desc);
 	}
 	return ret;
 }
@@ -263,6 +306,22 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	u8 no_piggy = 0;
 	u32 adv_wnd_size = 0;
 
+	long long time_1 = 0;
+	long long time_2 = 0;
+	long long time_3 = 0;
+	long long time_4 = 0;
+	long long time_5 = 0;
+	long long time_6 = 0;
+	long long time_1_2 = 0;
+	long long time_7 = 0;
+	long long time_8 = 0;
+	long long time_9 = 0;
+	long long time_10 = 0;
+	static counter = 0;
+	static miss_seq_num = 0;
+	
+	rdtscl(&time_1);
+	
 	free_conn = 0;
 	tcp_desc = system.network_desc->tcp_desc;
 	tcp_row_packet = data_sckt_buf->transport_hdr;
@@ -273,6 +332,19 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	seq_num = GET_DWORD(tcp_row_packet[4],tcp_row_packet[5],tcp_row_packet[6],tcp_row_packet[7]);
 	flags = tcp_row_packet[13];
 	rcv_wmd_adv = GET_WORD(tcp_row_packet[14],tcp_row_packet[15]);
+
+	counter++;
+	if ((counter % 5000) == 0)
+	{
+		miss_seq_num = seq_num;	
+		free_sckt(data_sckt_buf);
+		//printk("skip!! \n");
+		return;
+	}
+//	if (seq_num == miss_seq_num && counter > 100)
+//	{
+//		printk("retry!! \n");
+//	}
 
 	if (checksum_tcp((unsigned short*) tcp_row_packet,src_ip,dst_ip,data_len,HEADER_TCP) !=0 )
 	{
@@ -514,87 +586,176 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		free_conn = 1;
 	}
 //END PASSIVE CLOSE
+	#ifdef PROFILE
+	rdtscl(&time_1_2);
+	system.time_counter_2++;
+	system.timeboard_2[system.time_counter_2] = time_1_2 - time_1;
+	#endif
 	if (data_len != 0)
 	{
 		tcp_queue->seq_num = seq_num;
 		tcp_queue->data_len = data_len;
+		system.tot_sent += data_len;
 		
 		if (tcp_conn_desc->pgybg_timer->val == 0 && no_piggy == 0)
 		{
 			timer_set(tcp_conn_desc->pgybg_timer,PIGGYBACKING_TIMEOUT);
 		}
-		wnd_max = tcp_queue->nxt_rcv + (long long) tcp_queue->wnd_size;
+		//wnd_max = tcp_queue->nxt_rcv + (long long) tcp_queue->wnd_size;
+		wnd_max = tcp_queue->wnd_min + (long long) tcp_queue->buf_size;
+
+		rdtscl(&time_3);
+
 		if (seq_num >= tcp_queue->nxt_rcv && seq_num + data_len <= wnd_max)
 		{
 			low_index = SLOT_WND(seq_num,tcp_queue->buf_size);
 			hi_index = SLOT_WND((seq_num + data_len),tcp_queue->buf_size);
-
 			if (low_index < hi_index) 
 			{
-				kmemcpy(tcp_queue->buf + low_index,data_sckt_buf->transport_hdr+HEADER_TCP,data_len);
-				for (i = low_index;i < hi_index;i++)
+	
+				rdtscl(&time_9);
+	
+				kmemcpy_2(tcp_queue->buf + low_index,data_sckt_buf->transport_hdr+HEADER_TCP,data_len);
+				
+				#ifdef PROFILE
+				rdtscl(&time_10);
+				system.time_counter_8++;
+				system.timeboard_8[system.time_counter_8] = (time_10 - time_9);
+				rdtscl(&time_7);
+				#endif
+
+				if (tcp_queue->nxt_rcv != seq_num || tcp_queue->is_wnd_hole == 1)
 				{
-					//foo();
-					slot_state = bit_vector_get(tcp_queue->buf_state,i);
-					if (slot_state == 0)
+					tcp_queue->is_wnd_hole = 1;
+					if (tcp_queue->max_seq_num  < (seq_num + data_len))
 					{
-						bit_vector_set(tcp_queue->buf_state,i);
-						tcp_queue->wnd_size--;
+						tcp_queue->max_seq_num = seq_num + data_len;
+					}
+					for (i = low_index;i < hi_index;i++)
+					{
+						if (tcp_queue->buf_state[i] == 0)
+						{
+							tcp_queue->buf_state[i] = 1;
+							tcp_queue->wnd_size--;
+							if (tcp_queue->wnd_size > 32768) 
+							{
+								panic();
+							}
+						}
 					}
 				}
+				#ifdef PROFILE
+				rdtscl(&time_8);
+				system.time_counter_7++;
+				system.timeboard_7[system.time_counter_7] = (time_8 - time_7);
+				#endif
 			}
 			else 
 			{
 	     			//gestire qui PIGGYBACKING_TIMEOUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 				len_1 = tcp_queue->buf_size - low_index;
 				len_2 = data_len - len_1;
-				kmemcpy(tcp_queue->buf + low_index,data_sckt_buf->transport_hdr+HEADER_TCP,len_1);
-				kmemcpy(tcp_queue->buf,data_sckt_buf->transport_hdr+HEADER_TCP + len_1,len_2);
-				for (i = low_index ; i < (low_index + len_1) ; i++)
+				
+				rdtscl(&time_9);
+				
+				kmemcpy_2(tcp_queue->buf + low_index,data_sckt_buf->transport_hdr+HEADER_TCP,len_1);
+				kmemcpy_2(tcp_queue->buf,data_sckt_buf->transport_hdr+HEADER_TCP + len_1,len_2);
+				
+				#ifdef PROFILE
+				rdtscl(&time_10);
+				system.time_counter_8++;
+				system.timeboard_8[system.time_counter_8] = (time_10 - time_9);
+				#endif
+				
+				rdtscl(&time_7);
+				
+				if (tcp_queue->nxt_rcv != seq_num || tcp_queue->is_wnd_hole == 1)
 				{
-					//foo();
-					slot_state = bit_vector_get(tcp_queue->buf_state,i);
-					if (slot_state == 0)
+					tcp_queue->is_wnd_hole = 1;
+					if (tcp_queue->max_seq_num  < (seq_num + data_len))
 					{
-						bit_vector_set(tcp_queue->buf_state,i);
-						tcp_queue->wnd_size--;
-					}	
-				}
-				for (i = 0;i < len_2;i++)
-				{
-					//foo();
-					slot_state = bit_vector_get(tcp_queue->buf_state,i);
-					if (slot_state == 0)
+						tcp_queue->max_seq_num = seq_num + data_len;
+					}
+					for (i = low_index ; i < (low_index + len_1) ; i++)
 					{
-						bit_vector_set(tcp_queue->buf_state,i);
-						tcp_queue->wnd_size--;
+						if (tcp_queue->buf_state[i] == 0)
+						{
+							tcp_queue->buf_state[i] = 1;
+							tcp_queue->wnd_size--;
+						}	
+					}
+					for (i = 0;i < len_2;i++)
+					{
+						if (tcp_queue->buf_state[i] == 0)
+						{
+							tcp_queue->buf_state[i] = 1;
+							tcp_queue->wnd_size--;
+						}
 					}
 				}
-			}							
+				
+				#ifdef PROFILE
+				rdtscl(&time_8);
+				system.time_counter_7++;
+				system.timeboard_7[system.time_counter_7] = (time_8 - time_7);
+				#endif
+
+			}
+			
+			#ifdef PROFILE
+			rdtscl(&time_4);
+			system.time_counter_5++;
+			system.timeboard_5[system.time_counter_5] = (time_4 - time_3);
+			#endif
+
+			is_new_data = update_rcv_window_and_ack(tcp_queue,data_len,seq_num,tcp_conn_desc);
+			if (tcp_conn_desc->process_context != NULL && is_new_data > 0)
+			{
+				_awake(tcp_conn_desc->process_context);
+				system.last_process_context = tcp_conn_desc->process_context;
+				//printk("a");
+				tcp_conn_desc->process_context = NULL;
+				if (tcp_queue->nxt_rcv - tcp_queue->wnd_min == 0)
+				{
+					panic();
+				}
+			}
+			else
+			{
+				//COULD HAPPEN WITH OUT OF ORDER PACKET.PANIC NO NEEDED.			
+				if(tcp_conn_desc->process_context != NULL && is_new_data == 0)
+				{
+					//panic();
+				}
+			}				
 		}
 		else
 		{
 			printk("window full!!! ");
 			goto EXIT;
 		}
-		is_new_data = update_rcv_window_and_ack(tcp_queue,data_len);
-		if (tcp_conn_desc->process_context != NULL && is_new_data > 0)
-		{
-			_awake(tcp_conn_desc->process_context);
-			tcp_conn_desc->process_context = NULL;
-			if (tcp_queue->nxt_rcv - tcp_queue->wnd_min == 0)
-			{
-				panic();
-			}
-		}
-		else
-		{
-			//COULD HAPPEN WITH OUT OF ORDER PACKET.PANIC NO NEEDED.			
-			if(tcp_conn_desc->process_context != NULL && is_new_data == 0)
-			{
-				panic();
-			}
-		}
+
+		rdtscl(&time_5);
+
+//		is_new_data = update_rcv_window_and_ack(tcp_queue,data_len,seq_num);
+//		if (tcp_conn_desc->process_context != NULL && is_new_data > 0)
+//		{
+//			_awake(tcp_conn_desc->process_context);
+//			printk("a");
+//			tcp_conn_desc->process_context = NULL;
+//			if (tcp_queue->nxt_rcv - tcp_queue->wnd_min == 0)
+//			{
+//				panic();
+//			}
+//		}
+//		else
+//		{
+//			//COULD HAPPEN WITH OUT OF ORDER PACKET.PANIC NO NEEDED.			
+//			if(tcp_conn_desc->process_context != NULL && is_new_data == 0)
+//			{
+//				//panic();
+//			}
+//		}
 	}
 	//CHECK DUPLICATE ACK DEFINITION RFC5681
 	if (tcp_conn_desc->snd_queue->nxt_snd - tcp_conn_desc->snd_queue->wnd_min > 0)
@@ -610,7 +771,6 @@ EXIT:
 				if (tcp_conn_desc->rcv_queue->wnd_size >= (tcp_conn_desc->rcv_queue->last_adv_wnd + SMSS) ||
 				    tcp_conn_desc->rcv_queue->wnd_size >= (TCP_RCV_SIZE - SMSS))
 				{  
-
 					if (tcp_conn_desc->pending_ack >= 2)
 					{
 						tcp_conn_desc->pending_ack = 0;
@@ -627,28 +787,27 @@ EXIT:
                         					tcp_conn_desc->rcv_queue->nxt_rcv,
                         					FLG_ACK,
                         					tcp_conn_desc->snd_queue->nxt_snd);  
-
-/*
-						u16 frame_len;
-						t_sckt_buf_desc* sckt_buf_desc;
-						t_data_sckt_buf* data_sckt_buf;
-						void* frame;
-						sckt_buf_desc = system.network_desc->tx_queue;
-						data_sckt_buf = dequeue_sckt(sckt_buf_desc);
-						frame = data_sckt_buf->mac_hdr;
-						frame_len = data_sckt_buf->data_len;
-						send_packet_i8254x(system.network_desc->dev,frame,frame_len);
-						free_sckt(data_sckt_buf);
-*/
 					}
 				}
 			}
-		}	
+		}
 		free_sckt(data_sckt_buf);
 		if (free_conn)
 		{
 			tcp_conn_desc_free(tcp_conn_desc);
 		}
+
+		#ifdef PROFILE
+		rdtscl(&time_2);
+		system.time_counter_1++;
+		system.timeboard_1[system.time_counter_1] = (time_2 - time_1);
+		rdtscl(&time_6);
+		if (time_5 > 0)
+		{
+			system.time_counter_6++;
+			system.timeboard_6[system.time_counter_6] = (time_6 - time_5);
+		}
+		#endif	
 		//printk("status= %d \n",tcp_conn_desc->status);
 		//printk("fin_num= %d \n",fin_num);
 		//printk("ack_seq_num= %d \n",ack_seq_num);
@@ -773,6 +932,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 				if (tcp_conn_desc->process_context != NULL)
 				{
 					_awake(tcp_conn_desc->process_context);
+					printk("+");
 					tcp_queue->pnd_data = 0;
 					tcp_conn_desc->process_context = NULL;
 				}
@@ -1030,6 +1190,10 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 	char* tcp_header = NULL;
 	u32 tcp_header_len;
 
+	long long time_1;
+	long long time_2;
+	//rdtscl(&time_1);
+
 	if (flags & FLG_SYN)
 	{
 		tcp_header_len = HEADER_TCP + 4;
@@ -1043,7 +1207,19 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 	data_sckt_buf->transport_hdr = data_sckt_buf->data + HEADER_ETH + HEADER_IP4;
 	data_sckt_buf->network_hdr=data_sckt_buf->transport_hdr-HEADER_IP4;
 	tcp_payload = data_sckt_buf->transport_hdr + tcp_header_len;
-	kmemcpy(tcp_payload,data,data_len);
+
+	long long time_2_1;
+	long long time_2_2;
+	rdtscl(&time_2_1);
+	kmemcpy_2(tcp_payload,data,data_len);
+
+	#ifdef PROFILE
+	rdtscl(&time_2_2);
+	system.time_counter_11++;
+	system.timeboard_11[system.time_counter_11] = (time_2_2 - time_2_1);	
+	rdtscl(&time_1);
+	#endif
+
 	tcp_header = data_sckt_buf->transport_hdr;
 	chk = SWAP_WORD(checksum_tcp((unsigned short*) tcp_header,src_ip,dst_ip,data_len,tcp_header_len));
 
@@ -1096,6 +1272,11 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 			    dst_ip,
 			    (data_len + tcp_header_len),
 			    TCP_PROTOCOL);
+	#ifdef PROFILE
+	rdtscl(&time_2);
+	system.time_counter_10++;
+	system.timeboard_10[system.time_counter_10] = (time_2 - time_1);
+	#endif
 	return ret;
 }
 

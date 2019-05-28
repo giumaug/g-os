@@ -228,8 +228,9 @@ void syscall_handler()
 	
 		//DEBUG WRAPPER
 		case 103:
-		_check_free_mem();
-		system.flush_network = 0;
+		//reg_time(&system.timeboard_1,&system.time_counter_1);
+		//system.flush_network = 0;
+		check_free_mem();
 		break;
 	
 		case 104:
@@ -238,6 +239,10 @@ void syscall_handler()
 	
 		case 105:
 		_read_test(system.root_fs);
+		break;
+
+		case 106:
+		params[1]=_listen(params[0]);
 		break;
 
 		default:

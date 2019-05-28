@@ -34,7 +34,6 @@ t_mac_addr* lookup_mac(u32 dst_ip)
 
 		for (i=0;i<ARP_ATTEMPT;i++)
 		{
-			printk("arp....\n");
 			send_packet_arp(src_mac,dst_mac,src_ip,dst_ip,1);
 			system.flush_network = 1;
 			_sleep_time(ARP_REQUEST_TIMEOUT);

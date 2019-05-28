@@ -196,7 +196,8 @@ void _sleep_and_unlock(t_spinlock_desc* lock)
 	t_spinlock_desc aa;
 	struct t_process_context* current_process;
 	SAVE_IF_STATUS
-	CLI        
+	CLI
+	//printk("1");        
 	current_process=system.process_info->current_process->val;
 	current_process->sleep_time=system.time;
 	t_llist_node* current_node=system.process_info->current_process;
@@ -206,6 +207,9 @@ void _sleep_and_unlock(t_spinlock_desc* lock)
 	{
 		SPINLOCK_UNLOCK(*lock);
 	}
+	//Preemption has to be re-enabled OKKIO!!!!!!!!!
+	//system.int_path_count = 0;
+	//printk("2");
 //	INT WILL BE DISABLED UNTIL SYSCALL HANDLER EXIT
 	SUSPEND
 	RESTORE_IF_STATUS
@@ -219,10 +223,6 @@ void _awake(struct t_process_context *new_process)
 	SAVE_IF_STATUS
 	CLI
 	CURRENT_PROCESS_CONTEXT(process_context);
-	if (new_process < 0xc0000000)
-	{
-		panic();
-	}
 	new_process->sleep_time=(system.time-new_process->sleep_time>=1000) ? 1000 : (system.time-new_process->sleep_time);
 	new_process->proc_status=RUNNING;
 	adjust_sched_queue(new_process);
@@ -230,7 +230,11 @@ void _awake(struct t_process_context *new_process)
 	if (process_context->pid != new_process->pid)
 	{
 		ll_prepend(system.scheduler_desc->scheduler_queue[new_process->curr_sched_queue_index],new_process);
-	}	
+	}
+	else
+	{
+		//printk("s");
+	}
 	system.force_scheduling = 1;
 	RESTORE_IF_STATUS
 }
@@ -303,6 +307,64 @@ void _exit(int status)
 	
 	hashtable_free(current_process->file_desc);
 	hashtable_free(current_process->socket_desc);
+
+	#ifdef PROFILE
+	if (current_process->pid == 2)	 //2
+	{
+		int i = 0;
+		long long time_1;
+		rdtscl(&time_1);
+		system.time_counter_4++;
+		system.timeboard_4[system.time_counter_4] = time_1;
+
+		for (i = 2;i < system.time_counter_1;i++)
+		{
+			system.exec_time_1 = system.exec_time_1 + system.timeboard_1[i];	
+		}
+		for (i = 2;i < system.time_counter_2;i++)
+		{
+			system.exec_time_2 = system.exec_time_2 + system.timeboard_2[i];	
+		}
+		for (i = 2;i < system.time_counter_3;i++)
+		{
+			system.exec_time_3 = system.exec_time_3 + system.timeboard_3[i];	
+		}
+		for (i = 2;i < system.time_counter_5;i++)
+		{
+			system.exec_time_5 = system.exec_time_5 + system.timeboard_5[i];	
+		}
+		for (i = 2;i < system.time_counter_6;i++)
+		{
+			system.exec_time_6 = system.exec_time_6 + system.timeboard_6[i];	
+		}
+		for (i = 2;i < system.time_counter_7;i++)
+		{
+			system.exec_time_7 = system.exec_time_7 + system.timeboard_7[i];	
+		}
+		for (i = 2;i < system.time_counter_8;i++)
+		{
+			system.exec_time_8 = system.exec_time_8 + system.timeboard_8[i];	
+		}
+		for (i = 2;i < system.time_counter_9;i++)
+		{
+			system.exec_time_9 = system.exec_time_9 + system.timeboard_9[i];	
+		}
+		for (i = 2;i < system.time_counter_10;i++)
+		{
+			system.exec_time_10 = system.exec_time_10 + system.timeboard_10[i];	
+		}
+		for (i = 2;i < system.time_counter_11;i++)
+		{
+			system.exec_time_11 = system.exec_time_11 + system.timeboard_11[i];	
+		}
+		for (i = 2;i < system.time_counter_12;i++)
+		{
+			system.exec_time_12 = system.exec_time_12 + system.timeboard_12[i];	
+		}
+		system.tot_mem_kmemcpy = system.exec_time_11 + system.exec_time_7 + system.exec_time_8 + system.exec_time_9;
+		printk("exit \n");
+	}
+	#endif
 	RESTORE_IF_STATUS
 }
 
@@ -316,6 +378,17 @@ int _fork(struct t_processor_reg processor_reg)
 	t_hashtable* child_socket_desc = NULL;
 	char* kernel_stack_addr = NULL;
 	t_elf_desc* child_elf_desc = NULL;
+
+	if (system.process_info->next_pid == 2)	
+	{
+		#ifdef PROFILE
+		long long time_1;
+		rdtscl(&time_1);
+		system.time_counter_4++;
+		system.timeboard_4[system.time_counter_4] = time_1;
+		printk("fork \n");
+		#endif
+	}
 	
 	child_process_context = kmalloc(sizeof(struct t_process_context));
 	SAVE_IF_STATUS

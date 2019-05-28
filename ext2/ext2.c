@@ -1,3 +1,4 @@
+#include "lib/lib.h"
 #include "common.h"
 #include "drivers/ata/ata.h"
 #include "ext2/ext2.h"

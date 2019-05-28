@@ -86,11 +86,12 @@ int main()
 			//file_len = stat_data.st_size;
 			io_buffer = malloc(b_to_read);
 			file_len = 314572800;
+			//file_len = 7340032;
 			printf("file len is %d \n",file_len);
 			for (t=0;t<1;t++)
 			{
 				current_len = file_len;
-				while (current_len > 0)
+				while (current_len > 0) // okkio unsigned!!!!!!!!!!!!
 				{
 					//printf("current len is %d \n",current_len);
 //					b_read = read(f,io_buffer,b_to_read);
