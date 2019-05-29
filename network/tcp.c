@@ -26,12 +26,12 @@ static t_tcp_snd_queue* tcp_snd_queue_init(u32 size)
 	system.tcp_1++;
 	tcp_snd_queue = kmalloc(sizeof(t_tcp_snd_queue));
 	tcp_snd_queue->buf = buddy_alloc_page(system.buddy_desc,TCP_SND_SIZE);
-	tcp_snd_queue->wnd_min = 1;
+	tcp_snd_queue->wnd_min = 4293967296; //1
 	tcp_snd_queue->wnd_size = SMSS;
 	tcp_snd_queue->cur = 1;
 	tcp_snd_queue->buf_size = TCP_SND_SIZE;
 	//to inizialize to random seq_num
-	tcp_snd_queue->nxt_snd = 1;
+	tcp_snd_queue->nxt_snd = 4293967296; //1
 	tcp_snd_queue->pnd_data = 0;
 	return tcp_snd_queue;
 }
@@ -288,6 +288,8 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	seq_num = GET_DWORD(tcp_row_packet[4],tcp_row_packet[5],tcp_row_packet[6],tcp_row_packet[7]);
 	flags = tcp_row_packet[13];
 	rcv_wmd_adv = GET_WORD(tcp_row_packet[14],tcp_row_packet[15]);
+	
+	system.last_ack = ack_seq_num;
 
 //	counter++;
 //	if ((counter % 5000) == 0)
@@ -432,6 +434,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 				if (tcp_listen_desc->process_context !=NULL)
 				{
 					_awake(tcp_listen_desc->process_context);
+					printk("1");
 					tcp_listen_desc->process_context = NULL;
 				}
 				timer_reset(new_tcp_conn_desc->rtrsn_timer);	
@@ -613,6 +616,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			if (tcp_conn_desc->process_context != NULL && is_new_data > 0)
 			{
 				_awake(tcp_conn_desc->process_context);
+				printk("2");
 				system.last_process_context = tcp_conn_desc->process_context;
 				//printk("a");
 				tcp_conn_desc->process_context = NULL;
@@ -656,7 +660,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 //		}
 	}
 	//CHECK DUPLICATE ACK DEFINITION RFC5681
-	if (tcp_conn_desc->snd_queue->nxt_snd - tcp_conn_desc->snd_queue->wnd_min > 0)
+	if (CHK_OVRFLW(tcp_conn_desc->snd_queue->nxt_snd,tcp_conn_desc->snd_queue->wnd_min) - (long long)tcp_conn_desc->snd_queue->wnd_min > 0)
 	{	
 		rcv_ack(tcp_conn_desc,ack_seq_num,data_len);
 	}
@@ -723,20 +727,22 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 data_len)
 {
 	t_tcp_snd_queue* tcp_queue = NULL;
 	u32 rtt = 0;
-
-	if (tcp_conn_desc->snd_queue->wnd_min <= ack_seq_num)
+	
+	long long _ack_seq_num = CHK_OVRFLW(ack_seq_num,tcp_conn_desc->snd_queue->wnd_min);
+	long long _nxt_snd = CHK_OVRFLW(tcp_conn_desc->snd_queue->nxt_snd,tcp_conn_desc->snd_queue->wnd_min);
+	if ((long long)tcp_conn_desc->snd_queue->wnd_min <= _ack_seq_num)
 	{
-		if (tcp_conn_desc->snd_queue->wnd_min < ack_seq_num)
+		if ((long long)tcp_conn_desc->snd_queue->wnd_min < _ack_seq_num)
 		{
 			if (tcp_conn_desc->snd_queue->nxt_snd == ack_seq_num)
 			{
 				timer_reset(tcp_conn_desc->rtrsn_timer);
 			}
-			else if (tcp_conn_desc->snd_queue->nxt_snd > ack_seq_num)
+			else if (_nxt_snd > _ack_seq_num)
 			{
 				timer_set(tcp_conn_desc->rtrsn_timer,tcp_conn_desc->rto);
 			}
-			else if (tcp_conn_desc->snd_queue->nxt_snd < ack_seq_num)
+			else if (_nxt_snd < _ack_seq_num)
 			{
 				timer_set(tcp_conn_desc->rtrsn_timer,tcp_conn_desc->rto);
 				tcp_conn_desc->snd_queue->nxt_snd = ack_seq_num;
@@ -756,8 +762,7 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 data_len)
 			}
 			//At the moment rtt is not updated in case duplicated packets.
 			//Needed to be implemented Karm algorithm (see Tcp/ip Illustrated pag 621)
-			//if (tcp_conn_desc->last_seq_sent < ack_seq_num)
-			if (tcp_conn_desc->snd_queue->nxt_snd < ack_seq_num)
+			if (_nxt_snd < _ack_seq_num)
 			{
 				rtt = system.time - tcp_conn_desc->last_sent_time;
 				tcp_conn_desc->srtt = ((float)(SRTT_FACTOR * tcp_conn_desc->srtt) + (( 1 - SRTT_FACTOR) * rtt));
@@ -765,7 +770,7 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 data_len)
 				tcp_conn_desc->last_sent_time = system.time;
 			}
 		}
-		else if (tcp_conn_desc->snd_queue->wnd_min == ack_seq_num)
+		else if (tcp_conn_desc->snd_queue->wnd_min == _ack_seq_num)
 		{
 			if ((++(tcp_conn_desc->duplicated_ack)) == 3)
 			{
@@ -779,13 +784,21 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 data_len)
 		}
 		tcp_queue = tcp_conn_desc->snd_queue;
 		tcp_queue->wnd_size = min(tcp_conn_desc->cwnd,tcp_conn_desc->rcv_wmd_adv);
-		update_snd_window(tcp_conn_desc,ack_seq_num,data_len);
+		update_snd_window(tcp_conn_desc,ack_seq_num,data_len,0);
 	}
 }
 
-void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_data_len)
+//long long _chk_ovrflw(unsigned int val,unsigned int ref)
+//{
+//	long long xxx = ((unsigned int)val >= (unsigned int)ref ? (unsigned int)val : (long long)((long long)val + (long long)4294967295));
+//	return xxx;
+//}
+
+void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_data_len,u8 skip_ack)
 {
-	u32 wnd_max;
+	long long wnd_max;
+	long long wnd_cur;
+	long long wnd_nxt;
 	u32 word_to_ack;
 	u32 expected_ack;
 	u32 indx = 3;
@@ -811,12 +824,15 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	}
 	if (tcp_conn_desc->duplicated_ack == 0)
 	{
-		if (ack_seq_num != 0)
+		wnd_max = tcp_conn_desc->snd_queue->wnd_min + tcp_conn_desc->snd_queue->buf_size;
+		wnd_cur = CHK_OVRFLW(tcp_conn_desc->snd_queue->cur,tcp_conn_desc->snd_queue->wnd_min);
+		wnd_nxt = CHK_OVRFLW(tcp_conn_desc->snd_queue->nxt_snd,tcp_conn_desc->snd_queue->wnd_min);
+		if (skip_ack == 0)
 		{
-			word_to_ack = ack_seq_num - tcp_queue->wnd_min;
+			word_to_ack = CHK_OVRFLW(ack_seq_num,tcp_conn_desc->snd_queue->wnd_min)  - tcp_queue->wnd_min;
 			tcp_queue->wnd_min = tcp_queue->wnd_min + word_to_ack;
-			wnd_max = tcp_queue->wnd_min + tcp_queue->buf_size;
-			b_free_size = wnd_max - tcp_queue->cur;
+			//wnd_max = (long long)tcp_conn_desc->snd_queue->wnd_min + (long long)tcp_conn_desc->snd_queue->buf_size;
+			b_free_size = wnd_max - wnd_cur;
 			if (b_free_size >= tcp_queue->pnd_data && tcp_queue->pnd_data > 0)
 			{
 				if (tcp_conn_desc->process_context != NULL)
@@ -827,13 +843,12 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 				}
 			}
 		}
-		wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;		
-		if (tcp_queue->cur >= tcp_queue->wnd_min && tcp_queue->cur <= wnd_max)
+		if (wnd_cur <= wnd_max)
 		{	
 			wnd_l_limit = tcp_queue->nxt_snd;
 			wnd_r_limit = tcp_queue->cur;
 		}
-		else if (tcp_queue->cur >= wnd_max && tcp_queue->nxt_snd <= wnd_max)
+		else if (wnd_cur >= wnd_max && wnd_nxt <= wnd_max)
 		{	
 			wnd_l_limit = tcp_queue->nxt_snd;
 			wnd_r_limit = wnd_max;
@@ -848,7 +863,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		//sender silly window avoidance
 		//implementation lacks receiver case!!! (this is sender case)		
 		w_size = wnd_r_limit - wnd_l_limit;
-		expected_ack = tcp_queue->nxt_snd - tcp_queue->wnd_min;		
+		expected_ack = wnd_nxt - tcp_queue->wnd_min;
 		if (expected_ack == 0)
 		{
 			data_to_send=w_size;
@@ -864,15 +879,19 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 			data_to_send=w_size;
 			tcp_queue->nxt_snd += data_to_send;
 		}
+		if (data_to_send == 0 && system.conn_desc != 0)
+		{
+				//panic();
+		}
 		indx = wnd_l_limit;
-		tcp_conn_desc->flight_size = tcp_queue->nxt_snd - tcp_queue->wnd_min;
+		tcp_conn_desc->flight_size = wnd_nxt - tcp_queue->wnd_min;
 	}
 	else if (tcp_conn_desc->duplicated_ack == 1 || tcp_conn_desc->duplicated_ack == 2)
 	{
 		wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
-		if (wnd_max > tcp_queue->nxt_snd)
+		if (wnd_max > tcp_queue->nxt_snd)                         //---------------->5
 		{
-			w_size = wnd_max - tcp_queue->nxt_snd;
+			w_size = wnd_max - tcp_queue->nxt_snd;                //---------------->6
 		}
 		else
 		{
@@ -882,12 +901,12 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		flight_size_limit = tcp_conn_desc->cwnd + 2*SMSS;
 
 		
-		if (w_size >= SMSS && (flight_size + SMSS <= flight_size_limit) && tcp_queue->cur >= (tcp_queue->nxt_snd + SMSS))
+		if (w_size >= SMSS && (flight_size + SMSS <= flight_size_limit) && tcp_queue->cur >= (tcp_queue->nxt_snd + SMSS)) //----->7
 		{
 			indx = tcp_queue->nxt_snd;
 			tcp_queue->nxt_snd += SMSS;
 			data_to_send = SMSS;
-			tcp_conn_desc->flight_size = tcp_queue->nxt_snd - tcp_queue->wnd_min;
+			tcp_conn_desc->flight_size = tcp_queue->nxt_snd - tcp_queue->wnd_min;   //-------------------->8
 		}
 	}
 	else if (tcp_conn_desc->duplicated_ack == 3)
@@ -899,19 +918,19 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	{
 		indx = tcp_queue->nxt_snd;
 		wnd_max = tcp_queue->wnd_min + tcp_queue->wnd_size;
-		if (wnd_max > tcp_queue->nxt_snd)
+		if (wnd_max > tcp_queue->nxt_snd)                                    		//------------------->9
 		{
-			w_size = wnd_max - tcp_queue->nxt_snd;
+			w_size = wnd_max - tcp_queue->nxt_snd;            						//------------------>10
 		}
 		else
 		{
 			w_size = 0;
 		}		
-		if (w_size >= SMSS && tcp_queue->cur >= (tcp_queue->nxt_snd + SMSS))
+		if (w_size >= SMSS && tcp_queue->cur >= (tcp_queue->nxt_snd + SMSS))       //------------------->11
 		{
 			tcp_queue->nxt_snd += SMSS;
 			data_to_send = SMSS;
-			tcp_conn_desc->flight_size = tcp_queue->nxt_snd - tcp_queue->wnd_min;
+			tcp_conn_desc->flight_size = tcp_queue->nxt_snd - tcp_queue->wnd_min;  //------------------->12
 		}
 	}
 EXIT:
@@ -1011,7 +1030,7 @@ void rtrsn_timer_handler(void* arg)
 		tcp_conn_desc->snd_queue->nxt_snd =  tcp_conn_desc->snd_queue->wnd_min;
 		tcp_conn_desc->snd_queue->wnd_size = min(tcp_conn_desc->cwnd,tcp_conn_desc->rcv_wmd_adv);
 		tcp_conn_desc->duplicated_ack = 0;
-		update_snd_window(tcp_conn_desc,0,1);
+		update_snd_window(tcp_conn_desc,0,1,1);
 	}
 	else if (tcp_conn_desc->status == SYN_SENT)
 	{

@@ -108,6 +108,8 @@ typedef struct s_system
 	long long tot_read_time;
 	#endif
 	struct t_process_context* last_process_context;
+	struct s_tcp_conn_desc* conn_desc;
+	u32 last_ack;
 }
 t_system;
 

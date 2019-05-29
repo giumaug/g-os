@@ -10,7 +10,7 @@
 
 #define SMSS 			1454	
 #define TCP_RCV_SIZE 		(32768) 
-#define TCP_USR_SIZE        (16384)
+#define TCP_USR_SIZE            (16384)
 #define TCP_SND_SIZE 		(16384*256)
 //#define TCP_SND_SIZE 		16384
 //SPECS SAYS WND_ADV SHOULD BE TCP_RCV_SIZE. I USE TCP_RCV_SIZE FOR TEST
@@ -18,19 +18,20 @@
 #define TCP_CONN_MAP_SIZE 	20
 #define EPHEMERAL_PORT_MAP_SIZE 20
 
-//#define INC_WND(cur,wnd_size,offset)  (cur + offset) % wnd_size
+#define CHK_OVRFLW(val,ref) ((unsigned int)val >= (unsigned int)ref ? (unsigned int)val : (long long)((long long)val + (long long)4294967295))
+//#________define CHK_OVRFLW(val,ref) val
 #define INC_WND(cur,wnd_size,offset) (((cur + offset) <= wnd_size) ? (cur = cur + offset) : (cur = ((cur + offset) % wnd_size)))
 #define SLOT_WND(cur,wnd_size) (cur % wnd_size)
 #define DATA_IN_WND(min,max,index)								        \
-(												        \
-	(min <= max) ?											\	(												        \
+(												                        \
+	(min <= max) ?  (												    \
 		(index >= min && index <= max) ? 1 : 0							\
-	)												\
-	:											        \
-	(												\
+	)												                    \
+	:											                        \
+	(												                    \
 		(index >= max && index <= min) ? 1 : 0							\
-	)												\
-)													\
+	)												                    \
+)													                    \
 
 #define DATA_LF_OUT_WND(min,max,index) ((index < min) ? 1 : 0)
 #define DATA_RH_OUT_WND(min,max,index) ((index > min) ? 1 : 0)
@@ -140,6 +141,7 @@ typedef struct s_tcp_conn_desc
 	u32 flight_size;
 	u8 pending_ack;
 	u8 isActive;
+	u32 last_ack;
 }
 t_tcp_conn_desc;
 
@@ -162,10 +164,12 @@ void tcp_conn_desc_free(t_tcp_conn_desc* tcp_conn_desc);
 t_tcp_desc* tcp_init();
 void tcp_free(t_tcp_desc* tcp_desc);
 void rcv_packet_tcp(struct s_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len);
-void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_data_len);
+//void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_data_len);
+void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_data_len,u8 skip_ack);
 void rtrsn_timer_handler(void* arg);
 void pgybg_timer_handler(void* arg);
 int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size,char* data,u32 data_len,u32 ack_num,u8 flags,u32 seq_num);
 void update_adv_wnd(t_tcp_conn_desc* tcp_conn_desc);
+//long long _chk_ovrflw(unsigned int val,unsigned int ref);
 
 #endif

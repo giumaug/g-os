@@ -235,6 +235,7 @@ void _awake(struct t_process_context *new_process)
 	{
 		//printk("s");
 	}
+	//printk("5");
 	system.force_scheduling = 1;
 	RESTORE_IF_STATUS
 }
