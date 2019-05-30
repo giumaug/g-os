@@ -3,18 +3,6 @@
 #include "debug.h"
 #include "timer.h"
 
-extern go;
-extern unsigned int free_mem_list[POOL_NUM];
-
-unsigned int pending_port[10000];
-unsigned int pending_port_age[10000];
-t_tcp_conn_desc* pending_connection[10000];
-unsigned int pending_port_index;
-unsigned int trace_buffer_1[10000];
-unsigned int trace_buffer_2[10000];
-unsigned int trace_buffer_3[10000];
-unsigned int trace_buffer_4[10000];
-int indx_2=0;
 unsigned int collect_mem=0;
 unsigned int collected_mem[50005];
 unsigned int collected_mem_index=0;
@@ -49,12 +37,12 @@ void check_free_mem()
 	{
 		//collect_mem = 1;
 		//start_count = 1;
-		reset_counter();
+		//reset_counter();
 	}
 
 	buddy_mem=buddy_free_mem(system.buddy_desc);
 	pool_mem=kfree_mem();
-	check_tcp_conn();
+	//check_tcp_conn();
 	//buddy_check_mem_status(system.buddy_desc);
 	//a_fixed_size_check_mem_status();
 
@@ -69,7 +57,7 @@ void check_free_mem()
 		PRINTK("POOL MEMEMORY LEAK!!!");
 		//panic();
 	}
-	check_not_released();
+	//check_not_released();
 	_check_process_context();
 	printk("BUDDY MEMORY=%d \n",buddy_mem);
 	printk("POOL MEMORY=%d \n",pool_mem);
@@ -94,10 +82,6 @@ void _check_process_context()
 			process_context=next->val;
 			{
 				count++;
-				if (system.fork > 2 && process_context->proc_status == SLEEPING)
-				{
-					//panic();
-				}
 			}
 			next=next=ll_next(next);
 		}
@@ -180,105 +164,94 @@ void collect_mem_free(unsigned int page_addr)
 	}
 }
 
-void check_not_released()
-{
-	int i = 0;
-	int index = 0;
-	
-	printk("fork = %d \n",system.fork);
-	printk("out = %d \n",system.out);
-	printk("piggy = %d \n",system.piggy_timeout);
-	printk("rtrsn = %d \n",system.rtrsn_timeout);
-	printk("reset = %d \n",system.reset);
-}
+//void reset_counter()
+//{
+//	int i;
+//	collected_mem_index = 0;
+//	for (i = 0; i <50000;i++)
+//	{
+//		collected_mem[i] = 0;
+//	}
+//	reset_tcp_counter();
+//}
 
-void reset_counter()
-{
-	int i;
-	collected_mem_index = 0;
-	for (i = 0; i <50000;i++)
-	{
-		collected_mem[i] = 0;
-	}
-	reset_tcp_counter();
-}
+//void reset_tcp_counter()
+//{
+//	int i;
+//
+//	for (i = 0; i <10000;i++)
+//	{
+//		pending_port[i] = 0;
+//		pending_port_age[i] = 0;
+//		pending_connection[i] = 0;
+//	}
+//	pending_port_index = 0;
+//}
 
-void reset_tcp_counter()
-{
-	int i;
+//void add_tcp_conn(u32 port,t_tcp_conn_desc* conn)
+//{
+//	int i;
+//
+//	pending_port_index++;
+//	if (pending_port_index == 10000)
+//	{
+//		reset_tcp_counter();
+//	}
+//	pending_port[pending_port_index] = port;
+//	pending_port_age[pending_port_index] = (system.tcp_1 % 10000);
+//	pending_connection[pending_port_index] = conn;
+//}
 
-	for (i = 0; i <10000;i++)
-	{
-		pending_port[i] = 0;
-		pending_port_age[i] = 0;
-		pending_connection[i] = 0;
-	}
-	pending_port_index = 0;
-}
+//void remove_tcp_conn(u32 port)
+//{
+//	int i;
+//
+//	for (i = 0; i <10000;i++)
+//	{
+//		if (pending_port[i] == port)
+//		{
+//			pending_port[i] = 0;
+//			pending_port_age[i] = 0;
+//			pending_connection[i] = 0;
+//			continue;
+//		}
+//	}
+//}
 
-void add_tcp_conn(u32 port,t_tcp_conn_desc* conn)
-{
-	int i;
+//void check_tcp_conn()
+//{
+//	u32 counter;
+//	int i;
+//	
+//	counter = system.tcp_1 % 10000;	
+//
+//	if (counter < pending_port_index)
+//	{
+//		return;
+//	}
+//
+//	for (i = 0; i <10000;i++)
+//	{
+//		if (pending_port[i] != 0 && (counter - pending_port_age[i]) > 8000 )
+//		{
+//			panic();
+//		}
+//	}
+//}
 
-	pending_port_index++;
-	if (pending_port_index == 10000)
-	{
-		reset_tcp_counter();
-	}
-	pending_port[pending_port_index] = port;
-	pending_port_age[pending_port_index] = (system.tcp_1 % 10000);
-	pending_connection[pending_port_index] = conn;
-}
-void remove_tcp_conn(u32 port)
-{
-	int i;
-
-	for (i = 0; i <10000;i++)
-	{
-		if (pending_port[i] == port)
-		{
-			pending_port[i] = 0;
-			pending_port_age[i] = 0;
-			pending_connection[i] = 0;
-			continue;
-		}
-	}
-}
-
-void check_tcp_conn()
-{
-	u32 counter;
-	int i;
-	
-	counter = system.tcp_1 % 10000;	
-
-	if (counter < pending_port_index)
-	{
-		return;
-	}
-
-	for (i = 0; i <10000;i++)
-	{
-		if (pending_port[i] != 0 && (counter - pending_port_age[i]) > 8000 )
-		{
-			panic();
-		}
-	}
-}
-
-void trace(int pid,int trace_code,int call_num)
-{
-	unsigned int static trace_index = 0;
-	trace_index++;
-	if (trace_index == 10000)
-	{
-		trace_index = 0;
-	}
-	trace_buffer_1[trace_index] = trace_code;
-	trace_buffer_2[trace_index] = pid;
-	trace_buffer_3[trace_index] = call_num;
-	trace_buffer_4[trace_index] = system.time;
-}
+//void trace(int pid,int trace_code,int call_num)
+//{
+//	unsigned int static trace_index = 0;
+//	trace_index++;
+//	if (trace_index == 10000)
+//	{
+//		trace_index = 0;
+//	}
+//	trace_buffer_1[trace_index] = trace_code;
+//	trace_buffer_2[trace_index] = pid;
+//	trace_buffer_3[trace_index] = call_num;
+//	trace_buffer_4[trace_index] = system.time;
+//}
 
 //USEFUL CODE TO CHECK STACK MEMORY CORRUPTION
 //if (_new_process_context.pid > 2 && _new_process_context.pending_fork == 99)

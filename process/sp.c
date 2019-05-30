@@ -82,7 +82,7 @@ int main()
 			file_len = 1073741824;
 			//file_len = 31457280;
 			printf("file len is %d \n",file_len);
-			for (t = 0; t < 1;t++)
+			for (t = 0; t < 100;t++)
 			{
 //				f = open(path, O_RDWR | O_APPEND);
 //				if (f == -1)

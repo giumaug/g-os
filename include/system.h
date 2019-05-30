@@ -87,29 +87,6 @@ typedef struct s_system
 	t_llist* timer_list;
 	u8 force_scheduling;
 	u8 flush_network;
-	u32 fork;
-	u32 out;
-	u32 piggy_timeout;
-	u32 rtrsn_timeout;
-	u32 reset;	
-	u32 tcp_1;
-	u32 tot_int;
-	u32 packet_sent;
-	u32 packet_received;
-	u32 counter;
-	u32 max_processed_packet;
-	u32 sleep_count;
-	long tot_sent;
-	#ifdef PROFILE
-	long long start_time;
-	long long end_time;
-	long long tot_exec_time;
-	long long tot_rcv_time;
-	long long tot_read_time;
-	#endif
-	struct t_process_context* last_process_context;
-	struct s_tcp_conn_desc* conn_desc;
-	u32 last_ack;
 }
 t_system;
 

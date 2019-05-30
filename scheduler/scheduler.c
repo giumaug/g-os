@@ -231,11 +231,6 @@ void _awake(struct t_process_context *new_process)
 	{
 		ll_prepend(system.scheduler_desc->scheduler_queue[new_process->curr_sched_queue_index],new_process);
 	}
-	else
-	{
-		//printk("s");
-	}
-	//printk("5");
 	system.force_scheduling = 1;
 	RESTORE_IF_STATUS
 }
@@ -266,7 +261,6 @@ void _exit(int status)
 	
 	SAVE_IF_STATUS
 	CLI
-	system.out++;
 	//process 0 never die
 	CURRENT_PROCESS_CONTEXT(current_process);
 	if (current_process->pid==0)
@@ -321,7 +315,6 @@ void _exit(int status)
 
 int _fork(struct t_processor_reg processor_reg) 
 {
-	system.fork++;
 	int i = 0;
  	struct t_process_context* child_process_context = NULL;
 	struct t_process_context* parent_process_context = NULL;
@@ -330,13 +323,6 @@ int _fork(struct t_processor_reg processor_reg)
 	char* kernel_stack_addr = NULL;
 	t_elf_desc* child_elf_desc = NULL;
 
-	if (system.process_info->next_pid == 2)	
-	{
-		#ifdef PROFILE
-		rdtscl(&system.start_time);
-		#endif
-	}
-	
 	child_process_context = kmalloc(sizeof(struct t_process_context));
 	SAVE_IF_STATUS
 	CLI
