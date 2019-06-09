@@ -64,9 +64,9 @@ void equeue_packet(t_network_desc* network_desc)
 	{
 		frame=data_sckt_buf->mac_hdr;
 		frame_len=data_sckt_buf->data_len;
-//		CLI
+		CLI
 		send_packet_i8254x(network_desc->dev,frame,frame_len);
-//		STI
+		STI
 		free_sckt(data_sckt_buf);
 	}
 	CLI
@@ -79,7 +79,6 @@ void dequeue_packet(t_network_desc* network_desc)
 {
 	t_data_sckt_buf* data_sckt_buf;
 	system.flush_network = 0;
-	int counter = 0;
 
 	DISABLE_PREEMPTION
 	STI
@@ -87,7 +86,7 @@ void dequeue_packet(t_network_desc* network_desc)
 	if (data_sckt_buf != NULL)
 //	while ((data_sckt_buf=dequeue_sckt(network_desc->rx_queue))!=NULL)
 	{
-		CLI 
+		CLI
 		rcv_packet_mac(data_sckt_buf);
 		STI
 //		system.flush_network = 1;

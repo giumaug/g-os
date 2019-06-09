@@ -196,7 +196,8 @@ void _sleep_and_unlock(t_spinlock_desc* lock)
 	t_spinlock_desc aa;
 	struct t_process_context* current_process;
 	SAVE_IF_STATUS
-	CLI        
+	CLI
+	//printk("1");        
 	current_process=system.process_info->current_process->val;
 	current_process->sleep_time=system.time;
 	t_llist_node* current_node=system.process_info->current_process;
@@ -206,6 +207,9 @@ void _sleep_and_unlock(t_spinlock_desc* lock)
 	{
 		SPINLOCK_UNLOCK(*lock);
 	}
+	//Preemption has to be re-enabled OKKIO!!!!!!!!!
+	//system.int_path_count = 0;
+	//printk("2");
 //	INT WILL BE DISABLED UNTIL SYSCALL HANDLER EXIT
 	SUSPEND
 	RESTORE_IF_STATUS
@@ -219,10 +223,6 @@ void _awake(struct t_process_context *new_process)
 	SAVE_IF_STATUS
 	CLI
 	CURRENT_PROCESS_CONTEXT(process_context);
-	if (new_process < 0xc0000000)
-	{
-		panic();
-	}
 	new_process->sleep_time=(system.time-new_process->sleep_time>=1000) ? 1000 : (system.time-new_process->sleep_time);
 	new_process->proc_status=RUNNING;
 	adjust_sched_queue(new_process);
@@ -230,7 +230,11 @@ void _awake(struct t_process_context *new_process)
 	if (process_context->pid != new_process->pid)
 	{
 		ll_prepend(system.scheduler_desc->scheduler_queue[new_process->curr_sched_queue_index],new_process);
-	}	
+	}
+	else
+	{
+		//printk("s");
+	}
 	system.force_scheduling = 1;
 	RESTORE_IF_STATUS
 }

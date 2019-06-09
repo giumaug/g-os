@@ -100,11 +100,13 @@ typedef struct s_tcp_rcv_queue
 	u32 wnd_min;
 	u32 wnd_size;
 	u32 nxt_rcv; //ack relativo finestra di ricezione e usato in trasmissione
-	t_bit_vector* buf_state;
+	char* buf_state;
 	u32 seq_num;
 	u32 data_len;
 	u32 last_adv_wnd;
 	u32 buf_size_in_order;
+	u8 is_wnd_hole;
+	u32 max_seq_num;
 	//u32 next_to_read;
 }
 t_tcp_rcv_queue;

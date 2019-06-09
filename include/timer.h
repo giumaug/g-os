@@ -18,6 +18,6 @@ t_timer* timer_init(int val,void (*handler)(void*),void* handler_arg,void* ref);
 void timer_free(t_timer* timer);
 void timer_set(t_timer* timer,long val);
 void timer_reset(t_timer* timer);
-inline void rdtscl(unsigned long long *ll);
+void rdtscl(unsigned long long *ll);
 
 #endif

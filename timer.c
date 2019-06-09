@@ -44,7 +44,8 @@ void timer_reset(t_timer* timer)
 	}
 }
 
-inline void rdtscl(unsigned long long *ll)
+void rdtscl(unsigned long long *ll)
+//inline static __attribute__((always_inline)) void rdtscl(unsigned long long *ll)
 {
     unsigned int lo, hi;
     __asm__ __volatile__ ("rdtsc" : "=a"(lo), "=d"(hi));                        

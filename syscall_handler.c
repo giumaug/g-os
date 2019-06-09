@@ -229,7 +229,8 @@ void syscall_handler()
 		//DEBUG WRAPPER
 		case 103:
 		//reg_time(&system.timeboard_1,&system.time_counter_1);
-		system.flush_network = 0;
+		//system.flush_network = 0;
+		check_free_mem();
 		break;
 	
 		case 104:

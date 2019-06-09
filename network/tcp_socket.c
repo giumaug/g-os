@@ -222,9 +222,10 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	u32 available_data = 0;
 	struct t_process_context* current_process_context;
 	t_tcp_rcv_queue* tcp_queue = NULL;
-	unsigned int if_status;
 	
-	_SAVE_IF_STATUS
+//	DISABLE_PREEMPTION
+	SAVE_IF_STATUS
+//	SAVE_IF_STATUS
 	CLI
 	system.flush_network = 0;
 
@@ -234,7 +235,7 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	long long time_2_2;
 	rdtscl(&time_1);
 
-	RESTORE_IF_STATUS
+//	RESTORE_IF_STATUS
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 	if (tcp_conn_desc->status == RESET)
 	{
@@ -251,7 +252,9 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 			tcp_conn_desc->process_context = current_process_context;
 			system.flush_network = 1;
 			t_tcp_rcv_queue aaa = *tcp_queue;
+			//printk("-");
 			_sleep();
+			//printk("/");
 			available_data = tcp_queue->nxt_rcv - tcp_queue->wnd_min;
 			if (available_data == 0)
 			{
@@ -269,13 +272,13 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		hi_index = SLOT_WND((tcp_queue->wnd_min + data_len),tcp_queue->buf_size);
 
 		rdtscl(&time_2_1);
-		if (low_index < hi_index) 
+		if (low_index < hi_index)
 		{
 			kmemcpy_2(data,(tcp_queue->buf + low_index),data_len);	
-			for (i = low_index;i < hi_index;i++)
-			{
-				tcp_queue->buf_state[i] = 0;
-			}
+//			for (i = low_index;i < hi_index;i++)
+//			{
+//				tcp_queue->buf_state[i] = 0;
+//			}
 		}
 		else 
 		{
@@ -283,14 +286,14 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 			len_2 = data_len - len_1;
 			kmemcpy_2(data,(tcp_queue->buf + low_index),len_1);
 			kmemcpy_2(data + len_1,tcp_queue->buf,len_2);	
-			for (i = low_index ; i < (low_index + len_1) ; i++)
-			{
-				tcp_queue->buf_state[i] = 0;
-			}
-			for (i = 0;i < len_2;i++)
-			{
-				tcp_queue->buf_state[i] = 0;
-			}
+//			for (i = low_index ; i < (low_index + len_1) ; i++)
+//			{
+//				tcp_queue->buf_state[i] = 0;
+//			}
+//			for (i = 0;i < len_2;i++)
+//			{
+//				tcp_queue->buf_state[i] = 0;
+//			}
 		}
 		#ifdef PROFILE		
 		rdtscl(&time_2_2);
@@ -299,23 +302,21 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		#endif
 		tcp_queue->wnd_size += data_len;
 		tcp_queue->wnd_min += data_len;
-//		if (tcp_queue->wnd_size == data_len)
-//		{
-//			update_adv_wnd(tcp_conn_desc);
-//			printk(".... ");
-//		}
-//		else
-		{	
-			if (tcp_conn_desc->rcv_queue->wnd_size >= (tcp_conn_desc->rcv_queue->last_adv_wnd + SMSS) ||
-				tcp_conn_desc->rcv_queue->wnd_size >= (TCP_RCV_SIZE - SMSS))
-			{
-				if (tcp_conn_desc->pending_ack >= 4)
-				{
-					tcp_conn_desc->pending_ack = 0;
-					tcp_conn_desc->rcv_queue->last_adv_wnd = tcp_conn_desc->rcv_queue->wnd_size;
+		if (tcp_queue->wnd_size > 32768)
+		{
+			panic();
+		}
 
-					timer_reset(tcp_conn_desc->pgybg_timer);
-					send_packet_tcp(tcp_conn_desc->src_ip,
+		if (tcp_conn_desc->rcv_queue->wnd_size >= (tcp_conn_desc->rcv_queue->last_adv_wnd + SMSS) ||
+				tcp_conn_desc->rcv_queue->wnd_size >= (TCP_RCV_SIZE - SMSS))
+		{
+			if (tcp_conn_desc->pending_ack >= 2)
+			{
+				tcp_conn_desc->pending_ack = 0;
+				tcp_conn_desc->rcv_queue->last_adv_wnd = tcp_conn_desc->rcv_queue->wnd_size;
+
+				timer_reset(tcp_conn_desc->pgybg_timer);
+				send_packet_tcp(tcp_conn_desc->src_ip,
                         			tcp_conn_desc->dst_ip,
                         			tcp_conn_desc->src_port,
                         			tcp_conn_desc->dst_port,
@@ -325,7 +326,6 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
                         			tcp_conn_desc->rcv_queue->nxt_rcv,
                         			FLG_ACK,
                         			tcp_conn_desc->snd_queue->nxt_snd);
-				}
 			}
 			
 		}
@@ -336,10 +336,11 @@ EXIT:
 	system.time_counter_3++;
 	system.timeboard_3[system.time_counter_3] = (time_2 - time_1);
 	#endif
-	_SAVE_IF_STATUS
-	CLI
+//	_SAVE_IF_STATUS
+//	CLI
 	system.flush_network = 1;
 	RESTORE_IF_STATUS
+//	ENABLE_PREEMPTION
 	return ret;
 }
 

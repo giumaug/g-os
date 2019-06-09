@@ -1,6 +1,7 @@
 #include "virtual_memory/vm.h"
 #include "memory_manager/general.h"
 #include "debug.h"
+#include "timer.h"
 
 extern go;
 extern unsigned int free_mem_list[POOL_NUM];

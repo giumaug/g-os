@@ -140,6 +140,8 @@ typedef struct s_system
 	long long tot_mem_kmemcpy;
 	#endif
 	long tot_sent;
+
+	struct t_process_context* last_process_context;
 }
 t_system;
 
