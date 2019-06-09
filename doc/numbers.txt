@@ -1,0 +1,69 @@
+--------------------------------g-os--------------------------------
+selection sort
+qemu
+kvm
+
+sp 30 300 3000 (reading data from disk)
+qemu
+kvm
+
+sp 30 300 3000 (sending data over socket)
+qemu
+kvm
+
+tcpf  30 300 3000 (receiving data from socket)
+30
+qemu
+kvm
+
+300
+qemu 69s
+kvm 13s
+
+3000
+qemu
+kvm
+
+sp 30 300 3000 (sending data over socket + disk)
+qemu 4.5s
+kvm  11s
+
+tcpf 30 300 3000(receiveing data from socket + disk)
+qemu
+kvm
+
+--------------------------------------------------------------------
+
+-------------------------------ubuntu-------------------------------
+selection sort
+qemu
+kvm
+
+sp 30 300 3000 (reading data from disk)
+
+sp 30 300 3000 (sending data over socket)
+qemu
+kvm
+
+tcpf  30 300 3000 (receiving data from socket)
+30
+qemu
+kvm
+
+300
+qemu
+kvm 4.5s
+
+3000
+qemu
+kvm
+
+sp 30 300 3000 (sending data over socket + disk)
+qemu
+kvm
+
+tcpf 30 300 3000(receiveing data from socket + disk)
+
+--------------------------------------------------------------------
+2.00 vs 30 
+

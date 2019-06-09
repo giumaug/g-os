@@ -1,0 +1,46 @@
+PROFILING DI TCPF CON FINE xxx.c(907662392) ack ogni 4 pacchetti.
+IL RITARDO E' CAUSATO DALLE OPERAZIONI SUI BIT VECTOR!!!!!!!!!!!!!!!!!!!!!
+
+from fork to exit
+25565672657 - 19811383730 = 5754288927
+
+dequeue_packet_tcp 					timeboard_3
+1382139027
+
+rcv_packet_tcp 						timeboard_1
+3530914404
+
+rcv_packet_tcp before bit_vector  	timeboard_2
+290884913
+
+rcv_packet_tcp   bit vector     	timeboard_5
+1363275372
+
+rcv_packet_tcp after bit_vector 	timeboard_6
+1859316534
+
+rcv_packet_tcp  bit vector bit copy	timeboard_7
+888447291
+
+rcv_packet_tcp   bit vector kmem    timeboard_8
+461713029
+
+update_rcv_window_and_ack           timeboard_9
+899321297
+
+send_packet_tcp                     timeboard_10
+907662392
+
+used for tot_mem_kmemcpy			timeboard_11
+
+
+all kmemcpy_2						timeboard_12
+1296146203
+
+tot mem cost (bit+kmem)            	tot_mem_kmemcpy
+3593832380
+
+
+
+
+
