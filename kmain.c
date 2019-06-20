@@ -42,35 +42,12 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	system.counter = 0;
 	system.max_processed_packet = 0;
 	system.sleep_count = 0;
-
-	#ifdef PROFILE
-	system.time_counter_1 = 0;
-	system.time_counter_2 = 0;
-	system.time_counter_3 = 0;
-	system.time_counter_4 = 0;
-	system.time_counter_5 = 0;
-	system.time_counter_6 = 0;
-	system.time_counter_7 = 0;
-	system.time_counter_8 = 0;
-	system.time_counter_9 = 0;
-	system.time_counter_10 = 0;
-	system.time_counter_11 = 0;
-	system.time_counter_12 = 0;
-	system.exec_time_1 = 0;
-	system.exec_time_2 = 0;
-	system.exec_time_3 = 0;
-	system.exec_time_4 = 0;
-	system.exec_time_5 = 0;
-	system.exec_time_6 = 0;
-	system.exec_time_7 = 0;
-	system.exec_time_8 = 0;
-	system.exec_time_9 = 0;
-	system.exec_time_10 = 0;
-	system.exec_time_11 = 0;
-	system.exec_time_12 = 0;
-	system.tot_mem_kmemcpy = 0;
-	#endif
 	system.tot_sent = 0;
+	#ifdef PROFILE
+	system.tot_exec_time = 0;
+	system.tot_rcv_time = 0;
+	system.tot_read_time = 0;
+	#endif
 
 	init_data = init_data_add;
 	if ( magic != 0x2BADB002 )

@@ -229,13 +229,12 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	CLI
 	system.flush_network = 0;
 
+//	RESTORE_IF_STATUS
+	#ifdef PROFILE
 	long long time_1;
 	long long time_2;
-	long long time_2_1;
-	long long time_2_2;
 	rdtscl(&time_1);
-
-//	RESTORE_IF_STATUS
+	#endif
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 	if (tcp_conn_desc->status == RESET)
 	{
@@ -251,10 +250,7 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		{
 			tcp_conn_desc->process_context = current_process_context;
 			system.flush_network = 1;
-			t_tcp_rcv_queue aaa = *tcp_queue;
-			//printk("-");
 			_sleep();
-			//printk("/");
 			available_data = tcp_queue->nxt_rcv - tcp_queue->wnd_min;
 			if (available_data == 0)
 			{
@@ -270,11 +266,9 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		ret = data_len;
 		low_index = SLOT_WND(tcp_queue->wnd_min,tcp_queue->buf_size);
 		hi_index = SLOT_WND((tcp_queue->wnd_min + data_len),tcp_queue->buf_size);
-
-		rdtscl(&time_2_1);
 		if (low_index < hi_index)
 		{
-			kmemcpy_2(data,(tcp_queue->buf + low_index),data_len);	
+			kmemcpy(data,(tcp_queue->buf + low_index),data_len);	
 //			for (i = low_index;i < hi_index;i++)
 //			{
 //				tcp_queue->buf_state[i] = 0;
@@ -284,8 +278,8 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		{
 			len_1 = tcp_queue->buf_size - low_index;
 			len_2 = data_len - len_1;
-			kmemcpy_2(data,(tcp_queue->buf + low_index),len_1);
-			kmemcpy_2(data + len_1,tcp_queue->buf,len_2);	
+			kmemcpy(data,(tcp_queue->buf + low_index),len_1);
+			kmemcpy(data + len_1,tcp_queue->buf,len_2);	
 //			for (i = low_index ; i < (low_index + len_1) ; i++)
 //			{
 //				tcp_queue->buf_state[i] = 0;
@@ -295,11 +289,6 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 //				tcp_queue->buf_state[i] = 0;
 //			}
 		}
-		#ifdef PROFILE		
-		rdtscl(&time_2_2);
-		system.time_counter_11++;
-		system.timeboard_11[system.time_counter_11] = (time_2_2 - time_2_1);
-		#endif
 		tcp_queue->wnd_size += data_len;
 		tcp_queue->wnd_min += data_len;
 		if (tcp_queue->wnd_size > 32768)
@@ -331,13 +320,12 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		}
 	}
 EXIT:
-	#ifdef PROFILE
-	rdtscl(&time_2);
-	system.time_counter_3++;
-	system.timeboard_3[system.time_counter_3] = (time_2 - time_1);
-	#endif
 //	_SAVE_IF_STATUS
 //	CLI
+	#ifdef PROFILE
+	rdtscl(&time_2);
+	system.tot_rcv_time += (time_2 - time_1);
+	#endif
 	system.flush_network = 1;
 	RESTORE_IF_STATUS
 //	ENABLE_PREEMPTION
@@ -389,28 +377,19 @@ int enqueue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		ret = data_len;
 		cur_index = SLOT_WND(tcp_queue->cur,tcp_queue->buf_size);
 
-		long long time_1;
-		long long time_2;
-		rdtscl(&time_1);
-
 		if ((tcp_queue->buf_size - cur_index) > data_len)
 		{
-			kmemcpy_2(tcp_queue->buf + cur_index,data,data_len);
+			kmemcpy(tcp_queue->buf + cur_index,data,data_len);
 			tcp_queue->cur += data_len;
 		}
 		else
 		{
 			len_1 = tcp_queue->buf_size - cur_index;
 			len_2 = data_len - len_1;
-			kmemcpy_2(tcp_queue->buf + cur_index,data,len_1);
-			kmemcpy_2(tcp_queue->buf,data,len_2);
+			kmemcpy(tcp_queue->buf + cur_index,data,len_1);
+			kmemcpy(tcp_queue->buf,data,len_2);
 			tcp_queue->cur += data_len;
 		}
-		#ifdef PROFILE
-		rdtscl(&time_2);
-		system.time_counter_11++;
-		system.timeboard_11[system.time_counter_11] = (time_2 - time_1);
-		#endif
 		//vedi commento sopra
 		update_snd_window(tcp_conn_desc,0,1);
 		system.flush_network = 1;

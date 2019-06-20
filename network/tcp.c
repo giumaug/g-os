@@ -184,10 +184,6 @@ static u8 _update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue,int data_len,t_t
 	u8 slot_state;
 	u8 ret;
 
-	long long time_1;
-	long long time_2;
-	rdtscl(&time_1);
-
 	ret = 0;
 	index = tcp_queue->wnd_min;
 	wnd_max = index + (long long)tcp_queue->buf_size;
@@ -221,11 +217,6 @@ static u8 _update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue,int data_len,t_t
 		}
 		tcp_queue->max_seq_num = 0;
 	}
-	#ifdef PROFILE
-	rdtscl(&time_2);
-	system.time_counter_9++;
-	system.timeboard_9[system.time_counter_9] = (time_2 - time_1);
-	#endif
 	return ret;
 }
 
@@ -242,39 +233,7 @@ static u8 update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue,int data_len,u32 
 	{
 		ret = _update_rcv_window_and_ack(tcp_queue,data_len,tcp_conn_desc);
 	}
-	#ifdef PROFILE
-	rdtscl(&time_2);
-	system.time_counter_9++;
-	system.timeboard_9[system.time_counter_9] = (time_2 - time_1);
-	#endif
 	return ret;
-}
-
-static int counter = 0;
-void foo()
-{
-	counter++;
-	if (counter == 100)
-	{
-		printk("ok! \n");
-	}
-	else if (counter == 1000000)
-	{
-		printk("ok! \n");
-	}
-	else if (counter == 1000001)
-	{
-		printk("ok! \n");
-	}
-	else if (counter == 1000002)
-	{
-		printk("ok! \n");
-	}
-	else if (counter == 1000003)
-	{
-		printk("ok! \n");
-	}
-	return;
 }
 
 void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len)
@@ -310,23 +269,14 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	u8 free_conn;
 	u8 no_piggy = 0;
 	u32 adv_wnd_size = 0;
-
-	long long time_1 = 0;
-	long long time_2 = 0;
-	long long time_3 = 0;
-	long long time_4 = 0;
-	long long time_5 = 0;
-	long long time_6 = 0;
-	long long time_1_2 = 0;
-	long long time_7 = 0;
-	long long time_8 = 0;
-	long long time_9 = 0;
-	long long time_10 = 0;
-
 	static counter = 0;
 	static miss_seq_num = 0;
 	
+	#ifdef PROFILE
+	long long time_1;
+	long long time_2;
 	rdtscl(&time_1);
+	#endif
 	
 	free_conn = 0;
 	tcp_desc = system.network_desc->tcp_desc;
@@ -339,17 +289,12 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	flags = tcp_row_packet[13];
 	rcv_wmd_adv = GET_WORD(tcp_row_packet[14],tcp_row_packet[15]);
 
-	counter++;
-	if ((counter % 5000) == 0)
-	{
-		miss_seq_num = seq_num;	
-		free_sckt(data_sckt_buf);
-		//printk("skip!! \n");
-		return;
-	}
-//	if (seq_num == miss_seq_num && counter > 100)
+//	counter++;
+//	if ((counter % 5000) == 0)
 //	{
-//		printk("retry!! \n");
+//		miss_seq_num = seq_num;	
+//		free_sckt(data_sckt_buf);
+//		return;
 //	}
 
 	if (checksum_tcp((unsigned short*) tcp_row_packet,src_ip,dst_ip,data_len,HEADER_TCP) !=0 )
@@ -592,11 +537,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		free_conn = 1;
 	}
 //END PASSIVE CLOSE
-	#ifdef PROFILE
-	rdtscl(&time_1_2);
-	system.time_counter_2++;
-	system.timeboard_2[system.time_counter_2] = time_1_2 - time_1;
-	#endif
 	if (data_len != 0)
 	{
 		tcp_queue->seq_num = seq_num;
@@ -609,27 +549,13 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		}
 		//wnd_max = tcp_queue->nxt_rcv + (long long) tcp_queue->wnd_size;
 		wnd_max = tcp_queue->wnd_min + (long long) tcp_queue->buf_size;
-
-		rdtscl(&time_3);
-
 		if (seq_num >= tcp_queue->nxt_rcv && seq_num + data_len <= wnd_max)
 		{
 			low_index = SLOT_WND(seq_num,tcp_queue->buf_size);
 			hi_index = SLOT_WND((seq_num + data_len),tcp_queue->buf_size);
 			if (low_index < hi_index) 
 			{
-	
-				rdtscl(&time_9);
-	
-				kmemcpy_2(tcp_queue->buf + low_index,data_sckt_buf->transport_hdr+HEADER_TCP,data_len);
-				
-				#ifdef PROFILE
-				rdtscl(&time_10);
-				system.time_counter_8++;
-				system.timeboard_8[system.time_counter_8] = (time_10 - time_9);
-				rdtscl(&time_7);
-				#endif
-
+				kmemcpy(tcp_queue->buf + low_index,data_sckt_buf->transport_hdr+HEADER_TCP,data_len);
 				if (tcp_queue->nxt_rcv != seq_num || tcp_queue->is_wnd_hole == 1)
 				{
 					tcp_queue->is_wnd_hole = 1;
@@ -650,31 +576,14 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 						}
 					}
 				}
-				#ifdef PROFILE
-				rdtscl(&time_8);
-				system.time_counter_7++;
-				system.timeboard_7[system.time_counter_7] = (time_8 - time_7);
-				#endif
 			}
 			else 
 			{
 	     			//gestire qui PIGGYBACKING_TIMEOUT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 				len_1 = tcp_queue->buf_size - low_index;
 				len_2 = data_len - len_1;
-				
-				rdtscl(&time_9);
-				
-				kmemcpy_2(tcp_queue->buf + low_index,data_sckt_buf->transport_hdr+HEADER_TCP,len_1);
-				kmemcpy_2(tcp_queue->buf,data_sckt_buf->transport_hdr+HEADER_TCP + len_1,len_2);
-				
-				#ifdef PROFILE
-				rdtscl(&time_10);
-				system.time_counter_8++;
-				system.timeboard_8[system.time_counter_8] = (time_10 - time_9);
-				#endif
-				
-				rdtscl(&time_7);
-				
+				kmemcpy(tcp_queue->buf + low_index,data_sckt_buf->transport_hdr+HEADER_TCP,len_1);
+				kmemcpy(tcp_queue->buf,data_sckt_buf->transport_hdr+HEADER_TCP + len_1,len_2);
 				if (tcp_queue->nxt_rcv != seq_num || tcp_queue->is_wnd_hole == 1)
 				{
 					tcp_queue->is_wnd_hole = 1;
@@ -699,21 +608,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 						}
 					}
 				}
-				
-				#ifdef PROFILE
-				rdtscl(&time_8);
-				system.time_counter_7++;
-				system.timeboard_7[system.time_counter_7] = (time_8 - time_7);
-				#endif
-
 			}
-			
-			#ifdef PROFILE
-			rdtscl(&time_4);
-			system.time_counter_5++;
-			system.timeboard_5[system.time_counter_5] = (time_4 - time_3);
-			#endif
-
 			is_new_data = update_rcv_window_and_ack(tcp_queue,data_len,seq_num,tcp_conn_desc);
 			if (tcp_conn_desc->process_context != NULL && is_new_data > 0)
 			{
@@ -740,9 +635,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			printk("window full!!! ");
 			goto EXIT;
 		}
-
-		rdtscl(&time_5);
-
 //		is_new_data = update_rcv_window_and_ack(tcp_queue,data_len,seq_num);
 //		if (tcp_conn_desc->process_context != NULL && is_new_data > 0)
 //		{
@@ -802,23 +694,15 @@ EXIT:
 		{
 			tcp_conn_desc_free(tcp_conn_desc);
 		}
-
-		#ifdef PROFILE
-		rdtscl(&time_2);
-		system.time_counter_1++;
-		system.timeboard_1[system.time_counter_1] = (time_2 - time_1);
-		rdtscl(&time_6);
-		if (time_5 > 0)
-		{
-			system.time_counter_6++;
-			system.timeboard_6[system.time_counter_6] = (time_6 - time_5);
-		}
-		#endif	
 		//printk("status= %d \n",tcp_conn_desc->status);
 		//printk("fin_num= %d \n",fin_num);
 		//printk("ack_seq_num= %d \n",ack_seq_num);
 		//printk("seq_num= %d \n",seq_num);
 		//printk("wnd %d ",tcp_queue->wnd_size);
+		#ifdef PROFILE
+		rdtscl(&time_2);
+		system.tot_read_time += (time_2 - time_1);
+		#endif
 }
 
 void update_adv_wnd(t_tcp_conn_desc* tcp_conn_desc)
@@ -938,7 +822,6 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 				if (tcp_conn_desc->process_context != NULL)
 				{
 					_awake(tcp_conn_desc->process_context);
-					printk("+");
 					tcp_queue->pnd_data = 0;
 					tcp_conn_desc->process_context = NULL;
 				}
@@ -1196,10 +1079,6 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 	char* tcp_header = NULL;
 	u32 tcp_header_len;
 
-	long long time_1;
-	long long time_2;
-	//rdtscl(&time_1);
-
 	if (flags & FLG_SYN)
 	{
 		tcp_header_len = HEADER_TCP + 4;
@@ -1214,18 +1093,7 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 	data_sckt_buf->network_hdr=data_sckt_buf->transport_hdr-HEADER_IP4;
 	tcp_payload = data_sckt_buf->transport_hdr + tcp_header_len;
 
-	long long time_2_1;
-	long long time_2_2;
-	rdtscl(&time_2_1);
-	kmemcpy_2(tcp_payload,data,data_len);
-
-	#ifdef PROFILE
-	rdtscl(&time_2_2);
-	system.time_counter_11++;
-	system.timeboard_11[system.time_counter_11] = (time_2_2 - time_2_1);	
-	rdtscl(&time_1);
-	#endif
-
+	kmemcpy(tcp_payload,data,data_len);
 	tcp_header = data_sckt_buf->transport_hdr;
 	chk = SWAP_WORD(checksum_tcp((unsigned short*) tcp_header,src_ip,dst_ip,data_len,tcp_header_len));
 
@@ -1278,11 +1146,6 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 			    dst_ip,
 			    (data_len + tcp_header_len),
 			    TCP_PROTOCOL);
-	#ifdef PROFILE
-	rdtscl(&time_2);
-	system.time_counter_10++;
-	system.timeboard_10[system.time_counter_10] = (time_2 - time_1);
-	#endif
 	return ret;
 }
 
