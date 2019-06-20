@@ -26,7 +26,7 @@ void add_tcp_conn(u32 port,t_tcp_conn_desc* conn);
 void remove_tcp_conn(u32 port);
 void check_tcp_conn();
 
-void reg_time(long long *timeboard,int* counter)
+void _reg_time(long long *timeboard,int* counter)
 {
 	long long time;
 

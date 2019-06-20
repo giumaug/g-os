@@ -24,15 +24,15 @@
 #define ICMP_PROTOCOL	1
 
 #ifdef HOME_PC
-#define LOCAL_IP 	0xC0A8018D 
+#define LOCAL_IP 	0xC0A80165
 #define LOCAL_NETMASK   0xFFFFFF00
 #define DEFAULT_GW_IP 	0xC0A80101
 #endif
 
 #ifdef WORK_PC
-#define LOCAL_IP	0xC0A8F765
+#define LOCAL_IP	0xC0A8ED65
 #define LOCAL_NETMASK   0xFFFFFF00
-#define DEFAULT_GW_IP   0xC0A8F701
+#define DEFAULT_GW_IP   0xC0A8ED01
 #endif
 
 #ifdef AMAZON

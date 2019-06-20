@@ -236,9 +236,9 @@ const char* source_files[] =
 
 int main(int argc, char **argv) 
 {
-	char tmp[6];
+	char tmp[20];
 	t_stat stat_data;
-	unsigned int file_size;
+	int file_size;
 	int path_size;
 	int source_id;
 	int len_read;
@@ -256,16 +256,16 @@ int main(int argc, char **argv)
 	send_addr.sin_family = AF_INET;
 	((unsigned char*) &(send_addr.sin_addr.s_addr))[0]=192;
 	((unsigned char*) &(send_addr.sin_addr.s_addr))[1]=168;
-	((unsigned char*) &(send_addr.sin_addr.s_addr))[2]=247;
-	((unsigned char*) &(send_addr.sin_addr.s_addr))[3]=1;
+	((unsigned char*) &(send_addr.sin_addr.s_addr))[2]=237;
+	((unsigned char*) &(send_addr.sin_addr.s_addr))[3]=124;
 	((unsigned char*) &(send_addr.sin_port))[0]=((unsigned char*) &(port))[1];
 	((unsigned char*) &(send_addr.sin_port))[1]=((unsigned char*) &(port))[0];
 
 	printf("starting ..... \n");
-	for (j = 0; j < 500;j++) //125
+	for (j = 0; j < 1;j++) //125
 	{
 		age++;
-		printf("age is %d \n",age);
+		printf("age is... %d \n",age);
 		if (((age % 1) == 0))
 		{
 			//check_free_mem();
@@ -289,7 +289,7 @@ int main(int argc, char **argv)
 		}
 		//printf("request is %s \n",get);
 		write_socket(sockfd,get,(4 + sizeof(get_part) + path_size));
-		len_read = read_socket(sockfd,http_response,129);//123
+		len_read = read_socket(sockfd,http_response,130);//129//123
 		jj = 0;
 		do
 		{
@@ -299,11 +299,11 @@ int main(int argc, char **argv)
 		while(http_response[jj + 117] != '\n');
 		tmp[jj] = '\0';
 		file_size = atoi(tmp);
-		//printf("file size is-> %d \n",file_size);
+		//printf("file size is1-> %d \n",file_size);
 		file_size -= (len_read - 116 - jj - 3);
-		//printf("len_read is %d \n",len_read);
+		//printf("len_read is2 %d \n",len_read);
 		//printf("j is %d \n",jj);
-		//printf("new file size is %d \n",file_size);
+		//printf("new file size is3 %d \n",file_size);
 
 		tmp[0] = http_response[116 + jj + 3];
 		tmp[1] = http_response[116 + jj + 4];
@@ -314,7 +314,7 @@ int main(int argc, char **argv)
 	
 		//file_size = 1837;
 		int val = 0;
-		//printf("file size is %d \n",file_size);
+		printf("file size is %d \n",file_size);
 		int tot = 0;
 		while (file_size > 0)
 		{

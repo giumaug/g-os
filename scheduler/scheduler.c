@@ -311,58 +311,8 @@ void _exit(int status)
 	#ifdef PROFILE
 	if (current_process->pid == 2)	 //2
 	{
-		int i = 0;
-		long long time_1;
-		rdtscl(&time_1);
-		system.time_counter_4++;
-		system.timeboard_4[system.time_counter_4] = time_1;
-
-		for (i = 2;i < system.time_counter_1;i++)
-		{
-			system.exec_time_1 = system.exec_time_1 + system.timeboard_1[i];	
-		}
-		for (i = 2;i < system.time_counter_2;i++)
-		{
-			system.exec_time_2 = system.exec_time_2 + system.timeboard_2[i];	
-		}
-		for (i = 2;i < system.time_counter_3;i++)
-		{
-			system.exec_time_3 = system.exec_time_3 + system.timeboard_3[i];	
-		}
-		for (i = 2;i < system.time_counter_5;i++)
-		{
-			system.exec_time_5 = system.exec_time_5 + system.timeboard_5[i];	
-		}
-		for (i = 2;i < system.time_counter_6;i++)
-		{
-			system.exec_time_6 = system.exec_time_6 + system.timeboard_6[i];	
-		}
-		for (i = 2;i < system.time_counter_7;i++)
-		{
-			system.exec_time_7 = system.exec_time_7 + system.timeboard_7[i];	
-		}
-		for (i = 2;i < system.time_counter_8;i++)
-		{
-			system.exec_time_8 = system.exec_time_8 + system.timeboard_8[i];	
-		}
-		for (i = 2;i < system.time_counter_9;i++)
-		{
-			system.exec_time_9 = system.exec_time_9 + system.timeboard_9[i];	
-		}
-		for (i = 2;i < system.time_counter_10;i++)
-		{
-			system.exec_time_10 = system.exec_time_10 + system.timeboard_10[i];	
-		}
-		for (i = 2;i < system.time_counter_11;i++)
-		{
-			system.exec_time_11 = system.exec_time_11 + system.timeboard_11[i];	
-		}
-		for (i = 2;i < system.time_counter_12;i++)
-		{
-			system.exec_time_12 = system.exec_time_12 + system.timeboard_12[i];	
-		}
-		system.tot_mem_kmemcpy = system.exec_time_11 + system.exec_time_7 + system.exec_time_8 + system.exec_time_9;
-		printk("exit \n");
+		rdtscl(&system.end_time);
+		system.tot_exec_time = system.end_time - system.start_time;
 	}
 	#endif
 	RESTORE_IF_STATUS
@@ -382,11 +332,7 @@ int _fork(struct t_processor_reg processor_reg)
 	if (system.process_info->next_pid == 2)	
 	{
 		#ifdef PROFILE
-		long long time_1;
-		rdtscl(&time_1);
-		system.time_counter_4++;
-		system.timeboard_4[system.time_counter_4] = time_1;
-		printk("fork \n");
+		rdtscl(&system.start_time);
 		#endif
 	}
 	
