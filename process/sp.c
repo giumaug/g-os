@@ -89,6 +89,7 @@ int main_disk()
 		}
 		printf("end read=%d \n",t);
 		free(io_buffer);
+		close(f);
 	}
 	exit(0);
 }
