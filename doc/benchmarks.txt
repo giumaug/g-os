@@ -41,25 +41,3 @@ sp 300M 1G (sending data over socket + disk)
 qemu 114
 kvm   41
 --------------------------------------------------------------------
-ubuntu tcpf
-kvm 4 14
-qemu 10 33
-
-g-os tcpf
-300 1000
-kvm 6 21
-qemu 16 57
-
-
-ubuntu sp
-300 1000
-kvm 8 25
-qemu 18 58 
-
-g-os sp
-300 1000
-kvm 8 27
-qemu 26 87
-
-
-
