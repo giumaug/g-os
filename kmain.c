@@ -29,6 +29,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	static t_device_desc device_desc;
 	static u32 kernel_stack;
 
+	system.conn_desc = NULL;
 	system.fork = 0;
 	system.out = 0;
 	system.tcp_1 = 0;
@@ -120,12 +121,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	asm volatile ("movl %0,%%ebp;"::"r"(kernel_stack));
 	asm volatile ("movl %0,%%esp;"::"r"(kernel_stack));
 	STI
-	process_0();
-//	long ebp;
-//	long esp;
-//	asm("mov %%ebp,%0;":"=r"(ebp));
-//	asm("mov %%esp,%0;":"=r"(esp));
-//	if (ebp == esp == 0) while(1);			       	
+	process_0();	       	
 }
 
 void panic()

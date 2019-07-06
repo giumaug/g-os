@@ -1,8 +1,8 @@
 #ifndef COMMON_NETWORK_H                
 #define COMMON_NETWORK_H
 
-//#define HOME_PC
-#define WORK_PC
+#define HOME_PC
+//#define WORK_PC
 //#define AMAZON
 
 #define ARP_REQUEST_TIMEOUT   200

@@ -256,13 +256,13 @@ int main(int argc, char **argv)
 	send_addr.sin_family = AF_INET;
 	((unsigned char*) &(send_addr.sin_addr.s_addr))[0]=192;
 	((unsigned char*) &(send_addr.sin_addr.s_addr))[1]=168;
-	((unsigned char*) &(send_addr.sin_addr.s_addr))[2]=237;
-	((unsigned char*) &(send_addr.sin_addr.s_addr))[3]=124;
+	((unsigned char*) &(send_addr.sin_addr.s_addr))[2]=1;
+	((unsigned char*) &(send_addr.sin_addr.s_addr))[3]=36;
 	((unsigned char*) &(send_addr.sin_port))[0]=((unsigned char*) &(port))[1];
 	((unsigned char*) &(send_addr.sin_port))[1]=((unsigned char*) &(port))[0];
 
 	printf("starting ..... \n");
-	for (j = 0; j < 1;j++) //125
+	for (j = 0; j < 500;j++) //125
 	{
 		age++;
 		printf("age is... %d \n",age);

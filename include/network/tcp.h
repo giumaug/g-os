@@ -18,19 +18,19 @@
 #define TCP_CONN_MAP_SIZE 	20
 #define EPHEMERAL_PORT_MAP_SIZE 20
 
-//#define INC_WND(cur,wnd_size,offset)  (cur + offset) % wnd_size
+#define CHK_OVRFLW(val,ref) ((unsigned int)val >= (unsigned int)ref ? (unsigned int)val : (long long)((long long)val + (long long)4294967295))
 #define INC_WND(cur,wnd_size,offset) (((cur + offset) <= wnd_size) ? (cur = cur + offset) : (cur = ((cur + offset) % wnd_size)))
 #define SLOT_WND(cur,wnd_size) (cur % wnd_size)
 #define DATA_IN_WND(min,max,index)								        \
-(												        \
-	(min <= max) ?											\	(												        \
+(												                        \
+	(min <= max) ?  (												    \
 		(index >= min && index <= max) ? 1 : 0							\
-	)												\
-	:											        \
-	(												\
+	)												                    \
+	:											                        \
+	(												                    \
 		(index >= max && index <= min) ? 1 : 0							\
-	)												\
-)													\
+	)												                    \
+)													                    \
 
 #define DATA_LF_OUT_WND(min,max,index) ((index < min) ? 1 : 0)
 #define DATA_RH_OUT_WND(min,max,index) ((index > min) ? 1 : 0)
@@ -140,6 +140,7 @@ typedef struct s_tcp_conn_desc
 	u32 flight_size;
 	u8 pending_ack;
 	u8 isActive;
+	u32 last_ack;
 }
 t_tcp_conn_desc;
 
