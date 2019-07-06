@@ -824,7 +824,7 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 	}
 	if (tcp_conn_desc->duplicated_ack == 0)
 	{
-		wnd_max = tcp_conn_desc->snd_queue->wnd_min + tcp_conn_desc->snd_queue->buf_size;
+		wnd_max = (long long)tcp_conn_desc->snd_queue->wnd_min + (long long)tcp_conn_desc->snd_queue->buf_size;
 		wnd_cur = CHK_OVRFLW(tcp_conn_desc->snd_queue->cur,tcp_conn_desc->snd_queue->wnd_min);
 		wnd_nxt = CHK_OVRFLW(tcp_conn_desc->snd_queue->nxt_snd,tcp_conn_desc->snd_queue->wnd_min);
 		if (skip_ack == 0)
