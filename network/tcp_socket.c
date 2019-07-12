@@ -361,17 +361,9 @@ int enqueue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		b_free_size = wnd_max - CHK_OVRFLW(tcp_queue->cur,tcp_queue->wnd_min);
 		if (b_free_size < data_len)
 		{
-			if (wnd_max == 4294967295)
-			{
-				printk(".");
-			}
 			CURRENT_PROCESS_CONTEXT(tcp_conn_desc->process_context);
 			tcp_queue->pnd_data = data_len;
-			//printk("0");
-			system.conn_desc = tcp_conn_desc;
 			_sleep();
-			//printk("4");
-			system.sleep_count++;
 			wnd_max = tcp_queue->wnd_min + tcp_queue->buf_size;
 			b_free_size = wnd_max - CHK_OVRFLW(tcp_queue->cur,tcp_queue->wnd_min);
 			if (b_free_size < data_len)

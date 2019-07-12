@@ -238,8 +238,6 @@ void int_handler_i8254x()
 		cur=i8254x->rx_cur;
 		rx_desc=i8254x->rx_desc;
 		old_cur=cur;
-		system.tot_int++;
-                int xxx = read_i8254x(i8254x,0xc4);
 		while(rx_desc[cur].status & 0x1)
 		{
 			int_count++;
