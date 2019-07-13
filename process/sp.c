@@ -94,6 +94,7 @@ int main()
 				current_len = file_len;
 				while (current_len > 0)
 				{
+					//printf("current_len is %d \n",current_len);
 					//b_read = read(f,io_buffer,b_to_read);
 					b_read = b_to_read;
 					ret = write_socket(client_sockfd,buffer_1,b_read);
