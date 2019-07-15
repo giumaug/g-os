@@ -28,27 +28,8 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	static t_ext2 ext2;
 	static t_device_desc device_desc;
 	static u32 kernel_stack;
-
-	system.conn_desc = NULL;
-	system.fork = 0;
-	system.out = 0;
-	system.tcp_1 = 0;
-	system.piggy_timeout = 0;
-	system.rtrsn_timeout = 0;
 	system.time = 0;
 	system.flush_network = 0;
-	system.tot_int = 0;
-	system.packet_sent = 0;
-	system.packet_received = 0;
-	system.counter = 0;
-	system.max_processed_packet = 0;
-	system.sleep_count = 0;
-	system.tot_sent = 0;
-	#ifdef PROFILE
-	system.tot_exec_time = 0;
-	system.tot_rcv_time = 0;
-	system.tot_read_time = 0;
-	#endif
 
 	init_data = init_data_add;
 	if ( magic != 0x2BADB002 )

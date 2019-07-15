@@ -11,7 +11,7 @@ sp 300M 1G (sending data over socket)
 qemu 26 87
 kvm  8 27
 
-tcpf  300 1G (receiving data from socket)
+tcpf  300 1G (receiving data from socket) (usare ht sotto /home/peppe/Scrivania/image/test come server )
 qemu 16 57
 kvm   6 21
 

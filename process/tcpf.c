@@ -257,12 +257,12 @@ int main(int argc, char **argv)
 	((unsigned char*) &(send_addr.sin_addr.s_addr))[0]=192;
 	((unsigned char*) &(send_addr.sin_addr.s_addr))[1]=168;
 	((unsigned char*) &(send_addr.sin_addr.s_addr))[2]=1;
-	((unsigned char*) &(send_addr.sin_addr.s_addr))[3]=36;
+	((unsigned char*) &(send_addr.sin_addr.s_addr))[3]=11;
 	((unsigned char*) &(send_addr.sin_port))[0]=((unsigned char*) &(port))[1];
 	((unsigned char*) &(send_addr.sin_port))[1]=((unsigned char*) &(port))[0];
 
 	printf("starting ..... \n");
-	for (j = 0; j < 500;j++) //125
+	for (j = 0; j < 1;j++) //125
 	{
 		age++;
 		printf("age is... %d \n",age);
@@ -287,9 +287,10 @@ int main(int argc, char **argv)
 		{
 			get[i + path_size + 4] = get_part[i];
 		}
-		//printf("request is %s \n",get);
+		printf("request is %s \n",get);
 		write_socket(sockfd,get,(4 + sizeof(get_part) + path_size));
-		len_read = read_socket(sockfd,http_response,130);//129//123
+		len_read = read_socket(sockfd,http_response,129);//129//123
+		printf("len read is %d \n",len_read);
 		jj = 0;
 		do
 		{
@@ -299,11 +300,8 @@ int main(int argc, char **argv)
 		while(http_response[jj + 117] != '\n');
 		tmp[jj] = '\0';
 		file_size = atoi(tmp);
-		//printf("file size is1-> %d \n",file_size);
+		printf("jjj is %d \n",jj);
 		file_size -= (len_read - 116 - jj - 3);
-		//printf("len_read is2 %d \n",len_read);
-		//printf("j is %d \n",jj);
-		//printf("new file size is3 %d \n",file_size);
 
 		tmp[0] = http_response[116 + jj + 3];
 		tmp[1] = http_response[116 + jj + 4];
