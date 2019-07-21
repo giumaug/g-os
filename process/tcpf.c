@@ -256,19 +256,19 @@ int main(int argc, char **argv)
 	send_addr.sin_family = AF_INET;
 	((unsigned char*) &(send_addr.sin_addr.s_addr))[0]=192;
 	((unsigned char*) &(send_addr.sin_addr.s_addr))[1]=168;
-	((unsigned char*) &(send_addr.sin_addr.s_addr))[2]=1;
-	((unsigned char*) &(send_addr.sin_addr.s_addr))[3]=11;
+	((unsigned char*) &(send_addr.sin_addr.s_addr))[2]=247;
+	((unsigned char*) &(send_addr.sin_addr.s_addr))[3]=1;
 	((unsigned char*) &(send_addr.sin_port))[0]=((unsigned char*) &(port))[1];
 	((unsigned char*) &(send_addr.sin_port))[1]=((unsigned char*) &(port))[0];
 
 	printf("starting ..... \n");
-	for (j = 0; j < 1;j++) //125
+	for (j = 0; j < 5000;j++) //125
 	{
 		age++;
 		printf("age is... %d \n",age);
 		if (((age % 1) == 0))
 		{
-			//check_free_mem();
+			check_free_mem();
 		}
 		sockfd = socket(AF_INET, SOCK_STREAM, 0);
 		connect(sockfd,(struct sockaddr *) &send_addr, sizeof(send_addr));

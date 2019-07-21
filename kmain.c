@@ -30,6 +30,11 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	static u32 kernel_stack;
 	system.time = 0;
 	system.flush_network = 0;
+	system.conn = NULL;
+	system.sb = 0;
+	system.sb_1 = 0;
+	system.sb_2 = 0;
+	system.max_seq_num = 0;
 
 	init_data = init_data_add;
 	if ( magic != 0x2BADB002 )

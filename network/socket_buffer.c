@@ -23,8 +23,12 @@ void enqueue_sckt(t_sckt_buf_desc* sckt_buf_desc,t_data_sckt_buf* data_sckt_buf)
 	if (sckt_buf_desc->buf_index+1<=sckt_buf_desc->buf_size)
 	{						
 		enqueue(sckt_buf_desc->buf,data_sckt_buf);	
-		sckt_buf_desc->buf_index++;			
-	}							
+		sckt_buf_desc->buf_index++;
+		if (sckt_buf_desc->buf_index > 50)
+		{
+			panic();
+		}			
+	}						
 	RESTORE_IF_STATUS
 }
 
@@ -53,6 +57,8 @@ t_data_sckt_buf* alloc_sckt(u16 data_len)
 	data=kmalloc(data_len);
 	data_sckt_buf->data=data;
 	data_sckt_buf->data_len=data_len;
+	system.sb ++;
+	system.sb_1 ++;
 	RESTORE_IF_STATUS
 	return data_sckt_buf;
 }
@@ -66,6 +72,8 @@ t_data_sckt_buf* alloc_void_sckt()
 	data_sckt_buf=kmalloc(sizeof(t_data_sckt_buf));
 	data_sckt_buf->data=NULL;
 	data_sckt_buf->data_len=0;
+	system.sb ++;
+	system.sb_1 ++;
 	RESTORE_IF_STATUS
 	return data_sckt_buf;
 }
@@ -78,6 +86,8 @@ void free_sckt(t_data_sckt_buf* data_sckt_buf)
 	{
 		kfree(data_sckt_buf->data);
 	}
+	system.sb --;
+	system.sb_2 --;
 	kfree(data_sckt_buf);
 	RESTORE_IF_STATUS
 }

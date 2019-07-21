@@ -87,7 +87,12 @@ typedef struct s_system
 	t_llist* timer_list;
 	u8 force_scheduling;
 	u8 flush_network;
-}
+	struct s_tcp_conn_desc* conn;
+	int sb;
+	int sb_1;
+	int sb_2;
+	u32 max_seq_num;
+ }
 t_system;
 
 extern t_system system;
