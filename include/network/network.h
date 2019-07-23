@@ -7,12 +7,14 @@
 #include "network/socket_buffer.h"
 #include "network/socket.h"
 #include "network/tcp.h"
+#include "network/udp.h"
 #include "drivers/i8254x/i8254x.h"
 
 struct s_i8254x;
 struct s_sckt_buf_desc;
 struct s_socket_desc;
 struct s_tcp_desc;
+struct s_udp_desc;
 
 typedef struct s_network_desc
 {
@@ -23,8 +25,8 @@ typedef struct s_network_desc
 	u32 ip;
 	u32 netmask;
     	u32 default_gw_ip;
-	struct s_socket_desc* socket_desc;
 	struct s_tcp_desc* tcp_desc;
+	struct s_udp_desc* udp_desc;
 }
 t_network_desc;
 
