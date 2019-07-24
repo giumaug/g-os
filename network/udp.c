@@ -35,6 +35,7 @@ t_udp_desc* udp_init()
 	udp_desc->ep_port_map = hashtable_init(UDP_EPMRL_PORT_MAP_SIZE);
 	udp_desc->conn_map = hashtable_init(UDP_CONN_MAP_SIZE);
 	udp_desc->ep_port_index = 32767;
+	SPINLOCK_INIT(udp_desc->lock);
 	return udp_desc;
 }
 
@@ -79,6 +80,9 @@ int send_packet_udp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,char* data,u
 	t_data_sckt_buf* data_sckt_buf = NULL;
 	char* ip_payload = NULL;
 
+	SAVE_IF_STATUS
+	CLI
+	ret = 0;
 	data_sckt_buf = alloc_sckt(data_len + HEADER_ETH + HEADER_IP4 + HEADER_UDP);
 	data_sckt_buf->transport_hdr = data_sckt_buf->data + HEADER_ETH + HEADER_IP4;
 	ip_payload = data_sckt_buf->transport_hdr + HEADER_UDP;
@@ -101,36 +105,41 @@ int send_packet_udp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,char* data,u
 		chk=SWAP_WORD(checksum_udp((unsigned short*) udp_row_packet,src_ip,dst_ip,data_len));
 		udp_row_packet[6]=HI_16(chk);
 		udp_row_packet[7]=LOW_16(chk);
-		ret=send_packet_ip4(data_sckt_buf,src_ip,dst_ip,ip_packet_len,UDP_PROTOCOL);
+		send_packet_ip4(data_sckt_buf,src_ip,dst_ip,ip_packet_len,UDP_PROTOCOL);
+		ret = data_len;
 	}
 	else
 	{
 		//size not supported
 	}
+	RESTORE_IF_STATUS
 	return ret;
 }
 
 void rcv_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 data_len)
 {
+	static int xxx = 0;
 	unsigned char* udp_row_packet;
 	t_socket* socket = NULL;
 	u16 dst_port;
-	
+
+	SAVE_IF_STATUS
+	CLI
 	udp_row_packet=data_sckt_buf->transport_hdr;			 
 	dst_port=GET_WORD(udp_row_packet[2],udp_row_packet[3]);
 
+	system.xxx++;
 	if (checksum_udp((unsigned short*) udp_row_packet,src_ip,dst_ip,data_len)==0)
 	{
 		socket = hashtable_get(system.network_desc->udp_desc->conn_map,dst_port);
 		if (socket!=NULL) 
 		{
-			SPINLOCK_LOCK(*socket->lock);
 			enqueue(socket->udp_conn_desc->rx_queue,data_sckt_buf);			
-			if (socket->process_context!=NULL)
+			if (socket->process_context != NULL)
 			{
 				_awake(socket->process_context);
+				socket->process_context = NULL;
 			}
-			SPINLOCK_UNLOCK(*socket->lock);
 		}
 		else
 		{
@@ -141,15 +150,17 @@ void rcv_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	{
 		free_sckt(data_sckt_buf);
 	}
+	RESTORE_IF_STATUS
 }
 
 void close_udp(t_socket* socket)
 {
-	SPINLOCK_LOCK(system.network_desc->udp_desc->lock);
+	SAVE_IF_STATUS
+	CLI
 	hashtable_remove(system.network_desc->udp_desc->ep_port_map,socket->udp_conn_desc->src_ip);
 	hashtable_remove(system.network_desc->udp_desc->conn_map,socket->udp_conn_desc->src_port);
 	udp_conn_desc_free(socket->udp_conn_desc);
-	SPINLOCK_LOCK(system.network_desc->udp_desc->lock);
+	RESTORE_IF_STATUS
 }
 
 int dequeue_packet_udp(int sockfd,unsigned char* src_ip,unsigned char* src_port,void* data,u32 data_len)
@@ -161,8 +172,10 @@ int dequeue_packet_udp(int sockfd,unsigned char* src_ip,unsigned char* src_port,
 	unsigned int _src_port;
 	u32 read_data;
 
+	SAVE_IF_STATUS
+	CLI
 	CURRENT_PROCESS_CONTEXT(process_context);
-	socket = hashtable_get(process_context->socket_desc,sockfd);------ma non occorre disabilitare int?
+	socket = hashtable_get(process_context->socket_desc,sockfd);
 	data_sckt_buf = dequeue(socket->udp_conn_desc->rx_queue);
 	if (data_sckt_buf == NULL)
 	{
@@ -196,6 +209,7 @@ int dequeue_packet_udp(int sockfd,unsigned char* src_ip,unsigned char* src_port,
 	}
 	kmemcpy(data,data_sckt_buf->transport_hdr+HEADER_UDP,read_data);
 	free_sckt(data_sckt_buf);
+	RESTORE_IF_STATUS
 	return read_data;
 }
 

@@ -30,7 +30,7 @@ struct s_tcp_conn_desc;
 
 typedef struct s_socket
 {
-	struct s_spinlock_desc* lock;
+	struct s_spinlock_desc lock;
 	struct t_process_context* process_context;
 	struct s_udp_conn_desc* udp_conn_desc;
 	struct s_tcp_conn_desc* tcp_conn_desc;

@@ -88,6 +88,7 @@ typedef struct s_system
 	u8 force_scheduling;
 	u8 flush_network;
 	struct s_tcp_conn_desc* conn;
+	u32 xxx;
  }
 t_system;
 

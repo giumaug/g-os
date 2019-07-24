@@ -62,8 +62,12 @@
 t_socket* socket_init(int type)
 {
 	t_socket* socket = NULL;
-	
 	socket = kmalloc(sizeof(t_socket));
+	SPINLOCK_INIT(socket->lock);
+	socket->type = type;
+	socket->process_context = NULL;
+	socket->udp_conn_desc = NULL;
+	socket->tcp_conn_desc = NULL;
 	return 	socket;
 }
 
@@ -264,11 +268,7 @@ int _sendto(int sockfd,u32 dst_ip,u16 dst_port,void* data,u32 data_len)
 				hashtable_put(system.network_desc->udp_desc->conn_map,udp_conn_desc->src_port,socket);
 				SPINLOCK_UNLOCK(system.network_desc->udp_desc->lock);
 			}
-			ret = send_packet_udp(system.network_desc->ip,dst_ip,udp_conn_desc->src_port,dst_port,data,data_len);
-			if (ret == 0)
-			{
-				ret = data_len;
-			}
+			ret = send_packet_udp(system.network_desc->ip,dst_ip,socket->udp_conn_desc->src_port,dst_port,data,data_len);
 		}
 		else if (socket->type == 1)
 		{
@@ -285,6 +285,7 @@ int _close_socket(int sockfd)
 
 	CURRENT_PROCESS_CONTEXT(process_context);
 	socket = hashtable_remove(process_context->socket_desc,sockfd);
+	
 	socket_free(socket);
 }
 

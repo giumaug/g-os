@@ -1089,19 +1089,6 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 	char* tcp_header = NULL;
 	u32 tcp_header_len;
 
-/*
-	counter++;
-	if ((counter % 5000 == 0) || 
-	    ((counter + 1) % 5000 == 0) ||
-	    ((counter + 2) % 5000 == 0) ||
-	    ((counter + 3) % 5000 == 0) ||
-	    ((counter + 4) % 5000 == 0))
-	{
-		printk("k");
-		return;
-	}
-*/
-
 	if (flags & FLG_SYN)
 	{
 		tcp_header_len = HEADER_TCP + 4;
@@ -1210,15 +1197,4 @@ unsigned int _rand()
 	static u32 seed;
         seed = seed * 1103515245 + 12345;
         return (seed % ((unsigned int)RAND_MAX + 1));
-}
-
-void dummy_2()
-{
-	return;
-}
-
-void dummy()
-{
-	dummy_2();
-	return;
 }
