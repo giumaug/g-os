@@ -17,7 +17,7 @@
 #define WND_ADV         	2048
 #define TCP_CONN_MAP_SIZE 	20
 #define EPHEMERAL_PORT_MAP_SIZE 20
-//__#define CHK_OVRFLW(val,ref) ((unsigned int)val >= (unsigned int)ref ? (unsigned int)val : (long long)((long long)val + (long long)4294967295))
+//___#define CHK_OVRFLW(val,ref) ((unsigned int)val >= (unsigned int)ref ? (unsigned int)val : (long long)((long long)val + (long long)4294967295))
 #define CHK_OVRFLW(val,ref) val
 #define INC_WND(cur,wnd_size,offset) (((cur + offset) <= wnd_size) ? (cur = cur + offset) : (cur = ((cur + offset) % wnd_size)))
 #define SLOT_WND(cur,wnd_size) (cur % wnd_size)
