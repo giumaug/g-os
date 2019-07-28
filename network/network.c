@@ -7,16 +7,17 @@ t_network_desc* network_init()
 {
 	t_network_desc* network_desc;
 
-	network_desc=kmalloc(sizeof(t_network_desc));
-	network_desc->tx_queue=sckt_buf_desc_init();
-	network_desc->rx_queue=sckt_buf_desc_init();
-	network_desc->dev=init_8254x();
-	network_desc->ip=LOCAL_IP;
-	network_desc->netmask=LOCAL_NETMASK;
-	network_desc->default_gw_ip=DEFAULT_GW_IP;
+	network_desc = kmalloc(sizeof(t_network_desc));
+	network_desc->tx_queue = sckt_buf_desc_init();
+	network_desc->rx_queue = sckt_buf_desc_init();
+	network_desc->dev = init_8254x();
+	network_desc->ip = LOCAL_IP;
+	network_desc->netmask = LOCAL_NETMASK;
+	network_desc->default_gw_ip = DEFAULT_GW_IP;
 	arp_init();
-	network_desc->tcp_desc=tcp_init();
-	network_desc->udp_desc=udp_init();
+	network_desc->tcp_desc = tcp_init();
+	network_desc->udp_desc = udp_init();
+	network_desc->icmp_desc = icmp_init();
 	return network_desc;
 }
 
@@ -27,6 +28,7 @@ void network_free(t_network_desc* network_desc)
 	free_8254x(network_desc->dev);
 	tcp_free(network_desc->tcp_desc);
 	udp_free(network_desc->udp_desc);
+	icmp_free(network_desc->icmp_desc);
 	kfree(network_desc);
 }
 

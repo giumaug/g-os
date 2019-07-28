@@ -27,6 +27,7 @@ typedef struct s_console_desc
 	struct t_process_context* sleeping_process;
 	unsigned int is_empty;
 	t_spinlock_desc spinlock;
+	u32 fg_pgid;
 }
 t_console_desc;
 

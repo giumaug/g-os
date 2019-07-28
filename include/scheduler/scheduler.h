@@ -3,6 +3,10 @@
 
 #include "system.h"
 
+#define PID_HASH_SIZE   20
+#define PGPID_HASH_SIZE 20
+#define PGID_HASH_SIZE  20
+
 //To create a new kernel thread fork with THREAD_FORK from existing one.Then from child thread use THREAD_EXEC.
 //To switch kernel thread to user mode process call _exec from child thread.
 
@@ -49,5 +53,10 @@ int _fork(struct t_processor_reg processor_reg);
 void _sleep();
 void _sleep_time(unsigned int time);
 void _sleep_and_unlock(t_spinlock_desc* lock);
+unsigned short _getpid();
+u32 _getpgid(u32 pid);
+int _setpgid(u32 pid,u32 pgid);
+u32 _tcgetpgrp();
+u32 _tcsetpgrp(u32 fg_pgid);
 
 #endif

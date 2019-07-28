@@ -343,13 +343,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		{
 			ack_num = seq_num + 1;
 			tcp_req_desc->rcv_queue->nxt_rcv = ack_num;
-
-//			sort();
-//			for (i = 0; i< 140000;i++)
-//			{
-//				foo();
-//			}
-
 			_SEND_PACKET_TCP(tcp_req_desc,NULL,0,ack_num,FLG_ACK,++tcp_req_desc->snd_queue->nxt_snd);
 			tcp_conn_map_remove(tcp_desc->req_map,dst_ip,src_ip,dst_port,src_port);
 			tcp_conn_map_put(tcp_desc->conn_map,dst_ip,src_ip,dst_port,src_port,tcp_req_desc);
@@ -415,7 +408,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 				tcp_conn_map_put(tcp_desc->conn_map,dst_ip,src_ip,dst_port,src_port,new_tcp_conn_desc);
 				new_tcp_conn_desc->status = ESTABILISHED;		
 				new_tcp_conn_desc->snd_queue->nxt_snd++;
-				new_tcp_conn_desc->snd_queue->cur =  new_tcp_conn_desc->snd_queue->nxt_snd;
+				new_tcp_conn_desc->snd_queue->cur = new_tcp_conn_desc->snd_queue->nxt_snd;
 				new_tcp_conn_desc->rcv_wmd_adv = rcv_wmd_adv;
 				new_tcp_conn_desc->snd_queue->wnd_min = new_tcp_conn_desc->snd_queue->nxt_snd;
 				upd_max_adv_wnd(new_tcp_conn_desc,rcv_wmd_adv);
@@ -435,13 +428,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		printk("no conn \n");
 		goto EXIT;
 	}
-
-	//-----------
-	if (system.conn == NULL)
-	{
-		system.conn = tcp_conn_desc;
-	}
-	//----------
 
 	t_tcp_rcv_queue* tcp_queue = tcp_conn_desc->rcv_queue;
 	upd_max_adv_wnd(tcp_conn_desc,rcv_wmd_adv);
@@ -626,25 +612,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			printk("window full!!! ");
 			goto EXIT;
 		}
-//		is_new_data = update_rcv_window_and_ack(tcp_queue,data_len,seq_num);
-//		if (tcp_conn_desc->process_context != NULL && is_new_data > 0)
-//		{
-//			_awake(tcp_conn_desc->process_context);
-//			printk("a");
-//			tcp_conn_desc->process_context = NULL;
-//			if (tcp_queue->nxt_rcv - tcp_queue->wnd_min == 0)
-//			{
-//				panic();
-//			}
-//		}
-//		else
-//		{
-//			//COULD HAPPEN WITH OUT OF ORDER PACKET.PANIC NO NEEDED.			
-//			if(tcp_conn_desc->process_context != NULL && is_new_data == 0)
-//			{
-//				//panic();
-//			}
-//		}
 	}
 	//CHECK DUPLICATE ACK DEFINITION RFC5681
 	if (CHK_OVRFLW(tcp_conn_desc->snd_queue->nxt_snd,tcp_conn_desc->snd_queue->wnd_min) - (long long)tcp_conn_desc->snd_queue->wnd_min > 0)
@@ -775,12 +742,6 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 data_len)
 		update_snd_window(tcp_conn_desc,ack_seq_num,data_len,0);
 	}
 }
-
-//long long _chk_ovrflw(unsigned int val,unsigned int ref)
-//{
-//	long long xxx = ((unsigned int)val >= (unsigned int)ref ? (unsigned int)val : (long long)((long long)val + (long long)4294967295));
-//	return xxx;
-//}
 
 void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_data_len,u8 skip_ack)
 {

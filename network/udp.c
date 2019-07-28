@@ -128,7 +128,6 @@ void rcv_packet_udp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	udp_row_packet=data_sckt_buf->transport_hdr;			 
 	dst_port=GET_WORD(udp_row_packet[2],udp_row_packet[3]);
 
-	system.xxx++;
 	if (checksum_udp((unsigned short*) udp_row_packet,src_ip,dst_ip,data_len)==0)
 	{
 		socket = hashtable_get(system.network_desc->udp_desc->conn_map,dst_port);
@@ -234,15 +233,13 @@ static u16 checksum_udp(char* udp_row_packet,u32 src_ip,u32 dst_ip,u16 data_len)
 	header_virt[10] = udp_row_packet[4];
 	header_virt[11] = udp_row_packet[5];
 
-	packet_len=HEADER_UDP+data_len;	
-	chk=checksum((unsigned short*) udp_row_packet,packet_len);
-	chk_virt=checksum((unsigned short*) header_virt,12);
+	packet_len = HEADER_UDP + data_len;	
+	chk = checksum((unsigned short*) udp_row_packet,packet_len);
+	chk_virt = checksum((unsigned short*) header_virt,12);
 
 	chk_final[0]=LOW_16(~chk_virt);
 	chk_final[1]=HI_16(~chk_virt);
 	chk_final[2]=LOW_16(~chk);
 	chk_final[3]=HI_16(~chk);
-	u16 xxx=checksum(chk_final,4);
-	//return ~checksum(chk_final,4);
 	return checksum(chk_final,4);
 }

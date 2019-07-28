@@ -16,6 +16,9 @@
 #define PROCESS_INIT_FILE   10
 #define PROCESS_INIT_SOCKET 10
 
+#define SIGINT   2
+#define SIGCHLD 17
+
 struct s_mem_reg;
 
 typedef enum s_proc_status
@@ -49,7 +52,8 @@ struct t_processor_reg
 struct t_process_context 
 {
 	struct t_processor_reg processor_reg;
-        unsigned int pid; 
+        unsigned int pid;
+	unsigned int pgid;
 	struct t_process_context* parent;
 	unsigned int tick;
 	struct s_console_desc* console_desc;
@@ -77,8 +81,7 @@ struct t_process_context
 	t_elf_desc* elf_desc;
 	t_hashtable* socket_desc;
 	u32 next_sd;
-	u32 start_time;
-	u32 end_time;
+	u8 sig_num;
 };
 
 struct t_process_info 
@@ -94,6 +97,8 @@ struct t_process_info
 	u32 heap_start_addr;
 	u32 heap_size;
 	t_llist* mem_regs;
+	t_hashtable* pid_hash;
+	t_hashtable* pgid_hash;
 };
 
 #endif

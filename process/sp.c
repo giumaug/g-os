@@ -56,7 +56,6 @@ int main()
 	((unsigned char*) &(server_address.sin_port))[0]=((unsigned char*) &(port))[1];
 	((unsigned char*) &(server_address.sin_port))[1]=((unsigned char*) &(port))[0];
 //------------------------------------------------------------------------------
-
 	for (t=0;t<65536;t++)
 	{
 		buffer_1[t] = *s;

@@ -134,3 +134,15 @@ int close_socket(int sockfd)
 	return  params[0];
 }
 
+//custom system call to manage ping
+ping(unsigned int dst_ip,unsigned short icmp_msg_id,unsigned short icmp_msg_seq)
+{
+	unsigned int params[4];
+
+	params[0] = dst_ip;
+	params[1] = icmp_msg_id;
+	params[2] = icmp_msg_seq;
+	SYSCALL(37,params);
+	return  params[3];
+}
+

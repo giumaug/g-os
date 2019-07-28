@@ -242,80 +242,80 @@ void _pause()
 
 	SAVE_IF_STATUS
 	CLI
-	pause_queue=system.process_info->pause_queue;
-	current_process=system.process_info->current_process->val;
-	ll_prepend(pause_queue,current_process);	
-	_sleep();
+	current_process = system.process_info->current_process->val;
+	if (current_process->sig_num != SIGCHLD)
+	{
+		pause_queue = system.process_info->pause_queue;
+		ll_prepend(pause_queue,current_process);	
+		_sleep();
+		if (current_process->sig_num == SIGCHLD)
+		{
+			current_process->sig_num = NULL;
+		}
+	}
 	RESTORE_IF_STATUS
 }
 
 void _exit(int status)
 {
 	unsigned int exit_action=2;
-	t_llist_node* next;
-	t_llist_node* sentinel;
-	unsigned int awake_process=0;
-	struct t_process_context* current_process;
-	struct t_process_context* next_process;
+	t_llist_node* next = NULL;
+	t_llist_node* sentinel = NULL;
+	unsigned int awake_process = 0;
+	struct t_process_context* current_process = NULL;
+	struct t_process_context* next_process = NULL;
 	unsigned int* ret;
 	
 	SAVE_IF_STATUS
 	CLI
 	//process 0 never die
 	CURRENT_PROCESS_CONTEXT(current_process);
-	if (current_process->pid==0)
+	if (current_process->pid == 0)
 	{
 		while(1) 
 		{
 			asm("sti;hlt");
 		}
 	}
-	current_process->proc_status=EXITING;
-	sentinel=ll_sentinel(system.process_info->pause_queue);
-	next=ll_first(system.process_info->pause_queue);
+	current_process->proc_status = EXITING;
+	sentinel = ll_sentinel(system.process_info->pause_queue);
+	next = ll_first(system.process_info->pause_queue);
 	next_process=next->val;
-	while(next!=sentinel && !awake_process)
+	while(next != sentinel && !awake_process)
 	{	
-		if (next_process->pid==current_process->parent->pid)
+		if (next_process->pid == current_process->parent->pid)
 		{
-			awake_process=1;
+			awake_process = 1;
 		}
 		if (awake_process)
 		{
 			_awake(next->val);
 			ll_delete_node(next);
 		}
-		next=ll_next(next);
+		next = ll_next(next);
 		next_process=next->val;
 	}
-	if (current_process->elf_desc!=NULL)
+	if (current_process->elf_desc != NULL)
 	{
 		elf_loader_free(current_process->elf_desc);
 		kfree(current_process->elf_desc);
 	}
-	if (current_process->process_type==USERSPACE_PROCESS)
+	if (current_process->process_type == USERSPACE_PROCESS)
 	{
 		delete_mem_reg(current_process->process_mem_reg);
 		delete_mem_reg(current_process->heap_mem_reg);
 		delete_mem_reg(current_process->ustack_mem_reg);
 	}
-	
 	hashtable_free(current_process->file_desc);
 	hashtable_free(current_process->socket_desc);
-
-	#ifdef PROFILE
-	if (current_process->pid == 2)	 //2
-	{
-		rdtscl(&system.end_time);
-		system.tot_exec_time = system.end_time - system.start_time;
-	}
-	#endif
+	hashtable_remove(system.process_info->pid_hash,current_process->pid);
 	RESTORE_IF_STATUS
 }
 
 int _fork(struct t_processor_reg processor_reg) 
 {
 	int i = 0;
+	t_llist* pgid_list = NULL;
  	struct t_process_context* child_process_context = NULL;
 	struct t_process_context* parent_process_context = NULL;
 	t_hashtable* child_file_desc = NULL;
@@ -337,7 +337,11 @@ int _fork(struct t_processor_reg processor_reg)
 	child_process_context->phy_kernel_stack = FROM_VIRT_TO_PHY(kernel_stack_addr);
 	kmemcpy(kernel_stack_addr,FROM_PHY_TO_VIRT(parent_process_context->phy_kernel_stack),KERNEL_STACK_SIZE);
 	child_process_context->pid = system.process_info->next_pid++;
-
+	child_process_context->pgid = parent_process_context->pgid;
+	hashtable_put(system.process_info->pid_hash,child_process_context->pid,child_process_context);
+	pgid_list = new_dllist();
+	hashtable_put(system.process_info->pgid_hash,child_process_context->pgid,pgid_list);	
+	child_process_context->sig_num = 0;
 	child_process_context->parent = parent_process_context;
 //	TEMPORARY TRICK.CORRECT SOLUTION IS TO ADD A POINTER TO CLONER FUNTION IN HASMAP CLONE ALONSIDE DESTRUCTOR POINTER
 //	ALSO INODE SHOULD NOT BE CLONED!!!!!!!	
@@ -364,7 +368,6 @@ int _fork(struct t_processor_reg processor_reg)
 							 parent_process_context->process_type,
 							 FROM_VIRT_TO_PHY(kernel_stack_addr));
 
-	child_process_context->start_time = system.time;
 	RESTORE_IF_STATUS
 	return child_process_context->pid;
 }
@@ -505,4 +508,75 @@ void _sleep_time(unsigned int time)
 	ll_prepend(sleep_wait_queue,current_process);	
 	_sleep();
 	RESTORE_IF_STATUS
+}
+
+unsigned short _getpid()
+{
+	struct t_process_context* process_context = NULL;
+
+	CURRENT_PROCESS_CONTEXT(process_context);
+	return process_context->pid;
+}
+
+u32 _getpgid(u32 pid)
+{
+	struct t_process_context* process_context = NULL;
+
+	process_context = hashtable_get(system.process_info->pid_hash,pid);
+	return process_context->pgid;
+}
+
+int _setpgid(u32 pid,u32 pgid)
+{
+	u8 stop;
+	t_llist_node* sentinel = NULL;
+	t_llist_node* next = NULL;
+	t_llist* pgid_list = NULL;
+	struct t_process_context* process_context = NULL;
+	struct t_process_context* next_process_context = NULL;
+
+	stop = 0;
+	process_context = hashtable_get(system.process_info->pid_hash,pid);
+	pgid_list = hashtable_get(system.process_info->pgid_hash,process_context->pgid);
+	if (pgid_list != NULL)
+	{
+		sentinel = ll_sentinel(pgid_list);
+		next = ll_first(pgid_list);
+		while(next != sentinel && !stop)
+		{
+			next_process_context = next->val;
+			if (next_process_context->pid == pid)
+			{	
+				ll_delete_node(next);
+				stop = 1;
+			}
+		}
+	}
+	sentinel = ll_sentinel(pgid_list);
+	next = ll_first(pgid_list);
+	if (next == sentinel)
+	{
+		hashtable_remove(system.process_info->pgid_hash,process_context->pgid);
+	}
+	process_context->pgid = pgid;
+	pgid_list = hashtable_get(system.process_info->pgid_hash,pgid);
+	if (pgid_list == NULL) 
+	{
+		pgid_list = new_dllist();
+		hashtable_put(system.process_info->pgid_hash,pgid,pgid_list);	
+	}
+	ll_append(pgid_list,process_context);
+	process_context->pgid = pgid;
+	return 0;
+}
+
+u32 _tcgetpgrp()
+{
+	return system.active_console_desc->fg_pgid;
+}
+
+u32 _tcsetpgrp(u32 fg_pgid)
+{
+	system.active_console_desc->fg_pgid = fg_pgid;
+	return 0;
 }

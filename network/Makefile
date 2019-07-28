@@ -2,7 +2,7 @@ include ../make.rules
 
 vpath %.h $(INCLUDE)/network
 
-all:socket_buffer.o mac.o ip4.o arp.o network.o socket.o tcp.o tcp_socket.o tcp_conn_map.o udp.o
+all:socket_buffer.o mac.o ip4.o arp.o network.o socket.o tcp.o tcp_socket.o tcp_conn_map.o udp.o icmp.o
 
 socket_buffer.o:socket_buffer.c network.h
 		$(CC) $(CPPFLAGS) $(CFLAGS) socket_buffer.c
@@ -34,6 +34,9 @@ tcp_conn_map.o:	tcp_conn_map.c tcp_conn_map.h
 tcp_socket.o:	tcp_socket.c tcp_socket.h
 	$(CC) $(CPPFLAGS) $(CFLAGS) tcp_socket.c
 
+icmp.o:	icmp.c icmp.h
+	$(CC) $(CPPFLAGS) $(CFLAGS) icmp.c
+
 clean:	
-	rm -f socket_buffer.o mac.o ip4.o arp.o network.o socket.o tcp.o tcp_socket.o tcp_conn_map.o udp.o
+	rm -f socket_buffer.o mac.o ip4.o arp.o network.o socket.o tcp.o tcp_socket.o tcp_conn_map.o udp.o icmp.o
 

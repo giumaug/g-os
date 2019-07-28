@@ -108,6 +108,11 @@ int write(int fd, void *buf, int count);
 int chdir(char* path);
 int lseek(int fd,int offset,int whence);
 void read_test();
+unsigned short getpid();
+int getpgid(int pid);
+int setpgid(int pid,int pgid);
+int tcgetpgrp();
+int tcsetpgrp(int fg_pgid);
 
 //stat.h
 int mkdir(const char *fullpath);
@@ -127,6 +132,7 @@ int connect(int sockfd, const struct sockaddr *address,socklen_t len);
 int write_socket(int sockfd, void *buf, int count);
 int read_socket(int sockfd, void *buf, int count);
 int close_socket(int sockfd);
+int ping(unsigned int dst_ip,unsigned short icmp_msg_id,unsigned short icmp_msg_seq);
 
 
 #endif

@@ -108,6 +108,51 @@ int lseek(int fd,int offset,int whence)
 	return params[3];	
 }
 
+unsigned short getpid()
+{
+	unsigned int params[1];
+
+	SYSCALL(38,params);
+	return params[0];
+}
+
+int getpgid(int pid)
+{
+	unsigned int params[2];
+
+	SYSCALL(39,params);
+	return params[1];
+}
+
+int setpgid(int pid,int pgid)
+{
+	unsigned int params[3];
+
+	params[0] = pid;
+	params[1] = pgid;
+	printf("QUI!!!! %d \n",pid);
+	SYSCALL(40,params);
+	return params[2];
+}
+
+int tcgetpgrp()
+{
+	unsigned int params[1];
+
+	SYSCALL(41,params);
+	return params[0];
+}
+
+int tcsetpgrp(int fg_pgid)
+{
+	unsigned int params[2];
+
+	printf("QUI2!!!! \n");
+	params[0] = fg_pgid;
+	SYSCALL(42,params);
+	return params[1];
+}
+
 void read_test()
 {
 	unsigned int params[1];

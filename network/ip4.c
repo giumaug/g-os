@@ -103,23 +103,25 @@ void rcv_packet_ip4(t_data_sckt_buf* data_sckt_buf,t_mac_addr* src_mac)
 		{
 			kfree(src_mac);
 		}
-		if(ip_row_packet[9]==TCP_PROTOCOL)
+		if(ip_row_packet[9] == TCP_PROTOCOL)
 		{
 			//TCP
-			packet_len=ip_row_packet[3]+((u16)ip_row_packet[2]<<8)-HEADER_IP4-HEADER_TCP;
-			data_sckt_buf->transport_hdr=data_sckt_buf->network_hdr+HEADER_IP4;
+			packet_len = ip_row_packet[3] + ((u16) ip_row_packet[2] << 8)- HEADER_IP4 - HEADER_TCP;
+			data_sckt_buf->transport_hdr = data_sckt_buf->network_hdr + HEADER_IP4;
 			rcv_packet_tcp(data_sckt_buf,src_ip,dst_ip,packet_len);
 		}
-		else if(ip_row_packet[9]==UDP_PROTOCOL)
+		else if(ip_row_packet[9] == UDP_PROTOCOL)
 		{
-			packet_len=ip_row_packet[3]+((u16)ip_row_packet[2]<<8)-HEADER_IP4-HEADER_UDP;
-			data_sckt_buf->transport_hdr=data_sckt_buf->network_hdr+HEADER_IP4;
+			packet_len = ip_row_packet[3] + ((u16) ip_row_packet[2] << 8) - HEADER_IP4 - HEADER_UDP;
+			data_sckt_buf->transport_hdr = data_sckt_buf->network_hdr + HEADER_IP4;
 			rcv_packet_udp(data_sckt_buf,src_ip,dst_ip,packet_len);
 		}
-		else if(ip_row_packet[9]==ICMP_PROTOCOL)
+		else if(ip_row_packet[9] == ICMP_PROTOCOL)
 		{
+			packet_len = ip_row_packet[3] + ((u16) ip_row_packet[2] << 8) - HEADER_IP4 - HEADER_ICMP;
+			data_sckt_buf->transport_hdr = data_sckt_buf->network_hdr + HEADER_IP4;
+			rcv_packet_icmp(data_sckt_buf,src_ip,dst_ip,packet_len);
 			free_sckt(data_sckt_buf);
-			printk("unknow protocol \n");
 		}
 		else
 		{

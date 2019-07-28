@@ -217,7 +217,31 @@ void syscall_handler()
 		case 35:
  		params[3]=_connect(params[0],params[1],params[2]);
 		break;
-	
+
+		case 37:
+ 		params[3] = _icmp_echo_request(params[0],params[1],params[2]);        
+		break;
+
+		case 38:
+ 		params[0] = _getpid();        
+		break;
+
+		case 39:
+ 		params[1] = _getpgid(params[0]);
+		break;
+
+		case 40:
+ 		params[2] = _setpgid(params[0],params[1]);      
+		break;
+
+		case 41:
+ 		params[0] = _tcgetpgrp();      
+		break;
+
+		case 42:
+ 		params[1] = _tcsetpgrp(params[0]);   
+		break;
+
 		case 101: 
 		on_exit_action=1;
 		break;

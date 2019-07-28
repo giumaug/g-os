@@ -97,15 +97,12 @@ unsigned short checksum(unsigned short* ip, int len)
 		}		
              	len -= 2;
 	}
-
         if(len)
 	{         
 		/* take care of left over byte */
              	sum += (*ip & 0xFF);
-	}
-          
-        unsigned int ddd=sum;
-	while(sum>>16)
+	} 
+	while(sum >> 16)
 	{
              sum = (sum & 0xFFFF) + (sum >> 16);
 	}

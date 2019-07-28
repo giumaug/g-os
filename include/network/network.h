@@ -15,6 +15,7 @@ struct s_sckt_buf_desc;
 struct s_socket_desc;
 struct s_tcp_desc;
 struct s_udp_desc;
+struct s_icmp_desc;
 
 typedef struct s_network_desc
 {
@@ -27,6 +28,7 @@ typedef struct s_network_desc
     	u32 default_gw_ip;
 	struct s_tcp_desc* tcp_desc;
 	struct s_udp_desc* udp_desc;
+	struct s_icmp_desc* icmp_desc;
 }
 t_network_desc;
 

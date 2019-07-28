@@ -21,7 +21,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	static t_scheduler_desc scheduler_desc;
 	static t_buddy_desc buddy_desc;
 	static unsigned int* init_data;
-        init_data=init_data_add;
+        init_data = init_data_add;
 	static struct t_process_context* process_context = NULL;
 	static struct t_i_desc i_desc;
 	static t_console_desc console_desc;
@@ -30,8 +30,6 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	static u32 kernel_stack;
 	system.time = 0;
 	system.flush_network = 0;
-
-	system.xxx = 0;
 
 	init_data = init_data_add;
 	if ( magic != 0x2BADB002 )
@@ -69,8 +67,9 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	set_idt_entry(0x80,&i_desc);
 
 	system.process_info->sleep_wait_queue = new_dllist();	
-	system.process_info->process_context_list = new_dllist();
 	system.process_info->next_pid = 1;
+	system.process_info->pid_hash = hashtable_init(PID_HASH_SIZE);
+	system.process_info->pgid_hash = hashtable_init(PGID_HASH_SIZE);
 	
 	process_context = kmalloc(sizeof(struct t_process_context));
 	process_context->root_dir_inode_number = ROOT_INODE;
@@ -81,6 +80,10 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	process_context->static_priority = 0;
 	process_context->curr_sched_queue_index = 9;
 	process_context->pid = 0;
+	process_context->pgid = 0;
+	process_context->sig_num = 0;
+	hashtable_put(system.process_info->pgid_hash,0,new_dllist());
+	
         process_context->tick = TICK;
 	process_context->processor_reg.esp = NULL;
 	process_context->console_desc = &console_desc;
@@ -93,6 +96,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	process_context->file_desc = dc_hashtable_init(PROCESS_INIT_FILE,&inode_free);
 	process_context->socket_desc = hashtable_init(PROCESS_INIT_SOCKET);
 	process_context->next_sd = 0;
+	process_context->sig_num = 0;
 	 
 	process_context->page_dir = buddy_alloc_page(system.buddy_desc,0x1000);                      
 	init_vm_process(process_context);

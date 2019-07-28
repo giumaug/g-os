@@ -11,13 +11,13 @@ void process_0()
 {
 	unsigned int pid;
 	static char* argv[2];
-	static char argv1[]="/shell";	
+	static char argv1[] = "/shell";	
 	
-	argv[0]=argv1;
-	argv[1]=NULL;	
+	argv[0] = argv1;
+	argv[1] = NULL;	
 
     THREAD_FORK(pid);
-	if (pid==0)
+	if (pid == 0)
 	{
 		_exec("/shell",argv);	
 	}
