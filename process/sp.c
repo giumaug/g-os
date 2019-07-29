@@ -84,6 +84,7 @@ int main()
 			printf("file len is %d \n",file_len);
 			for (t = 0; t < 1;t++)
 			{
+//				check_free_mem();
 //				f = open(path, O_RDWR | O_APPEND);
 //				if (f == -1)
 //				{
@@ -95,7 +96,7 @@ int main()
 				while (current_len > 0)
 				{
 					//printf("current_len is %d \n",current_len);
-					//b_read = read(f,io_buffer,b_to_read);
+//					b_read = read(f,io_buffer,b_to_read);
 					b_read = b_to_read;
 					ret = write_socket(client_sockfd,buffer_1,b_read);
 					//ret = 1;
@@ -108,7 +109,7 @@ int main()
 					io_buffer[b_read] = '\0';
 				}
 				//lseek(f,0,SEEK_SET);
-				//close(f);
+//				close(f);
 			}
 			printf("end!!!\n");
 			close_socket(client_sockfd);
@@ -140,7 +141,7 @@ int main_disk()
 
 	for (t=0;t<20;t++)
 	{
-		//check_free_mem();
+		check_free_mem();
 		f = open(path, O_RDWR | O_APPEND);
 		if (f == -1)
 		{
@@ -240,8 +241,8 @@ int main_net()
 			io_buffer = malloc(b_to_read);
 			//file_len = 1073741824;
 			file_len = 31457280;
-			printf("file len is %d \n",file_len);
-			for (t = 0; t < 20;t++)
+			//printf("file len is %d \n",file_len);
+			for (t = 0; t < 1;t++)
 			{
 				f = open(path, O_RDWR | O_APPEND);
 				if (f == -1)
@@ -268,7 +269,7 @@ int main_net()
 				//lseek(f,0,SEEK_SET);
 				close(f);
 			}
-			printf("end!!!\n");
+			printf("end.----!!!\n");
 			close_socket(client_sockfd);
 			free(io_buffer);
 			exit(0);

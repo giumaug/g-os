@@ -24,7 +24,7 @@ void enqueue_sckt(t_sckt_buf_desc* sckt_buf_desc,t_data_sckt_buf* data_sckt_buf)
 	{						
 		enqueue(sckt_buf_desc->buf,data_sckt_buf);	
 		sckt_buf_desc->buf_index++;			
-	}							
+	}						
 	RESTORE_IF_STATUS
 }
 
