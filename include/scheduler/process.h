@@ -82,6 +82,8 @@ struct t_process_context
 	t_hashtable* socket_desc;
 	u32 next_sd;
 	u8 sig_num;
+	u32 icmp_pending_req;
+	t_llist_node* sleep_wait_queue_ref;
 };
 
 struct t_process_info 

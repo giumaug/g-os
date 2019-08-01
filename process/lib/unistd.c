@@ -130,7 +130,6 @@ int setpgid(int pid,int pgid)
 
 	params[0] = pid;
 	params[1] = pgid;
-	printf("QUI!!!! %d \n",pid);
 	SYSCALL(40,params);
 	return params[2];
 }
@@ -147,7 +146,6 @@ int tcsetpgrp(int fg_pgid)
 {
 	unsigned int params[2];
 
-	printf("QUI2!!!! \n");
 	params[0] = fg_pgid;
 	SYSCALL(42,params);
 	return params[1];
@@ -158,4 +156,11 @@ void read_test()
 	unsigned int params[1];
 	SYSCALL(105,params);
 
+}
+
+void signal()
+{
+	unsigned int params[1];
+
+	SYSCALL(107,params);
 }

@@ -12,19 +12,6 @@
 #define TCP_MAP_SIZE 20
 #define UDP_MAP_SIZE 20
 
-//NON SERVE SOLO PER COMPILARE UDP
-//typedef struct s_socket_desc
-//{
-//	t_hashtable* sd_map;
-//	t_hashtable* tcp_map;
-//	t_hashtable* udp_map;
-//	u16 udp_port_indx;
-//	u16 tcp_port_indx;
-//	u32 fd;
-//	t_spinlock_desc lock;
-//}
-//t_socket_desc;
-
 struct s_spinlock_desc;
 struct s_tcp_conn_desc;
 
@@ -39,8 +26,6 @@ typedef struct s_socket
 }
 t_socket;
 
-//t_socket_desc* socket_desc_init();
-//void socket_desc_free(t_socket_desc* socket_desc);
 t_socket* socket_init(int type);
 void socket_free(t_socket* socket);
 int _open_socket(int type);

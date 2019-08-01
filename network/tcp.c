@@ -299,7 +299,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 
 	if (tcp_req_desc == NULL && tcp_listen_desc == NULL && tcp_conn_desc == NULL )
 	{
-		printk("no connection !!!!!! \n"); 
+		//printk("no connection !!!!!! \n"); 
 		goto EXIT;
 	}
 	if (flags & 4)
@@ -425,7 +425,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	tcp_conn_desc = tcp_conn_map_get(tcp_desc->conn_map,dst_ip,src_ip,dst_port,src_port);
 	if (tcp_conn_desc == NULL) 
 	{
-		printk("no conn \n");
+		//printk("no conn \n");
 		goto EXIT;
 	}
 

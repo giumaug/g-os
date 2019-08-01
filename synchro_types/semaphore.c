@@ -7,7 +7,7 @@
 //With count zero init mutex (formally process holding mutex should be the only permitted to release mutex )
 //Process holding mutex or semaphore can sleep.Process holding spinlock can't.(Performance problems or deadlock)
 //Spinlock are useless in uniprocessor system without preemption.In uniprocessor system with preemption spinlock 
-//needs to disable interrupt otherwise deadlock:if i use a spinlock and interrupt is fired when spinlock 
+//could cause deadlock:if i use a spinlock and interrupt is fired when spinlock 
 //is held system get deadlocked.
 //In multiporcessor system spinlock needs to disable local interrupt.
 //If the spinlook is used only in race between exception it is still possible to have

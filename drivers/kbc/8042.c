@@ -5,6 +5,7 @@
 #include "idt.h" 
 #include "drivers/kbc/8042.h" 
 #include "lib/lib.h"
+#include "debug.h"
 
 extern ggo;
 char lowercase_charset[0x80] = {
@@ -296,8 +297,8 @@ void free_kbc()
 
 void int_handler_kbc()
 {
-	char scan_code;
-	char *char_code;
+	u8 scan_code;
+	u8* char_code;
 	unsigned static int shift_state = 0;
 	unsigned static int control_state = 0;
 	struct t_processor_reg processor_reg;
@@ -335,22 +336,42 @@ void int_handler_kbc()
 			//All logic manages SIGINT should be outside interrupt handler!!!!
 			if (control_state == 1 && scan_code == 0x2e)
 			{
-				fg_pgid = system.active_console_desc->fg_pgid;
-				pgid_list = hashtable_remove(system.process_info->pgid_hash,fg_pgid);
-				if (pgid_list != NULL)
+				static int sss = 0;
+				SAVE_IF_STATUS
+				CLI
+				sss++;
+				if (sss > 2)
 				{
-					sentinel = ll_sentinel(pgid_list);
-					next = ll_first(pgid_list);
-					while(next != sentinel)
+					//check_leak();
+				}
+				fg_pgid = system.active_console_desc->fg_pgid;
+				if (fg_pgid !=1)
+				{
+					pgid_list = hashtable_remove(system.process_info->pgid_hash,fg_pgid);
+					if (pgid_list != NULL)
 					{
-						next_process_context = next->val;
-						next_process_context->sig_num = SIGINT;
-						next_process_context->parent->sig_num = SIGCHLD;
-						_awake(next_process_context);
-						next = ll_next(next);
+						sentinel = ll_sentinel(pgid_list);
+						next = ll_first(pgid_list);
+						while(next != sentinel)
+						{
+							next_process_context = next->val;
+							next_process_context->sig_num = SIGINT;
+							if (next_process_context->pid == next_process_context->pgid)
+							{
+								next_process_context->parent->sig_num = SIGCHLD;
+							}
+							if (next_process_context->proc_status == SLEEPING)
+							{
+								_awake(next_process_context);
+							}
+							next = ll_next(next);
+							ll_delete_node(next->prev);
+						}
+						kfree(pgid_list->sentinel_node);
+						kfree(pgid_list);
 					}
 				}
-				kfree(pgid_list);	
+				RESTORE_IF_STATUS
 			}
 			else
 			{
@@ -363,59 +384,79 @@ void int_handler_kbc()
 	}
 	enable_irq_line(1);
 	ENABLE_PREEMPTION
-	EXIT_INT_HANDLER(0,processor_reg)               
-        
-/*                                                                                                                        \
-	static struct t_process_context _current_process_context;
-	static struct t_process_context _old_process_context;
-	static struc t t_process_context _new_process_context;
-	static struct t_processor_reg _processor_reg;
-	static unsigned int _action2;
-	static u32* page_table_new;
-	static u32 phy_fault_addr_new;
-	static u32* page_table_old;
-	static u32 phy_fault_addr_old; 
-        
-	CLI
-	_action2=0;
-	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;
-	_old_process_context=_current_process_context;
-	_processor_reg=processor_reg;
-	if (system.force_scheduling == 1 && 0 == 0 && system.int_path_count == 0)
-	{
-		_action2 = 1;
-		if (_current_process_context.proc_status == EXITING)
-		{
-			_action2 = 2;
-		}
-	}
-        
-	if (_action2>0)
+	//EXIT_INT_HANDLER(0,processor_reg)               
+	//#define EXIT_INT_HANDLER(action,processor_reg)                                                                 
+                                                                                                                        
+	static struct t_process_context _current_process_context;                                                  	
+	static struct t_process_context _old_process_context;                                                      	
+	static struct t_process_context _new_process_context;	                                                        
+	static struct t_processor_reg _processor_reg;                                                                   
+	static unsigned int _action2; 
+	static u8 stop = 0;                                                                             
+                                                                                                                    
+	CLI                                                                                                             
+	if (system.int_path_count == 0 && system.force_scheduling == 0 && system.flush_network == 1)                    
+	{                                                                                                               
+                        system.flush_network = 0;                                                                       
+			dequeue_packet(system.network_desc);                                                            
+			equeue_packet(system.network_desc);                                                             
+                        system.flush_network = 1;                                                                       
+	}                                                                                                               
+	_action2=0;    //action;                                                                                                
+	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;                 
+	_old_process_context=_current_process_context;                                                                  
+	_processor_reg=processor_reg;                                                                                   
+	if (system.force_scheduling == 1 && 0 == 0 && system.int_path_count == 0)                                  
+	{                                                                                                               
+		_action2 = 1;                                                                                           
+		if (_current_process_context.proc_status == EXITING)                                                    
+		{                                                                                                       
+			_action2 = 2;                                                                                   
+		}                                                                                                       
+	}                                                                                                               
+                                                                                                                        
+	if (_action2>0)                                                                                                 
 	{	system.force_scheduling = 0;
-		schedule(&_current_process_context,&_processor_reg);
-		_new_process_context=*(struct t_process_context*)system.process_info->current_process->val;
-		if (_new_process_context.pid != _old_process_context.pid)
-		{
-				_processor_reg=_new_process_context.processor_reg;
-		}
-		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))
-		DO_STACK_FRAME(_processor_reg.esp-8);
-                
-		if (_action2==2)
-		{
-			DO_STACK_FRAME(_processor_reg.esp-8);
-			free_vm_process(&_old_process_context);
-			buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_kernel_stack));
-		}
-		RESTORE_PROCESSOR_REG
-		EXIT_SYSCALL_HANDLER
-	}
-	else
-	{
-		RESTORE_PROCESSOR_REG
-		RET_FROM_INT_HANDLER
-	}
-*/
+		stop = 0;                                                                            
+		while(!stop)                                                                                             
+		{                                                                                                       
+			schedule(&_current_process_context,&_processor_reg);                                            
+			_new_process_context = *(struct t_process_context*) system.process_info->current_process->val;  
+			if (_new_process_context.sig_num == SIGINT)                                                    
+			{                                                                                               
+				_exit(0);
+				free_vm_process(&_new_process_context);                                                         
+				buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(_new_process_context.phy_kernel_stack));           
+			}                                                                                               
+			else                                                                                            
+			{                                                                                               
+				stop = 1;                                                                               
+			}                                                                                               
+		}  
+		//check_process_context_2(2);                                                                    
+                                                                                                                        
+		/*_new_process_context=*(struct t_process_context*)system.process_info->current_process->val;*/         
+		if (_new_process_context.pid != _old_process_context.pid)                                               
+		{                                                                                                       
+				_processor_reg=_new_process_context.processor_reg;                                      
+		}                                                                                                       
+		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) _new_process_context.page_dir)))                       
+		DO_STACK_FRAME(_processor_reg.esp-8);                                                                   
+                                                                                                                        
+		if (_action2==2)                                                                                        
+		{                                                                                                       
+			DO_STACK_FRAME(_processor_reg.esp-8);                                                           
+			free_vm_process(&_old_process_context);                                                         
+			buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(_old_process_context.phy_kernel_stack));     
+		}                                                                                                       
+		RESTORE_PROCESSOR_REG                                                                                   
+		EXIT_SYSCALL_HANDLER                                                                                    
+	}                                                                                                          	
+	else                                                                                                       	
+	{                                                                                                               
+		RESTORE_PROCESSOR_REG                                                                                   
+		RET_FROM_INT_HANDLER                                                                                    
+	} 
 }
 
 char read_buf()

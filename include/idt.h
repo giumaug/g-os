@@ -27,7 +27,10 @@ void set_idt_entry(int entry,struct t_i_desc* i_desc);
 	static struct t_process_context _new_process_context;	                                                        \
 	static struct t_processor_reg _processor_reg;                                                                   \
 	static unsigned int _action2;                                                                                   \
+        static u8 stop = 0;                                                                                             \
+	static int ooo = -1;                                                                                            \
                                                                                                                         \
+	ooo = -1;                                                                                                       \
 	CLI                                                                                                             \
 	if (system.int_path_count == 0 && system.force_scheduling == 0 && system.flush_network == 1)                    \
 	{                                                                                                               \
@@ -40,10 +43,6 @@ void set_idt_entry(int entry,struct t_i_desc* i_desc);
 	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;                 \
 	_old_process_context=_current_process_context;                                                                  \
 	_processor_reg=processor_reg;                                                                                   \
-	if (_current_process_context.sig_num == SIGINT)                                                                 \
-	{                                                                                                               \
-		_exit(0);                                                                                               \
-	}                                                                                                               \
 	if (system.force_scheduling == 1 && action == 0 && system.int_path_count == 0)                                  \
 	{                                                                                                               \
 		_action2 = 1;                                                                                           \
@@ -55,8 +54,30 @@ void set_idt_entry(int entry,struct t_i_desc* i_desc);
                                                                                                                         \
 	if (_action2>0)                                                                                                 \
 	{	system.force_scheduling = 0;                                                                            \
-		schedule(&_current_process_context,&_processor_reg);                                                    \
-		_new_process_context=*(struct t_process_context*)system.process_info->current_process->val;             \
+                stop = 0;                                                                                               \
+		while(!stop)                                                                                            \
+		{                                                                                                       \
+			schedule(&_current_process_context,&_processor_reg);                                            \
+			_new_process_context = *(struct t_process_context*) system.process_info->current_process->val;  \
+			if (_new_process_context.sig_num == SIGINT)                                                     \
+			{                                                                                               \
+                                if (ooo == _new_process_context.pid)                                                   \
+				{                                                                                       \
+					panic();                                                                        \
+				}                                                                                       \
+				_exit(0);                                                                               \
+                                ooo = _new_process_context.pid;                                                         \
+				free_vm_process(&_new_process_context);                                                      \
+				buddy_free_page(system.buddy_desc,FROM_PHY_TO_VIRT(_new_process_context.phy_kernel_stack));  \
+			}                                                                                               \
+			else                                                                                            \
+			{                                                                                               \
+				stop = 1;                                                                               \
+			}                                                                                               \
+		}                                                                                                       \
+		_check_process_context(ooo);                                                                            \
+                                                                                                                        \
+		/*_new_process_context=*(struct t_process_context*)system.process_info->current_process->val;*/         \
 		if (_new_process_context.pid != _old_process_context.pid)                                               \
 		{                                                                                                       \
 				_processor_reg=_new_process_context.processor_reg;                                      \

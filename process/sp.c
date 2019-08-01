@@ -75,6 +75,7 @@ int main()
 		printf("accepted \n");
 		if(fork() == 0) 
 		{
+			close_socket(server_sockfd);
 			//stat(path,&stat_data);
 			//file_len = stat_data.st_size;
 			io_buffer = malloc(b_to_read);

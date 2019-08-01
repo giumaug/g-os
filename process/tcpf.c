@@ -256,12 +256,13 @@ int main(int argc, char **argv)
 	send_addr.sin_family = AF_INET;
 	((unsigned char*) &(send_addr.sin_addr.s_addr))[0]=192;
 	((unsigned char*) &(send_addr.sin_addr.s_addr))[1]=168;
-	((unsigned char*) &(send_addr.sin_addr.s_addr))[2]=237;
-	((unsigned char*) &(send_addr.sin_addr.s_addr))[3]=124;
+	((unsigned char*) &(send_addr.sin_addr.s_addr))[2]=247;
+	((unsigned char*) &(send_addr.sin_addr.s_addr))[3]=1;
 	((unsigned char*) &(send_addr.sin_port))[0]=((unsigned char*) &(port))[1];
 	((unsigned char*) &(send_addr.sin_port))[1]=((unsigned char*) &(port))[0];
 
 	printf("starting ..... \n");
+	check_free_mem();
 	for (j = 0; j < 1;j++) //125
 	{
 		age++;
@@ -287,10 +288,10 @@ int main(int argc, char **argv)
 		{
 			get[i + path_size + 4] = get_part[i];
 		}
-		printf("request is %s \n",get);
+		//printf("request is %s \n",get);
 		write_socket(sockfd,get,(4 + sizeof(get_part) + path_size));
 		len_read = read_socket(sockfd,http_response,129);//129//123
-		printf("len read is %d \n",len_read);
+		//printf("len read is %d \n",len_read);
 		jj = 0;
 		do
 		{
@@ -300,7 +301,7 @@ int main(int argc, char **argv)
 		while(http_response[jj + 117] != '\n');
 		tmp[jj] = '\0';
 		file_size = atoi(tmp);
-		printf("jjj is %d \n",jj);
+		//printf("jjj is %d \n",jj);
 		file_size -= (len_read - 116 - jj - 3);
 
 		tmp[0] = http_response[116 + jj + 3];

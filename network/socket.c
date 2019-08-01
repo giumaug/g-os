@@ -7,58 +7,6 @@
 //Multliple refererence should be checked and managed unless connection
 //in listen state.
 
-//NON SERVONO SOLO PER COMPILARE UDP 
-//static int free_port_search
-//t_socket_desc* socket_desc_init()
-//void socket_desc_free(t_socket_desc* socket_desc)
-//
-//static int free_port_search()
-//{
-//	int i;
-//	void* port=NULL;
-//	t_socket_desc* socket_desc=NULL;
-//
-//	socket_desc=system.network_desc->socket_desc;
-//	for (i=0;i<32767;i++)
-//	{
-//		if (socket_desc->udp_port_indx++>65535) 
-//		{
-//			
-//			socket_desc->udp_port_indx=32767;
-//		}
-//		port=hashtable_get(socket_desc->udp_map,socket_desc->udp_port_indx);
-//		if (port==NULL)
-//		{
-//			return socket_desc->udp_port_indx;
-//		}
-//	}
-//	return 0;
-//}
-//
-//t_socket_desc* socket_desc_init()
-//{
-//	t_socket_desc* socket_desc=kmalloc(sizeof(t_socket_desc));
-//	socket_desc->sd_map=dc_hashtable_init(SOCKET_MAP_SIZE,&socket_free);
-//	socket_desc->tcp_map=hashtable_init(TCP_MAP_SIZE);
-//	socket_desc->udp_map=hashtable_init(UDP_MAP_SIZE);
-//	socket_desc->fd=0;
-//	socket_desc->udp_port_indx=32767;
-//	socket_desc->tcp_port_indx=0;
-//	SPINLOCK_INIT(socket_desc->lock);
-//	return socket_desc;
-//}
-//
-//void socket_desc_free(t_socket_desc* socket_desc)
-//{
-//	hashtable_free(socket_desc->sd_map);
-//	hashtable_free(socket_desc->tcp_map);
-//	hashtable_free(socket_desc->udp_map);
-//	kfree(socket_desc);
-//	socket_desc->sd_map=NULL;
-//	socket_desc->tcp_map=NULL;
-//	socket_desc->udp_map=NULL;
-//}
-
 t_socket* socket_init(int type)
 {
 	t_socket* socket = NULL;
@@ -70,28 +18,6 @@ t_socket* socket_init(int type)
 	socket->tcp_conn_desc = NULL;
 	return 	socket;
 }
-
-//CALLED AT THE END SO LOCK NOT REQUIRED
-//void socket_free(t_socket* socket)
-//{
-//	if (socket->type == 2)
-//	{
-//		udp_conn_desc_free(udp_conn_desc);
-//
-//	}
-//	else  if (socket->type == 1)
-//	{
-//		socket->tcp_conn_desc->ref_count--;
-//		if ((socket->tcp_conn_desc->status == ESTABILISHED || 
-//		     socket->tcp_conn_desc->status == CLOSE_WAIT ||
-//                   socket->tcp_conn_desc->status == RESET) && 
-//		     socket->tcp_conn_desc->ref_count == 0)
-//		{
-//			close_tcp(socket->tcp_conn_desc);
-//		}
-//		kfree(socket);
-//	}
-//}
  
 /* NOTE:_open_socket,_bind,_connect,_listen,_accept,_rcvfrom,_send_to,_close_socket,
 	 are free lock because process context keeps duplicated copy of socket.All possible
@@ -291,6 +217,9 @@ int _close_socket(int sockfd)
 
 void socket_free(t_socket* socket)
 {
+	struct t_process_context* process_context = NULL;
+
+	CURRENT_PROCESS_CONTEXT(process_context);
 	if (socket->type == 2)
 	{
 		close_udp(socket);
@@ -298,10 +227,11 @@ void socket_free(t_socket* socket)
 	else  if (socket->type == 1)
 	{
 		socket->tcp_conn_desc->ref_count--;
-		if ((socket->tcp_conn_desc->status == ESTABILISHED || 
+		if (((socket->tcp_conn_desc->status == ESTABILISHED || 
 		     socket->tcp_conn_desc->status == CLOSE_WAIT ||
                      socket->tcp_conn_desc->status == RESET) && 
 		     socket->tcp_conn_desc->ref_count == 0)
+		     || process_context->sig_num == SIGINT)
 		{
 			close_tcp(socket->tcp_conn_desc);
 		}
@@ -319,6 +249,7 @@ t_hashtable* clone_socket_desc(t_hashtable* socket_desc,u32 data_size)
 
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 	cloned_socket_desc = hashtable_init(socket_desc->size);
+	cloned_socket_desc->data_destructor = socket_desc->data_destructor;
 	for (i=0;i <= current_process_context->next_sd;i++)
 	{
 		socket = hashtable_get(socket_desc,i);

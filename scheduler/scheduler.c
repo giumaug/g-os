@@ -6,6 +6,7 @@
 
 extern struct t_llist* kbc_wait_queue;
 extern unsigned int *master_page_dir;
+extern unsigned int collect_mem;
 
 void do_context_switch(struct t_process_context *current_process_context,
 		       struct t_processor_reg *processor_reg,
@@ -49,6 +50,7 @@ void init_scheduler()
 //REQUIRE SOME REFACTORING ON CODE 
 void schedule(struct t_process_context *current_process_context,struct t_processor_reg *processor_reg)
 {
+	struct t_process_context* new_process_context;
 	struct t_process_context* next_process_context;
 	t_llist_node* node;
 	t_llist_node* next;
@@ -56,10 +58,12 @@ void schedule(struct t_process_context *current_process_context,struct t_process
 	unsigned int stop=0;
 	unsigned int queue_index;
 	unsigned int priority;
-	unsigned int index;	
+	unsigned int index;
+	t_llist_node* node_orig;
 
 	index=0;
-	node=system.process_info->current_process;	
+	node=system.process_info->current_process;
+	node_orig = node;	
 	current_process_context=node->val;
 
 	while(!stop && index<10)
@@ -86,8 +90,15 @@ void schedule(struct t_process_context *current_process_context,struct t_process
 				}
 				else if (current_process_context->proc_status==EXITING)
 				{
+					new_process_context=system.process_info->current_process->val;	
+					if (current_process_context->pid == 2)
+					{
+						printk("kkk\n");
+						system.ops = 1;
+					}
 					kfree(current_process_context);
 					ll_delete_node(node);
+					check_process_context_2(2);
 				}
 				stop=1;
 			}
@@ -119,6 +130,7 @@ void schedule(struct t_process_context *current_process_context,struct t_process
 			}
 		}
 	}
+	check_process_context_2(2);
 }
 
 void adjust_sched_queue(struct t_process_context *current_process_context)
@@ -224,13 +236,14 @@ void _awake(struct t_process_context *new_process)
 	CLI
 	CURRENT_PROCESS_CONTEXT(process_context);
 	new_process->sleep_time=(system.time-new_process->sleep_time>=1000) ? 1000 : (system.time-new_process->sleep_time);
-	new_process->proc_status=RUNNING;
+	//new_process->proc_status=RUNNING;
 	adjust_sched_queue(new_process);
 	//COULD ARRIVE AN ATA INTERRUPT DURING NETWORK FLUSH
-	if (process_context->pid != new_process->pid)
+	if (process_context->pid != new_process->pid && new_process->proc_status == SLEEPING)
 	{
 		ll_prepend(system.scheduler_desc->scheduler_queue[new_process->curr_sched_queue_index],new_process);
 	}
+	new_process->proc_status=RUNNING;
 	system.force_scheduling = 1;
 	RESTORE_IF_STATUS
 }
@@ -250,6 +263,7 @@ void _pause()
 		_sleep();
 		if (current_process->sig_num == SIGCHLD)
 		{
+			_tcsetpgrp(current_process->pgid);
 			current_process->sig_num = NULL;
 		}
 	}
@@ -309,6 +323,14 @@ void _exit(int status)
 	hashtable_free(current_process->file_desc);
 	hashtable_free(current_process->socket_desc);
 	hashtable_remove(system.process_info->pid_hash,current_process->pid);
+	if (current_process->icmp_pending_req != 0)
+	{
+		hashtable_remove(system.network_desc->icmp_desc->req_map,current_process->icmp_pending_req);
+	}
+	if (current_process->sleep_wait_queue_ref != NULL)
+	{
+		ll_delete_node(current_process->sleep_wait_queue_ref);
+	}
 	RESTORE_IF_STATUS
 }
 
@@ -337,10 +359,14 @@ int _fork(struct t_processor_reg processor_reg)
 	child_process_context->phy_kernel_stack = FROM_VIRT_TO_PHY(kernel_stack_addr);
 	kmemcpy(kernel_stack_addr,FROM_PHY_TO_VIRT(parent_process_context->phy_kernel_stack),KERNEL_STACK_SIZE);
 	child_process_context->pid = system.process_info->next_pid++;
+//	if (child_process_context->pid == 2)
+//	{
+//		collect_mem = 1;
+//	}
 	child_process_context->pgid = parent_process_context->pgid;
 	hashtable_put(system.process_info->pid_hash,child_process_context->pid,child_process_context);
-	pgid_list = new_dllist();
-	hashtable_put(system.process_info->pgid_hash,child_process_context->pgid,pgid_list);	
+	pgid_list = hashtable_get(system.process_info->pgid_hash,parent_process_context->pgid);
+	ll_append(pgid_list,child_process_context);
 	child_process_context->sig_num = 0;
 	child_process_context->parent = parent_process_context;
 //	TEMPORARY TRICK.CORRECT SOLUTION IS TO ADD A POINTER TO CLONER FUNTION IN HASMAP CLONE ALONSIDE DESTRUCTOR POINTER
@@ -499,14 +525,20 @@ void _sleep_time(unsigned int time)
 {
 	struct t_process_context* current_process;
 	t_llist* sleep_wait_queue;
+	
+	int t1,t2;
 
 	SAVE_IF_STATUS	
 	CLI 
 	sleep_wait_queue=system.process_info->sleep_wait_queue;
 	current_process=system.process_info->current_process->val;
 	current_process->assigned_sleep_time=time;
-	ll_prepend(sleep_wait_queue,current_process);	
+	current_process->sleep_wait_queue_ref = ll_prepend(sleep_wait_queue,current_process);
+	t1 = system.time;	
 	_sleep();
+	t2 = system.time;
+	current_process->sleep_wait_queue_ref = NULL;
+	printk("sleep for %d \n",(t2-t1));
 	RESTORE_IF_STATUS
 }
 
@@ -550,6 +582,7 @@ int _setpgid(u32 pid,u32 pgid)
 				ll_delete_node(next);
 				stop = 1;
 			}
+			next = ll_next(next);
 		}
 	}
 	sentinel = ll_sentinel(pgid_list);
@@ -557,6 +590,7 @@ int _setpgid(u32 pid,u32 pgid)
 	if (next == sentinel)
 	{
 		hashtable_remove(system.process_info->pgid_hash,process_context->pgid);
+		kfree(pgid_list);
 	}
 	process_context->pgid = pgid;
 	pgid_list = hashtable_get(system.process_info->pgid_hash,pgid);
@@ -579,4 +613,36 @@ u32 _tcsetpgrp(u32 fg_pgid)
 {
 	system.active_console_desc->fg_pgid = fg_pgid;
 	return 0;
+}
+
+void _signal()
+{
+	struct t_process_context* next_process_context = NULL;
+	u32 fg_pgid;
+	t_llist* pgid_list = NULL;
+	t_llist_node* sentinel  = NULL;
+	t_llist_node* next = NULL;
+
+	fg_pgid = system.active_console_desc->fg_pgid;
+	pgid_list = hashtable_remove(system.process_info->pgid_hash,fg_pgid);
+	if (pgid_list != NULL)
+	{
+		sentinel = ll_sentinel(pgid_list);
+		next = ll_first(pgid_list);
+		while(next != sentinel)
+		{
+			next_process_context = next->val;
+			next_process_context->sig_num = SIGINT;
+			if (next_process_context->pid == next_process_context->pgid)
+			{
+				next_process_context->parent->sig_num = SIGCHLD;
+			}
+			if (next_process_context->proc_status == SLEEPING)
+			{
+				_awake(next_process_context);
+			}
+			next = ll_next(next);
+		}
+	}
+	kfree(pgid_list);
 }

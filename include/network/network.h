@@ -4,10 +4,12 @@
 #include "system.h"
 #include "data_types/queue.h"
 #include "network/common.h"
-#include "network/socket_buffer.h"
+//#include "network/socket_buffer.h"
 #include "network/socket.h"
 #include "network/tcp.h"
 #include "network/udp.h"
+#include "network/icmp.h"
+#include "network/socket_buffer.h"
 #include "drivers/i8254x/i8254x.h"
 
 struct s_i8254x;

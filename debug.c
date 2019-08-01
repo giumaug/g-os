@@ -57,15 +57,51 @@ void check_free_mem()
 		PRINTK("POOL MEMEMORY LEAK!!!");
 		//panic();
 	}
+	//check_leak();
 	//check_not_released();
-	_check_process_context();
+	//_check_process_context();
 	printk("BUDDY MEMORY=%d \n",buddy_mem);
 	printk("POOL MEMORY=%d \n",pool_mem);
 	printk("AGE=%d \n",age++);
 	RESTORE_IF_STATUS
 }
 
-void _check_process_context()
+void check_process_context_2(int val)
+{
+	t_llist_node* next;
+	t_llist_node* sentinel_node;
+	struct t_process_context* process_context;
+	int index=0;
+	int count = 0;
+
+	if (system.ops == 0 )
+	{
+		return;
+	}
+
+	while(index<10)
+	{
+		sentinel_node=ll_sentinel(system.scheduler_desc->scheduler_queue[index]);
+		next=ll_first(system.scheduler_desc->scheduler_queue[index]);
+		while(next!=sentinel_node)
+		{
+			process_context=next->val;
+			if (process_context->pid == val)
+			{
+				count++;
+			}
+			next=next=ll_next(next);
+		}
+		index++;
+	}
+	if (count >= 1)
+	{
+		printk("over 2 \n");
+		panic();
+	}
+}
+
+void __check_process_context(int val)
 {
 	t_llist_node* next;
 	t_llist_node* sentinel_node;
@@ -80,16 +116,14 @@ void _check_process_context()
 		while(next!=sentinel_node)
 		{
 			process_context=next->val;
+			if (process_context->pid == val)
 			{
-				count++;
+				printk("index is %d \n",index);
+				panic();
 			}
 			next=next=ll_next(next);
 		}
 		index++;
-	}
-	if (count > 7 )
-	{
-		panic();
 	}
 }
 
@@ -109,7 +143,7 @@ void _is_phy_page_used(unsigned int phy_page_addr)
 	}
 }
 
-void collect_mem_alloc(unsigned int page_addr)
+void _collect_mem_alloc(unsigned int page_addr)
 {
 	unsigned int i=0;
 
@@ -140,6 +174,30 @@ void collect_mem_alloc(unsigned int page_addr)
 	}
 }
 
+void collect_mem_alloc(unsigned int mem_addr)
+{
+	int i;
+	static int not_init = 0;
+
+	if (not_init == 0)
+	{
+		not_init = 1;
+		for (i = 0;i < 5000;i++)
+		{
+			collected_mem[i] = 0;
+		
+		}
+	}
+	collected_mem_index++;
+	if (collected_mem_index > 4999)
+	{
+		collected_mem_index = 0;
+		printk("reset counter!!!! \n");
+		//panic();
+	}
+	collected_mem[collected_mem_index] = mem_addr;
+}
+
 void collect_mem_free(unsigned int page_addr)
 {
 	int found=0;
@@ -159,9 +217,28 @@ void collect_mem_free(unsigned int page_addr)
 		if (found==0) 
 		{
 			found=1;
-			panic();
+			//panic();
 		}
 	}
+}
+
+void check_leak()
+{
+	int i;
+	int xxx = 0;
+	int index;
+	for (i = 0;i < 5000;i++)
+	{
+		if (collected_mem[i] !=0 )
+		{
+			xxx++;
+			index = i;
+			//panic();
+			printk("index is %d \n",index);
+		}
+	}
+	printk("not released count %d \n",xxx);
+	printk("index is %d \n",index);
 }
 
 //void reset_counter()
@@ -286,6 +363,7 @@ void collect_mem_free(unsigned int page_addr)
 //	}
 //}
 
+/*
 #define MAXSIZE 0x3E8
 static int maxsize;
 int sort()
@@ -321,3 +399,4 @@ void selection(int elements[], int array_size)
 		elements[min] = temp;
 	}
 }
+*/

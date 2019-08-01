@@ -58,5 +58,6 @@ u32 _getpgid(u32 pid);
 int _setpgid(u32 pid,u32 pgid);
 u32 _tcgetpgrp();
 u32 _tcsetpgrp(u32 fg_pgid);
+void _signal();
 
 #endif

@@ -117,6 +117,7 @@ int connect_tcp(u32 dst_ip,u16 dst_port,t_socket* socket)
 
 void close_tcp(t_tcp_conn_desc* tcp_conn_desc)
 {
+	struct t_process_context* process_context = NULL;
 	t_tcp_desc* tcp_desc = NULL;
 	t_tcp_conn_desc* tmp_tcp_conn_desc = NULL;
 	t_tcp_conn_map*  tmp_tcp_conn_map = NULL;
@@ -129,14 +130,11 @@ void close_tcp(t_tcp_conn_desc* tcp_conn_desc)
 	tcp_desc = system.network_desc->tcp_desc;
 	flags = FLG_FIN | FLG_ACK;
 	seq_num = seq_num = tcp_conn_desc->snd_queue->nxt_snd;
-	ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;
+	ack_num = tcp_conn_desc->rcv_queue->nxt_rcv;	
+	CURRENT_PROCESS_CONTEXT(process_context);
 
-	struct t_process_context* tmp;	
-	CURRENT_PROCESS_CONTEXT(tmp);
-
-	if (tcp_conn_desc->status == RESET)
+	if (tcp_conn_desc->status == RESET || process_context->sig_num == SIGINT)
 	{
-		panic();
 		tmp_tcp_conn_desc = tcp_conn_map_get(tcp_desc->conn_map,
 						tcp_conn_desc->src_ip,
 						tcp_conn_desc->dst_ip,
@@ -158,6 +156,19 @@ void close_tcp(t_tcp_conn_desc* tcp_conn_desc)
 			{
 				tmp_tcp_conn_map = tcp_desc->listen_map;
 			}
+			else 
+			{
+				tmp_tcp_conn_desc = tcp_conn_map_get(tcp_desc->req_map,
+					 	             tcp_conn_desc->src_ip,
+						             tcp_conn_desc->dst_ip,
+						             tcp_conn_desc->src_port,
+						             tcp_conn_desc->dst_port);
+			
+				if (tmp_tcp_conn_desc != NULL)
+				{
+					tmp_tcp_conn_map = tcp_desc->req_map;
+				}
+			}	
 		}
                 if (tmp_tcp_conn_map != NULL)
 		{

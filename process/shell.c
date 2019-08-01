@@ -94,7 +94,6 @@ int main (int _argc, char* _argv[])
 			}
 			argv[argc + 1] = NULL;
 			pid = fork();
-
 			if (pid == 0)
 			{
 				child_pid = getpid();
@@ -113,8 +112,8 @@ int main (int _argc, char* _argv[])
 			{
 				if (!is_background)
 				{
-		
 					pause();
+					check_free_mem();
 					for(k = 0;k <= argc;k++)
 					{
 						free(argv[k]);

@@ -57,6 +57,8 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	system.root_fs = &ext2;
 	system.device_desc = &device_desc;
 	
+	system.ops = 0;
+
 	system.master_page_dir = init_virtual_memory();
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int)system.master_page_dir)))
 	system.active_console_desc = &console_desc;
@@ -82,6 +84,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	process_context->pid = 0;
 	process_context->pgid = 0;
 	process_context->sig_num = 0;
+	process_context->sleep_wait_queue_ref = 0;
 	hashtable_put(system.process_info->pgid_hash,0,new_dllist());
 	
         process_context->tick = TICK;
