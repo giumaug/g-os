@@ -98,7 +98,6 @@ void syscall_handler()
 		break;
 
 		case 13:
-		printk("exit form syscall \n");
 		_exit(params[0]);
 		on_exit_action=2;
 		break;

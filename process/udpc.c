@@ -57,7 +57,7 @@ int main(int argc, char **argv)
 	send_len = sizeof(send_addr);
 	rcv_len = sizeof(rcv_addr);
 	sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-	for (i = 0; i < 50000000;i++)
+	for (i = 0; i < 50000;i++)
 	{
 		//printf("type packet to send \n");
 		//scanf("%s",send_buf);
@@ -68,11 +68,12 @@ int main(int argc, char **argv)
 		//printf("n_from = %d \n",n_from);
 		rcv_buf[n_to]='\0';
 		//printf("\necho from server: %s\n",rcv_buf);
-		if (((i % 1000) == 0))
-		{
-			printf("age is %d \n",i);
-			check_free_mem();
-		}
-	}   
+//		if (((i % 1000) == 0))
+//		{
+//			printf("age is %d \n",i);
+//			check_free_mem();
+//		}
+	}
+	close_socket(sockfd);
     	exit(0);
 }

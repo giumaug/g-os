@@ -347,7 +347,7 @@ void int_handler_kbc()
 				fg_pgid = system.active_console_desc->fg_pgid;
 				if (fg_pgid !=1)
 				{
-					pgid_list = hashtable_remove(system.process_info->pgid_hash,fg_pgid);
+					pgid_list = hashtable_get(system.process_info->pgid_hash,fg_pgid);
 					if (pgid_list != NULL)
 					{
 						sentinel = ll_sentinel(pgid_list);
@@ -364,11 +364,12 @@ void int_handler_kbc()
 							{
 								_awake(next_process_context);
 							}
+							printk("aaa\n");
 							next = ll_next(next);
-							ll_delete_node(next->prev);
+							//ll_delete_node(next->prev);
 						}
-						kfree(pgid_list->sentinel_node);
-						kfree(pgid_list);
+						//kfree(pgid_list->sentinel_node);
+						//kfree(pgid_list);
 					}
 				}
 				RESTORE_IF_STATUS

@@ -481,7 +481,8 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		//SHOULD BE CLOSE_WAIT AND SHOULD BE MANAGED 2MLS TIMER (TCP ILLUSTRATED PAG 590)
 		tcp_conn_desc->status = CLOSED;
 		_SEND_PACKET_TCP(tcp_conn_desc,NULL,0,ack_fin_num,FLG_ACK,(fin_num + 1));
-		tcp_conn_desc->snd_queue->nxt_snd = fin_num + 1;
+		//tcp_conn_desc->snd_queue->nxt_snd = fin_num + 1; //qui!!!!
+		tcp_conn_desc->snd_queue->nxt_snd = fin_num;
 		timer_reset(tcp_conn_desc->rtrsn_timer);
 		tcp_conn_map_remove(tcp_desc->conn_map,tcp_conn_desc->src_ip,tcp_conn_desc->dst_ip,tcp_conn_desc->src_port,tcp_conn_desc->dst_port);
 		free_conn = 1;

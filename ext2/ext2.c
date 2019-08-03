@@ -52,6 +52,7 @@ int _open(t_ext2* ext2,const char* fullpath, int flags)
 		ret_code = lookup_inode(fullpath,ext2,inode);		
 		if (ret_code == -1)
 		{
+			inode_free(inode);
 			return -1;
 		}
 		hashtable_put(current_process_context->file_desc,fd,inode);

@@ -77,7 +77,6 @@ void int_handler_pit()
 			next=ll_next(next);
 			ll_delete_node(old_node);
 			is_schedule=1;
-			check_process_context_2(2);
 		}
 		else 
 		{

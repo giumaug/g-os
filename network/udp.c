@@ -55,6 +55,7 @@ t_udp_conn_desc* udp_conn_desc_init()
 
 void udp_conn_desc_free(t_udp_conn_desc* udp_conn_desc)
 {
+	hashtable_remove(system.network_desc->udp_desc->ep_port_map,udp_conn_desc->src_port);
 	free_queue(udp_conn_desc->rx_queue);
 	kfree(udp_conn_desc);
 }
