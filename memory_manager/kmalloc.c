@@ -167,21 +167,18 @@ void* kmalloc(unsigned int mem_size)
 	{
 		panic();
 	}
-	if (collect_mem ==1 && i == 1)
-	{
-		printk("ssss \n");
-		collect_mem_alloc(mem_add);
-		if (mem_add == 3246507739)
-		{
-			system.ref_counter++;
-			if (system.ref_counter == 31)
-			{
-				//printk(".");
-			}
-			printk("ddd \n");
-		}
-	}
-
+//	if (collect_mem ==1 && i == 1)
+//	{
+//		collect_mem_alloc(mem_add);
+//		if (mem_add == 3246507739)
+//		{
+//			system.ref_counter++;
+//			if (system.ref_counter == 31)
+//			{
+//				//printk(".");
+//			}
+//		}
+//	}
 	RESTORE_IF_STATUS
 	return mem_add;
 }
@@ -303,10 +300,10 @@ void kfree(void *address)
 		pool_index++;
 	}
 	a_fixed_size_free(&a_fixed_size_desc[pool_index],address);
-	if (collect_mem == 1 && pool_index == 1)
-	{
-		collect_mem_free(address);
-	}
+//	if (collect_mem == 1 && pool_index == 1)
+//	{
+//		collect_mem_free(address);
+//	}
 	RESTORE_IF_STATUS
 }
 

@@ -91,11 +91,6 @@ void schedule(struct t_process_context *current_process_context,struct t_process
 				else if (current_process_context->proc_status==EXITING)
 				{
 					new_process_context=system.process_info->current_process->val;	
-					if (current_process_context->pid == 2)
-					{
-						printk("kkk\n");
-						system.ops = 1;
-					}
 					kfree(current_process_context);
 					ll_delete_node(node);
 				}

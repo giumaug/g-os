@@ -74,10 +74,10 @@ void _check_process_context_2(int val)
 	int index=0;
 	int count = 0;
 
-	if (system.ops == 0 )
-	{
-		return;
-	}
+//	if (system.ops == 0 )
+//	{
+//		return;
+//	}
 
 	while(index<10)
 	{

@@ -87,8 +87,6 @@ typedef struct s_system
 	t_llist* timer_list;
 	u8 force_scheduling;
 	u8 flush_network;
-	u8 ops;
-	u32 ref_counter;
  }
 t_system;
 
