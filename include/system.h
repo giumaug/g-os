@@ -68,6 +68,7 @@ typedef struct s_device_desc
 	u32 dma_pci_io_base;
 	u32 dma_pci_mem_base;
 	u8 dma_pci_bar_type;
+	u8 num;
 }
 t_device_desc;
 
@@ -80,7 +81,8 @@ typedef struct s_system
 	unsigned int *master_page_dir;
 	struct s_scheduler_desc* scheduler_desc;
 	struct s_ext2* root_fs;
-	struct s_device_desc* device_desc;
+	struct s_device_desc* device_desc_d1;
+	struct s_device_desc* device_desc_d2;
 	unsigned int int_path_count;
 	struct s_network_desc* network_desc;
 	unsigned int panic;

@@ -146,35 +146,35 @@ void syscall_handler()
 		on_exit_action=1; 
 		break;
 
-		//syscall 24 and 25 test only
-		case 24:
-		{ 
-			//NEEDED NEW SCOPE TO DECLARE VARIABLE
-			t_io_request* io_request;
-			io_request=kmalloc(sizeof(t_io_request));
-			io_request->device_desc=system.device_desc;
-			io_request->sector_count=params[0];
-			io_request->lba=params[1];
-			io_request->io_buffer=params[2];
-			io_request->process_context=current_process_context;
-			_read_28_ata(io_request);
-			kfree(io_request);
-		}
-		break;
-	
-		case 25:
-		{ 
-			t_io_request* io_request;
-			io_request=kmalloc(sizeof(t_io_request));
-			io_request->device_desc=system.device_desc;
-			io_request->sector_count=params[0];
-			io_request->lba=params[1];
-			io_request->io_buffer=params[2];
-			io_request->process_context=current_process_context;
-			_write_28_ata(io_request);
-			kfree(io_request);
-		}
-		break;
+//		//syscall 24 and 25 test only
+//		case 24:
+//		{ 
+//			//NEEDED NEW SCOPE TO DECLARE VARIABLE
+//			t_io_request* io_request;
+//			io_request=kmalloc(sizeof(t_io_request));
+//			io_request->device_desc=system.device_desc;
+//			io_request->sector_count=params[0];
+//			io_request->lba=params[1];
+//			io_request->io_buffer=params[2];
+//			io_request->process_context=current_process_context;
+//			_read_28_ata(io_request);
+//			kfree(io_request);
+//		}
+//		break;
+//	
+//		case 25:
+//		{ 
+//			t_io_request* io_request;
+//			io_request=kmalloc(sizeof(t_io_request));
+//			io_request->device_desc=system.device_desc;
+//			io_request->sector_count=params[0];
+//			io_request->lba=params[1];
+//			io_request->io_buffer=params[2];
+//			io_request->process_context=current_process_context;
+//			_write_28_ata(io_request);
+//			kfree(io_request);
+//		}
+//		break;
 	
 		case 26: 
 		params[1]=_chdir(system.root_fs,(char*) params[0]); 
@@ -246,9 +246,9 @@ void syscall_handler()
 		on_exit_action=1;
 		break;
 	
-		case 102:
-		_flush_ata_pending_request();
-		break;
+//		case 102:
+//		_flush_ata_pending_request();
+//		break;
 	
 		//DEBUG WRAPPER
 		case 103:

@@ -14,9 +14,18 @@ u32 elf_loader_init(t_elf_desc* elf_desc,char* path)
 	Elf32_Phdr* elf_prg_header = NULL;
 	Elf32_Shdr* elf_sct_header = NULL;
 	t_ext2* ext2 = NULL;
+	t_stat* stat = NULL;
 
 	elf_desc->file_desc = -1;
 	ext2 = system.root_fs;
+	stat = kmalloc(sizeof(t_stat));
+
+	_stat(ext2,path,stat);
+	if ((stat->st_mode & 0x8000) != 0x8000)
+	{
+		return -1;
+	}
+
 	fd = _open(ext2,path,O_RDWR | O_APPEND);
 	if (fd == -1)
 	{
