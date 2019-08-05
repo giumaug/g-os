@@ -14,6 +14,7 @@
 #define EXT2_N_BLOCKS 15
 #define BLOCK_NUM(FILE_BLOCK_NUM) 
 #define ROOT_INODE 2
+#define MOUNT_MAP_SIZE 10
 
 #define O_CREAT 0b1
 #define O_APPEND 0b10
@@ -247,6 +248,13 @@ typedef struct s_ext2
 	struct s_device_desc* device_desc;
 }
 t_ext2;
+
+typedef struct s_mount
+{
+	t_inode* inode;
+	t_ext2* ext2;
+}	
+t_mount_point;
 
 void init_ext2(t_ext2 *ext2,struct s_device_desc* device_desc);
 void free_ext2(t_ext2* ext2);

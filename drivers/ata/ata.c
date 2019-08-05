@@ -455,8 +455,10 @@ static unsigned int _p_read_write_28_ata(t_io_request* io_request)
 	}
 	else if (device_desc->num == 1)
 	{
-		base_port = 0x170;
-		control_port = 0x376;
+		//base_port = 0x170;
+		//control_port = 0x376;
+		base_port = 0x1F0;
+		control_port = 0x3F6;
 	}
 
 	out(0x2,control_port);
@@ -478,7 +480,7 @@ static unsigned int _p_read_write_28_ata(t_io_request* io_request)
 		}
 	}
 	while (in((base_port + 0x7)) & 0x80);
-
+	int yyy = in((base_port + 0x7));
 	if ((in((base_port + 0x7)) & 0x21))
 	{
 		device_desc->status = DEVICE_IDLE;
