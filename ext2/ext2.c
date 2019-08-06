@@ -5,8 +5,11 @@
 #include "ext2/ext2_utils_1.h"
 #include "ext2/ext2_utils_2.h"
 
+void find_parent_path(char* full_path,char* parent_path);
+
 static void indirect_block_free(t_indirect_block* indirect_block);
 static t_indirect_block* indirect_block_init();
+
 
 void init_ext2(t_ext2 *ext2,t_device_desc* device_desc)
 {	
@@ -34,7 +37,7 @@ int _open(t_ext2* ext2,const char* fullpath, int flags)
 	t_inode* inode;
 	t_llist_node* node;
 	char path[NAME_MAX];
-	char filename[NAME_MAX];
+	char parent_path[NAME_MAX];
 
 	inode = inode_init();
 	CURRENT_PROCESS_CONTEXT(current_process_context);
@@ -44,7 +47,9 @@ int _open(t_ext2* ext2,const char* fullpath, int flags)
 
 	if ((flags & (O_CREAT | O_RDWR)) == (O_CREAT | O_RDWR))
 	{
-		alloc_inode(fullpath,0,system.root_fs,inode);
+		find_parent_path(fullpath,parent_path);
+		alloc_inode(parent_path,0,system.root_fs,inode);
+		--------------------
 		hashtable_put(current_process_context->file_desc,fd,inode);
 		printk("wrong path!!!!!\n");
 	}

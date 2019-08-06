@@ -9,6 +9,28 @@ u32 static find_free_block(char* io_buffer,u32 prealloc);
 void static read_inode(t_ext2* ext2,t_inode* inode);
 u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode);
 
+void add_entry_to_dir(char* )
+{
+	int i;
+
+	for (i=0;i<=11;i++)
+	{
+		if (parent_dir_inode->i_block[i]==0)
+		{	
+			break;
+		} 
+	}
+	io_buffer=kmalloc(BLOCK_SIZE*(i+1));
+
+	for (j=0;j<=(i-1);j++)
+	{
+		lba=FROM_BLOCK_TO_LBA(parent_dir_inode->i_block[j]);
+		READ((BLOCK_SIZE/SECTOR_SIZE),lba,(io_buffer+BLOCK_SIZE*j));
+	}
+	QUI!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+}
+
+
 //BROKEN!!!!!!!!!!!!!!!
 static void fill_group_hash(t_ext2* ext2,t_llist* group_list,t_hashtable* group_hash,u32 start_block,u32 end_block,t_inode* i_node)
 {
@@ -429,7 +451,7 @@ void find_parent_path(char* full_path,char* parent_path)
 	}
 }
 
-void alloc_inode(char* fullpath,unsigned int type,t_ext2 *ext2, t_inode* inode)
+void alloc_inode(char* parent_path,unsigned int type,t_ext2 *ext2, t_inode* inode)
 {
         int inode_number;      
         char* current_byte = NULL;
@@ -442,7 +464,6 @@ void alloc_inode(char* fullpath,unsigned int type,t_ext2 *ext2, t_inode* inode)
         u32 lba;
         u32 sector_count;
 	u32 tot_group_block;
-	char parent_path[PATH_MAX];
 
         // 1)seleziona inode parent dir
         // 2)seleziona  group descriptor inode  (block group = (inode – 1) / INODES_PER_GROUP)
@@ -460,7 +481,6 @@ void alloc_inode(char* fullpath,unsigned int type,t_ext2 *ext2, t_inode* inode)
                 inode_number = -1;
 		inode_parent_dir = kmalloc(sizeof(t_inode));
                 tot_group_block = ext2->superblock->s_blocks_count;
-		find_parent_path(fullpath,parent_path);
                 lookup_inode(parent_path,ext2,inode_parent_dir);
                 parent_dir_group_block_index = (inode_parent_dir->i_number-1) / ext2->superblock->s_inodes_per_group;
                 group_block_index = parent_dir_group_block_index;

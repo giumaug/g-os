@@ -664,14 +664,15 @@ u32 static find_free_inode(u32 group_block_index,t_ext2 *ext2,u32 check_threshol
 	u32 tot_group_block;
 	t_group_block* group_block = NULL;
 	char* io_buffer = NULL;
-	char current_byte;
+	char* current_byte;
 	int i;
 	int j;
 
 	i = 0;
 	j = 0;
 	inode_number=-1;
-	group_block=kmalloc(sizeof(t_group_block));   
+	group_block = kmalloc(sizeof(t_group_block));
+	io_buffer = kmalloc(BLOCK_SIZE);
 	read_group_block(ext2,group_block_index,group_block);
 	tot_group_block = ext2->superblock->s_blocks_count / ext2->superblock->s_blocks_per_group;                   
         if (group_block->bg_free_inodes_count > (ext2->superblock->s_free_inodes_count / tot_group_block) || !check_threshold)
@@ -682,13 +683,13 @@ u32 static find_free_inode(u32 group_block_index,t_ext2 *ext2,u32 check_threshol
 
                 while (inode_number == -1 && i < (BLOCK_SIZE / 8))
                 {
-                        current_byte = *(io_buffer++);
+                        current_byte = io_buffer++;
                         while (inode_number == -1 && j < 8)
                         {
-                                if (!(*current_byte & 2 >> j))
+                                if (!((*current_byte) & (1 << j)))
                                 {
                                         inode_number = i * 8 + j;
-                                        *current_byte = *current_byte | 2 >> j;
+                                        *current_byte = *current_byte | 1 << j;
                                 }
                                 j++;
                         }
@@ -701,6 +702,7 @@ u32 static find_free_inode(u32 group_block_index,t_ext2 *ext2,u32 check_threshol
 		ext2->superblock->s_free_inodes_count--;
 	}
 	kfree(group_block);
+	kfree(io_buffer);
         return inode_number;
 }
 
