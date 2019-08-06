@@ -9,7 +9,7 @@ u32 static find_free_block(char* io_buffer,u32 prealloc);
 void static read_inode(t_ext2* ext2,t_inode* inode);
 u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode);
 
-int add_entry_to_dir(char* file_name,char* parent_dir_path,i_node parent_dir_inode,t_ext2* ext2) parent_path,0,ext2,inode
+int add_entry_to_dir(char* file_name,char* parent_dir_path,i_node parent_dir_inode,t_ext2* ext2,u32 inode_number)
 {
 	int ret = -1;
 	int i,j;
@@ -33,50 +33,69 @@ int add_entry_to_dir(char* file_name,char* parent_dir_path,i_node parent_dir_ino
 	found_entry = 0;
 	next_entry = 0;
 	file_name_len = strlen(file_name);
-	while(!found_entry && i < 12)
-		while(next_entry < BLOCK_SIZE)
+
+	for(j = 0;j < BLOCK_SIZE *j;j++)
+	{
+		lba = FROM_BLOCK_TO_LBA(parent_dir_inode->i_block[j]);
+		READ((BLOCK_SIZE / SECTOR_SIZE),lba,io_buffer + (BLOCK_SIZE * j));
+	}
+
+	while(!found_entry && next_entry < (BLOCK_SIZE * i))
+	{
+		//READ_DWORD(&io_buffer[next_entry],i_number);
+		//READ_BYTE(&io_buffer[next_entry+6],name_len);
+		READ_WORD(&io_buffer[next_entry+4],rec_len);
+		next_entry += rec_len;
+		if (io_buffer[next_entry] == 0 &&
+		    io_buffer[next_entry + 1] == 0 &&
+		    io_buffer[next_entry + 2] == 0 &&
+		    io_buffer[next_entry + 3] == 0 && 
+		    rec_len > new_entry_len + pad)
 		{
-			lba = FROM_BLOCK_TO_LBA(parent_dir_inode->i_block[j]);
-			READ((BLOCK_SIZE / SECTOR_SIZE),lba,io_buffer);
-			//READ_DWORD(&io_buffer[next_entry],i_number);
-			//READ_BYTE(&io_buffer[next_entry+6],name_len);
-			READ_WORD(&io_buffer[next_entry+4],rec_len);
-			next_entry += rec_len;
-			if (io_buffer[next_entry] == 0 &&
-		            io_buffer[next_entry + 1] == 0 &&
-		    	    io_buffer[next_entry + 2] == 0 &&
-		    	    io_buffer[next_entry + 3] == 0 && 
-		    	    rec_len > new_entry_len + pad)
+			new_rec_len = BLOCK_SIZE - next_entry - new_entry_len;
+			io_buffer[next_entry] = inode_number && 0x000000FF;    //inode fourth word
+			io_buffer[next_entry + 1] = inode_number && 0x0000FF;  //inode third word
+			io_buffer[next_entry + 2] = inode_number && 0x00FF;    //inode second word
+			io_buffer[next_entry + 3] = inode_number && 0xFF;      //inode first word
+			io_buffer[next_entry + 4] = (new_rec_len + pad) && 0x00FF;     //rec len second word
+			io_buffer[next_entry + 5] = (new_rec_len + pad) && 0xFF;       //rec len first word
+                        io_buffer[next_entry + 6] = file_name_len;             //file len
+			io_buffer[next_entry + 7] = 1;                         //file type
+			for (j = 0;j < file_name_len;j++)
 			{
-				new_rec_len = BLOCK_SIZE - next_entry - new_entry_len;
-				io_buffer[next_entry] = inode->i_number && 0x000000FF;    //inode fourth word
-				io_buffer[next_entry + 2] = inode->i_number && 0x0000FF;  //inode third word
-				io_buffer[next_entry + 3] = inode->i_number && 0x00FF;    //inode second word
-				io_buffer[next_entry + 4] = inode->i_number && 0xFF;      //inode first word
-				io_buffer[next_entry + 5] = new_rec_len && 0x00FF;        //rec len second word
-				io_buffer[next_entry + 6] = new_rec_len && 0xFF;          //rec len first word
-				io_buffer[next_entry + 7] = 1;                            //file type
-				for (j = 0;j < file_name_len;j++)
-				{
-					io_buffer[next_entry + 8 + j] = file_name[j];
-				}
-				for (j = 0;j < file_name_len;j++)
-				{
-					io_buffer[next_entry + 8 + j] = 0;
-				}
-				write to disk!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-				found_entry = 1;
-			} 
-		}
-		if (!found_entry)
-		{
-			i++;
-			if (i < 12)
-			{
-				parent_dir_inode->i_block[i] = alloc_inode(parent_dir_path,1,t_ext2 *ext2);//DA IMPLEMENTARE CASO DIR!!!!!!!!!!!!!!!!!
+				io_buffer[next_entry + 8 + j] = file_name[j];
 			}
+			for (j = 0;j < file_name_len;j++)
+			{
+				io_buffer[next_entry + 8 + j] = 0;
+			}
+			write to disk!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			found_entry = 1;
+		} 
+	}
+	if (!found_entry)
+	{
+		if (i + 1 < 12)
+		{
+			new_rec_len = (BLOCK_SIZE * (i + 1)) - next_entry - pad;
+			parent_dir_inode->i_block[i] = alloc_inode(parent_dir_path,1,t_ext2 *ext2);//DA IMPLEMENTARE CASO DIR!!!!!!!!!!!!!!!!!
+			new_io_buffer = kmalloc(BLOCK_SIZE);
+			kfillmem(new_io_buffer,0,BLOCK_SIZE);
+			io_buffer[next_entry] = inode_number && 0x000000FF;    //inode fourth word
+			io_buffer[next_entry + 1] = inode_number && 0x0000FF;  //inode third word
+			io_buffer[next_entry + 2] = inode_number && 0x00FF;    //inode second word
+			io_buffer[next_entry + 3] = inode_number && 0xFF;      //inode first word
+			io_buffer[next_entry + 4] = new_rec_len && 0x00FF;     //rec len second word
+			io_buffer[next_entry + 5] = new_rec_len && 0xFF;       //rec len first word
+			io_buffer[next_entry + 6] = file_name_len;             //file len
+			io_buffer[next_entry + 7] = 1;                         //file type
+			update previous block!!!!!
+			write to disk!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 			
+		
 		}
+			
+		
 	}
 	kfree(io_buffer);
 	return ret;
