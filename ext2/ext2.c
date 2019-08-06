@@ -42,12 +42,12 @@ int _open(t_ext2* ext2,const char* fullpath, int flags)
 	//current_process_context->file_desc=kmalloc(sizeof(t_hashtable));
 	//hashtable_init(current_process_context->file_desc,10);
 
-	if (flags & O_CREAT & O_RDWR)
+	if (flags & (O_CREAT & O_RDWR))
 	{
 		alloc_inode(fullpath,0,system.root_fs,inode);
 		hashtable_put(current_process_context->file_desc,fd,inode);
 	}
-	else if (flags & (O_APPEND | O_RDWR))
+	else if (flags & (O_APPEND & O_RDWR))
 	{
 		ret_code = lookup_inode(fullpath,ext2,inode);		
 		if (ret_code == -1)

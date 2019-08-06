@@ -384,14 +384,13 @@ u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode)
 void alloc_inode(char* fullpath,unsigned int type,t_ext2 *ext2, t_inode* inode)
 {
         u32 inode_number;      
-        char* current_byte;
+        char* current_byte = NULL;
         u32 i,j;        
         u32 group_block_index;
         u32 parent_dir_group_block_index;
         u32 group_block_offset;
-        t_inode* inode_parent_dir;
-        t_group_block **group_block;
-        void* io_buffer;
+        t_inode* inode_parent_dir = NULL;
+        void* io_buffer = NULL;
         u32 lba;
         u32 sector_count;
 	u32 tot_group_block;
@@ -406,42 +405,46 @@ void alloc_inode(char* fullpath,unsigned int type,t_ext2 *ext2, t_inode* inode)
         // 4)seleziona group descriptor group descriptor+1+2+4+.... inode mod(n=numero totale group descriptor)
         // 5)vai punto 3
         // 6)Seleziona primo group descriptor con inode libero a partire da group descriptor corrente +2
-	group_block=kmalloc(sizeof(t_group_block));
-        if (type==0)
+        if (type == 0)
         {
-                group_block_offset=0;
-                inode_number=-1;
-                tot_group_block=ext2->superblock->s_blocks_count;
+                group_block_offset = 1;
+                inode_number = -1;
+                tot_group_block = ext2->superblock->s_blocks_count;
                 lookup_inode(fullpath,ext2,inode_parent_dir);
-                parent_dir_group_block_index=(inode_parent_dir->i_number-1)/ext2->superblock->s_inodes_per_group;
+                parent_dir_group_block_index = (inode_parent_dir->i_number-1) / ext2->superblock->s_inodes_per_group;
                 group_block_index=parent_dir_group_block_index;
 
-                while (group_block_index<tot_group_block && inode_number==-1)
-                {
-			read_group_block(ext2,group_block_index,group_block);                        
-			inode_number=find_free_inode(group_block_index,ext2,0);
-                        group_block_index=group_block_offset>>1;
-                }
-
-                if (inode_number==-1)
-                {
-                        group_block_index=parent_dir_group_block_index+2;
-                        while(inode_number!=-1 && group_block_index<tot_group_block)
-                        {
-				read_group_block(ext2,group_block_index,group_block);                    
-				inode_number=find_free_inode(group_block_index,ext2,0);
-
-                        }
-                        if (inode_number==-1)
-                        {
-                                group_block_index=0;
-                                while(inode_number!=-1 && group_block_index<parent_dir_group_block_index-1)
-                                {
-					read_group_block(ext2,group_block_index,group_block);                      
-					inode_number=find_free_inode(group_block_index,ext2,0);
-                                }      
-                        }
-                }
+		//read_group_block(ext2,group_block_index,group_block);                        
+		inode_number = find_free_inode(group_block_index,ext2,0);
+		if (inode_number == -1)
+		{
+                	while (group_block_index < tot_group_block && inode_number == -1)
+                	{
+				//read_group_block(ext2,(group_block_index + group_block_offset),group_block);                        
+				inode_number = find_free_inode(group_block_index,ext2,0);
+                        	group_block_index = group_block_offset >> 1;
+                	}
+                	if (inode_number == -1)
+                	{
+                        	group_block_index = parent_dir_group_block_index + 2;
+                        	while(inode_number != -1 && group_block_index<tot_group_block)
+                        	{
+					//read_group_block(ext2,group_block_index,group_block);                    
+					inode_number = find_free_inode(group_block_index,ext2,0);
+					group_block_index++;
+                        	}
+                        	if (inode_number == -1)
+                        	{
+                                	group_block_index = 0;
+                                	while(inode_number != -1 && group_block_index < parent_dir_group_block_index - 1)
+                                	{
+						//read_group_block(ext2,group_block_index,group_block);                      
+						inode_number=find_free_inode(group_block_index,ext2,0);
+                                	}
+					group_block_index++;   
+                        	}	
+                	}
+		}
         }
 
         //1)Seleziona primo group descriptor con numero inode<=media inode
@@ -451,20 +454,20 @@ void alloc_inode(char* fullpath,unsigned int type,t_ext2 *ext2, t_inode* inode)
         //      2.4)ritorna inode
         //2)Seleziona primo group descriptor con inode libero a partire da group descriptor corrente +1
         //3)Vai punto 2.1
-        else if (type==1)
+        else if (type == 1)
         {
-                while (group_block_index<tot_group_block && inode_number==-1)
+                while(group_block_index < tot_group_block && inode_number == -1)
                 {
-			read_group_block(ext2,group_block_index,group_block);                        
-			inode_number=find_free_inode(group_block_index,ext2,1);
+			//read_group_block(ext2,group_block_index,group_block);                        
+			inode_number = find_free_inode(group_block_index,ext2,1);
                 }
         }
-        if (inode_number!=-1)
+        if (inode_number != -1)
         {
-                write_group_block(ext2,group_block_index,group_block);
-		inode->i_number=inode_number;
+                //write_group_block(ext2,group_block_index,group_block); da scommentare solo per test!!!!!!!!!!!!!!!!!!!!!!!!!!
+		printk("selected inode is %d \n",inode->i_number);
+		inode->i_number = inode_number;
         }
-	kfree(group_block);
 }
 
 static int add_dir_entry(t_ext2* ext2,t_inode* inode_dir,u32 inode_number,char* filename,u32 type)
