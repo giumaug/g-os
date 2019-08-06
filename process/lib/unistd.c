@@ -164,3 +164,11 @@ void signal()
 
 	SYSCALL(107,params);
 }
+
+void select_dev(int device_num)
+{
+	unsigned int params[1];
+
+	params[0] = device_num;
+	SYSCALL(108,params);	
+}

@@ -113,6 +113,7 @@ int getpgid(int pid);
 int setpgid(int pid,int pgid);
 int tcgetpgrp();
 int tcsetpgrp(int fg_pgid);
+void select_dev(int device_num);
 
 //stat.h
 int mkdir(const char *fullpath);

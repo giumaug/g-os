@@ -1018,11 +1018,11 @@ int _stat(t_ext2* ext2,char* pathname,t_stat* stat)
 	return 0;	
 }
 
-int _mount(char* pathname t_ext2* ext2)
+int _mount(char* pathname,t_ext2* ext2)
 {
 	int ret_code;
 	t_mount_point* mount_point = NULL;
-	t_inode inode = NULL;
+	t_inode* inode = NULL;
 
 	inode = inode_init();
 	ret_code = lookup_inode(pathname,ext2,inode);		
@@ -1042,7 +1042,7 @@ int _umount(int inode_number)
 {
 	t_mount_point* mount_point = NULL;
 
-	mount_point = hashtable_remove(system.mount_map,inode->i_number,mount_point);
+	mount_point = hashtable_remove(system.mount_map,inode_number);
 	if (mount_point == NULL)
 	{
 		return -1;

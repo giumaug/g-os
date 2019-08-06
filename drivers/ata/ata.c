@@ -5,8 +5,7 @@
 #include "pci/pci.h"
 #include "drivers/ata/ata.h"
 
-void static int_handler_ata_d1();
-void static int_handler_ata_d2();
+void static int_handler_ata();
 
 u32 dma_pci_io_base;
 u32 dma_pci_mem_base;
@@ -84,29 +83,15 @@ t_device_desc* init_ata(u8 device_num)
 	u32 bar4 = NULL;
 	u32 pci_command = NULL;
 	struct t_process_context* current_process_context = NULL;
-	void (*_int_handler_ata)();
 	u8 int_entry;
-	u8 _ata_pci_func;
 	
 	device_desc = kmalloc(sizeof(t_device_desc));
 	device_desc->num = device_num;
-	if (device_num == 0)
-	{
-		_int_handler_ata = int_handler_ata_d1;
-		int_entry = 0x2E;
-		_ata_pci_func = ATA_PCI_FUNC_D1;
-	}
-	else if (device_num == 1)
-	{
-		_int_handler_ata = int_handler_ata_d2;
-		int_entry = 0x2F;
-		_ata_pci_func = ATA_PCI_FUNC_D2;
-	}
-	i_desc.baseLow = ((int)_int_handler_ata) & 0xFFFF;
+	i_desc.baseLow = ((int)&int_handler_ata) & 0xFFFF;
 	i_desc.selector = 0x8;
 	i_desc.flags = 0x08e00;
-	i_desc.baseHi = ((int)_int_handler_ata)>>0x10;
-	set_idt_entry(int_entry,&i_desc);
+	i_desc.baseHi = ((int)&int_handler_ata)>>0x10;
+	set_idt_entry(0x2E,&i_desc);
 
 	device_desc->read_dma = _read_dma_28_ata;
 	device_desc->read = _read_28_ata;
@@ -117,11 +102,11 @@ t_device_desc* init_ata(u8 device_num)
 	sem_init(&device_desc->mutex,1);
 	sem_init(&device_desc->sem,0);
 
-	bar4 = read_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,_ata_pci_func,ATA_PCI_BAR4);
-	pci_command = read_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,_ata_pci_func,ATA_PCI_COMMAND);
+	bar4 = read_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_BAR4);
+	pci_command = read_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_COMMAND);
      	pci_command |= 0x4;
-	write_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,_ata_pci_func,ATA_PCI_COMMAND,pci_command);
-	pci_command = read_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,_ata_pci_func,ATA_PCI_COMMAND);
+	write_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_COMMAND,pci_command);
+	pci_command = read_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_COMMAND);
 
 	if ((u32) bar4 & 0x1) 
 	{
@@ -148,7 +133,7 @@ void free_ata(t_device_desc* device_desc)
 	kfree(device_desc);
 }
 
-void int_handler_ata_d1()
+void int_handler_ata()
 {
 	struct t_processor_reg processor_reg;
 	t_io_request* io_request = NULL;
@@ -163,18 +148,18 @@ void int_handler_ata_d1()
 	STI
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 	
-	io_request = system.device_desc_d1->serving_request;
+	io_request = system.device_desc->serving_request;
 	process_context = io_request->process_context;
 
-	if (system.device_desc_d1->status != POOLING_MODE)
+	if (system.device_desc->status != POOLING_MODE)
 	{
-		sem_up(&system.device_desc_d1->sem);
+		sem_up(&system.device_desc->sem);
 	}
 	if (current_process_context->pid != process_context->pid) 
 	{
 	 	system.force_scheduling = 1;
 	}
-	system.device_desc_d1->status = DEVICE_IDLE;
+	system.device_desc->status = DEVICE_IDLE;
 	enable_irq_line(14);
 	ENABLE_PREEMPTION
 	EXIT_INT_HANDLER(0,processor_reg)
@@ -249,37 +234,6 @@ void int_handler_ata_d1()
 */
 }
 
-void int_handler_ata_d2()
-{
-	struct t_processor_reg processor_reg;
-	t_io_request* io_request = NULL;
-	struct t_process_context* process_context = NULL;
-	struct t_process_context* current_process_context = NULL;
-
-	SAVE_PROCESSOR_REG
-	disable_irq_line(15);
-	DISABLE_PREEMPTION
-	EOI_TO_SLAVE_PIC
-	EOI_TO_MASTER_PIC
-	STI
-	CURRENT_PROCESS_CONTEXT(current_process_context);
-	
-	io_request = system.device_desc_d2->serving_request;
-	process_context = io_request->process_context;
-	if (system.device_desc_d2->status != POOLING_MODE)
-	{
-		sem_up(&system.device_desc_d2->sem);
-	}
-	if (current_process_context->pid != process_context->pid) 
-	{
-	 	system.force_scheduling = 1;
-	}
-	system.device_desc_d2->status = DEVICE_IDLE;
-	enable_irq_line(15);
-	ENABLE_PREEMPTION
-	EXIT_INT_HANDLER(0,processor_reg)
-}
-
 static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 {
 	int i;
@@ -292,7 +246,6 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 	int ret = 0;
 	u8 dma_status;
 	u16 cmd_status;
-	u16 base_port;
 	
 	device_desc = io_request->device_desc;
 	//Entrypoint mutual exclusion region.
@@ -302,15 +255,6 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 	sem_down(&device_desc->mutex);
 	device_desc->status=DEVICE_BUSY;
 	device_desc->serving_request=io_request;
-	if (device_desc->num == 0)
-	{
-		base_port = 0x1F0;
-	}
-	else if (device_desc->num == 1)
-	{
-		base_port = 0x170;
-	}
-
 	prd = kmalloc(16);
 	prd_aligned = ((((u32)prd % 0x10) != 0) ? ((((u32)prd + 0x10) - (((u32)prd + 0x10) % 0x10))) : ((u32)prd % 0x10));  
 	byte_count = io_request->sector_count * SECTOR_SIZE;
@@ -326,19 +270,19 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 	write_ata_config_dword(device_desc,ATA_DMA_PRD_REG,FROM_VIRT_TO_PHY(prd_aligned));
 	//write_ata_config_byte(device_desc,ATA_DMA_STATUS_REG,0x6);
 	
-	out(0xE0 | (device_desc->num * 16) | (unsigned char)(io_request->lba >> 24),(base_port + 0x6));
-	out((unsigned char)io_request->sector_count,(base_port + 0x2));
-	out((unsigned char)io_request->lba,(base_port + 0x3));
-	out((unsigned char)(io_request->lba >> 8),(base_port + 0x4));
-	out((unsigned char)(io_request->lba >> 16),(base_port + 0x5));
-	out(io_request->command,(base_port + 0x7));
+	out(0xE0 | (device_desc->num * 16) | (unsigned char)(io_request->lba >> 24),0x1F6);
+	out((unsigned char)io_request->sector_count,0x1F2);
+	out((unsigned char)io_request->lba,0x1F3);
+	out((unsigned char)(io_request->lba >> 8),0x1F4);
+	out((unsigned char)(io_request->lba >> 16),0x1F5);
+	out(io_request->command,0x1F7);
 	
 	write_ata_config_byte(device_desc,ATA_DMA_COMMAND_REG,0x1);
 	//semaphore to avoid race with interrupt handler
 	sem_down(&device_desc->sem);
 	write_ata_config_byte(device_desc,ATA_DMA_COMMAND_REG,0x0);	
 	dma_status = read_ata_config_byte(device_desc,ATA_DMA_STATUS_REG);
-	cmd_status = in((base_port + 0x7));
+	cmd_status = in(0x1F7);
 	if ((cmd_status & 1) || dma_status & 1)
 	{
 		device_desc->status=DEVICE_IDLE;
@@ -365,7 +309,6 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	t_llist_node* node = NULL;
 	int k = 0;
 	int s;
-	u16 base_port;
 	
 	device_desc = io_request->device_desc;
 	//Entrypoint mutual exclusion region.
@@ -375,53 +318,58 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	sem_down(&device_desc->mutex);
 	device_desc->status=DEVICE_BUSY;
 	device_desc->serving_request=io_request;
-	if (device_desc->num == 0)
-	{
-		base_port = 0x1F0;
-	}
-	else if (device_desc->num == 1)
-	{
-		base_port = 0x170;
-	}
-	out(0xE0 | (device_desc->num * 16) | (unsigned char)(io_request->lba >> 24),(base_port + 0x6));
-	out((unsigned char)io_request->sector_count,(base_port + 0x2));
-	out((unsigned char)io_request->lba,(base_port + 0x3));
-	out((unsigned char)(io_request->lba >> 8),(base_port + 0x4));
-	out((unsigned char)(io_request->lba >> 16),(base_port + 0x5));
-	out(io_request->command,(base_port + 0x7));
+	out(0xE0 | (device_desc->num * 16) | (unsigned char)(io_request->lba >> 24),0x1F6);
+	out((unsigned char)io_request->sector_count,0x1F2);
+	out((unsigned char)io_request->lba,0x1F3);
+	out((unsigned char)(io_request->lba >> 8),0x1F4);
+	out((unsigned char)(io_request->lba >> 16),0x1F5);
+	out(io_request->command,0x1F7);
 	
 	for (k = 0;k < 1000;k++);
 
-	//to fix
-	if (io_request->command == WRITE_28)
-	{
-		for (i = 0;i < 256;i++)
-		{  
-			outw((unsigned short)57,0x1F0);//??????
-		}
-	}
-	
 	//one interrupt for each block
 	for (k = 0;k < io_request->sector_count;k++)
 	{
 		//semaphore to avoid race with interrupt handler
-		sem_down(&device_desc->sem);
-
-		if ((in((base_port + 0x7)) & 1))
+		//sem_down(&device_desc->sem);
+		if (io_request->command == WRITE_28)
 		{
-			device_desc->status = DEVICE_IDLE;
-			panic();
-			return -1;
+			for (i = 0;i < 512;i += 2)
+			{    
+				u8 low_val = ((char*)io_request->io_buffer)[i+(512*k)];
+				u8 hi_val = ((char*)io_request->io_buffer)[i+1+(512*k)];
+				u16 val = low_val + (hi_val << 0x8);
+				outw((unsigned short)val,0x1F0);
+			}
+			int yyy = in(0x1F7);
+			if (yyy == 1)
+			{
+				printk("...\n");
+			}
+			if ((in(0x1F7) & 1))
+			{
+				device_desc->status = DEVICE_IDLE;
+				panic();
+				return -1;
+			}
 		}
 		if (io_request->command == READ_28)
 		{
+			//semaphore to avoid race with interrupt handler
+			sem_down(&device_desc->sem);
+			if ((in(0x1F7) & 1))
+			{
+				device_desc->status = DEVICE_IDLE;
+				panic();
+				return -1;
+			}
 			for (i = 0;i < 512;i += 2)
 			{   
-				unsigned short val = inw(base_port);
+				unsigned short val = inw(0x1F0);
 				((char*)io_request->io_buffer)[i+(512*k)] = (val&0xff);
 				((char*)io_request->io_buffer)[i+1+(512*k)] = (val>>0x8);
 			}
-		i=0;
+			i=0;
 		}
 	}
 	//Endpoint mutual exclusion region
@@ -437,8 +385,6 @@ static unsigned int _p_read_write_28_ata(t_io_request* io_request)
 	t_llist_node* node = NULL;
 	t_spinlock_desc spinlock;
 	int k = 0;
-	u16 base_port;
-	u16 control_port;
 
 	SPINLOCK_INIT(spinlock);
 	device_desc = io_request->device_desc;
@@ -448,57 +394,51 @@ static unsigned int _p_read_write_28_ata(t_io_request* io_request)
 	
 	device_desc->status = DEVICE_BUSY || POOLING_MODE;
 	device_desc->serving_request = io_request;
-	if (device_desc->num == 0)
-	{
-		base_port = 0x1F0;
-		control_port = 0x3F6;
-	}
-	else if (device_desc->num == 1)
-	{
-		//base_port = 0x170;
-		//control_port = 0x376;
-		base_port = 0x1F0;
-		control_port = 0x3F6;
-	}
-
-	out(0x2,control_port);
-	out(0xE0 | (device_desc->num * 16) | (io_request->lba >> 24),(base_port + 0x6));
-	out((unsigned char)io_request->sector_count,(base_port + 0x2));
-	out((unsigned char)io_request->lba,(base_port + 0x3));
-	out((unsigned char)(io_request->lba >> 8),(base_port + 0x4));
-	out((unsigned char)(io_request->lba >> 16),(base_port + 0x5));
-	out(io_request->command,(base_port + 0x7));
+	out(0x2,0x3F6);
+	out(0xE0 | (device_desc->num * 16) | (io_request->lba >> 24),0x1F6);
+	out((unsigned char)io_request->sector_count,0x1F2);
+	out((unsigned char)io_request->lba,0x1F3);
+	out((unsigned char)(io_request->lba >> 8),0x1F4);
+	out((unsigned char)(io_request->lba >> 16),0x1F5);
+	out(io_request->command,0x1F7);
 	for (k = 0;k < 1000;k++);
 
-	//to fix
 	if (io_request->command == WRITE_28)
-	{
-		for (i = 0;i < 256;i++)
-		{  
-			//out(*(char*)io_request->io_buffer++,0x1F0); ????
-			outw((unsigned short)57,0x1F0); //???
+	{	
+		for (i = 0;i < 512;i += 2)
+		{    
+			u8 low_val = ((char*)io_request->io_buffer)[i+(512*k)];
+			u8 hi_val = ((char*)io_request->io_buffer)[i+1+(512*k)];
+			u16 val = low_val + (hi_val << 0x8);
+			outw((unsigned short)val,0x1F0);	
 		}
-	}
-	while (in((base_port + 0x7)) & 0x80);
-	int yyy = in((base_port + 0x7));
-	if ((in((base_port + 0x7)) & 0x21))
-	{
+		while (in(0x1F7) & 0x80);
+		if ((in(0x1F7) & 0x21))
+		{
+			device_desc->status = DEVICE_IDLE;
+			panic();
+			return -1;
+		}
 		device_desc->status = DEVICE_IDLE;
-		panic();
-		return -1;
 	}
-	device_desc->status = DEVICE_IDLE;
-	
 	if (io_request->command == READ_28)
 	{
+		while (in(0x1F7) & 0x80);
+		if ((in(0x1F7) & 0x21))
+		{
+			device_desc->status = DEVICE_IDLE;
+			panic();
+			return -1;
+		}
+		device_desc->status = DEVICE_IDLE;
 		for (i = 0;i < (512 * io_request->sector_count);i+=2)
 		{  
-			unsigned short val = inw(base_port);
+			unsigned short val = inw(0x1F0);
 			((char*) io_request->io_buffer)[i] = (val & 0xff);
 			((char*) io_request->io_buffer)[i+1] = (val >> 0x8);
 		}
 	}
-	out(0x0,control_port);
+	out(0x0,0x3F6);
 	//Exitpoint mutual exclusion region
 	SPINLOCK_UNLOCK(spinlock);
 	return 0;
@@ -532,6 +472,31 @@ unsigned int _p_write_28_ata(t_io_request* io_request)
 {
 	io_request->command = WRITE_28;
 	return _p_read_write_28_ata(io_request);	
+}
+
+void _select_dev(int device_num)
+{
+	int i;
+	char* w_buffer = NULL;
+	char* r_buffer = NULL;
+	t_ext2* ext2 = NULL;	
+
+	ext2 = system.scnd_fs;
+	r_buffer = kmalloc(512);
+	w_buffer = kmalloc(512);
+	for (i = 0;i < 512;i++)
+	{
+		w_buffer[i] = 'f';
+		r_buffer[i] = '0';
+	}
+	system.device_desc->num = device_num;
+	WRITE(1,8000,w_buffer)
+	READ(1,8000,r_buffer)
+	r_buffer[6] = '\0';
+	printk("0 = %s \n",r_buffer);
+	printk("\n");
+	kfree(w_buffer);
+	kfree(r_buffer);
 }
 
 //int _flush_ata_pending_request()
