@@ -381,6 +381,30 @@ u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode)
 	return ret;
 }
 
+void find_parent_path(char* full_path,char* parent_path)
+{
+	int i,index;
+	char* path = NULL;
+
+
+	path = full_path;
+	index = 0;
+	while(path++ != '\0')
+	{
+		if(*path == '\/')
+		{
+			index++;
+		}
+	}
+	path = full_path;
+	i = 0;
+	while(i < index)
+	{
+		parent_path[i] = full_path[i];
+		i++;
+	}
+}
+
 void alloc_inode(char* fullpath,unsigned int type,t_ext2 *ext2, t_inode* inode)
 {
         u32 inode_number;      
@@ -394,6 +418,7 @@ void alloc_inode(char* fullpath,unsigned int type,t_ext2 *ext2, t_inode* inode)
         u32 lba;
         u32 sector_count;
 	u32 tot_group_block;
+	char parent_path[PATH_MAX];
 
         // 1)seleziona inode parent dir
         // 2)seleziona  group descriptor inode  (block group = (inode – 1) / INODES_PER_GROUP)
@@ -410,6 +435,7 @@ void alloc_inode(char* fullpath,unsigned int type,t_ext2 *ext2, t_inode* inode)
                 group_block_offset = 1;
                 inode_number = -1;
                 tot_group_block = ext2->superblock->s_blocks_count;
+		find_parent_path(fullpath,parent_path);
                 lookup_inode(fullpath,ext2,inode_parent_dir);
                 parent_dir_group_block_index = (inode_parent_dir->i_number-1) / ext2->superblock->s_inodes_per_group;
                 group_block_index=parent_dir_group_block_index;
