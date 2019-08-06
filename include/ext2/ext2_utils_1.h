@@ -9,9 +9,12 @@ u32 static find_free_block(char* io_buffer,u32 prealloc);
 void static read_inode(t_ext2* ext2,t_inode* inode);
 u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode);
 
-void add_entry_to_dir(char* )
+void add_entry_to_dir(char* file_name)
 {
 	int i;
+	u32 new_rec_size;
+
+	new_rec_size = 8 + strlen(file_name);
 
 	for (i=0;i<=11;i++)
 	{
@@ -26,8 +29,33 @@ void add_entry_to_dir(char* )
 	{
 		lba=FROM_BLOCK_TO_LBA(parent_dir_inode->i_block[j]);
 		READ((BLOCK_SIZE/SECTOR_SIZE),lba,(io_buffer+BLOCK_SIZE*j));
+	
+		found_inode=0;
+		next_entry=0;
+		file_name_len=strlen(file_name);
+		while(next_entry < BLOCK_SIZE)
+		{
+			j=0;
+			READ_DWORD(&io_buffer[next_entry],i_number);
+			READ_BYTE(&io_buffer[next_entry+6],name_len);
+			READ_WORD(&io_buffer[next_entry+4],rec_len);
+
+			if (strncmp(&io_buffer[next_entry+8+j],file_name,name_len)==0) 
+			{
+				found_inode=1;
+				breakpoint();
+				break;
+			}	
+			next_entry+=rec_len;
+		}
+		if (io_buffer[next_entry] == 0 &&
+			io_buffer[next_entry + 1] == 0 &&
+			io_buffer[next_entry + 2] == 0 &&
+			io_buffer[next_entry + 3] == 0 && )---------------------qui!!!!
+		{
+
+		} 
 	}
-	QUI!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 }
 
 
