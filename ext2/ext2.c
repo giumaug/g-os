@@ -33,9 +33,9 @@ int _open(t_ext2* ext2,const char* fullpath, int flags)
 {
 	u32 fd;
 	u32 ret_code;
-	struct t_process_context* current_process_context;
-	t_inode* inode;
-	t_llist_node* node;
+	struct t_process_context* current_process_context = NULL;
+	t_inode* inode = NULL;
+	t_llist_node* node = NULL;
 	char path[NAME_MAX];
 	char parent_path[NAME_MAX];
 
@@ -48,7 +48,12 @@ int _open(t_ext2* ext2,const char* fullpath, int flags)
 	if ((flags & (O_CREAT | O_RDWR)) == (O_CREAT | O_RDWR))
 	{
 		find_parent_path(fullpath,parent_path);
-		alloc_inode(parent_path,0,system.root_fs,inode);
+		inode->i_number = alloc_inode(parent_path,0,ext2);
+		if (inode->i_number == -1)
+		{
+			inode_free(inode);
+			return -1;
+		}
 		--------------------
 		hashtable_put(current_process_context->file_desc,fd,inode);
 		printk("wrong path!!!!!\n");
