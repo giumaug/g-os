@@ -656,7 +656,7 @@ u32 static lookup_partition(t_ext2* ext2,u8 partition_number)
         return first_partition_sector;
 }
 
-u32 static find_free_inode(u32 group_block_index,t_ext2 *ext2,u32 check_threshold)
+u32 static find_free_inode(u32 group_block_index,t_ext2 *ext2,u32 condition)
 {
 	u32 lba;
 	u32 sector_count;
@@ -674,8 +674,17 @@ u32 static find_free_inode(u32 group_block_index,t_ext2 *ext2,u32 check_threshol
 	group_block = kmalloc(sizeof(t_group_block));
 	io_buffer = kmalloc(BLOCK_SIZE);
 	read_group_block(ext2,group_block_index,group_block);
-	tot_group_block = ext2->superblock->s_blocks_count / ext2->superblock->s_blocks_per_group;                   
-        if (group_block->bg_free_inodes_count > (ext2->superblock->s_free_inodes_count / tot_group_block) || !check_threshold)
+	tot_group_block = ext2->superblock->s_blocks_count / ext2->superblock->s_blocks_per_group;   
+	avg_free_inode = ext2->superblock->s_free_inodes_count / tot_group_block;
+	avg_free_block =  ext2->superblock->s_free_blocks_count / tot_group_block;
+        
+	if (
+	    (group_block->bg_free_inodes_count > avg_free_inode && 
+	    	group_block->bg_free_blocks_count > avg_free_block && condition == 2)
+	    ||
+	    (group_block->bg_free_inodes_count > avg_free_inode && condition == 1)
+	    || 
+	    (condition) == 0)
         {
                 lba = ext2->partition_start_sector + (group_block->bg_inode_bitmap * (BLOCK_SIZE / SECTOR_SIZE));
                 sector_count = BLOCK_SIZE / SECTOR_SIZE;
@@ -699,7 +708,7 @@ u32 static find_free_inode(u32 group_block_index,t_ext2 *ext2,u32 check_threshol
 		//WRITE(sector_count,lba,io_buffer);da scommentare solo per test!!!!!!!!!!!!!!!!!!!!!!!!!!
 		group_block->bg_free_inodes_count--;
 		//write_group_block(ext2,group_block_index,group_block);  da scommentare solo per test!!!!!!!!!!!!!!!!!!!!!!!!!!
-		ext2->superblock->s_free_inodes_count--;
+		ext2->superblock->s_free_inodes_count--; //quando aggiorno il superblocco?????-------------------partire da qui!!
 	}
 	kfree(group_block);
 	kfree(io_buffer);

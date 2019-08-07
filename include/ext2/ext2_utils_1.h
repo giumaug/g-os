@@ -561,7 +561,7 @@ void alloc_inode(char* parent_path,unsigned int type,t_ext2 *ext2)
                 group_block_offset = 1;
                 inode_number = -1;
 		inode_parent_dir = kmalloc(sizeof(t_inode));
-                tot_group_block = ext2->superblock->s_blocks_count;
+                tot_group_block = ext2->superblock->s_blocks_count / ext2->superblock->s_log_block_size;
                 lookup_inode(parent_path,ext2,inode_parent_dir);
                 parent_dir_group_block_index = (inode_parent_dir->i_number-1) / ext2->superblock->s_inodes_per_group;
                 group_block_index = parent_dir_group_block_index;
@@ -599,7 +599,6 @@ void alloc_inode(char* parent_path,unsigned int type,t_ext2 *ext2)
 		}
 		kfree(inode_parent_dir);
         }
-
         //1)Seleziona primo group descriptor con numero inode<=media inode
         //      2.1)Leggi blocco inode bitmap (bg_inode_bitmap)
         //      2.2)Seleziona primo inode libero
@@ -609,11 +608,31 @@ void alloc_inode(char* parent_path,unsigned int type,t_ext2 *ext2)
         //3)Vai punto 2.1
         else if (type == 1)
         {
+		parent_dir_group_block_index = (inode_parent_dir->i_number-1) / ext2->superblock->s_inodes_per_group;
+		group_block_index = 0;
                 while(group_block_index < tot_group_block && inode_number == -1)
                 {
-			//read_group_block(ext2,group_block_index,group_block);                        
-			inode_number = find_free_inode(group_block_index,ext2,1);
+			inode_number = find_free_inode(group_block_index,ext2,2);
+			group_block_index++;
                 }
+		if (inode_number == -1)
+		{
+			group_block_index = parent_dir_group_block_index;
+			while(group_block_index < tot_group_block && inode_number == -1)
+                	{
+				inode_number = find_free_inode(group_block_index,ext2,2);
+				group_block_index++;
+                	}
+		}
+		if (inode_number == -1)
+		{
+			group_block_index = 0;
+			while(group_block_index < parent_dir_group_block_index && inode_number == -1)
+			{
+				inode_number = find_free_inode(group_block_index,ext2,2);
+				group_block_index++;
+			}
+		}	
         }
         if (inode_number != -1)
         {
