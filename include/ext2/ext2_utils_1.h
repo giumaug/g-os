@@ -248,6 +248,9 @@ void free_inode(t_inode* i_node,t_ext2 *ext2)
 	kfree(io_buffer);
 }
 
+//inode count starts from 1
+//group_index starts from 0
+//files block count start from 0
 u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
 {
         char* io_buffer;        
@@ -282,27 +285,25 @@ u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
         {
 		preferred_block=read_indirect_block(i_node,i_node->last_file_block_num+1); 
         }
-        //block count start from 1
         else if (i_node->last_file_block_num!=0)
         {
                 offset=block_num-1;
                 while(preferred_block==0 && offset!=0)
                 {
-			preferred_block=read_indirect_block(i_node,block_num) == 0 ? 0 : block_num;
+			preferred_block=read_indirect_block(i_node,offset) == 0 ? 0 : offset;
                         offset--;
                 }
                 if (preferred_block==0)
                 {
-			preferred_block=ABSOLUTE_BLOCK_ADDRESS(group_block_index,1);
+			preferred_block=ABSOLUTE_BLOCK_ADDRESS(group_block_index,0);
                 }
-        }
-
-        if(preferred_block==i_node->first_preallocated_block)
+        }//QUI!!!!!!!!!!!!!
+        if(preferred_block >= i_node->first_preallocated_block && preferred_block < i_node->preallocated_block_count)
         {
-                block=preferred_block;
+                block = preferred_block;
                 if (--i_node->preallocated_block_count>0)
                 {
-                        first_preallocated_block=i_node->first_preallocated_block++;
+                        first_preallocated_block=++i_node->first_preallocated_block;
                         discard_preallocated_block=0;
                 }
         }

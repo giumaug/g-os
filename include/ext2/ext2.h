@@ -37,7 +37,7 @@
 							+ext2->superblock->s_block_group_header_size+(BLOCK_SIZE*(block+1)))  \
 							/SECTOR_SIZE;
 
-#define ABSOLUTE_BLOCK_ADDRESS(group_block_index,relative_block_address) ext2->superblock->s_blocks_per_group*(group_block_index-1)+relative_block_address
+#define ABSOLUTE_BLOCK_ADDRESS(group_block_index,relative_block_address) ext2->superblock->s_blocks_per_group * group_block_index +     relative_block_address
 
 #define WRITE(_sector_count,_lba,_io_buffer)    do {                                                                    \
 						t_io_request* io_request; 						\
