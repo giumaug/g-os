@@ -297,7 +297,7 @@ u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
                 {
 			preferred_block=ABSOLUTE_BLOCK_ADDRESS(group_block_index,0);
                 }
-        }//QUI!!!!!!!!!!!!!
+        }
         if(preferred_block >= i_node->first_preallocated_block && preferred_block < i_node->preallocated_block_count)
         {
                 block = preferred_block;
@@ -310,8 +310,8 @@ u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
        
         if (block==0)
         {
-                buffer_byte=(preferred_block-1) / 8;
-                byte_bit=(preferred_block-1) % 8;
+		buffer_byte= preferred_block / 8;
+                byte_bit = preferred_block  % 8;
                 selected_bit=io_buffer[buffer_byte] & (2>>byte_bit);
                 if (selected_bit==0)
                 {
@@ -321,12 +321,12 @@ u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
                 {
                         for (i=0;i<16;i++)
                         {
-                                buffer_byte=(preferred_block-1+1+i) / 8;
-                                byte_bit=(preferred_block-1+1+i) % 8;
+                                buffer_byte=(preferred_block + 1 + i) / 8;
+                                byte_bit=(preferred_block + 1 + i) % 8;
                                 selected_bit=io_buffer[buffer_byte] & (2>>byte_bit);
                                 if (selected_bit==0)
                                 {
-                                        block=preferred_block+1+i;
+                                        block=preferred_block + 1 + i;
                                         break;  
                                 }
                         }
@@ -358,12 +358,18 @@ u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
         {
                 if (discard_preallocated_block)
                 {
+			for(i = i_node->first_preallocated_block; i < (i_node->first_preallocated_block + i_node->preallocated_block_count);i++)
+			{
+				buffer_byte = i / 8;
+                                byte_bit = i  % 8;
+				io_buffer[buffer_byte] &= (255 & (2>>byte_bit));
+			}
+			group_block->bg_free_blocks_count += i_node->preallocated_block_count;-----------------qui!!!!
                         free_block=0;                  
-                        i_node->preallocated_block_count=8;
-                        for(i=block;i<block+8;i++)
+                        for(i = (block + 1);i < (block + 9);i++)
                         {
-                                buffer_byte=i/8;
-                                byte_bit=(preferred_block-1+1+i) % 8;
+                                buffer_byte = i / 8;
+                                byte_bit = i % 8;
                                 selected_bit=io_buffer[buffer_byte] & (2>>byte_bit);
                                 if (selected_bit==0)
                                 {
@@ -376,7 +382,9 @@ u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
                                 i_node->first_preallocated_block=block+1;              
                         }                      
                 }
-                io_buffer[buffer_byte]&= (255 & (2>>byte_bit));
+		buffer_byte = block / 8;
+              	byte_bit = block % 8;
+                io_buffer[buffer_byte] &= (255 & (2>>byte_bit));
                 write_block_bitmap(ext2,group_block->bg_block_bitmap,io_buffer);
 		group_block->bg_free_blocks_count--;
 		write_group_block(ext2,group_block_index,group_block);

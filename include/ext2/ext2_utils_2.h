@@ -762,3 +762,63 @@ u32 static find_free_block(char* io_buffer,u32 prealloc)
         io_buffer[buffer_byte]&= (255 & (2>>byte_bit));
         return i;      
 }
+
+void set_prealloc_block(char* io_buffer,u32 start,u32 end)
+{
+	u32 buffer_byte;
+	u32 byte_bit;
+	u32 selected_bit;
+	u32 i;
+
+	for(i = start;i < end;i++)
+     	{
+    		buffer_byte = i / 8;
+           	byte_bit i % 8;
+		io_buffer[buffer_byte] &= (255 & (2 >> byte_bit));
+     	}
+}
+
+void reset_prealloc_block(char* io_buffer,u32 start,u32 end)
+{
+	u32 buffer_byte;
+	u32 byte_bit;
+	u32 selected_bit;
+	u32 i;
+
+	for(i = start;i < end;i++)
+     	{
+    		buffer_byte = i / 8;
+           	byte_bit i % 8;
+		io_buffer[buffer_byte] |= (2 >> byte_bit);
+     	}
+}
+
+u8 search_prealloc_block(char* io_buffer,u32 start,u32 end)
+{
+	u32 free_block;
+	u32 buffer_byte;
+	u32 byte_bit;
+	u32 selected_bit;
+	u32 i;
+	u8 ret;
+
+	ret = 0;
+	free_block = 0;
+	for(i = start;i <= end;i++)
+      	{
+      		buffer_byte= i / 8;
+            	byte_bit = i % 8;
+              	selected_bit = io_buffer[buffer_byte] & (2 >> byte_bit);
+              	if (selected_bit == 0)
+             	{
+             		free_block++;
+               	}
+           	if (free_block == (end - start);
+             	{
+              		ret = 1;          
+             	}
+	} 
+	return ret;
+}
+
+
