@@ -20,6 +20,9 @@ int add_entry_to_dir(char* file_name,char* parent_dir_path,i_node parent_dir_ino
 	u32 block_index;
 	u8 pad;
 	u8 found_entry;
+	char* io_buffer = NULL;
+	char* new_io_buffer = NULL;
+
 
 	new_entry_len = 8 + file_name_len;
 	pad = new_entry_len % 4;
@@ -67,7 +70,7 @@ int add_entry_to_dir(char* file_name,char* parent_dir_path,i_node parent_dir_ino
 			}
 			block_index = next_entry / BLOCK_SIZE;
 			lba = FROM_BLOCK_TO_LBA(parent_dir_inode->i_block[block_index]);
-			WRITE((BLOCK_SIZE / SECTOR_SIZE),lba,(io_buffer + block_index));
+			//WRITE((BLOCK_SIZE / SECTOR_SIZE),lba,(io_buffer + block_index));  !!!!!!!!!!!!!only for test
 			ret = 1;
 			exit = 1;
 		}
@@ -92,9 +95,9 @@ int add_entry_to_dir(char* file_name,char* parent_dir_path,i_node parent_dir_ino
 				io_buffer[next_entry + 5] = old_rec_len && 0x00FF;
 				block_index = BLOCK_SIZE * i;
 				lba = FROM_BLOCK_TO_LBA(parent_dir_inode->i_block[block_index]);
-				WRITE((BLOCK_SIZE / SECTOR_SIZE),lba,(io_buffer + block_index));
+				//WRITE((BLOCK_SIZE / SECTOR_SIZE),lba,(io_buffer + block_index));  !!!!!!!!!!!!!only for test
 				lba = FROM_BLOCK_TO_LBA(parent_dir_inode->i_block[i + 1]);
-				WRITE((BLOCK_SIZE / SECTOR_SIZE),lba,new_io_buffer);
+				//WRITE((BLOCK_SIZE / SECTOR_SIZE),lba,new_io_buffer);              !!!!!!!!!!!!!only for test
 				kfree(new_io_buffer);
 				ret = 0;
 			}
@@ -108,165 +111,6 @@ int add_entry_to_dir(char* file_name,char* parent_dir_path,i_node parent_dir_ino
 	kfree(io_buffer);
 	return ret;
 }
-
-int ____add_entry_to_dir(char* file_name,char* parent_dir_path,i_node parent_dir_inode,t_ext2* ext2,u32 inode_number)
-{
-	int ret = -1;
-	int i,j;
-	u32 new_entry_len;
-	u32 old_rec_len;
-	u32 file_name_len;
-	u32 new_rec_len;
-	u32 block_index;
-	u8 pad;
-	u8 found_entry;
-
-	new_entry_len = 8 + file_name_len;
-	pad = new_entry_len % 4;
-	io_buffer = kmalloc(BLOCK_SIZE);
-	file_name_len = strlen(file_name);
-	for (i = 0;i <= 11;i++)
-	{
-		if (parent_dir_inode->i_block[i] == 0)
-		{	
-			break;
-		} 
-	}
-	for(j = 0;j < BLOCK_SIZE * i;j++)
-	{
-		lba = FROM_BLOCK_TO_LBA(parent_dir_inode->i_block[j]);
-		READ((BLOCK_SIZE / SECTOR_SIZE),lba,io_buffer + (BLOCK_SIZE * j));
-	}
-	found_entry = 0;
-	next_entry = 0;
-	rec_len = 0;
-	exit = 0;
-	while(!exit)
-	{
-		READ_WORD(&io_buffer[next_entry + 4],rec_len);
-		READ_WORD(&io_buffer[next_entry + 6],cur_file_len);
-		free_space = (BLOCK_SIZE * i) - next_entry - cur_file_len;
-		if (next_entry + rec_len = (BLOCK_SIZE * i) && free_space >= new_entry_len)
-		{
-			new_rec_len = (BLOCK_SIZE * i) - next_entry - new_entry_len;
-			io_buffer[next_entry] = inode_number && 0xFF;                   //inode fourth word
-			io_buffer[next_entry + 1] = inode_number && 0x00FF;             //inode third word
-			io_buffer[next_entry + 2] = inode_number && 0x0000FF;           //inode second word
-			io_buffer[next_entry + 3] = inode_number && 0x000000FF;         //inode first word
-			io_buffer[next_entry + 4] = (new_rec_len + pad) && 0xFF;        //rec len second word
-			io_buffer[next_entry + 5] = (new_rec_len + pad) && 0x00FF;      //rec len first word
-                        io_buffer[next_entry + 6] = file_name_len;                      //file len
-			io_buffer[next_entry + 7] = 1;                                  //file type
-			for (j = 0;j < file_name_len;j++)
-			{
-				io_buffer[next_entry + 8 + j] = file_name[j];
-			}
-			for (j = 0;j < file_name_len;j++)
-			{
-				io_buffer[next_entry + 8 + j] = 0;
-			}
-			block_index = next_entry / BLOCK_SIZE;
-			lba = FROM_BLOCK_TO_LBA(parent_dir_inode->i_block[block_index]);
-			WRITE((BLOCK_SIZE / SECTOR_SIZE),lba,(io_buffer + block_index));
-			ret = 1;
-			exit = 1;
-		}
-		else if (next_entry + rec_len = (BLOCK_SIZE * i) && free_space < new_entry_len)
-		{
-			if (i + 1 < 12)
-			{
-				new_rec_len = (BLOCK_SIZE * (i + 1)) - new_entry_len - pad;
-				old_rec_len = (BLOCK_SIZE * i) - next_entry;
-				parent_dir_inode->i_block[i + 1] = alloc_inode(parent_dir_path,1,t_ext2 *ext2);//DA IMPLEMENTARE CASO DIR!!!!!!!!!!!
-				new_io_buffer = kmalloc(BLOCK_SIZE);
-				kfillmem(new_io_buffer,0,BLOCK_SIZE);
-				new_io_buffer[0] = inode_number && 0xFF;          //inode fourth word
-				new_io_buffer[1] = inode_number && 0x00FF;  	  //inode third word
-				new_io_buffer[2] = inode_number && 0x0000FF;      //inode second word
-				new_io_buffer[3] = inode_number && 0x000000FF;    //inode first word
-				new_io_buffer[4] = new_rec_len && 0x00FF;         //rec len second word
-				new_io_buffer[5] = new_rec_len && 0xFF;           //rec len first word
-				new_io_buffer[6] = file_name_len;                 //file len
-				new_io_buffer[7] = 1;                             //file type
-				io_buffer[next_entry + 4] = old_rec_len && 0xFF;
-				io_buffer[next_entry + 5] = old_rec_len && 0x00FF;
-				block_index = BLOCK_SIZE * i;
-				lba = FROM_BLOCK_TO_LBA(parent_dir_inode->i_block[block_index]);
-				WRITE((BLOCK_SIZE / SECTOR_SIZE),lba,(io_buffer + block_index));
-				lba = FROM_BLOCK_TO_LBA(parent_dir_inode->i_block[i + 1]);
-				WRITE((BLOCK_SIZE / SECTOR_SIZE),lba,new_io_buffer);
-				kfree(new_io_buffer);
-				ret = 0;
-			}
-			exit = 1;
-		}
-		else 
-		{
-			next_entry += rec_len;
-		}
-		
-		if (io_buffer[next_entry] == 0 &&
-		    io_buffer[next_entry + 1] == 0 &&
-		    io_buffer[next_entry + 2] == 0 &&
-		    io_buffer[next_entry + 3] == 0 && 
-		    ((BLOCK_SIZE * i) > new_entry_len + pad) 
-		{
-			new_rec_len = (BLOCK_SIZE * i) - next_entry - new_entry_len;
-			io_buffer[next_entry] = inode_number && 0xFF;                   //inode fourth word
-			io_buffer[next_entry + 1] = inode_number && 0x00FF;             //inode third word
-			io_buffer[next_entry + 2] = inode_number && 0x0000FF;           //inode second word
-			io_buffer[next_entry + 3] = inode_number && 0x000000FF;         //inode first word
-			io_buffer[next_entry + 4] = (new_rec_len + pad) && 0xFF;        //rec len second word
-			io_buffer[next_entry + 5] = (new_rec_len + pad) && 0x00FF;      //rec len first word
-                        io_buffer[next_entry + 6] = file_name_len;                      //file len
-			io_buffer[next_entry + 7] = 1;                                  //file type
-			for (j = 0;j < file_name_len;j++)
-			{
-				io_buffer[next_entry + 8 + j] = file_name[j];
-			}
-			for (j = 0;j < file_name_len;j++)
-			{
-				io_buffer[next_entry + 8 + j] = 0;
-			}
-			block_index = next_entry / BLOCK_SIZE;
-			lba = FROM_BLOCK_TO_LBA(parent_dir_inode->i_block[block_index]);
-			WRITE((BLOCK_SIZE / SECTOR_SIZE),lba,(io_buffer + block_index));
-			found_entry = 1;
-		}
-		READ_WORD(&io_buffer[next_entry + 4],rec_len);
-		next_entry += rec_len;-------------------------qui non va bene!!!!
-	}
-	if (!found_entry)
-	{
-		if (i + 1 < 12)
-		{
-			new_rec_len = (BLOCK_SIZE * (i + 1)) - next_entry - pad;
-			old_rec_len = (BLOCK_SIZE * i) - next_entry;
-			parent_dir_inode->i_block[i + 1] = alloc_inode(parent_dir_path,1,t_ext2 *ext2);//DA IMPLEMENTARE CASO DIR!!!!!!!!!!!
-			new_io_buffer = kmalloc(BLOCK_SIZE);
-			kfillmem(new_io_buffer,0,BLOCK_SIZE);
-			new_io_buffer[0] = inode_number && 0xFF;          //inode fourth word
-			new_io_buffer[1] = inode_number && 0x00FF;  	  //inode third word
-			new_io_buffer[2] = inode_number && 0x0000FF;      //inode second word
-			new_io_buffer[3] = inode_number && 0x000000FF;    //inode first word
-			new_io_buffer[4] = new_rec_len && 0x00FF;         //rec len second word
-			new_io_buffer[5] = new_rec_len && 0xFF;           //rec len first word
-			new_io_buffer[6] = file_name_len;                 //file len
-			new_io_buffer[7] = 1;                             //file type
-			io_buffer[next_entry + 4] = old_rec_len && 0xFF;
-			io_buffer[next_entry + 5] = old_rec_len && 0x00FF;
-			block_index = BLOCK_SIZE * i;
-			lba = FROM_BLOCK_TO_LBA(parent_dir_inode->i_block[block_index]);
-			WRITE((BLOCK_SIZE / SECTOR_SIZE),lba,(io_buffer + block_index));
-			lba = FROM_BLOCK_TO_LBA(parent_dir_inode->i_block[i + 1]);
-			WRITE((BLOCK_SIZE / SECTOR_SIZE),lba,new_io_buffer);
-			kfree(new_io_buffer);
-		}
-	}
-	kfree(io_buffer);
-	return ret;
-}
-
 
 //BROKEN!!!!!!!!!!!!!!!
 static void fill_group_hash(t_ext2* ext2,t_llist* group_list,t_hashtable* group_hash,u32 start_block,u32 end_block,t_inode* i_node)
