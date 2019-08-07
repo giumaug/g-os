@@ -38,6 +38,7 @@ int _open(t_ext2* ext2,const char* fullpath, int flags)
 	t_llist_node* node = NULL;
 	char path[NAME_MAX];
 	char parent_path[NAME_MAX];
+	char child_path[NAME_MAX];
 
 	inode = inode_init();
 	CURRENT_PROCESS_CONTEXT(current_process_context);
@@ -47,14 +48,16 @@ int _open(t_ext2* ext2,const char* fullpath, int flags)
 
 	if ((flags & (O_CREAT | O_RDWR)) == (O_CREAT | O_RDWR))
 	{
-		find_parent_path(fullpath,parent_path);
+		find_parent_path(fullpath,parent_path,child_path);
 		inode->i_number = alloc_inode(parent_path,0,ext2);
 		if (inode->i_number == -1)
 		{
 			inode_free(inode);
 			return -1;
 		}
-		--------------------
+		
+		add_entry_to_dir(char* file_name,char* parent_dir_path,i_node parent_dir_inode,t_ext2* ext2,u32 inode_number)
+
 		hashtable_put(current_process_context->file_desc,fd,inode);
 		printk("wrong path!!!!!\n");
 	}

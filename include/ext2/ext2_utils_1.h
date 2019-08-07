@@ -80,11 +80,7 @@ int add_entry_to_dir(char* file_name,char* parent_dir_path,i_node parent_dir_ino
 			{
 				new_rec_len = (BLOCK_SIZE * (i + 1)) - new_entry_len - pad;
 				old_rec_len = (BLOCK_SIZE * i) - next_entry;
-
-				find_free_block(char* io_buffer,u32 prealloc)
-
-
-				parent_dir_inode->i_block[i + 1] = alloc_block......
+				parent_dir_inode->i_block[i + 1] = alloc_block(ext2,parent_dir_inode,(i + 1));
 				new_io_buffer = kmalloc(BLOCK_SIZE);
 				kfillmem(new_io_buffer,0,BLOCK_SIZE);
 				new_io_buffer[0] = inode_number && 0xFF;          //inode fourth word
@@ -362,9 +358,12 @@ u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
 			{
 				buffer_byte = i / 8;
                                 byte_bit = i  % 8;
-				io_buffer[buffer_byte] &= (255 & (2>>byte_bit));
+				io_buffer[buffer_byte] &= ~(2>>byte_bit );
 			}
-			group_block->bg_free_blocks_count += i_node->preallocated_block_count;-----------------qui!!!!
+			group_block->bg_free_blocks_count += i_node->preallocated_block_count;
+			ext2->superblock->s_free_blocks_count += i_node->preallocated_block_count;
+			i_node->preallocated_block_count = 0;
+                      	i_node->first_preallocated_block = 0;
                         free_block=0;                  
                         for(i = (block + 1);i < (block + 9);i++)
                         {
@@ -379,8 +378,15 @@ u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
                         if (free_block==8)
                         {
                                 i_node->preallocated_block_count=8;
-                                i_node->first_preallocated_block=block+1;              
-                        }                      
+                                i_node->first_preallocated_block=block+1;     
+                                group_block->bg_free_blocks_count -= 8;
+				ext2->superblock->s_free_blocks_count -= 8;
+				for(i = (block + 1);i < (block + 9);i++)
+                        	{
+                                	buffer_byte = i / 8;
+                                	byte_bit = i % 8;
+                                	io_buffer[buffer_byte] |=  (2>>byte_bit);     
+                        	}                      
                 }
 		buffer_byte = block / 8;
               	byte_bit = block % 8;
@@ -389,11 +395,12 @@ u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
 		group_block->bg_free_blocks_count--;
 		write_group_block(ext2,group_block_index,group_block);
 		write_indirect_block(i_node,block_num,block);
+		ext2->superblock->s_free_blocks_count--;
+		write_superblock(ext2);
+		i_node->last_file_block_num=block_num;
         }
 	kfree(group_block);
         kfree(io_buffer);
-	ext2->superblock->s_free_blocks_count--;
-	i_node->last_file_block_num=block_num;
 	return BLOCK_SECTOR_ADDRESS(group_block_index,block);
 }
 
@@ -497,11 +504,22 @@ u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode)
 	return ret;
 }
 
-void find_parent_path(char* full_path,char* parent_path)
+void find_child_path(char* full_path,char* filename)
+{
+	u32 index;
+
+	index = 0;
+	while(full_path[index] != '\0')
+	{
+		filename[index] =  full_path[index];	
+		index++;
+	}
+}
+
+void find_parent_and_child_path(char* full_path,char* parent_path,char* filename)
 {
 	int i,index;
 	char* path = NULL;
-
 
 	path = full_path;
 	if (path[0] == '/')
@@ -525,16 +543,17 @@ void find_parent_path(char* full_path,char* parent_path)
 	{
 		parent_path[0] = '/';
 		parent_path[1] = '\0';
+		find_child_path((full_path + 1),filename);
 	}
 	else if (index == 0 && full_path[0] == '.' && full_path[1] == '/')
 	{
 		parent_path[0] = '.';
 		parent_path[1] = '/';
-		parent_path[2] = '\0';	
+		parent_path[2] = '\0';
+		find_child_path((full_path + 2),filename);
 	}
 	else
 	{
-		path = full_path;
 		i = 0;
 		while(i < index)
 		{
@@ -542,9 +561,11 @@ void find_parent_path(char* full_path,char* parent_path)
 			i++;
 		}
 		parent_path[i] = '\0';
+		find_child_path((full_path + index),filename);
 	}
 }
 
+qui!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 void alloc_inode(char* parent_path,unsigned int type,t_ext2 *ext2)
 {
         int inode_number;      
