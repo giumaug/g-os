@@ -36,6 +36,7 @@ int _open(t_ext2* ext2,const char* fullpath, int flags)
 	struct t_process_context* current_process_context = NULL;
 	t_inode* inode = NULL;
 	t_llist_node* node = NULL;
+	t_inode* inode_parent_dir = NULL;
 	char path[NAME_MAX];
 	char parent_path[NAME_MAX];
 	char child_path[NAME_MAX];
@@ -48,16 +49,23 @@ int _open(t_ext2* ext2,const char* fullpath, int flags)
 
 	if ((flags & (O_CREAT | O_RDWR)) == (O_CREAT | O_RDWR))
 	{
+		inode_parent_dir = inode_init();
 		find_parent_path(fullpath,parent_path,child_path);
-		inode->i_number = alloc_inode(parent_path,0,ext2);
+		lookup_inode(parent_path,ext2,inode_parent_dir);
+		inode->i_number = alloc_inode(inode_parent_dir,0,ext2);
 		if (inode->i_number == -1)
 		{
 			inode_free(inode);
+			inode_free(inode_parent_dir);
 			return -1;
 		}
-		
-		add_entry_to_dir(char* file_name,char* parent_dir_path,i_node parent_dir_inode,t_ext2* ext2,u32 inode_number)
-
+		ret = add_entry_to_dir(char* file_name,parent_dir_inode,ext2,inode_number);
+		if (ret == -1)
+		{
+			inode_free(inode);
+			inode_free(inode_parent_dir);
+			return -1;
+		}
 		hashtable_put(current_process_context->file_desc,fd,inode);
 		printk("wrong path!!!!!\n");
 	}

@@ -9,7 +9,7 @@ u32 static find_free_block(char* io_buffer,u32 prealloc);
 void static read_inode(t_ext2* ext2,t_inode* inode);
 u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode);
 
-int add_entry_to_dir(char* file_name,char* parent_dir_path,i_node parent_dir_inode,t_ext2* ext2,u32 inode_number)
+int add_entry_to_dir(char* file_name,i_node parent_dir_inode,t_ext2* ext2,u32 inode_number)
 {
 	int ret = -1;
 	int i,j;
@@ -50,7 +50,7 @@ int add_entry_to_dir(char* file_name,char* parent_dir_path,i_node parent_dir_ino
 		READ_WORD(&io_buffer[next_entry + 6],cur_file_len);
 		free_space = (BLOCK_SIZE * i) - next_entry - cur_file_len;
 		if (next_entry + rec_len = (BLOCK_SIZE * i) && free_space >= new_entry_len)
-		{
+		{			
 			new_rec_len = (BLOCK_SIZE * i) - next_entry - new_entry_len;
 			io_buffer[next_entry] = inode_number && 0xFF;                   //inode fourth word
 			io_buffer[next_entry + 1] = inode_number && 0x00FF;             //inode third word
@@ -64,7 +64,7 @@ int add_entry_to_dir(char* file_name,char* parent_dir_path,i_node parent_dir_ino
 			{
 				io_buffer[next_entry + 8 + j] = file_name[j];
 			}
-			for (j = 0;j < file_name_len;j++)
+			for (j = 0;j < file_name_len;j++) ?????????????????????????????????????????????
 			{
 				io_buffer[next_entry + 8 + j] = 0;
 			}
@@ -78,8 +78,8 @@ int add_entry_to_dir(char* file_name,char* parent_dir_path,i_node parent_dir_ino
 		{
 			if (i + 1 < 12)
 			{
-				new_rec_len = (BLOCK_SIZE * (i + 1)) - new_entry_len - pad;
-				old_rec_len = (BLOCK_SIZE * i) - next_entry;
+				new_rec_len = (BLOCK_SIZE * (i + 1)) - new_entry_len;
+				old_rec_len = (BLOCK_SIZE * i) - next_entry;--------------------------------------------------qui + sopra!!!!
 				parent_dir_inode->i_block[i + 1] = alloc_block(ext2,parent_dir_inode,(i + 1));
 				new_io_buffer = kmalloc(BLOCK_SIZE);
 				kfillmem(new_io_buffer,0,BLOCK_SIZE);
@@ -87,8 +87,8 @@ int add_entry_to_dir(char* file_name,char* parent_dir_path,i_node parent_dir_ino
 				new_io_buffer[1] = inode_number && 0x00FF;  	  //inode third word
 				new_io_buffer[2] = inode_number && 0x0000FF;      //inode second word
 				new_io_buffer[3] = inode_number && 0x000000FF;    //inode first word
-				new_io_buffer[4] = new_rec_len && 0x00FF;         //rec len second word
-				new_io_buffer[5] = new_rec_len && 0xFF;           //rec len first word
+				new_io_buffer[4] = (new_rec_len + pad) && 0x00FF; //rec len second word
+				new_io_buffer[5] = (new_rec_len + pad) && 0xFF;   //rec len first word
 				new_io_buffer[6] = file_name_len;                 //file len
 				new_io_buffer[7] = 1;                             //file type
 				io_buffer[next_entry + 4] = old_rec_len && 0xFF;
@@ -565,8 +565,7 @@ void find_parent_and_child_path(char* full_path,char* parent_path,char* filename
 	}
 }
 
-qui!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-void alloc_inode(char* parent_path,unsigned int type,t_ext2 *ext2)
+void alloc_inode(t_inode* inode_parent_dir ,unsigned int type,t_ext2 *ext2)
 {
         int inode_number;      
         char* current_byte = NULL;
@@ -574,7 +573,7 @@ void alloc_inode(char* parent_path,unsigned int type,t_ext2 *ext2)
         u32 group_block_index;
         u32 parent_dir_group_block_index;
         u32 group_block_offset;
-        t_inode* inode_parent_dir = NULL;
+        //t_inode* inode_parent_dir = NULL;
         void* io_buffer = NULL;
         u32 lba;
         u32 sector_count;
@@ -596,7 +595,7 @@ void alloc_inode(char* parent_path,unsigned int type,t_ext2 *ext2)
                 inode_number = -1;
 		inode_parent_dir = kmalloc(sizeof(t_inode));
                 tot_group_block = ext2->superblock->s_blocks_count / ext2->superblock->s_log_block_size;
-                lookup_inode(parent_path,ext2,inode_parent_dir);
+                //lookup_inode(parent_path,ext2,inode_parent_dir);
                 parent_dir_group_block_index = (inode_parent_dir->i_number-1) / ext2->superblock->s_inodes_per_group;
                 group_block_index = parent_dir_group_block_index;
 

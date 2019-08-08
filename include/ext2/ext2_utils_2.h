@@ -722,7 +722,7 @@ u32 static find_free_inode(u32 group_block_index,t_ext2 *ext2,u32 condition)
 	}
 	kfree(group_block);
 	kfree(io_buffer);
-        return inode_number;
+        return inode_number + 1;//inode count starts from 1
 }
 
 u32 static find_free_block(char* io_buffer,u32 prealloc)
