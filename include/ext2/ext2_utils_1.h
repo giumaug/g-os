@@ -1,18 +1,26 @@
+struct s_inode;
+struct s_ext2;
+u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode);
 static void* read_block_bitmap(t_ext2* ext2,u32 bg_block_bitmap,void* io_buffer);
 static void* write_block_bitmap(t_ext2* ext2,u32 bg_block_bitmap,void* io_buffer);
 static u32 read_indirect_block(t_inode* inode,u32 key);
-static void write_indirect_block(t_inode* inode,u32 key,u32 value);
 static void free_indirect_block(t_ext2* ext2,t_inode* i_node);
 u32 static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext2,t_inode* inode);
-u32 static find_free_inode(u32 group_block_index,t_ext2 *ext2,u32 check_threshold);
-u32 static find_free_block(char* io_buffer,u32 prealloc);
+u32 static find_free_inode(u32 group_block_index,t_ext2 *ext2,u32 condition);
+int static find_free_block(char* io_buffer,u32 prealloc);
 void static read_inode(t_ext2* ext2,t_inode* inode);
-u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode);
+u32 alloc_block(struct s_ext2* ext2,struct s_inode* i_node,u32 block_num);
 
-int add_entry_to_dir(char* file_name,i_node parent_dir_inode,t_ext2* ext2,u32 inode_number)
+int add_entry_to_dir(char* file_name,struct s_inode* parent_dir_inode,struct s_ext2* ext2,u32 inode_number)
 {
+	u32 free_space;
+	u32 cur_file_len;
+	u8 exit;
+	u32 lba;
 	int ret = -1;
 	int i,j;
+	u32 next_entry;
+	u32 rec_len;
 	u32 new_entry_len;
 	u32 old_rec_len;
 	u32 file_name_len;
@@ -52,7 +60,7 @@ int add_entry_to_dir(char* file_name,i_node parent_dir_inode,t_ext2* ext2,u32 in
 		READ_WORD(&io_buffer[next_entry + 4],rec_len);
 		READ_WORD(&io_buffer[next_entry + 6],cur_file_len);
 		free_space = (BLOCK_SIZE * i) - next_entry - cur_file_len;
-		if (next_entry + rec_len = (BLOCK_SIZE * i) && free_space >= new_entry_len)
+		if ((next_entry + rec_len) == (BLOCK_SIZE * i) && free_space >= new_entry_len)
 		{			
 			new_rec_len = (BLOCK_SIZE * i) - next_entry - new_entry_len;
 			io_buffer[next_entry] = inode_number && 0xFF;                   //inode fourth word
@@ -73,7 +81,7 @@ int add_entry_to_dir(char* file_name,i_node parent_dir_inode,t_ext2* ext2,u32 in
 			ret = 1;
 			exit = 1;
 		}
-		else if (next_entry + rec_len = (BLOCK_SIZE * i) && free_space < new_entry_len)
+		else if ((next_entry + rec_len) == (BLOCK_SIZE * i) && free_space < new_entry_len)
 		{
 			if (i + 1 < 12)
 			{
@@ -250,7 +258,6 @@ void free_inode(t_inode* i_node,t_ext2 *ext2)
 u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
 {
         char* io_buffer = NULL;
-	char* indirect_block = NULL;   
         u32 preferred_block;
         u32 lba;
         u32 block;
@@ -278,18 +285,16 @@ u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
         io_buffer = kmalloc(BLOCK_SIZE);
 	read_block_bitmap(ext2,group_block->bg_block_bitmap,io_buffer);
 
-        if (block_num = i_node->last_file_block_num + 1)
+        if (block_num == i_node->last_file_block_num + 1)
         {
-		indirect_block = kmalloc(BLOCK_SIZE);--------------qui!!!!!!!!
-		preferred_block = read_indirect_block(i_node,(i_node->last_file_block_num + 1),indirect_block); 
+		preferred_block = read_indirect_block(i_node,(i_node->last_file_block_num + 1)); 
         }
         else if (i_node->last_file_block_num !=0)
         {
                 offset=block_num - 1;
                 while(preferred_block == 0 && offset != 0)
                 {
-			indirect_block = kmalloc(BLOCK_SIZE);
-			preferred_block = read_indirect_block(i_node,offset,indirect_block) == 0 ? 0 : offset;
+			preferred_block = read_indirect_block(i_node,offset) == 0 ? 0 : offset;
                         offset--;
                 }
                 if (preferred_block == 0)
@@ -402,16 +407,7 @@ u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
         }
 	kfree(group_block);
         kfree(io_buffer);
-	if (indirect_block != NULL)
-	{
-		kfree(indirect_block);
-	}
 	return BLOCK_SECTOR_ADDRESS(group_block_index,block);
-}
-
-void free_block()
-{
-	//nothing
 }
 
 void _break()
@@ -578,7 +574,6 @@ void alloc_inode(t_inode* inode_parent_dir ,unsigned int type,t_ext2 *ext2)
         u32 group_block_index;
         u32 parent_dir_group_block_index;
         u32 group_block_offset;
-        //t_inode* inode_parent_dir = NULL;
         void* io_buffer = NULL;
         u32 lba;
         u32 sector_count;
@@ -603,14 +598,12 @@ void alloc_inode(t_inode* inode_parent_dir ,unsigned int type,t_ext2 *ext2)
                 //lookup_inode(parent_path,ext2,inode_parent_dir);
                 parent_dir_group_block_index = (inode_parent_dir->i_number-1) / ext2->superblock->s_inodes_per_group;
                 group_block_index = parent_dir_group_block_index;
-
-		//read_group_block(ext2,group_block_index,group_block);                        
+                  
 		inode_number = find_free_inode(group_block_index,ext2,0);
 		if (inode_number == -1)
 		{
                 	while (group_block_index < tot_group_block && inode_number == -1)
-                	{
-				//read_group_block(ext2,(group_block_index + group_block_offset),group_block);                        
+                	{                  
 				inode_number = find_free_inode(group_block_index + group_block_offset,ext2,0);
                         	group_block_offset >>= 1;
                 	}
@@ -618,8 +611,7 @@ void alloc_inode(t_inode* inode_parent_dir ,unsigned int type,t_ext2 *ext2)
                 	{
                         	group_block_index = parent_dir_group_block_index + 2;
                         	while(inode_number != -1 && group_block_index<tot_group_block)
-                        	{
-					//read_group_block(ext2,group_block_index,group_block);                    
+                        	{                
 					inode_number = find_free_inode(group_block_index,ext2,0);
 					group_block_index++;
                         	}
@@ -627,8 +619,7 @@ void alloc_inode(t_inode* inode_parent_dir ,unsigned int type,t_ext2 *ext2)
                         	{
                                 	group_block_index = 0;
                                 	while(inode_number != -1 && group_block_index < parent_dir_group_block_index - 1)
-                                	{
-						//read_group_block(ext2,group_block_index,group_block);                      
+                                	{                   
 						inode_number=find_free_inode(group_block_index,ext2,0);
                                 	}
 					group_block_index++;   
@@ -672,15 +663,10 @@ void alloc_inode(t_inode* inode_parent_dir ,unsigned int type,t_ext2 *ext2)
 			}
 		}	
         }
-        if (inode_number != -1)
-        {
-                //write_group_block(ext2,group_block_index,group_block); da scommentare solo per test!!!!!!!!!!!!!!!!!!!!!!!!!!
-		inode->i_number = inode_number;
-        }
 	return inode_number;
 }
 
-static int add_dir_entry(t_ext2* ext2,t_inode* inode_dir,u32 inode_number,char* filename,u32 type)
+static int add_dir_entry(struct s_ext2* ext2,struct s_inode* inode_dir,u32 inode_number,char* filename,u32 type)
 {
 	u32 offset;
 	u32 found_entry;

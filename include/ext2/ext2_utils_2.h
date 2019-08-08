@@ -89,11 +89,12 @@ static void free_indirect_block(t_ext2* ext2,t_inode* i_node)
 	kfree(io_buffer);
 }
 
-static u32 read_indirect_block(t_inode* inode,u32 key,char* indirect_block)
+static u32 read_indirect_block(t_inode* inode,u32 key)
 {
 	u32 lba;
 	u32 sector_count;
 	u32 block_addr;
+	char* io_buffer = NULL;
 
 	if (key >= 0 && key <= 11)
 	{
@@ -101,12 +102,12 @@ static u32 read_indirect_block(t_inode* inode,u32 key,char* indirect_block)
 	}
 	else
 	{
-		indirect_block = kmalloc(BLOCK_SIZE);
+		io_buffer = kmalloc(BLOCK_SIZE);
 		lba = ext2->partition_start_sector + (i_node->i_block[12] * (BLOCK_SIZE / SECTOR_SIZE));
 		sector_count = BLOCK_SIZE / SECTOR_SIZE;
        		READ(sector_count,lba,indirect_block);
 		READ_DWORD(&indirect_block[((key - 12) * 4)],block_addr);
-		kfree(indirect_block);
+		kfree(io_buffer);
 		return 0;
 	}
 	return block_addr;
@@ -275,7 +276,8 @@ void static read_superblock(t_ext2* ext2)
 //	return;
 //}
 
-void static write_superblock(t_ext2* ext2)
+struct s_ext2;
+void static write_superblock(struct s_ext2* ext2)
 {
         char* io_buffer;
 	t_superblock* superblock;
@@ -341,7 +343,7 @@ void static write_superblock(t_ext2* ext2)
 	kfree(io_buffer);
 }
 
-write_group_block(t_ext2 *ext2,u32 group_block_number,t_group_block* group_block)
+static void write_group_block(t_ext2* ext2,u32 group_block_number,t_group_block* group_block)
 {
 	u32 block_number;
 	u32 sector_number;
