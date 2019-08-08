@@ -89,12 +89,11 @@ static void free_indirect_block(t_ext2* ext2,t_inode* i_node)
 	kfree(io_buffer);
 }
 
-static u32 read_indirect_block(t_inode* inode,u32 key)
+static u32 read_indirect_block(t_inode* inode,u32 key,char* indirect_block)
 {
 	u32 lba;
 	u32 sector_count;
 	u32 block_addr;
-	char* io_buffer = NULL;
 
 	if (key >= 0 && key <= 11)
 	{
@@ -102,23 +101,23 @@ static u32 read_indirect_block(t_inode* inode,u32 key)
 	}
 	else
 	{
-		io_buffer = kmalloc(BLOCK_SIZE);
+		indirect_block = kmalloc(BLOCK_SIZE);
 		lba = ext2->partition_start_sector + (i_node->i_block[12] * (BLOCK_SIZE / SECTOR_SIZE));
 		sector_count = BLOCK_SIZE / SECTOR_SIZE;
-       		READ(sector_count,lba,io_buffer);
-		READ_DWORD(&io_buffer[((key - 12) * 4)],block_addr);
-		kfree(io_buffer);
+       		READ(sector_count,lba,indirect_block);
+		READ_DWORD(&indirect_block[((key - 12) * 4)],block_addr);
+		kfree(indirect_block);
 		return 0;
 	}
 	return block_addr;
 }
 
 //BROKEN!!!!!!!!!!!!!!!
-static void write_indirect_block(t_inode* inode,u32 key,u32 value)
+static void write_indirect_block(t_inode* inode,u32 key,u32 value,char* indirect_block)
 {
-	if (key>=0 && key<=11)
+	if (key >= 0 && key <= 11)
 	{
-		inode->i_block[key-1]=value;
+		inode->i_block[key-1] = value;
 	}
 	else
 	{
@@ -739,12 +738,12 @@ int static find_free_block(char* io_buffer,u32 prealloc)
 	int selected_block;
 	
 	selected_block = -1;
-        for (i=0;i<BLOCK_SIZE*8;i++)
+        for (i = 0;i < BLOCK_SIZE * 8;i++)
         {
-                buffer_byte=i/8;
-                byte_bit=i % 8;
-                selected_bit=io_buffer[buffer_byte] & (2>>byte_bit);
-                if (selected_bit==0)
+                buffer_byte = i / 8;
+                byte_bit = i % 8;
+                selected_bit = io_buffer[buffer_byte] & (2 >> byte_bit);
+                if (selected_bit == 0)
                 {
 			if (!prealloc)
 			{
@@ -753,18 +752,18 @@ int static find_free_block(char* io_buffer,u32 prealloc)
 			}
 			else
 			{
-				free_block=0;
-				for(j=i+1;j<=i+8;j++)
+				free_block = 0;
+				for(j = i + 1;j <= i + 8;j++)
 				{
-					buffer_byte2=j/8;
-					byte_bit2=j%8;
-					selected_bit2=io_buffer[buffer_byte2] & (2>>byte_bit2);
-					if (selected_bit2==0)
+					buffer_byte2 = j / 8;
+					byte_bit2 = j % 8;
+					selected_bit2 = io_buffer[buffer_byte2] & (2 >> byte_bit2);
+					if (selected_bit2 == 0)
 					{
 						free_block++;
 					}
 				}
-				if (free_block==8)
+				if (free_block == 8)
 				{
 					selected_block = i;
 					break;
@@ -774,7 +773,7 @@ int static find_free_block(char* io_buffer,u32 prealloc)
         }
 	if (selected_block != -1)
 	{
-        	io_buffer[buffer_byte]&= (255 & (2>>byte_bit));
+        	io_buffer[buffer_byte]&= (255 & (2 >> byte_bit));
 	}
         return i;      
 }
