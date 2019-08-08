@@ -725,7 +725,7 @@ u32 static find_free_inode(u32 group_block_index,t_ext2 *ext2,u32 condition)
         return inode_number + 1;//inode count starts from 1
 }
 
-u32 static find_free_block(char* io_buffer,u32 prealloc)
+int static find_free_block(char* io_buffer,u32 prealloc)
 {
         u32 buffer_byte;
         u32 byte_bit;
@@ -736,8 +736,10 @@ u32 static find_free_block(char* io_buffer,u32 prealloc)
         u32 selected_bit2;
         u32 j;
 	u32 free_block;
+	int selected_block;
 	
-        for (i=1;i<=BLOCK_SIZE*8;i++)
+	selected_block = -1;
+        for (i=0;i<BLOCK_SIZE*8;i++)
         {
                 buffer_byte=i/8;
                 byte_bit=i % 8;
@@ -746,6 +748,7 @@ u32 static find_free_block(char* io_buffer,u32 prealloc)
                 {
 			if (!prealloc)
 			{
+				selected_block = i;
 				break;
 			}
 			else
@@ -763,71 +766,15 @@ u32 static find_free_block(char* io_buffer,u32 prealloc)
 				}
 				if (free_block==8)
 				{
+					selected_block = i;
 					break;
 				}
 			}
 		}    
         }
-        io_buffer[buffer_byte]&= (255 & (2>>byte_bit));
+	if (selected_block != -1)
+	{
+        	io_buffer[buffer_byte]&= (255 & (2>>byte_bit));
+	}
         return i;      
 }
-
-void set_prealloc_block(char* io_buffer,u32 start,u32 end)
-{
-	u32 buffer_byte;
-	u32 byte_bit;
-	u32 selected_bit;
-	u32 i;
-
-	for(i = start;i < end;i++)
-     	{
-    		buffer_byte = i / 8;
-           	byte_bit i % 8;
-		io_buffer[buffer_byte] &= (255 & (2 >> byte_bit));
-     	}
-}
-
-void reset_prealloc_block(char* io_buffer,u32 start,u32 end)
-{
-	u32 buffer_byte;
-	u32 byte_bit;
-	u32 selected_bit;
-	u32 i;
-
-	for(i = start;i < end;i++)
-     	{
-    		buffer_byte = i / 8;
-           	byte_bit i % 8;
-		io_buffer[buffer_byte] |= (2 >> byte_bit);
-     	}
-}
-
-u8 search_prealloc_block(char* io_buffer,u32 start,u32 end)
-{
-	u32 free_block;
-	u32 buffer_byte;
-	u32 byte_bit;
-	u32 selected_bit;
-	u32 i;
-	u8 ret;
-
-	ret = 0;
-	free_block = 0;
-	for(i = start;i <= end;i++)
-      	{
-      		buffer_byte= i / 8;
-            	byte_bit = i % 8;
-              	selected_bit = io_buffer[buffer_byte] & (2 >> byte_bit);
-              	if (selected_bit == 0)
-             	{
-             		free_block++;
-               	}
-           	if (free_block == (end - start);
-             	{
-              		ret = 1;          
-             	}
-	} 
-	return ret;
-}
-
-
