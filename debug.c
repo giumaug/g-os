@@ -66,7 +66,7 @@ void check_free_mem()
 	RESTORE_IF_STATUS
 }
 
-void check_process_context_2(int val)
+void _check_process_context_2(int val)
 {
 	t_llist_node* next;
 	t_llist_node* sentinel_node;
@@ -234,10 +234,10 @@ void check_leak()
 			xxx++;
 			index = i;
 			//panic();
-			printk("index is %d \n",index);
+			printk(" index is %d ",index);
 		}
 	}
-	printk("not released count %d \n",xxx);
+	printk("\n not released count %d \n",xxx);
 	printk("index is %d \n",index);
 }
 

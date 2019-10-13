@@ -56,6 +56,7 @@ int main()
 	((unsigned char*) &(server_address.sin_port))[0]=((unsigned char*) &(port))[1];
 	((unsigned char*) &(server_address.sin_port))[1]=((unsigned char*) &(port))[0];
 //------------------------------------------------------------------------------
+
 	for (t=0;t<65536;t++)
 	{
 		buffer_1[t] = *s;
@@ -66,7 +67,7 @@ int main()
 
 	while(1) 
 	{
-		//check_free_mem();
+		check_free_mem();
 		printf("server waiting...++\n");
 
 		client_len = sizeof(client_address);
@@ -75,29 +76,26 @@ int main()
 		printf("accepted \n");
 		if(fork() == 0) 
 		{
-			close_socket(server_sockfd);
 			//stat(path,&stat_data);
 			//file_len = stat_data.st_size;
 			io_buffer = malloc(b_to_read);
-			file_len = 1073741824;
-			//file_len = 31457280;
-			printf("file len is %d \n",file_len);
+			//file_len = 1073741824;
+			file_len = 40960; //31457280;
+			//printf("file len is %d \n",file_len);
 			for (t = 0; t < 1;t++)
 			{
-//				check_free_mem();
-//				f = open(path, O_RDWR | O_APPEND);
-//				if (f == -1)
-//				{
-//					printf("file not found\n");
-//					return;
-//				}
+				f = open(path, O_RDWR | O_APPEND);
+				if (f == -1)
+				{
+					printf("file not found\n");
+					return;
+				}
 				printf("iter %d \n",t);
 				current_len = file_len;
 				while (current_len > 0)
 				{
-					//printf("current_len is %d \n",current_len);
-//					b_read = read(f,io_buffer,b_to_read);
-					b_read = b_to_read;
+					b_read = read(f,io_buffer,b_to_read);
+					//b_read = b_to_read;
 					ret = write_socket(client_sockfd,buffer_1,b_read);
 					//ret = 1;
 					while (ret <= 0 )
@@ -109,9 +107,9 @@ int main()
 					io_buffer[b_read] = '\0';
 				}
 				//lseek(f,0,SEEK_SET);
-//				close(f);
+				close(f);
 			}
-			printf("end!!!\n");
+			printf("end \n");
 			close_socket(client_sockfd);
 			free(io_buffer);
 			exit(0);

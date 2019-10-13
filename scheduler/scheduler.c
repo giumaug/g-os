@@ -98,7 +98,6 @@ void schedule(struct t_process_context *current_process_context,struct t_process
 					}
 					kfree(current_process_context);
 					ll_delete_node(node);
-					check_process_context_2(2);
 				}
 				stop=1;
 			}
@@ -130,7 +129,6 @@ void schedule(struct t_process_context *current_process_context,struct t_process
 			}
 		}
 	}
-	check_process_context_2(2);
 }
 
 void adjust_sched_queue(struct t_process_context *current_process_context)
@@ -275,6 +273,7 @@ void _exit(int status)
 	unsigned int exit_action=2;
 	t_llist_node* next = NULL;
 	t_llist_node* sentinel = NULL;
+	t_llist* pgid_list = NULL;
 	unsigned int awake_process = 0;
 	struct t_process_context* current_process = NULL;
 	struct t_process_context* next_process = NULL;
@@ -322,7 +321,17 @@ void _exit(int status)
 	}
 	hashtable_free(current_process->file_desc);
 	hashtable_free(current_process->socket_desc);
+	
 	hashtable_remove(system.process_info->pid_hash,current_process->pid);
+	ll_delete_node(current_process->pgid_list_ref);
+	pgid_list = hashtable_get(system.process_info->pgid_hash,current_process->pgid);
+	if (ll_empty(pgid_list))
+	{
+		hashtable_remove(system.process_info->pgid_hash,current_process->pgid);
+		kfree(pgid_list->sentinel_node);
+		kfree(pgid_list); 
+	}
+
 	if (current_process->icmp_pending_req != 0)
 	{
 		hashtable_remove(system.network_desc->icmp_desc->req_map,current_process->icmp_pending_req);
@@ -359,14 +368,14 @@ int _fork(struct t_processor_reg processor_reg)
 	child_process_context->phy_kernel_stack = FROM_VIRT_TO_PHY(kernel_stack_addr);
 	kmemcpy(kernel_stack_addr,FROM_PHY_TO_VIRT(parent_process_context->phy_kernel_stack),KERNEL_STACK_SIZE);
 	child_process_context->pid = system.process_info->next_pid++;
-//	if (child_process_context->pid == 2)
-//	{
-//		collect_mem = 1;
-//	}
+	if (child_process_context->pid == 2)
+	{
+		//collect_mem = 1;
+	}
 	child_process_context->pgid = parent_process_context->pgid;
 	hashtable_put(system.process_info->pid_hash,child_process_context->pid,child_process_context);
 	pgid_list = hashtable_get(system.process_info->pgid_hash,parent_process_context->pgid);
-	ll_append(pgid_list,child_process_context);
+	child_process_context->pgid_list_ref = ll_append(pgid_list,child_process_context);
 	child_process_context->sig_num = 0;
 	child_process_context->parent = parent_process_context;
 //	TEMPORARY TRICK.CORRECT SOLUTION IS TO ADD A POINTER TO CLONER FUNTION IN HASMAP CLONE ALONSIDE DESTRUCTOR POINTER
@@ -590,6 +599,7 @@ int _setpgid(u32 pid,u32 pgid)
 	if (next == sentinel)
 	{
 		hashtable_remove(system.process_info->pgid_hash,process_context->pgid);
+		kfree(pgid_list->sentinel_node);
 		kfree(pgid_list);
 	}
 	process_context->pgid = pgid;
@@ -599,7 +609,7 @@ int _setpgid(u32 pid,u32 pgid)
 		pgid_list = new_dllist();
 		hashtable_put(system.process_info->pgid_hash,pgid,pgid_list);	
 	}
-	ll_append(pgid_list,process_context);
+	process_context->pgid_list_ref = ll_append(pgid_list,process_context);
 	process_context->pgid = pgid;
 	return 0;
 }

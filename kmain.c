@@ -58,6 +58,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	system.device_desc = &device_desc;
 	
 	system.ops = 0;
+	system.ref_counter = 0;
 
 	system.master_page_dir = init_virtual_memory();
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int)system.master_page_dir)))
