@@ -138,9 +138,10 @@ exit_handler:;
 	while(node != ll_first(system.timer_list));
 
 //exit_handler:;
-	//--EXIT_INT_HANDLER(is_schedule,processor_reg);
+	EXIT_INT_HANDLER(is_schedule,processor_reg);
 
-static struct t_process_context _current_process_context;                                                  	
+/*
+	static struct t_process_context _current_process_context;                                                  	
 	static struct t_process_context _old_process_context;                                                      	
 	static struct t_process_context _new_process_context;	                                                        
 	static struct t_processor_reg _processor_reg;                                                                   
@@ -185,10 +186,7 @@ static struct t_process_context _current_process_context;
 			{                                                                                               
 				stop = 1;                                                                               
 			}                                                                                               
-		}
-		//check_process_context_2(2);                                                                          
-                                                                                                                        
-		/*_new_process_context=*(struct t_process_context*)system.process_info->current_process->val;*/         
+		}     
 		if (_new_process_context.pid != _old_process_context.pid)                                               
 		{                                                                                                       
 				_processor_reg=_new_process_context.processor_reg;                                      
@@ -209,5 +207,6 @@ static struct t_process_context _current_process_context;
 	{                                                                                                               
 		RESTORE_PROCESSOR_REG                                                                                   
 		RET_FROM_INT_HANDLER                                                                                    
-	} 
+	}
+*/
 }

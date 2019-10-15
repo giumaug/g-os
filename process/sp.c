@@ -80,7 +80,7 @@ int main()
 			//file_len = stat_data.st_size;
 			io_buffer = malloc(b_to_read);
 			//file_len = 1073741824;
-			file_len = 40960; //31457280;
+			file_len = 31457280;
 			//printf("file len is %d \n",file_len);
 			for (t = 0; t < 1;t++)
 			{

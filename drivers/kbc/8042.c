@@ -385,9 +385,8 @@ void int_handler_kbc()
 	}
 	enable_irq_line(1);
 	ENABLE_PREEMPTION
-	//EXIT_INT_HANDLER(0,processor_reg)               
-	//#define EXIT_INT_HANDLER(action,processor_reg)                                                                 
-                                                                                                                        
+	EXIT_INT_HANDLER(0,processor_reg)                                                                              
+/*                                                                                                                        
 	static struct t_process_context _current_process_context;                                                  	
 	static struct t_process_context _old_process_context;                                                      	
 	static struct t_process_context _new_process_context;	                                                        
@@ -403,7 +402,7 @@ void int_handler_kbc()
 			equeue_packet(system.network_desc);                                                             
                         system.flush_network = 1;                                                                       
 	}                                                                                                               
-	_action2=0;    //action;                                                                                                
+	_action2=0;                                                                                           
 	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;                 
 	_old_process_context=_current_process_context;                                                                  
 	_processor_reg=processor_reg;                                                                                   
@@ -414,8 +413,7 @@ void int_handler_kbc()
 		{                                                                                                       
 			_action2 = 2;                                                                                   
 		}                                                                                                       
-	}                                                                                                               
-                                                                                                                        
+	}                                                                                                                                                                                                                        
 	if (_action2>0)                                                                                                 
 	{	system.force_scheduling = 0;
 		stop = 0;                                                                            
@@ -433,10 +431,7 @@ void int_handler_kbc()
 			{                                                                                               
 				stop = 1;                                                                               
 			}                                                                                               
-		}  
-		//check_process_context_2(2);                                                                    
-                                                                                                                        
-		/*_new_process_context=*(struct t_process_context*)system.process_info->current_process->val;*/         
+		}   
 		if (_new_process_context.pid != _old_process_context.pid)                                               
 		{                                                                                                       
 				_processor_reg=_new_process_context.processor_reg;                                      
@@ -457,7 +452,8 @@ void int_handler_kbc()
 	{                                                                                                               
 		RESTORE_PROCESSOR_REG                                                                                   
 		RET_FROM_INT_HANDLER                                                                                    
-	} 
+	}
+*/ 
 }
 
 char read_buf()

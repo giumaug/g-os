@@ -280,8 +280,8 @@ void syscall_handler()
 	{
 		system.flush_network = 1;
 	}
-	//--EXIT_INT_HANDLER(on_exit_action,processor_reg)
-
+	EXIT_INT_HANDLER(on_exit_action,processor_reg)
+/*
 	static struct t_process_context _current_process_context;                                                  	
 	static struct t_process_context _old_process_context;                                                      	
 	static struct t_process_context _new_process_context;	                                                        
@@ -308,8 +308,7 @@ void syscall_handler()
 		{                                                                                                       
 			_action2 = 2;                                                                                   
 		}                                                                                                       
-	}                                                                                                               
-                                                                                                                        
+	}                                                                                                                                                                                                                          
 	if (_action2>0)                                                                                                 
 	{	system.force_scheduling = 0;
 		stop = 0;                                                                            
@@ -327,10 +326,7 @@ void syscall_handler()
 			{                                                                                               
 				stop = 1;                                                                               
 			}                                                                                               
-		} 
-		//check_process_context_2(2);                                                                                
-                                                                                                                        
-		/*_new_process_context=*(struct t_process_context*)system.process_info->current_process->val;*/         
+		}     
 		if (_new_process_context.pid != _old_process_context.pid)                                               
 		{                                                                                                       
 				_processor_reg=_new_process_context.processor_reg;                                      
@@ -351,7 +347,6 @@ void syscall_handler()
 	{                                                                                                               
 		RESTORE_PROCESSOR_REG                                                                                   
 		RET_FROM_INT_HANDLER                                                                                    
-	} 
-
-
+	}
+*/
 }
