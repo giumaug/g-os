@@ -6,7 +6,8 @@
 
 #define ATA_PCI_BUS 0x0
 #define ATA_PCI_SLOT 0x1
-#define ATA_PCI_FUNC 0x1
+#define ATA_PCI_FUNC_D1 0x1
+#define ATA_PCI_FUNC_D2 0x0
 #define ATA_PCI_BAR4 0x20
 #define ATA_PCI_COMMAND 0x4
 #define ATA_PCI_VIRT_BAR4_MEM 0x0
@@ -22,7 +23,7 @@
 
 #define DMA_BUFFER_SIZE 0x20000
 
-void init_ata(t_device_desc* ata_desc);
+void init_ata(u8 device_num);
 unsigned int _read_28_ata(t_io_request* io_request);
 unsigned int _write_28_ata(t_io_request* io_request);
 unsigned int _p_read_28_ata(t_io_request* io_request);

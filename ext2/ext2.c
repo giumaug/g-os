@@ -997,27 +997,23 @@ int _chdir(t_ext2* ext2,char* path)
 int _stat(t_ext2* ext2,char* pathname,t_stat* stat)
 {
 	t_inode* inode;
-	int ret_code=-1;
+	int ret_code = -1;
 
 	inode = inode_init();
-	ret_code=lookup_inode(pathname,ext2,inode);		
-	if (ret_code==-1)
+	ret_code = lookup_inode(pathname,ext2,inode);		
+	if (ret_code == -1)
 	{
-		//kfree(inode);
 		inode_free(inode);
 		return -1;
 	}
-       
-	stat->st_ino=inode->i_number;
-	stat->st_mode=inode->i_mode;
-	stat->st_uid=inode->i_uid;
-	stat->st_gid=inode->i_gid;
-	stat->st_size=inode->i_size;
-	stat->st_atime=inode->i_atime;
-	stat->st_mtime=inode->i_mtime;
-	stat->st_ctime=inode->i_ctime;
-
-	//kfree(inode);
+	stat->st_ino = inode->i_number;
+	stat->st_mode = inode->i_mode;
+	stat->st_uid = inode->i_uid;
+	stat->st_gid = inode->i_gid;
+	stat->st_size = inode->i_size;
+	stat->st_atime = inode->i_atime;
+	stat->st_mtime = inode->i_mtime;
+	stat->st_ctime = inode->i_ctime;
 	inode_free(inode);
 	return 0;	
 }

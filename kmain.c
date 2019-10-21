@@ -25,8 +25,8 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	static struct t_process_context* process_context = NULL;
 	static struct t_i_desc i_desc;
 	static t_console_desc console_desc;
-	static t_ext2 ext2;
-	static t_device_desc device_desc;
+	static t_ext2 ext2_d1;
+	static t_ext2 ext2_d2;
 	static u32 kernel_stack;
 	system.time = 0;
 	system.flush_network = 0;
@@ -52,10 +52,13 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	init_console(&console_desc,4000,0);
 	buddy_init(system.buddy_desc);
 	init_scheduler();
-	init_ata(&device_desc);
-	init_ext2(&ext2,&device_desc);
-	system.root_fs = &ext2;
-	system.device_desc = &device_desc;
+
+	system.root_fs = &ext2_d1;
+	system.device_desc_d1 = init_ata(0);
+	init_ext2(&ext2_d1,system.device_desc_d1);
+	system.device_desc_d2 = init_ata(1);
+	init_ext2(&ext2_d2,system.device_desc_d2);
+
 	system.master_page_dir = init_virtual_memory();
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int)system.master_page_dir)))
 	system.active_console_desc = &console_desc;
