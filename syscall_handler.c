@@ -280,8 +280,8 @@ void syscall_handler()
 	{
 		system.flush_network = 1;
 	}
-	EXIT_INT_HANDLER(on_exit_action,processor_reg)
-/*
+	//EXIT_INT_HANDLER(on_exit_action,processor_reg)
+
 	static struct t_process_context _current_process_context;                                                  	
 	static struct t_process_context _old_process_context;                                                      	
 	static struct t_process_context _new_process_context;	                                                        
@@ -348,5 +348,4 @@ void syscall_handler()
 		RESTORE_PROCESSOR_REG                                                                                   
 		RET_FROM_INT_HANDLER                                                                                    
 	}
-*/
 }

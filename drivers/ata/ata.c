@@ -77,14 +77,14 @@ static void write_ata_config_byte(t_device_desc* device_desc,u32 address,u8 valu
 	}
 }
 
-void init_ata(u8 device_num)
+t_device_desc* init_ata(u8 device_num)
 {
 	t_device_desc* device_desc = NULL;
 	struct t_i_desc i_desc;
 	u32 bar4 = NULL;
 	u32 pci_command = NULL;
 	struct t_process_context* current_process_context = NULL;
-	u32 (*int_handler_ata)();
+	void (*_int_handler_ata)();
 	u8 int_entry;
 	u8 _ata_pci_func;
 	
@@ -92,20 +92,20 @@ void init_ata(u8 device_num)
 	device_desc->num = device_num;
 	if (device_num == 0)
 	{
-		int_handler_ata = int_handler_ata_d1;
+		_int_handler_ata = int_handler_ata_d1;
 		int_entry = 0x2E;
 		_ata_pci_func = ATA_PCI_FUNC_D1;
 	}
 	else if (device_num == 1)
 	{
-		int_handler_ata = int_handler_ata_d2;
+		_int_handler_ata = int_handler_ata_d2;
 		int_entry = 0x2F;
 		_ata_pci_func = ATA_PCI_FUNC_D2;
 	}
-	i_desc.baseLow = ((int)int_handler_ata) & 0xFFFF;
+	i_desc.baseLow = ((int)_int_handler_ata) & 0xFFFF;
 	i_desc.selector = 0x8;
 	i_desc.flags = 0x08e00;
-	i_desc.baseHi = ((int)&int_handler_ata)>>0x10;
+	i_desc.baseHi = ((int)_int_handler_ata)>>0x10;
 	set_idt_entry(int_entry,&i_desc);
 
 	device_desc->read_dma = _read_dma_28_ata;
@@ -138,6 +138,7 @@ void init_ata(u8 device_num)
 	map_vm_mem(current_process_context->page_dir,ATA_PCI_VIRT_BAR4_MEM,(((u32) (bar4)) & 0xFFFFFFF0),ATA_PCI_VIRT_BAR4_MEM_SIZE,3);
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 
 	}
+	return device_desc;
 }
 
 void free_ata(t_device_desc* device_desc)
@@ -290,8 +291,8 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 	short byte_count;
 	int ret = 0;
 	u8 dma_status;
-	u8 cmd_status;
-	u8 base_port;
+	u16 cmd_status;
+	u16 base_port;
 	
 	device_desc = io_request->device_desc;
 	//Entrypoint mutual exclusion region.
@@ -364,7 +365,7 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	t_llist_node* node = NULL;
 	int k = 0;
 	int s;
-	u8 base_port;
+	u16 base_port;
 	
 	device_desc = io_request->device_desc;
 	//Entrypoint mutual exclusion region.
@@ -436,8 +437,8 @@ static unsigned int _p_read_write_28_ata(t_io_request* io_request)
 	t_llist_node* node = NULL;
 	t_spinlock_desc spinlock;
 	int k = 0;
-	u8 base_port;
-	u8 control_port;
+	u16 base_port;
+	u16 control_port;
 
 	SPINLOCK_INIT(spinlock);
 	device_desc = io_request->device_desc;

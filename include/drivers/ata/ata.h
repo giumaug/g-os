@@ -23,7 +23,7 @@
 
 #define DMA_BUFFER_SIZE 0x20000
 
-void init_ata(u8 device_num);
+t_device_desc* init_ata(u8 device_num);
 unsigned int _read_28_ata(t_io_request* io_request);
 unsigned int _write_28_ata(t_io_request* io_request);
 unsigned int _p_read_28_ata(t_io_request* io_request);
