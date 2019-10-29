@@ -1017,3 +1017,39 @@ int _stat(t_ext2* ext2,char* pathname,t_stat* stat)
 	inode_free(inode);
 	return 0;	
 }
+
+int _mount(char* pathname t_ext2* ext2)
+{
+	int ret_code;
+	t_mount_point* mount_point = NULL;
+	t_inode inode = NULL;
+
+	inode = inode_init();
+	ret_code = lookup_inode(pathname,ext2,inode);		
+	if (ret_code == -1)
+	{
+		inode_free(inode);
+		return -1;
+	}
+	mount_point = kmalloc(sizeof(t_mount_point));
+	mount_point->inode = inode;
+	mount_point->ext2 = ext2;
+	hashtable_put(system.mount_map,inode->i_number,mount_point);
+	return 0;
+}
+
+int _umount(int inode_number)
+{
+	t_mount_point* mount_point = NULL;
+
+	mount_point = hashtable_remove(system.mount_map,inode->i_number,mount_point);
+	if (mount_point == NULL)
+	{
+		return -1;
+	}
+	kfree(mount_point->inode);
+	kfree(mount_point);
+	return 0;
+}
+
+

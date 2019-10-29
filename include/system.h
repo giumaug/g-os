@@ -89,6 +89,7 @@ typedef struct s_system
 	t_llist* timer_list;
 	u8 force_scheduling;
 	u8 flush_network;
+	t_hashtable* mount_map;
  }
 t_system;
 
