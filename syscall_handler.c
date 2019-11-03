@@ -9,6 +9,15 @@
 
 #define K_STACK 0x1FFFFB
 
+#define SELECT_FS(ext2) if (system.device_desc->num == 0)        \
+			{                                        \
+				ext2 = system.root_fs;           \
+			}                                        \
+			else                                     \
+			{                                        \
+				ext2 = system.scnd_fs;           \
+			}                                        \
+
 void syscall_handler()
 {
 	static int free_vm_proc;        
@@ -20,6 +29,7 @@ void syscall_handler()
 	char data;
 	unsigned int on_exit_action;
 	u8 flush_network;
+	t_ext2* ext2;
 
  	SAVE_PROCESSOR_REG
 	//CLI
@@ -111,78 +121,66 @@ void syscall_handler()
 		on_exit_action=1;
 		break; 
 	
-		case 18: 
-		params[2]=_open(system.root_fs,(char*) params[0],params[1]); 
+		case 18:
+		SELECT_FS(ext2)
+		//params[2] = _open(system.root_fs,(char*) params[0],params[1]);
+	 	params[2] = _open(ext2,(char*) params[0],params[1]);
 		on_exit_action=1;
 		break; 
 
-		case 19: 
-		params[1]=_close(system.root_fs,params[0]);
+		case 19:
+		SELECT_FS(ext2) 
+		//params[1]=_close(system.root_fs,params[0]);
+		params[1]=_close(ext2,params[0]);
 		on_exit_action=1; 
 		break;
 
-		case 20: 
-		params[3]=_read(system.root_fs,params[0],params[1],params[2],1); 
+		case 20:
+		SELECT_FS(ext2)
+		//params[3]=_read(system.root_fs,params[0],params[1],params[2],1);
+	 	params[3]=_read(ext2,params[0],params[1],params[2],1);
 		on_exit_action=1; 
 		break;
 
-		case 21: 
-		params[3]=_write(system.root_fs,(void*)params[0],params[1],params[2]);
+		case 21:
+		SELECT_FS(ext2) 
+		//params[3]=_write(system.root_fs,(void*)params[0],params[1],params[2]);
+		params[3]=_write(ext2,(void*)params[0],params[1],params[2]);
 		on_exit_action=1;  
 		break;
 
 		case 36:
-		params[3] = _seek(system.root_fs,params[0],params[1],params[2]);
+		SELECT_FS(ext2)
+		//params[3] = _seek(system.root_fs,params[0],params[1],params[2]);
+		params[3] = _seek(ext2,params[0],params[1],params[2]);
 		on_exit_action=1; 
 		break;
 	
 		case 22:
-		params[1]=_rm(system.root_fs,(char*)params[0]);
+		SELECT_FS(ext2)
+		//params[1]=_rm(system.root_fs,(char*)params[0]);
+		params[1]=_rm(ext2,(char*)params[0]);
 		on_exit_action=1; 
 		break;
 
-		case 23: 
-		params[1]=_mkdir(system.root_fs,params[0]);
+		case 23:
+		SELECT_FS(ext2)
+		//params[1]=_mkdir(system.root_fs,params[0]);
+		params[1]=_mkdir(ext2,params[0]);
 		on_exit_action=1; 
 		break;
 
-//		//syscall 24 and 25 test only
-//		case 24:
-//		{ 
-//			//NEEDED NEW SCOPE TO DECLARE VARIABLE
-//			t_io_request* io_request;
-//			io_request=kmalloc(sizeof(t_io_request));
-//			io_request->device_desc=system.device_desc;
-//			io_request->sector_count=params[0];
-//			io_request->lba=params[1];
-//			io_request->io_buffer=params[2];
-//			io_request->process_context=current_process_context;
-//			_read_28_ata(io_request);
-//			kfree(io_request);
-//		}
-//		break;
-//	
-//		case 25:
-//		{ 
-//			t_io_request* io_request;
-//			io_request=kmalloc(sizeof(t_io_request));
-//			io_request->device_desc=system.device_desc;
-//			io_request->sector_count=params[0];
-//			io_request->lba=params[1];
-//			io_request->io_buffer=params[2];
-//			io_request->process_context=current_process_context;
-//			_write_28_ata(io_request);
-//			kfree(io_request);
-//		}
-//		break;
-	
-		case 26: 
+		case 26:
+		SELECT_FS(ext2)
+		//params[1]=_chdir(system.root_fs,(char*) params[0]); 
 		params[1]=_chdir(system.root_fs,(char*) params[0]); 
 		on_exit_action=1;
 		break; 	
 	
 		case 27:
-		params[2]=_stat(system.root_fs,(char*) params[0],params[1]); 	
+		SELECT_FS(ext2)
+		//params[2]=_stat(system.root_fs,(char*) params[0],params[1]); 
+		params[2]=_stat(system.root_fs,(char*) params[0],params[1]);
 		break;
 
 		case 28:
@@ -271,6 +269,10 @@ void syscall_handler()
 
 		case 107:
 		_signal(params[0]);
+		break;
+
+		case 108:
+		_select_dev(params[0]);
 		break;
 
 		default:

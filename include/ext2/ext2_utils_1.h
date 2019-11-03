@@ -356,12 +356,6 @@ u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode)
 			{
 				name[j++] = '\0';
 				j=0;
-				mount_point = hashtable_get(system.mount_map,_parent_dir_inode->i_number,mount_point);
-				if (mount_point != NULL)
-				{
-					_parent_dir_inode = mount_point->inode;
-					_ext2 = mount_point->ext2;
-				}
 				ret = read_dir_inode(name,_parent_dir_inode,_ext2,inode);
 				if (ret<0)
 				{
@@ -380,7 +374,6 @@ u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode)
 		}
 		else
 		{
-			!!!!!!!qui!!!!!
 			ret = read_dir_inode(name,_parent_dir_inode,_ext2,inode);
 		}
 	}

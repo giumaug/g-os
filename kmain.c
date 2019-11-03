@@ -53,12 +53,15 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	buddy_init(system.buddy_desc);
 	init_scheduler();
 
+	//static t_device_desc device_desc;
+	//init_ata(&device_desc);
+	//system.device_desc = &device_desc;
+
 	system.root_fs = &ext2_d1;
-	system.device_desc_d1 = init_ata(0);
-	init_ext2(&ext2_d1,system.device_desc_d1);
-	system.device_desc_d2 = init_ata(1);
-	init_ext2(&ext2_d2,system.device_desc_d2);
-	system.mount_map = hashtable_init(MOUNT_MAP_SIZE);
+	system.scnd_fs = &ext2_d2;
+	system.device_desc = init_ata(0);
+	init_ext2(&ext2_d1,system.device_desc);
+	init_ext2(&ext2_d2,system.device_desc);
 
 	system.master_page_dir = init_virtual_memory();
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int)system.master_page_dir)))
