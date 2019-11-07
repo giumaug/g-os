@@ -6,6 +6,7 @@ int main()
 	int b_read;
 	char* io_buffer = NULL;
 
+/*
 	select_dev(1);
 /*
 	io_buffer = malloc(100);
@@ -21,6 +22,8 @@ int main()
 	kfree(io_buffer);
 	printf("read string %s \n",io_buffer);	
 */
+	f = open("/test.txt", O_CREAT | O_RDWR);
+	close(f);
 	printf("end process \n");
 	exit(0);
 }
