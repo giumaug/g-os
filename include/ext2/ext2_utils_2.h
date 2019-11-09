@@ -660,11 +660,11 @@ u32 static find_free_inode(u32 group_block_index,t_ext2 *ext2,u32 check_threshol
 {
 	u32 lba;
 	u32 sector_count;
-	u32 inode_number;
+	int inode_number;
 	u32 tot_group_block;
 	t_group_block* group_block = NULL;
 	char* io_buffer = NULL;
-	char* current_byte;
+	char current_byte;
 	int i;
 	int j;
 
@@ -676,14 +676,14 @@ u32 static find_free_inode(u32 group_block_index,t_ext2 *ext2,u32 check_threshol
 	tot_group_block = ext2->superblock->s_blocks_count / ext2->superblock->s_blocks_per_group;                   
         if (group_block->bg_free_inodes_count > (ext2->superblock->s_free_inodes_count / tot_group_block) || !check_threshold)
         {
-                lba = ext2->partition_start_sector + group_block->bg_inode_bitmap / SECTOR_SIZE;
+                lba = ext2->partition_start_sector + (group_block->bg_inode_bitmap * (BLOCK_SIZE / SECTOR_SIZE));
                 sector_count = BLOCK_SIZE / SECTOR_SIZE;
 		READ(sector_count,lba,io_buffer);
 
-                while (inode_number != -1 && i < BLOCK_SIZE)
+                while (inode_number == -1 && i < (BLOCK_SIZE / 8))
                 {
                         current_byte = *(io_buffer++);
-                        while (inode_number != -1 && j < 8)
+                        while (inode_number == -1 && j < 8)
                         {
                                 if (!(*current_byte & 2 >> j))
                                 {

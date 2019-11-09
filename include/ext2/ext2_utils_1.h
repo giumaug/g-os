@@ -388,26 +388,50 @@ void find_parent_path(char* full_path,char* parent_path)
 
 
 	path = full_path;
-	index = 0;
-	while(path++ != '\0')
+	if (path[0] == '/')
 	{
-		if(*path == '\/')
+		path++;
+	}
+	else if (path[0] == '.' && path[1] == '/')
+	{
+		path += 2;
+	}
+	index = 0;
+	while(*path != '\0')
+	{
+		if(*path == '/')
 		{
 			index++;
 		}
+		path++;
 	}
-	path = full_path;
-	i = 0;
-	while(i < index)
+	if (index == 0 && full_path[0] == '/')
 	{
-		parent_path[i] = full_path[i];
-		i++;
+		parent_path[0] = '/';
+		parent_path[1] = '\0';
+	}
+	else if (index == 0 && full_path[0] == '.' && full_path[1] == '/')
+	{
+		parent_path[0] = '.';
+		parent_path[1] = '/';
+		parent_path[2] = '\0';	
+	}
+	else
+	{
+		path = full_path;
+		i = 0;
+		while(i < index)
+		{
+			parent_path[i] = full_path[i];
+			i++;
+		}
+		parent_path[i] = '\0';
 	}
 }
 
 void alloc_inode(char* fullpath,unsigned int type,t_ext2 *ext2, t_inode* inode)
 {
-        u32 inode_number;      
+        int inode_number;      
         char* current_byte = NULL;
         u32 i,j;        
         u32 group_block_index;
@@ -434,11 +458,12 @@ void alloc_inode(char* fullpath,unsigned int type,t_ext2 *ext2, t_inode* inode)
         {
                 group_block_offset = 1;
                 inode_number = -1;
+		inode_parent_dir = kmalloc(sizeof(t_inode));
                 tot_group_block = ext2->superblock->s_blocks_count;
 		find_parent_path(fullpath,parent_path);
-                lookup_inode(fullpath,ext2,inode_parent_dir);
+                lookup_inode(parent_path,ext2,inode_parent_dir);
                 parent_dir_group_block_index = (inode_parent_dir->i_number-1) / ext2->superblock->s_inodes_per_group;
-                group_block_index=parent_dir_group_block_index;
+                group_block_index = parent_dir_group_block_index;
 
 		//read_group_block(ext2,group_block_index,group_block);                        
 		inode_number = find_free_inode(group_block_index,ext2,0);
@@ -447,8 +472,8 @@ void alloc_inode(char* fullpath,unsigned int type,t_ext2 *ext2, t_inode* inode)
                 	while (group_block_index < tot_group_block && inode_number == -1)
                 	{
 				//read_group_block(ext2,(group_block_index + group_block_offset),group_block);                        
-				inode_number = find_free_inode(group_block_index,ext2,0);
-                        	group_block_index = group_block_offset >> 1;
+				inode_number = find_free_inode(group_block_index + group_block_offset,ext2,0);
+                        	group_block_offset >>= 1;
                 	}
                 	if (inode_number == -1)
                 	{
@@ -471,6 +496,7 @@ void alloc_inode(char* fullpath,unsigned int type,t_ext2 *ext2, t_inode* inode)
                         	}	
                 	}
 		}
+		kfree(inode_parent_dir);
         }
 
         //1)Seleziona primo group descriptor con numero inode<=media inode
