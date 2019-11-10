@@ -5,8 +5,6 @@
 #include "ext2/ext2_utils_1.h"
 #include "ext2/ext2_utils_2.h"
 
-void find_parent_path(char* full_path,char* parent_path);
-
 static void indirect_block_free(t_indirect_block* indirect_block);
 static t_indirect_block* indirect_block_init();
 
@@ -29,17 +27,17 @@ void free_ext2(t_ext2* ext2)
 	//kfree(ext2->root_dir_inode);
 }
 
-int _open(t_ext2* ext2,const char* fullpath, int flags)
+int _open(t_ext2* ext2,const char* full_path, int flags)
 {
+	int ret;
 	u32 fd;
 	u32 ret_code;
 	struct t_process_context* current_process_context = NULL;
 	t_inode* inode = NULL;
 	t_llist_node* node = NULL;
 	t_inode* inode_parent_dir = NULL;
-	char path[NAME_MAX];
 	char parent_path[NAME_MAX];
-	char child_path[NAME_MAX];
+	char file_name[NAME_MAX];
 
 	inode = inode_init();
 	CURRENT_PROCESS_CONTEXT(current_process_context);
@@ -50,7 +48,7 @@ int _open(t_ext2* ext2,const char* fullpath, int flags)
 	if ((flags & (O_CREAT | O_RDWR)) == (O_CREAT | O_RDWR))
 	{
 		inode_parent_dir = inode_init();
-		find_parent_path(fullpath,parent_path,child_path);
+		find_parent_path_and_filename(full_path,parent_path,file_name);
 		lookup_inode(parent_path,ext2,inode_parent_dir);
 		inode->i_number = alloc_inode(inode_parent_dir,0,ext2);
 		if (inode->i_number == -1)
@@ -59,7 +57,7 @@ int _open(t_ext2* ext2,const char* fullpath, int flags)
 			inode_free(inode_parent_dir);
 			return -1;
 		}
-		ret = add_entry_to_dir(char* file_name,parent_dir_inode,ext2,inode_number);
+		ret = add_entry_to_dir(file_name,inode_parent_dir,ext2,inode_number);--------------qui!!!!!!!
 		if (ret == -1)
 		{
 			inode_free(inode);
@@ -71,7 +69,7 @@ int _open(t_ext2* ext2,const char* fullpath, int flags)
 	}
 	else if ((flags & (O_APPEND | O_RDWR)) == (O_APPEND | O_RDWR))
 	{
-		ret_code = lookup_inode(fullpath,ext2,inode);		
+		ret_code = lookup_inode(full_path,ext2,inode);		
 		if (ret_code == -1)
 		{
 			inode_free(inode);

@@ -3,13 +3,17 @@ struct s_ext2;
 u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode);
 static void* read_block_bitmap(t_ext2* ext2,u32 bg_block_bitmap,void* io_buffer);
 static void* write_block_bitmap(t_ext2* ext2,u32 bg_block_bitmap,void* io_buffer);
-static u32 read_indirect_block(t_inode* inode,u32 key);
+static u32 read_indirect_block(t_ext2* ext2,t_inode* inode,u32 key);
 static void free_indirect_block(t_ext2* ext2,t_inode* i_node);
 u32 static read_dir_inode(char* file_name,t_inode* parent_dir_inode,t_ext2* ext2,t_inode* inode);
 u32 static find_free_inode(u32 group_block_index,t_ext2 *ext2,u32 condition);
 int static find_free_block(char* io_buffer,u32 prealloc);
 void static read_inode(t_ext2* ext2,t_inode* inode);
 u32 alloc_block(struct s_ext2* ext2,struct s_inode* i_node,u32 block_num);
+static void write_group_block(t_ext2* ext2,u32 group_block_number,t_group_block* group_block);
+void find_parent_path_and_filename(char* full_path,char* parent_path,char* filename);
+static void indirect_block_free(t_indirect_block* indirect_block);
+static t_indirect_block* indirect_block_init();
 
 int add_entry_to_dir(char* file_name,struct s_inode* parent_dir_inode,struct s_ext2* ext2,u32 inode_number)
 {
@@ -287,14 +291,14 @@ u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
 
         if (block_num == i_node->last_file_block_num + 1)
         {
-		preferred_block = read_indirect_block(i_node,(i_node->last_file_block_num + 1)); 
+		preferred_block = read_indirect_block(ext2,i_node,(i_node->last_file_block_num + 1)); 
         }
         else if (i_node->last_file_block_num !=0)
         {
                 offset=block_num - 1;
                 while(preferred_block == 0 && offset != 0)
                 {
-			preferred_block = read_indirect_block(i_node,offset) == 0 ? 0 : offset;
+			preferred_block = read_indirect_block(ext2,i_node,offset) == 0 ? 0 : offset;
                         offset--;
                 }
                 if (preferred_block == 0)
@@ -393,7 +397,8 @@ u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
                                 	buffer_byte = i / 8;
                                 	byte_bit = i % 8;
                                 	io_buffer[buffer_byte] |=  (2 >> byte_bit);     
-                        	}                      
+                        	}
+			}                     
                 }
 		buffer_byte = block / 8;
               	byte_bit = block % 8;
@@ -505,19 +510,19 @@ u32 lookup_inode(char* path,t_ext2* ext2,t_inode* inode)
 	return ret;
 }
 
-void find_child_path(char* full_path,char* filename)
+void find_file_name(char* full_path,char* file_name)
 {
 	u32 index;
 
 	index = 0;
 	while(full_path[index] != '\0')
 	{
-		filename[index] =  full_path[index];	
+		file_name[index] =  full_path[index];	
 		index++;
 	}
 }
 
-void find_parent_and_child_path(char* full_path,char* parent_path,char* filename)
+void find_parent_path_and_filename(char* full_path,char* parent_path,char* file_name)
 {
 	int i,index;
 	char* path = NULL;
@@ -544,14 +549,14 @@ void find_parent_and_child_path(char* full_path,char* parent_path,char* filename
 	{
 		parent_path[0] = '/';
 		parent_path[1] = '\0';
-		find_child_path((full_path + 1),filename);
+		find_file_name((full_path + 1),file_name);
 	}
 	else if (index == 0 && full_path[0] == '.' && full_path[1] == '/')
 	{
 		parent_path[0] = '.';
 		parent_path[1] = '/';
 		parent_path[2] = '\0';
-		find_child_path((full_path + 2),filename);
+		find_file_name((full_path + 2),file_name);
 	}
 	else
 	{
@@ -562,11 +567,11 @@ void find_parent_and_child_path(char* full_path,char* parent_path,char* filename
 			i++;
 		}
 		parent_path[i] = '\0';
-		find_child_path((full_path + index),filename);
+		find_file_name((full_path + index),file_name);
 	}
 }
 
-void alloc_inode(t_inode* inode_parent_dir ,unsigned int type,t_ext2 *ext2)
+u32 alloc_inode(t_inode* inode_parent_dir ,unsigned int type,t_ext2 *ext2)
 {
         int inode_number;      
         char* current_byte = NULL;
@@ -666,6 +671,7 @@ void alloc_inode(t_inode* inode_parent_dir ,unsigned int type,t_ext2 *ext2)
 	return inode_number;
 }
 
+/*
 static int add_dir_entry(struct s_ext2* ext2,struct s_inode* inode_dir,u32 inode_number,char* filename,u32 type)
 {
 	u32 offset;
@@ -751,6 +757,7 @@ static int del_dir_entry(t_ext2* ext2,t_inode* inode_dir,u32 inode_number)
 	}
 	return ret_val;
 }
+*/
 
 static void extract_filename(char* fullpath,char* path,char* filename)
 {

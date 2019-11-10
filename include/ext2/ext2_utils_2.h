@@ -89,7 +89,7 @@ static void free_indirect_block(t_ext2* ext2,t_inode* i_node)
 	kfree(io_buffer);
 }
 
-static u32 read_indirect_block(t_inode* inode,u32 key)
+static u32 read_indirect_block(t_ext2* ext2,t_inode* inode,u32 key)
 {
 	u32 lba;
 	u32 sector_count;
@@ -103,10 +103,10 @@ static u32 read_indirect_block(t_inode* inode,u32 key)
 	else
 	{
 		io_buffer = kmalloc(BLOCK_SIZE);
-		lba = ext2->partition_start_sector + (i_node->i_block[12] * (BLOCK_SIZE / SECTOR_SIZE));
+		lba = ext2->partition_start_sector + (inode->i_block[12] * (BLOCK_SIZE / SECTOR_SIZE));
 		sector_count = BLOCK_SIZE / SECTOR_SIZE;
-       		READ(sector_count,lba,indirect_block);
-		READ_DWORD(&indirect_block[((key - 12) * 4)],block_addr);
+       		READ(sector_count,lba,io_buffer);
+		READ_DWORD(&io_buffer[((key - 12) * 4)],block_addr);
 		kfree(io_buffer);
 		return 0;
 	}
@@ -668,6 +668,8 @@ u32 static lookup_partition(t_ext2* ext2,u8 partition_number)
 
 u32 static find_free_inode(u32 group_block_index,t_ext2 *ext2,u32 condition)
 {
+	u32 avg_free_inode;
+	u32 avg_free_block;
 	u32 lba;
 	u32 sector_count;
 	int inode_number;
