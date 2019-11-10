@@ -708,7 +708,8 @@ u32 static find_free_inode(u32 group_block_index,t_ext2 *ext2,u32 condition)
 		//WRITE(sector_count,lba,io_buffer);da scommentare solo per test!!!!!!!!!!!!!!!!!!!!!!!!!!
 		group_block->bg_free_inodes_count--;
 		//write_group_block(ext2,group_block_index,group_block);  da scommentare solo per test!!!!!!!!!!!!!!!!!!!!!!!!!!
-		ext2->superblock->s_free_inodes_count--; //quando aggiorno il superblocco?????-------------------partire da qui!!
+		ext2->superblock->s_free_inodes_count--;
+		//write_superblock(ext2);  da scommentare solo per test!!!!!!!!!!!!!!!!!!!!!!!!!!
 	}
 	kfree(group_block);
 	kfree(io_buffer);

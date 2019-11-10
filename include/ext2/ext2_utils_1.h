@@ -80,7 +80,11 @@ int add_entry_to_dir(char* file_name,char* parent_dir_path,i_node parent_dir_ino
 			{
 				new_rec_len = (BLOCK_SIZE * (i + 1)) - new_entry_len - pad;
 				old_rec_len = (BLOCK_SIZE * i) - next_entry;
-				parent_dir_inode->i_block[i + 1] = alloc_inode(parent_dir_path,1,t_ext2 *ext2);//DA IMPLEMENTARE CASO DIR!!!!!!!!!!!
+
+				find_free_block(char* io_buffer,u32 prealloc)
+
+
+				parent_dir_inode->i_block[i + 1] = alloc_block......
 				new_io_buffer = kmalloc(BLOCK_SIZE);
 				kfillmem(new_io_buffer,0,BLOCK_SIZE);
 				new_io_buffer[0] = inode_number && 0xFF;          //inode fourth word
