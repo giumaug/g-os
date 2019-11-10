@@ -28,12 +28,16 @@ int add_entry_to_dir(char* file_name,i_node parent_dir_inode,t_ext2* ext2,u32 in
 	pad = new_entry_len % 4;
 	io_buffer = kmalloc(BLOCK_SIZE);
 	file_name_len = strlen(file_name);
-	for (i = 0;i <= 11;i++)
+	for (i = 0;i <= 12;i++)
 	{
 		if (parent_dir_inode->i_block[i] == 0)
 		{	
 			break;
 		} 
+	}
+	if (i == 12)
+	{
+		return -1;
 	}
 	for(j = 0;j < BLOCK_SIZE * i;j++)
 	{
@@ -64,10 +68,6 @@ int add_entry_to_dir(char* file_name,i_node parent_dir_inode,t_ext2* ext2,u32 in
 			{
 				io_buffer[next_entry + 8 + j] = file_name[j];
 			}
-			for (j = 0;j < file_name_len;j++) ?????????????????????????????????????????????
-			{
-				io_buffer[next_entry + 8 + j] = 0;
-			}
 			block_index = next_entry / BLOCK_SIZE;
 			lba = FROM_BLOCK_TO_LBA(parent_dir_inode->i_block[block_index]);
 			//WRITE((BLOCK_SIZE / SECTOR_SIZE),lba,(io_buffer + block_index));  !!!!!!!!!!!!!only for test
@@ -79,7 +79,7 @@ int add_entry_to_dir(char* file_name,i_node parent_dir_inode,t_ext2* ext2,u32 in
 			if (i + 1 < 12)
 			{
 				new_rec_len = (BLOCK_SIZE * (i + 1)) - new_entry_len;
-				old_rec_len = (BLOCK_SIZE * i) - next_entry;--------------------------------------------------qui + sopra!!!!
+				old_rec_len = (BLOCK_SIZE * (i + 1));
 				parent_dir_inode->i_block[i + 1] = alloc_block(ext2,parent_dir_inode,(i + 1));
 				new_io_buffer = kmalloc(BLOCK_SIZE);
 				kfillmem(new_io_buffer,0,BLOCK_SIZE);

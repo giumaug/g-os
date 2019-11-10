@@ -96,15 +96,15 @@ static u32 read_indirect_block(t_inode* inode,u32 key)
 	u32 block_addr;
 	char* io_buffer = NULL;
 
-	if (key>=0 && key<=11)
+	if (key >= 0 && key <= 11)
 	{
-		block_addr = inode->i_block[key-1];
+		block_addr = inode->i_block[key];
 	}
 	else
 	{
 		io_buffer = kmalloc(BLOCK_SIZE);
-		lba=ext2->partition_start_sector+i_node->i_block[12]*(BLOCK_SIZE/SECTOR_SIZE)-1;
-		sector_count=BLOCK_SIZE/SECTOR_SIZE;
+		lba = ext2->partition_start_sector + (i_node->i_block[12] * (BLOCK_SIZE / SECTOR_SIZE));
+		sector_count = BLOCK_SIZE / SECTOR_SIZE;
        		READ(sector_count,lba,io_buffer);
 		READ_DWORD(&io_buffer[((key - 12) * 4)],block_addr);
 		kfree(io_buffer);
