@@ -72,7 +72,7 @@ int add_entry_to_dir(char* file_name,struct s_inode* parent_dir_inode,struct s_e
 			io_buffer[next_entry + 2] = (inode_number & 0xFF0000) >> 16;          //inode second word
 			io_buffer[next_entry + 3] = (inode_number & 0xFF000000) >> 24;        //inode first word
 			io_buffer[next_entry + 4] = (new_rec_len + pad) & 0xFF;        	      //rec len second word
-			io_buffer[next_entry + 5] = ((new_rec_len + pad) & 0xFF00) >> 8; qui!!!     //rec len first word
+			io_buffer[next_entry + 5] = ((new_rec_len + pad) & 0xFF00) >> 8;      //rec len first word
                         io_buffer[next_entry + 6] = file_name_len;                            //file len
 			io_buffer[next_entry + 7] = 1;                                        //file type
 			for (j = 0;j < file_name_len;j++)

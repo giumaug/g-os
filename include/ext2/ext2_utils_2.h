@@ -18,44 +18,49 @@ static void* write_block_bitmap(t_ext2* ext2,u32 bg_block_bitmap,void* io_buffer
 	WRITE(sector_count,lba,io_buffer);
 }
 
-static u32 alloc_indirect_block(t_ext2* ext2,t_inode* i_node)
+static int alloc_indirect_block(t_ext2* ext2,t_inode* i_node)
 {
 	u32 group_block_index;
 	u32 indirect_block;
-	u32 ret;
-	t_group_block* group_block;
-	void* io_buffer;
+	int ret;
+	t_group_block* group_block = NULL;
+	void* io_buffer = NULL;
 	int i;
 
-	ret=-1;	
-	group_block_index=(i_node->i_number-1)/ ext2->superblock->s_inodes_per_group;
-	group_block=kmalloc(sizeof(t_group_block));
+	ret = -1;	
+	group_block_index = (i_node->i_number - 1) / ext2->superblock->s_inodes_per_group;
+	group_block = kmalloc(sizeof(t_group_block));
 	read_group_block(ext2,group_block_index,group_block);
-	io_buffer=kmalloc(BLOCK_SIZE);
+	io_buffer = kmalloc(BLOCK_SIZE);
 	read_block_bitmap(ext2,group_block->bg_block_bitmap,io_buffer);
-	indirect_block=ABSOLUTE_BLOCK_ADDRESS(group_block_index,find_free_block(io_buffer,0));
-	if (indirect_block!=0)
+	rel_block = find_free_block(io_buffer,0);
+	if (rel_block != 0)
 	{
-		i_node->i_block[12]=indirect_block;
+		indirect_block = ABSOLUTE_BLOCK_ADDRESS(group_block_index,rel_block);
 		write_block_bitmap(ext2,group_block->bg_block_bitmap,io_buffer);
 		write_group_block(ext2,group_block_index,group_block);
-		ret=0;
+		ext2->superblock->s_free_blocks_count--;
+		//write_superblock(ext2); !!!!!!!!!!!!!only for test
+		ret = indirect_block;
 	}
 	else 
 	{
-		for(i=0;i<ext2->superblock->s_blocks_count;i++)
+		for(i = 0;i<ext2->superblock->s_blocks_count;i++)
 		{
-			if (i!=group_block_index)
+			if (i != group_block_index)
 			{
 				read_group_block(ext2,i,group_block);
 				read_block_bitmap(ext2,group_block->bg_block_bitmap,io_buffer);
-				indirect_block=ABSOLUTE_BLOCK_ADDRESS(group_block_index,find_free_block(io_buffer,0));
-				if (indirect_block!=0)
+				rel_block = find_free_block(io_buffer,0);
+				if (rel_block != 0)
 				{
-					i_node->i_block[12]=indirect_block;
+					indirect_block = ABSOLUTE_BLOCK_ADDRESS(group_block_index,rel_block);
 					write_block_bitmap(ext2,group_block->bg_block_bitmap,io_buffer);
 					write_group_block(ext2,group_block_index,group_block);
-					ret=0;
+					ret = indirect_block;
+					ext2->superblock->s_free_blocks_count--;
+					//write_superblock(ext2); !!!!!!!!!!!!!only for test
+					break;
 				}
 			}
 		}

@@ -16,15 +16,12 @@ void init_ext2(t_ext2 *ext2,t_device_desc* device_desc)
 	ext2->superblock=kmalloc(sizeof(t_superblock));
         ext2->partition_start_sector=lookup_partition(ext2,1);  
         read_superblock(ext2);
-	//ext2->root_dir_inode=kmalloc(sizeof(t_inode));
-	//read_root_dir_inode(ext2);
 	ext2->device_desc=device_desc;
 }
 
 void free_ext2(t_ext2* ext2)
 {
 	kfree(ext2->superblock);
-	//kfree(ext2->root_dir_inode);
 }
 
 int _open(t_ext2* ext2,const char* full_path, int flags)
@@ -42,8 +39,6 @@ int _open(t_ext2* ext2,const char* full_path, int flags)
 	inode = inode_init();
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 	fd = current_process_context->next_fd++;
-	//current_process_context->file_desc=kmalloc(sizeof(t_hashtable));
-	//hashtable_init(current_process_context->file_desc,10);
 
 	if ((flags & (O_CREAT | O_RDWR)) == (O_CREAT | O_RDWR))
 	{
@@ -92,100 +87,11 @@ int _close(t_ext2* ext2,int fd)
 
 	CURRENT_PROCESS_CONTEXT(current_process_context)
 	inode=hashtable_remove(current_process_context->file_desc,fd);
-//	if (inode != NULL)
-//	{
-//		ret = 0;
-//		if (inode->indirect_block_1 != NULL)
-//		{
-//			indirect_block_free(inode->indirect_block_1);
-//		}
-//		if (inode->indirect_block_2 != NULL)
-//		{
-//			indirect_block_free(inode->indirect_block_2);
-//		}
-//		kfree(inode);
-//	}
 	ret = inode_free(inode);
 	//AT THE MOMENT READ ONLY	
 	//write_inode(system.root_fs,inode);
 	return ret;
 }
-
-//int _read_orig(t_ext2* ext2,int fd, void* buf,u32 count)
-//{
-//	struct t_process_context* current_process_context;
-//	u32 i;
-//	u32 block_offset;
-//	u32 first_inode_block;
-//	u32 first_data_offset;
-//	u32 last_inode_block;
-//	u32 inode_block;
-//	u32 lba;
-//	u32 indirect_lba;
-//	u32 allocated_indirect_block;
-//	u32 sector_count;
-//	u32 byte_to_read;
-//	u32 byte_read;
-//	u32 byte_count;
-//	t_inode* inode;
-//	char* iob_indirect_block;
-//	char* iob_data_block;
-//
-//	byte_read=0;
-//	byte_to_read=count;
-//	iob_indirect_block=kmalloc(BLOCK_SIZE);
-//	iob_data_block=kmalloc(BLOCK_SIZE);
-//
-//	CURRENT_PROCESS_CONTEXT(current_process_context)
-//	inode=hashtable_get(current_process_context->file_desc,fd);
-//	if (inode==NULL)
-//	{
-//		return -1;
-//	}
-//	first_inode_block=inode->file_offset/BLOCK_SIZE;
-//	first_data_offset=inode->file_offset%BLOCK_SIZE;
-//	last_inode_block=(inode->file_offset+count)/BLOCK_SIZE;
-//
-//	allocated_indirect_block=0;
-//	for (i=first_inode_block;i<=last_inode_block;i++)
-//	{
-//		if (i>11)
-//		{
-//			if (!allocated_indirect_block)
-//			{
-//				indirect_lba=FROM_BLOCK_TO_LBA(inode->i_block[12]);
-//        			sector_count=BLOCK_SIZE/SECTOR_SIZE;
-//				READ(sector_count,indirect_lba,iob_indirect_block);
-//				allocated_indirect_block=1;
-//			}
-//			READ_DWORD(&iob_indirect_block[4*(i-12)],inode_block);
-//			lba=FROM_BLOCK_TO_LBA(inode_block);
-//		}
-//		else
-//		{
-//			lba=FROM_BLOCK_TO_LBA(inode->i_block[i]);
-//		}
-//		if (byte_to_read>=BLOCK_SIZE)
-//		{
-//			byte_count=BLOCK_SIZE;
-//			byte_to_read-=BLOCK_SIZE;	
-//		}
-//		else
-//		{
-//			byte_count=byte_to_read;
-//			byte_to_read=0;
-//		}
-//        	sector_count=BLOCK_SIZE/SECTOR_SIZE;
-//		READ(sector_count,lba,iob_data_block);
-//		kmemcpy(buf,iob_data_block+first_data_offset,byte_count);
-//		inode->file_offset+=byte_count;
-//		buf+=byte_count;
-//		byte_read+=byte_count;
-//	}
-//	kfree(iob_indirect_block);
-//	kfree(iob_data_block);
-//	return byte_read;
-//}
 
 static t_indirect_block* indirect_block_init()
 {
@@ -340,136 +246,7 @@ int inode_free(t_inode* inode)
 	return ret;
 }
 
-//int _read(t_ext2* ext2,int fd, void* buf,u32 count)
-//{
-//	struct t_process_context* current_process_context;
-//	u32 i;
-//	u32 block_offset;
-//	u32 first_inode_block;
-//	u32 first_data_offset;
-//	u32 last_inode_block;
-//	u32 inode_block;
-//	u32 lba;
-//	u32 indirect_lba;
-//	u32 sector_count;
-//	u32 byte_to_read;
-//	u32 byte_read;
-//	u32 byte_count;
-//	t_inode* inode;
-//	u32 inode_block_data; 
-//	char* iob_data_block;
-//	u32 second_block;
-//	u32 second_block_offset;
-//
-//	byte_read=0;
-//	byte_to_read=count;
-////	iob_indirect_block=kmalloc(BLOCK_SIZE);
-//	iob_data_block=kmalloc(BLOCK_SIZE);
-//
-//	CURRENT_PROCESS_CONTEXT(current_process_context)
-//	inode=hashtable_get(current_process_context->file_desc,fd);
-//	if (inode==NULL)
-//	{
-//		return -1;
-//	}
-//	first_inode_block=inode->file_offset/BLOCK_SIZE;
-//	first_data_offset=inode->file_offset%BLOCK_SIZE;
-//	last_inode_block=(inode->file_offset+(count-1))/BLOCK_SIZE;
-//	
-//	for (i=first_inode_block;i<=last_inode_block;i++)
-//	{
-//		if (i > INDIRECT_0_LIMIT && i <= INDIRECT_1_LIMIT)
-//		{
-//			if (inode->indirect_block_1 == NULL)
-//			{
-//				inode->indirect_block_1 = indirect_block_init();
-//				indirect_lba = FROM_BLOCK_TO_LBA(inode->i_block[12]);
-//        			sector_count = BLOCK_SIZE/SECTOR_SIZE;
-//				READ(sector_count,indirect_lba,inode->indirect_block_1->block);
-//			}
-//			READ_DWORD(&inode->indirect_block_1->block[4*(i - INDIRECT_0_LIMIT - 1)],inode_block_data);
-//			lba = FROM_BLOCK_TO_LBA(inode_block_data);
-//		}
-//		else if (i > INDIRECT_1_LIMIT  && i <= INDIRECT_2_LIMIT)
-//		{
-//			second_block = (i - INDIRECT_2_LIMIT - 1) / (BLOCK_SIZE / 4);
-//			second_block_offset = (i - INDIRECT_2_LIMIT - 1) % (BLOCK_SIZE /4);
-//			if (inode->indirect_block_2 == NULL)
-//			{
-//				inode->indirect_block_2 = indirect_block_init();
-//				indirect_lba = FROM_BLOCK_TO_LBA(inode->i_block[13]);
-//        			sector_count = BLOCK_SIZE/SECTOR_SIZE;
-//				READ(sector_count,indirect_lba,inode->indirect_block_2->block);
-//			}
-//			if (inode->indirect_block_2->block_map[second_block] == NULL)
-//			{
-//				inode->indirect_block_2->block_map[second_block] = indirect_block_init();
-//				indirect_lba = FROM_BLOCK_TO_LBA(inode->indirect_block_2->block[second_block]);
-//        			sector_count = BLOCK_SIZE/SECTOR_SIZE;
-//				READ(sector_count,indirect_lba,inode->indirect_block_2->block_map[second_block]->block);	
-//			}
-//			READ_DWORD(&inode->indirect_block_2->block_map[second_block]->block[second_block_offset],inode_block_data);
-//			lba = FROM_BLOCK_TO_LBA(inode_block_data);
-//		}
-//		else if ( i > INDIRECT_2_LIMIT  && i <= INDIRECT_3_LIMIT )
-//		{
-//			//TO DO
-//		}
-//		else
-//		{
-//			lba=FROM_BLOCK_TO_LBA(inode->i_block[i]);
-//		}
-//		if (byte_to_read>=BLOCK_SIZE)
-//		{
-//			if (first_data_offset == 0)
-//			{
-//				byte_count=BLOCK_SIZE;
-//				byte_to_read-=BLOCK_SIZE;
-//			}
-//			else
-//			{
-//				byte_count = BLOCK_SIZE - first_data_offset;
-//				byte_to_read -= (BLOCK_SIZE - first_data_offset);
-//			}	
-//		}
-//		else
-//		{
-//			if (first_data_offset == 0)
-//			{
-//				byte_count=byte_to_read;
-//				byte_to_read=0;
-//			}
-//			else 
-//			{
-//				if (BLOCK_SIZE - first_data_offset > byte_to_read)
-//				{
-//					byte_count=byte_to_read;
-//					byte_to_read=0;
-//				}
-//				else
-//				{
-//					byte_count = BLOCK_SIZE - first_data_offset;
-//					byte_to_read -= (BLOCK_SIZE - first_data_offset);
-//				}
-//			}
-//		}
-//        	sector_count=BLOCK_SIZE/SECTOR_SIZE;
-//		READ(sector_count,lba,iob_data_block);
-//		kmemcpy(buf,iob_data_block+first_data_offset,byte_count);
-//		inode->file_offset+=byte_count;
-//		buf+=byte_count;
-//		byte_read+=byte_count;
-//		first_data_offset = 0;
-//	}
-//	//kfree(iob_indirect_block);
-//	kfree(iob_data_block);
-//	return byte_read;
-//}
-
-//MAX REQUEST SIZE 64512 (i.e. 64K - 1K) BECAUSE ONE LBA SUPPORTED ONLY.
-//IT NEEDED 1K OFFSET TO AVOID TO GO BEYOND &$K IN LBA
-
-int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
+int _write(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 {
 	u32 static xxx = 0;
 	struct t_process_context* current_process_context;
@@ -524,15 +301,235 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 		iob_data_block = kmalloc(BLOCK_SIZE);
 	}
 
-//	if (is_dma == 1)
-//	{
-//		xxx++;
-//		printk("xxx is %d \n",xxx);
-//		if (xxx == 693)
-//		{
-//			printk("to check here \n");
-//		}
-//	}
+	first_inode_block = inode->file_offset / BLOCK_SIZE;
+	first_data_offset = inode->file_offset % BLOCK_SIZE;
+	if (inode->i_size < (inode->file_offset + (count - 1)))
+	{
+		last_inode_block = (inode->i_size / BLOCK_SIZE) - 1;
+		byte_to_read = inode->i_size - inode->file_offset;
+	}
+	else
+	{
+		last_inode_block = (inode->file_offset + (count - 1)) / BLOCK_SIZE;
+		byte_to_read = count;
+	}
+	
+	for (i = first_inode_block;i <= last_inode_block;i++)
+	{
+		if (i > INDIRECT_0_LIMIT && i <= INDIRECT_1_LIMIT)
+		{
+			if (inode->i_block[12] == NULL)
+			{
+				if (block_addr != -1)
+				{
+					block_addr = alloc_indirect_block(ext2,i_node);
+				}
+				else
+				{
+					return -1;
+				}
+			}
+			if (inode->indirect_block_1 == NULL)-------------------------qui!!!!!
+			{
+				inode->indirect_block_1 = indirect_block_init();
+				indirect_lba = FROM_BLOCK_TO_LBA(inode->i_block[12]);
+        			sector_count = BLOCK_SIZE/SECTOR_SIZE;
+				READ(sector_count,indirect_lba,inode->indirect_block_1->block);
+			}
+			READ_DWORD(&inode->indirect_block_1->block[(i - INDIRECT_0_LIMIT - 1)],inode_block_data);
+			lba = FROM_BLOCK_TO_LBA(inode_block_data);
+			
+		}
+		else if (i > INDIRECT_1_LIMIT  && i <= INDIRECT_2_LIMIT)
+		{
+			second_block = (i - INDIRECT_1_LIMIT - 1) / (BLOCK_SIZE / 4);
+			second_block_offset = (i - INDIRECT_1_LIMIT - 1) % (BLOCK_SIZE /4);
+			if (inode->indirect_block_2 == NULL)
+			{
+				inode->indirect_block_2 = indirect_block_init();
+				indirect_lba = FROM_BLOCK_TO_LBA(inode->i_block[13]);
+        			sector_count = BLOCK_SIZE/SECTOR_SIZE;
+				READ(sector_count,indirect_lba,inode->indirect_block_2->block);
+			}
+			if (inode->indirect_block_2->block_map[second_block] == NULL)
+			{
+				inode->indirect_block_2->block_map[second_block] = indirect_block_init();
+				indirect_lba = FROM_BLOCK_TO_LBA(inode->indirect_block_2->block[second_block]);
+        			sector_count = BLOCK_SIZE/SECTOR_SIZE;
+				READ(sector_count,indirect_lba,inode->indirect_block_2->block_map[second_block]->block);	
+			}
+			READ_DWORD(&inode->indirect_block_2->block_map[second_block]->block[second_block_offset],inode_block_data);
+			lba = FROM_BLOCK_TO_LBA(inode_block_data);
+		}
+		else if ( i > INDIRECT_2_LIMIT  && i <= INDIRECT_3_LIMIT )
+		{
+			//TO DO
+		}
+		else
+		{
+			lba = FROM_BLOCK_TO_LBA(inode->i_block[i]);
+		}
+		if(is_dma)
+		{
+			if(first_lba == 0 && i < last_inode_block)
+			{
+				first_lba = lba;
+				last_lba = lba;
+				dma_lba_list = new_dllist();
+				dma_sector_count = (BLOCK_SIZE/SECTOR_SIZE);
+			}
+			else if(first_lba == 0 && i == last_inode_block)
+			{
+				dma_lba_list = new_dllist();
+				dma_sector_count = (BLOCK_SIZE/SECTOR_SIZE);
+				dma_lba_list_size = 1;
+				dma_lba = kmalloc(sizeof(t_dma_lba));
+				dma_lba->lba = lba;
+				dma_lba->sector_count = dma_sector_count;
+				ll_append(dma_lba_list,dma_lba);
+			}
+			else if(lba == (last_lba + (BLOCK_SIZE/SECTOR_SIZE)) && i < last_inode_block)
+			{
+				dma_sector_count += (BLOCK_SIZE/SECTOR_SIZE);
+				last_lba = lba;
+			}
+			else if (i == last_inode_block && lba == (last_lba + (BLOCK_SIZE/SECTOR_SIZE)))
+			{
+				dma_sector_count += (BLOCK_SIZE/SECTOR_SIZE);
+				dma_lba_list_size++;
+				dma_lba = kmalloc(sizeof(t_dma_lba));		
+				dma_lba->lba = first_lba;
+				dma_lba->sector_count = dma_sector_count;
+				ll_append(dma_lba_list,dma_lba);
+			}
+			else if (i == last_inode_block && lba != (last_lba + (BLOCK_SIZE/SECTOR_SIZE)))
+			{
+				dma_lba_list_size++;
+				dma_lba = kmalloc(sizeof(t_dma_lba));
+				dma_lba->lba = first_lba;
+				dma_lba->sector_count = dma_sector_count;
+				ll_append(dma_lba_list,dma_lba);
+
+				dma_lba_list_size++;
+				dma_sector_count = (BLOCK_SIZE/SECTOR_SIZE);
+				dma_lba = kmalloc(sizeof(t_dma_lba));
+				dma_lba->lba = lba;
+				dma_lba->sector_count = dma_sector_count;
+				ll_append(dma_lba_list,dma_lba);
+			}
+			else
+			{
+				dma_lba_list_size++;
+				dma_lba = kmalloc(sizeof(t_dma_lba));		
+				dma_lba->lba = first_lba;
+				dma_lba->sector_count = dma_sector_count;
+				ll_append(dma_lba_list,dma_lba);
+				dma_sector_count = (BLOCK_SIZE/SECTOR_SIZE);
+				last_lba = lba;
+				first_lba = lba;
+			}
+		}
+		else
+		{
+			if (byte_to_read >= BLOCK_SIZE)
+			{
+				if (first_data_offset == 0 || i > first_inode_block)
+				{
+					byte_count = BLOCK_SIZE;
+					byte_to_read -= BLOCK_SIZE;
+				}
+				else
+				{
+					byte_count = BLOCK_SIZE - first_data_offset;
+					byte_to_read -= (BLOCK_SIZE - first_data_offset);
+				}	
+			}
+			else
+			{
+				if (first_data_offset == 0 || i > first_inode_block)
+				{
+					byte_count = byte_to_read;
+					byte_to_read = 0;
+				}
+				else 
+				{
+					if (BLOCK_SIZE - first_data_offset > byte_to_read)
+					{
+						byte_count = byte_to_read;
+						byte_to_read = 0;
+					}
+					else
+					{
+						byte_count = BLOCK_SIZE - first_data_offset;
+						byte_to_read -= (BLOCK_SIZE - first_data_offset);
+					}	
+				}
+			}
+        		sector_count = BLOCK_SIZE/SECTOR_SIZE;
+			READ(sector_count,lba,iob_data_block);
+			kmemcpy(buf,iob_data_block + first_data_offset,byte_count);
+			inode->file_offset += byte_count;
+			buf += byte_count;
+			byte_read += byte_count;
+			first_data_offset = 0;
+		}
+	}
+
+//MAX REQUEST SIZE 64512 (i.e. 64K - 1K) BECAUSE ONE LBA SUPPORTED ONLY.
+//IT NEEDED 1K OFFSET TO AVOID TO GO BEYOND 64K IN LBA
+int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
+{
+	struct t_process_context* current_process_context;
+	u32 i;
+	u32 block_offset;
+	u32 first_inode_block;
+	u32 first_data_offset;
+	u32 last_inode_block;
+	u32 inode_block;
+	u32 lba;
+	u32 indirect_lba;
+	u32 sector_count;
+	u32 byte_to_read;
+	u32 byte_read;
+	u32 byte_count;
+	t_inode* inode;
+	u32 inode_block_data; 
+	char* iob_data_block = NULL;
+	u32 second_block;
+	u32 second_block_offset;
+	t_llist* dma_lba_list = NULL;
+	u32 last_lba = 0;
+	u32 first_lba = 0;
+	t_llist_node* first = NULL;
+	t_llist_node* next = NULL;
+	t_dma_lba* dma_lba = NULL;
+	u32 dma_sector_count = 0;
+	u32 buf_offset;
+	u32 dma_buf_offset;
+	u32 dma_lba_list_size = 0;
+	unsigned char* dma_buffer = NULL;
+	unsigned char* aligned_dma_buffer = NULL;
+	unsigned char* phy_dma_buffer = NULL;
+	u32 len;
+	
+	byte_read = 0;
+	byte_to_read = count;
+	CURRENT_PROCESS_CONTEXT(current_process_context)
+	inode = hashtable_get(current_process_context->file_desc,fd);
+	if (inode == NULL)
+	{
+		return -1;
+	}
+	if (is_dma == 1)
+	{
+		dma_buffer = kmalloc(DMA_BUFFER_SIZE);
+		aligned_dma_buffer = ALIGN_TO_BOUNDARY((DMA_BUFFER_SIZE / 2),(u32)dma_buffer);
+		phy_dma_buffer = FROM_VIRT_TO_PHY(ALIGN_TO_BOUNDARY((DMA_BUFFER_SIZE / 2),(u32) dma_buffer));
+	}
+	else
+	{
+		iob_data_block = kmalloc(BLOCK_SIZE);
+	}
 
 	first_inode_block = inode->file_offset / BLOCK_SIZE;
 	first_data_offset = inode->file_offset % BLOCK_SIZE;
@@ -746,7 +743,7 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 	return byte_read;
 }
 
-int _write(t_ext2* ext2,int fd, const void *buf,u32 count)
+int ___write(t_ext2* ext2,int fd, const void *buf,u32 count)
 {
 	u32 i;	
 	u32 first_inode_block;
@@ -910,10 +907,6 @@ int _seek(t_ext2* ext2,int fd,unsigned int offset,int whence)
 		}
 		inode->i_size+=offset;
 	}
-
-//	CURRENT_PROCESS_CONTEXT(current_process_context);	
-//	inode=hashtable_get(current_process_context->file_desc,fd);
-//	inode->file_offset=offset;
 	return offset;
 }
 
