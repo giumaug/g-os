@@ -122,7 +122,16 @@ void syscall_handler()
 		break; 
 	
 		case 18:
-		SELECT_FS(ext2)
+		//--SELECT_FS(ext2)
+		printk("qui!!! \n");
+		if (system.device_desc->num == 0)        
+		{                                        
+			ext2 = system.root_fs;          
+		}                                        
+		else                                     
+		{                                        
+			ext2 = system.scnd_fs;           
+		}   
 		//params[2] = _open(system.root_fs,(char*) params[0],params[1]);
 	 	params[2] = _open(ext2,(char*) params[0],params[1]);
 		on_exit_action=1;

@@ -476,6 +476,11 @@ unsigned int _p_write_28_ata(t_io_request* io_request)
 
 void _select_dev(int device_num)
 {
+	system.device_desc->num = device_num;
+}
+
+void ___select_dev(int device_num)
+{
 	int i;
 	char* w_buffer = NULL;
 	char* r_buffer = NULL;

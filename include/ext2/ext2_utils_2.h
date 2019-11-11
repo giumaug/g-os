@@ -682,7 +682,7 @@ u32 static find_free_inode(u32 group_block_index,t_ext2 *ext2,u32 condition)
 
 	i = 0;
 	j = 0;
-	inode_number=-1;
+	inode_number = -1;
 	group_block = kmalloc(sizeof(t_group_block));
 	io_buffer = kmalloc(BLOCK_SIZE);
 	read_group_block(ext2,group_block_index,group_block);
@@ -709,23 +709,23 @@ u32 static find_free_inode(u32 group_block_index,t_ext2 *ext2,u32 condition)
                         {
                                 if (!((*current_byte) & (1 << j)))
                                 {
-                                        inode_number = i * 8 + j;
+                                        inode_number = i * 8 + j + 1;//inode count starts from 1
                                         *current_byte = *current_byte | 1 << j;
+					WRITE(sector_count,lba,io_buffer);
+					group_block->bg_free_inodes_count--;
+					write_group_block(ext2,group_block_index,group_block);
+					ext2->superblock->s_free_inodes_count--;
+					write_superblock(ext2);
                                 }
                                 j++;
                         }
                         i++;
                         j = 0;
                 }
-		//WRITE(sector_count,lba,io_buffer);da scommentare solo per test!!!!!!!!!!!!!!!!!!!!!!!!!!
-		group_block->bg_free_inodes_count--;
-		//write_group_block(ext2,group_block_index,group_block);  da scommentare solo per test!!!!!!!!!!!!!!!!!!!!!!!!!!
-		ext2->superblock->s_free_inodes_count--;
-		//write_superblock(ext2);  da scommentare solo per test!!!!!!!!!!!!!!!!!!!!!!!!!!
 	}
 	kfree(group_block);
 	kfree(io_buffer);
-        return inode_number + 1;//inode count starts from 1
+        return inode_number;
 }
 
 int static find_free_block(char* io_buffer,u32 prealloc)

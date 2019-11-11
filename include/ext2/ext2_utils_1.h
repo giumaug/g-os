@@ -35,10 +35,10 @@ int add_entry_to_dir(char* file_name,struct s_inode* parent_dir_inode,struct s_e
 	char* io_buffer = NULL;
 	char* new_io_buffer = NULL;
 
+	file_name_len = strlen(file_name);
 	new_entry_len = 8 + file_name_len;
 	pad = new_entry_len % 4;
 	io_buffer = kmalloc(BLOCK_SIZE);
-	file_name_len = strlen(file_name);
 	for (i = 0;i <= 12;i++)
 	{
 		if (parent_dir_inode->i_block[i] == 0)
@@ -50,7 +50,7 @@ int add_entry_to_dir(char* file_name,struct s_inode* parent_dir_inode,struct s_e
 	{
 		return -1;
 	}
-	for(j = 0;j < BLOCK_SIZE * i;j++)
+	for(j = 0;j < i;j++)
 	{
 		lba = FROM_BLOCK_TO_LBA(parent_dir_inode->i_block[j]);
 		READ((BLOCK_SIZE / SECTOR_SIZE),lba,io_buffer + (BLOCK_SIZE * j));
@@ -62,26 +62,26 @@ int add_entry_to_dir(char* file_name,struct s_inode* parent_dir_inode,struct s_e
 	while(!exit)
 	{
 		READ_WORD(&io_buffer[next_entry + 4],rec_len);
-		READ_WORD(&io_buffer[next_entry + 6],cur_file_len);
+		READ_BYTE(&io_buffer[next_entry + 6],cur_file_len);
 		free_space = (BLOCK_SIZE * i) - next_entry - cur_file_len;
 		if ((next_entry + rec_len) == (BLOCK_SIZE * i) && free_space >= new_entry_len)
 		{			
 			new_rec_len = (BLOCK_SIZE * i) - next_entry - new_entry_len;
-			io_buffer[next_entry] = inode_number && 0xFF;                   //inode fourth word
-			io_buffer[next_entry + 1] = inode_number && 0x00FF;             //inode third word
-			io_buffer[next_entry + 2] = inode_number && 0x0000FF;           //inode second word
-			io_buffer[next_entry + 3] = inode_number && 0x000000FF;         //inode first word
-			io_buffer[next_entry + 4] = (new_rec_len + pad) && 0xFF;        //rec len second word
-			io_buffer[next_entry + 5] = (new_rec_len + pad) && 0x00FF;      //rec len first word
-                        io_buffer[next_entry + 6] = file_name_len;                      //file len
-			io_buffer[next_entry + 7] = 1;                                  //file type
+			io_buffer[next_entry] = inode_number & 0xFF;                   	      //inode fourth word
+			io_buffer[next_entry + 1] = (inode_number & 0xFF00) >> 8;             //inode third word
+			io_buffer[next_entry + 2] = (inode_number & 0xFF0000) >> 16;          //inode second word
+			io_buffer[next_entry + 3] = (inode_number & 0xFF000000) >> 24;        //inode first word
+			io_buffer[next_entry + 4] = (new_rec_len + pad) & 0xFF;        	      //rec len second word
+			io_buffer[next_entry + 5] = ((new_rec_len + pad) & 0xFF00) >> 8; qui!!!     //rec len first word
+                        io_buffer[next_entry + 6] = file_name_len;                            //file len
+			io_buffer[next_entry + 7] = 1;                                        //file type
 			for (j = 0;j < file_name_len;j++)
 			{
 				io_buffer[next_entry + 8 + j] = file_name[j];
 			}
 			block_index = next_entry / BLOCK_SIZE;
 			lba = FROM_BLOCK_TO_LBA(parent_dir_inode->i_block[block_index]);
-			//WRITE((BLOCK_SIZE / SECTOR_SIZE),lba,(io_buffer + block_index));  !!!!!!!!!!!!!only for test
+			WRITE((BLOCK_SIZE / SECTOR_SIZE),lba,(io_buffer + block_index));
 			ret = 1;
 			exit = 1;
 		}
@@ -520,6 +520,7 @@ void find_file_name(char* full_path,char* file_name)
 		file_name[index] =  full_path[index];	
 		index++;
 	}
+	file_name[index] = '\0';
 }
 
 void find_parent_path_and_filename(char* full_path,char* parent_path,char* file_name)
@@ -598,9 +599,7 @@ u32 alloc_inode(t_inode* inode_parent_dir ,unsigned int type,t_ext2 *ext2)
         {
                 group_block_offset = 1;
                 inode_number = -1;
-		inode_parent_dir = kmalloc(sizeof(t_inode));
-                tot_group_block = ext2->superblock->s_blocks_count / ext2->superblock->s_log_block_size;
-                //lookup_inode(parent_path,ext2,inode_parent_dir);
+                tot_group_block = ext2->superblock->s_blocks_count / (1024 * (1 + ext2->superblock->s_log_block_size));
                 parent_dir_group_block_index = (inode_parent_dir->i_number-1) / ext2->superblock->s_inodes_per_group;
                 group_block_index = parent_dir_group_block_index;
                   
@@ -631,7 +630,6 @@ u32 alloc_inode(t_inode* inode_parent_dir ,unsigned int type,t_ext2 *ext2)
                         	}	
                 	}
 		}
-		kfree(inode_parent_dir);
         }
         //1)Seleziona primo group descriptor con numero inode<=media inode
         //      2.1)Leggi blocco inode bitmap (bg_inode_bitmap)

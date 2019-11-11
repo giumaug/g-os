@@ -22,7 +22,10 @@ int main()
 	kfree(io_buffer);
 	printf("read string %s \n",io_buffer);	
 */
-	f = open("/test.txt", O_CREAT | O_RDWR);
+	select_dev(1);
+	int sss = O_CREAT | O_RDWR;
+	printf("sss = %d \n",sss);
+	f = open("/xxxxx.txt", O_CREAT | O_RDWR);
 	close(f);
 	printf("end process \n");
 	exit(0);

@@ -57,7 +57,7 @@ int _open(t_ext2* ext2,const char* full_path, int flags)
 			inode_free(inode_parent_dir);
 			return -1;
 		}
-		ret = add_entry_to_dir(file_name,inode_parent_dir,ext2,inode_number);--------------qui!!!!!!!
+		ret = add_entry_to_dir(file_name,inode_parent_dir,ext2,inode->i_number);
 		if (ret == -1)
 		{
 			inode_free(inode);
@@ -65,7 +65,6 @@ int _open(t_ext2* ext2,const char* full_path, int flags)
 			return -1;
 		}
 		hashtable_put(current_process_context->file_desc,fd,inode);
-		printk("wrong path!!!!!\n");
 	}
 	else if ((flags & (O_APPEND | O_RDWR)) == (O_APPEND | O_RDWR))
 	{
