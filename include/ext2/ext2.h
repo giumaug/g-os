@@ -198,6 +198,7 @@ typedef struct s_inode
 	u32 first_preallocated_block;
 	struct s_indirect_block* indirect_block_1;
 	struct s_indirect_block* indirect_block_2;
+	struct s_inode* parent_dir;
 
 	//disk fields
   	u16 i_mode;

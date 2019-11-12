@@ -32,31 +32,30 @@ int _open(t_ext2* ext2,const char* full_path, int flags)
 	struct t_process_context* current_process_context = NULL;
 	t_inode* inode = NULL;
 	t_llist_node* node = NULL;
-	t_inode* inode_parent_dir = NULL;
 	char parent_path[NAME_MAX];
 	char file_name[NAME_MAX];
 
 	inode = inode_init();
+	find_parent_path_and_filename(full_path,parent_path,file_name);------------------verificare caso ./ !!!!!
+	lookup_inode(parent_path,ext2,inode->parent_dir);
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 	fd = current_process_context->next_fd++;
 
-	if ((flags & (O_CREAT | O_RDWR)) == (O_CREAT | O_RDWR))
+	if ((flags & (O_CREAT | O_RDWR)) == (O_CREAT | O_RDWR))   https://www.thoughtco.com/random-access-file-handling-958450
 	{
-		inode_parent_dir = inode_init();
-		find_parent_path_and_filename(full_path,parent_path,file_name);
-		lookup_inode(parent_path,ext2,inode_parent_dir);
-		inode->i_number = alloc_inode(inode_parent_dir,0,ext2);
+		inode->parent_dir = inode_init();
+		//find_parent_path_and_filename(full_path,parent_path,file_name);
+		//lookup_inode(parent_path,ext2,inode->parent_dir);
+		inode->i_number = alloc_inode(inode->parent_dir,0,ext2);
 		if (inode->i_number == -1)
 		{
 			inode_free(inode);
-			inode_free(inode_parent_dir);
 			return -1;
 		}
-		ret = add_entry_to_dir(file_name,inode_parent_dir,ext2,inode->i_number);
+		ret = add_entry_to_dir(file_name,inode->parent_dir,ext2,inode->i_number);
 		if (ret == -1)
 		{
 			inode_free(inode);
-			inode_free(inode_parent_dir);
 			return -1;
 		}
 		hashtable_put(current_process_context->file_desc,fd,inode);
@@ -223,6 +222,7 @@ t_inode* inode_init()
 	inode = kmalloc(sizeof(t_inode));
 	inode->indirect_block_1 = NULL;
 	inode->indirect_block_2 = NULL;
+	inode->parent_dir = NULL;
 	return inode;
 }
 
@@ -239,6 +239,10 @@ int inode_free(t_inode* inode)
 		if (inode->indirect_block_2 != NULL)
 		{
 			indirect_block_free(inode->indirect_block_2);
+		}
+		if (inode->parent_dir != NULL)
+		{
+			inode_free(inode->parent_dir);
 		}
 		ret = 0;
 	}
@@ -320,30 +324,60 @@ int _write(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 		{
 			if (inode->i_block[12] == NULL)
 			{
-				if (block_addr != -1)
-				{
-					block_addr = alloc_indirect_block(ext2,i_node);
-				}
-				else
+				block_addr = alloc_indirect_block(ext2,i_node);
+				if (block_addr == -1)
 				{
 					return -1;
 				}
+				inode->i_block[12] = block_addr;
+				inode->indirect_block_1 = indirect_block_init();
 			}
-			if (inode->indirect_block_1 == NULL)-------------------------qui!!!!!
+			if (inode->indirect_block_1 == NULL)
 			{
 				inode->indirect_block_1 = indirect_block_init();
 				indirect_lba = FROM_BLOCK_TO_LBA(inode->i_block[12]);
         			sector_count = BLOCK_SIZE/SECTOR_SIZE;
 				READ(sector_count,indirect_lba,inode->indirect_block_1->block);
 			}
-			READ_DWORD(&inode->indirect_block_1->block[(i - INDIRECT_0_LIMIT - 1)],inode_block_data);
+			data_block = alloc_block(ext2,inode,i);
+			inode->indirect_block_1->block[(i - INDIRECT_0_LIMIT - 1)] = inode_block_data;
+			to write to disk
+			1)inode
+			2)indirect block
 			lba = FROM_BLOCK_TO_LBA(inode_block_data);
-			
 		}
 		else if (i > INDIRECT_1_LIMIT  && i <= INDIRECT_2_LIMIT)
 		{
 			second_block = (i - INDIRECT_1_LIMIT - 1) / (BLOCK_SIZE / 4);
 			second_block_offset = (i - INDIRECT_1_LIMIT - 1) % (BLOCK_SIZE /4);
+			if (inode->i_block[13] == NULL)
+			{
+				block_addr_1 = alloc_indirect_block(ext2,i_node);
+				if (block_addr_1 == -1)
+				{
+					return -1;
+				}
+				inode->i_block[13] = block_addr_1;
+				inode->indirect_block_2 = indirect_block_init();
+				block_addr_2 = alloc_indirect_block(ext2,i_node);
+				if (block_addr_2 == -1)
+				{
+					return -1;
+				}
+				inode->indirect_block_2->block_map[second_block] = indirect_block_init();
+				inode->indirect_block_2->block_map[second_block]->block[second_block_offset] = block_addr_2;
+			}--------------------qui!!!!!!!!!!!!!
+			else if (inode->i_block[13] != NULL && inode->i_block[13][second_block] == NULL)
+			{
+				block_addr_2 = alloc_indirect_block(ext2,i_node);
+				if (block_addr_2 == -1)
+				{
+					return -1;
+				}
+				inode->indirect_block_2->block_map[second_block] = indirect_block_init();
+				inode->indirect_block_2->block_map[second_block]->block[second_block_offset] = block_addr_2;
+
+			}
 			if (inode->indirect_block_2 == NULL)
 			{
 				inode->indirect_block_2 = indirect_block_init();
