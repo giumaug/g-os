@@ -257,6 +257,13 @@ typedef struct s_mount
 }	
 t_mount_point;
 
+typedef struct s_block_disk
+{
+	u32 lba;
+	char* data;
+}
+t_block_disk;
+
 void init_ext2(t_ext2 *ext2,struct s_device_desc* device_desc);
 void free_ext2(t_ext2* ext2);
 int _open(t_ext2* ext2,const char* fullpath, int flags);

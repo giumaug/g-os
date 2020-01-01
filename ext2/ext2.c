@@ -99,7 +99,6 @@ static t_indirect_block* indirect_block_init()
 
 	indirect_block = kmalloc(sizeof(t_indirect_block));
 	indirect_block->block = kmalloc(BLOCK_SIZE);
-	int xxx = (BLOCK_SIZE / 4) * sizeof(t_indirect_block*);
 	indirect_block->block_map = kmalloc((BLOCK_SIZE / 4) * sizeof(t_indirect_block*));
 	for (i = 0 ;i <  (BLOCK_SIZE / 4); i++)
 	{
@@ -250,9 +249,8 @@ int inode_free(t_inode* inode)
 	return ret;
 }
 
-int _write(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
+int _read_write(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dmnew_dllist();a,char op_type)
 {
-	u32 static xxx = 0;
 	struct t_process_context* current_process_context;
 	u32 i;
 	u32 block_offset;
@@ -285,10 +283,16 @@ int _write(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 	unsigned char* aligned_dma_buffer = NULL;
 	unsigned char* phy_dma_buffer = NULL;
 	u32 len;
+	t_llist* block_disk_list = NULL;
+	t_block_disk block_disk = NULL;
 	
 	byte_read = 0;
 	byte_to_read = count;
 	CURRENT_PROCESS_CONTEXT(current_process_context)
+	if (op_type == 1)
+	{
+		block_disk_list = new_dllist();
+	}
 	inode = hashtable_get(current_process_context->file_desc,fd);
 	if (inode == NULL)
 	{
@@ -340,11 +344,11 @@ int _write(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 				READ(sector_count,indirect_lba,inode->indirect_block_1->block);
 			}
 			data_block = alloc_block(ext2,inode,i);
-			inode->indirect_block_1->block[(i - INDIRECT_0_LIMIT - 1)] = inode_block_data;
+			inode->indirect_block_1->block[(i - INDIRECT_0_LIMIT - 1)] = data_block;
 			to write to disk
 			1)inode
 			2)indirect block
-			lba = FROM_BLOCK_TO_LBA(inode_block_data);
+			lba = FROM_BLOCK_TO_LBA(data_block);
 		}
 		else if (i > INDIRECT_1_LIMIT  && i <= INDIRECT_2_LIMIT)
 		{
@@ -359,25 +363,50 @@ int _write(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 				}
 				inode->i_block[13] = block_addr_1;
 				inode->indirect_block_2 = indirect_block_init();
-				block_addr_2 = alloc_indirect_block(ext2,i_node);
-				if (block_addr_2 == -1)
-				{
-					return -1;
-				}
-				inode->indirect_block_2->block_map[second_block] = indirect_block_init();
-				inode->indirect_block_2->block_map[second_block]->block[second_block_offset] = block_addr_2;
-			}--------------------qui!!!!!!!!!!!!!
-			else if (inode->i_block[13] != NULL && inode->i_block[13][second_block] == NULL)
-			{
-				block_addr_2 = alloc_indirect_block(ext2,i_node);
-				if (block_addr_2 == -1)
-				{
-					return -1;
-				}
-				inode->indirect_block_2->block_map[second_block] = indirect_block_init();
-				inode->indirect_block_2->block_map[second_block]->block[second_block_offset] = block_addr_2;
-
+				block_disk = kmalloc(sizeof(t_block_disk));
+				block_disk->lba = block_addr_1;
+				block_disk->data = inode->indirect_block_2->block;
+				ll_append(block_disk_list,block_disk);--------------------qui!!!
 			}
+			if (inode->indirect_block_2 == NULL)
+			{
+				if(inode->i_block[13] != NULL)
+				{
+					inode->indirect_block_2 = indirect_block_init();
+					indirect_lba = FROM_BLOCK_TO_LBA(inode->i_block[13]);
+        				sector_count = BLOCK_SIZE/SECTOR_SIZE;
+					READ(sector_count,indirect_lba,inode->indirect_block_2->block);
+				}
+			}
+			if (inode-data_block>indirect_block_2->block_map[second_block] == NULL)
+			{
+				if(inode->indirect_block_2->block[second_block] != NULL)
+				{
+					inode->indirect_block_2->block_map[second_block] = indirect_block_init();
+					indirect_lba = FROM_BLOCK_TO_LBA(inode->indirect_block_2->block[second_block]);
+        				sector_count = BLOCK_SIZE/SECTOR_SIZE;
+					READ(sector_count,indirect_lba,inode->indirect_block_2->block_map[second_block]->block);
+					data_block = inode->indirect_block_2->block_map[second_block]->block[second_block_offset];
+				}
+				else
+				{
+					block_addr_2 = alloc_indirect_block(ext2,i_node);
+					if (block_addr_2 == -1)
+					{
+						return -1;
+					}
+					inode->indirect_block_2->block[second_block] = block_addr_2;
+					inode->indirect_block_2->block_map[second_block] = indirect_block_init();
+					data_block = alloc_block(ext2,inode,i);
+					inode->indirect_block_2->block_map[second_block]->block[second_block_offset] = data_block;
+					//qui sono in write!!!
+				}
+			}
+			to write to disk
+			1)inode
+			2)indirect block
+			lba = FROM_BLOCK_TO_LBA(data_block);
+			qui!!!!!!!!!!!!!!!! rivedere logica considerando anche caso blocco indiretto gia' su disco ma non letto
 			if (inode->indirect_block_2 == NULL)
 			{
 				inode->indirect_block_2 = indirect_block_init();
