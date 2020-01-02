@@ -151,12 +151,11 @@ void syscall_handler()
 		on_exit_action=1; 
 		break;
 
-		case 21:
-		SELECT_FS(ext2) 
-		//params[3]=_write(system.root_fs,(void*)params[0],params[1],params[2]);
-		params[3]=_write(ext2,(void*)params[0],params[1],params[2]);
-		on_exit_action=1;  
-		break;
+//		case 21:
+//		SELECT_FS(ext2) 
+//		params[3]=_write(ext2,(void*)params[0],params[1],params[2]);
+//		on_exit_action=1;  
+//		break;
 
 		case 36:
 		SELECT_FS(ext2)
@@ -253,25 +252,6 @@ void syscall_handler()
 		on_exit_action=1;
 		break;
 	
-//		case 102:
-//		_flush_ata_pending_request();
-//		break;
-	
-		//DEBUG WRAPPER
-		case 103:
-		//reg_time(&system.timeboard_1,&system.time_counter_1);
-		//system.flush_network = 0;
-		check_free_mem();
-		break;
-	
-		case 104:
-		debug_network(params[0],params[1]);
-		break;
-	
-		case 105:
-		_read_test(system.root_fs);
-		break;
-
 		case 106:
 		params[1]=_listen(params[0]);
 		break;
@@ -283,6 +263,11 @@ void syscall_handler()
 		case 108:
 		_select_dev(params[0]);
 		break;
+
+		case 109:
+		SELECT_FS(ext2)
+	 	params[4] = _read_write(ext2, params[0], params[1], params[2], params[3], 1);
+		on_exit_action = 1;
 
 		default:
 		panic();

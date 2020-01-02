@@ -22,6 +22,7 @@ static int alloc_indirect_block(t_ext2* ext2,t_inode* i_node)
 {
 	u32 group_block_index;
 	u32 indirect_block;
+	u32 rel_block;
 	int ret;
 	t_group_block* group_block = NULL;
 	void* io_buffer = NULL;

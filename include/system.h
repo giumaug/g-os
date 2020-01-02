@@ -61,6 +61,7 @@ typedef struct s_device_desc
 	u32 (*p_read)(t_io_request* io_request);
 	u32 (*p_write)(t_io_request* io_request);
 	u32 (*read_dma)(t_io_request* io_request);
+	u32 (*write_dma)(t_io_request* io_request);
 	unsigned int status;
 	t_io_request* serving_request;
 	t_sem_desc mutex;

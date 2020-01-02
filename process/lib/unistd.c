@@ -37,26 +37,6 @@ int sleep(unsigned int time)
 	SYSCALL(15,params);
 }
 
-//extern inline int read_sector(unsigned int lba,unsigned int sector_count,void *read_buffer)
-//{
-//	unsigned int params[2];
-//	params[0]=lba;
-//	params[1]=sector_count;
-//	params[2]=read_buffer;	
-//	SYSCALL(16,params);
-//	return params[2];
-//}
-//
-//extern inline int write_sector(unsigned int lba,unsigned int sector_count,void *write_buffer)
-//{
-//	unsigned int params[2];
-//	params[0]=lba;
-//	params[1]=sector_count;
-//	params[2]=write_buffer;	
-//	SYSCALL(17,params);
-//	return params[2];
-//}
-
 int close(int fd)
 {
 	unsigned int params[2];
@@ -70,11 +50,23 @@ int read(int fd, void *buf, int count)
 {
 	unsigned int params[4];
 
-	params[0]=fd;
-	params[1]=buf;
-	params[2]=count;
-	SYSCALL(20,params);
-	return  params[3];
+	params[0] = fd;
+	params[1] = buf;
+	params[2] = count;
+	SYSCALL(20, params);
+	return params[3];
+}
+
+int read_write(int fd, void *buf, int count, unsigned char op_type)
+{
+	unsigned int params[4];
+
+	params[0] = fd;
+	params[1] = buf;
+	params[2] = count;
+	params[3] = op_type;
+	SYSCALL(109, params);
+	return  params[34];
 }
 
 int write(int fd, void *buf, int count)

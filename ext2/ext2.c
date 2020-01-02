@@ -24,7 +24,61 @@ void free_ext2(t_ext2* ext2)
 	kfree(ext2->superblock);
 }
 
-int _open(t_ext2* ext2,const char* full_path, int flags)
+//int _open(t_ext2* ext2,const char* full_path, int flags)
+//{
+//	int ret;
+//	u32 fd;
+//	u32 ret_code;
+//	struct t_process_context* current_process_context = NULL;
+//	t_inode* inode = NULL;
+//	t_llist_node* node = NULL;
+//	char parent_path[NAME_MAX];
+//	char file_name[NAME_MAX];
+//
+//	inode = inode_init();
+//	find_parent_path_and_filename(full_path,parent_path,file_name);
+//	lookup_inode(parent_path,ext2,inode->parent_dir);
+//	CURRENT_PROCESS_CONTEXT(current_process_context);
+//	fd = current_process_context->next_fd++;
+//
+//	if ((flags & (O_CREAT | O_RDWR)) == (O_CREAT | O_RDWR))
+//	{
+//		inode->parent_dir = inode_init();
+//		//find_parent_path_and_filename(full_path,parent_path,file_name);
+//		//lookup_inode(parent_path,ext2,inode->parent_dir);
+//		inode->i_number = alloc_inode(inode->parent_dir,0,ext2);
+//		if (inode->i_number == -1)
+//		{
+//			inode_free(inode);
+//			return -1;
+//		}
+//		ret = add_entry_to_dir(file_name,inode->parent_dir,ext2,inode->i_number);
+//		if (ret == -1)
+//		{
+//			inode_free(inode);
+//			return -1;
+//		}
+//		hashtable_put(current_process_context->file_desc,fd,inode);
+//	}
+//	else if ((flags & (O_APPEND | O_RDWR)) == (O_APPEND | O_RDWR))
+//	{
+//		ret_code = lookup_inode(full_path,ext2,inode);		
+//		if (ret_code == -1)
+//		{
+//			inode_free(inode);
+//			return -1;
+//		}
+//		hashtable_put(current_process_context->file_desc,fd,inode);
+//	}
+//	else 
+//	{
+//		return -1;
+//	}
+//	inode->file_offset = 0;
+//	return fd;
+//}
+
+int _open(t_ext2* ext2, const char* full_path, int flags)
 {
 	int ret;
 	u32 fd;
@@ -36,45 +90,41 @@ int _open(t_ext2* ext2,const char* full_path, int flags)
 	char file_name[NAME_MAX];
 
 	inode = inode_init();
-	find_parent_path_and_filename(full_path,parent_path,file_name);------------------verificare caso ./ !!!!!
-	lookup_inode(parent_path,ext2,inode->parent_dir);
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 	fd = current_process_context->next_fd++;
-
-	if ((flags & (O_CREAT | O_RDWR)) == (O_CREAT | O_RDWR))   https://www.thoughtco.com/random-access-file-handling-958450
+	ret_code = lookup_inode(full_path,ext2,inode);		
+	if (ret_code == -1)
 	{
-		inode->parent_dir = inode_init();
-		//find_parent_path_and_filename(full_path,parent_path,file_name);
-		//lookup_inode(parent_path,ext2,inode->parent_dir);
-		inode->i_number = alloc_inode(inode->parent_dir,0,ext2);
-		if (inode->i_number == -1)
+		if (flags & O_CREAT)
+		{
+			inode->parent_dir = inode_init();
+			find_parent_path_and_filename(full_path,parent_path,file_name);
+			lookup_inode(parent_path,ext2,inode->parent_dir);
+			inode->i_number = alloc_inode(inode->parent_dir,0,ext2);
+			if (inode->i_number == -1)
+			{
+				inode_free(inode);
+				return -1;
+			}
+			ret = add_entry_to_dir(file_name,inode->parent_dir,ext2,inode->i_number);
+			if (ret == -1)
+			{
+				inode_free(inode);
+				return -1;
+			}
+			hashtable_put(current_process_context->file_desc,fd,inode);
+		}
+		else
 		{
 			inode_free(inode);
 			return -1;
 		}
-		ret = add_entry_to_dir(file_name,inode->parent_dir,ext2,inode->i_number);
-		if (ret == -1)
-		{
-			inode_free(inode);
-			return -1;
-		}
+	}
+	else
+	{
 		hashtable_put(current_process_context->file_desc,fd,inode);
+		inode->file_offset = 0;
 	}
-	else if ((flags & (O_APPEND | O_RDWR)) == (O_APPEND | O_RDWR))
-	{
-		ret_code = lookup_inode(full_path,ext2,inode);		
-		if (ret_code == -1)
-		{
-			inode_free(inode);
-			return -1;
-		}
-		hashtable_put(current_process_context->file_desc,fd,inode);
-	}
-	else 
-	{
-		return -1;
-	}
-	inode->file_offset = 0;
 	return fd;
 }
 
@@ -249,11 +299,19 @@ int inode_free(t_inode* inode)
 	return ret;
 }
 
-int _read_write(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dmnew_dllist();a,char op_type)
+//MAX REQUEST SIZE 64512 (i.e. 64K - 1K) BECAUSE ONE LBA SUPPORTED ONLY.
+//IT NEEDED 1K OFFSET TO AVOID TO GO BEYOND 64K IN LBA.
+//WRITE WORKS IN APPEND MODE ONLY.
+int _read_write(t_ext2* ext2, int fd, void* buf, u32 count, u8 op_type, u8 is_dma)
 {
 	struct t_process_context* current_process_context;
 	u32 i;
+	u32 data_block;
+	u32 block_addr;
+	u32 block_addr_1;
+	u32 block_addr_2;
 	u32 block_offset;
+	u32 first_block_offset;
 	u32 first_inode_block;
 	u32 first_data_offset;
 	u32 last_inode_block;
@@ -261,8 +319,8 @@ int _read_write(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dmnew_dllist();a,
 	u32 lba;
 	u32 indirect_lba;
 	u32 sector_count;
-	u32 byte_to_read;
-	u32 byte_read;
+	u32 byte_to_rw;
+	u32 byte_rw;
 	u32 byte_count;
 	t_inode* inode;
 	u32 inode_block_data; 
@@ -284,16 +342,17 @@ int _read_write(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dmnew_dllist();a,
 	unsigned char* phy_dma_buffer = NULL;
 	u32 len;
 	t_llist* block_disk_list = NULL;
-	t_block_disk block_disk = NULL;
+	t_block_disk* block_disk = NULL;
+	t_llist_node* sentinel_node = NULL;
 	
-	byte_read = 0;
-	byte_to_read = count;
+	byte_rw = 0;
+	byte_to_rw = count;
 	CURRENT_PROCESS_CONTEXT(current_process_context)
 	if (op_type == 1)
 	{
 		block_disk_list = new_dllist();
 	}
-	inode = hashtable_get(current_process_context->file_desc,fd);
+	inode = hashtable_get(current_process_context->file_desc, fd);
 	if (inode == NULL)
 	{
 		return -1;
@@ -301,8 +360,8 @@ int _read_write(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dmnew_dllist();a,
 	if (is_dma == 1)
 	{
 		dma_buffer = kmalloc(DMA_BUFFER_SIZE);
-		aligned_dma_buffer = ALIGN_TO_BOUNDARY((DMA_BUFFER_SIZE / 2),(u32)dma_buffer);
-		phy_dma_buffer = FROM_VIRT_TO_PHY(ALIGN_TO_BOUNDARY((DMA_BUFFER_SIZE / 2),(u32) dma_buffer));
+		aligned_dma_buffer = ALIGN_TO_BOUNDARY((DMA_BUFFER_SIZE / 2), (u32) dma_buffer);
+		phy_dma_buffer = FROM_VIRT_TO_PHY(ALIGN_TO_BOUNDARY((DMA_BUFFER_SIZE / 2), (u32) dma_buffer));
 	}
 	else
 	{
@@ -314,29 +373,32 @@ int _read_write(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dmnew_dllist();a,
 	if (inode->i_size < (inode->file_offset + (count - 1)))
 	{
 		last_inode_block = (inode->i_size / BLOCK_SIZE) - 1;
-		byte_to_read = inode->i_size - inode->file_offset;
+		byte_to_rw = inode->i_size - inode->file_offset;
 	}
 	else
 	{
 		last_inode_block = (inode->file_offset + (count - 1)) / BLOCK_SIZE;
-		byte_to_read = count;
+		byte_to_rw = count;
 	}
 	
-	for (i = first_inode_block;i <= last_inode_block;i++)
+	for (i = first_inode_block; i <= last_inode_block; i++)
 	{
 		if (i > INDIRECT_0_LIMIT && i <= INDIRECT_1_LIMIT)
 		{
 			first_block_offset = (i - INDIRECT_0_LIMIT - 1);
 			if (inode->i_block[12] == NULL)
 			{
-				block_addr = alloc_indirect_block(ext2,i_node);
+				block_addr = alloc_indirect_block(ext2, inode);
 				if (block_addr == -1)
 				{
 					return -1;
 				}
 				inode->i_block[12] = block_addr;
 				inode->indirect_block_1 = indirect_block_init();
-				//write operation!!!!!
+				block_disk = kmalloc(sizeof(t_block_disk));
+				block_disk->lba = block_addr;
+				block_disk->data = inode->indirect_block_1->block;
+				ll_append(block_disk_list, block_disk);
 			}
 			if (inode->indirect_block_1 == NULL)
 			{
@@ -345,13 +407,15 @@ int _read_write(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dmnew_dllist();a,
 					inode->indirect_block_1 = indirect_block_init();
 					indirect_lba = FROM_BLOCK_TO_LBA(inode->i_block[12]);
         				sector_count = BLOCK_SIZE/SECTOR_SIZE;
-					READ(sector_count,indirect_lba,inode->indirect_block_1->block);
+					READ(sector_count, indirect_lba, inode->indirect_block_1->block);
 				}
 			}
-			if(inode->indirect_block_1->block[first_block_offeset] != NULL)------------------------------------qui!!!
-			data_block = alloc_block(ext2,inode,i);
-			inode->indirect_block_1->block[first_block_offset] = data_block;
-			lba = FROM_BLOCK_TO_LBA(data_block);
+			if(inode->indirect_block_1->block[first_block_offset] == NULL)
+			{
+				data_block = alloc_block(ext2, inode, i);
+				inode->indirect_block_1->block[first_block_offset] = data_block;
+			}
+			lba = FROM_BLOCK_TO_LBA(inode->indirect_block_1->block[first_block_offset]);
 		}
 		else if (i > INDIRECT_1_LIMIT  && i <= INDIRECT_2_LIMIT)
 		{
@@ -359,7 +423,7 @@ int _read_write(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dmnew_dllist();a,
 			second_block_offset = (i - INDIRECT_1_LIMIT - 1) % (BLOCK_SIZE /4);
 			if (inode->i_block[13] == NULL)
 			{
-				block_addr_1 = alloc_indirect_block(ext2,i_node);s
+				block_addr_1 = alloc_indirect_block(ext2, inode);
 				if (block_addr_1 == -1)
 				{
 					return -1;
@@ -369,7 +433,7 @@ int _read_write(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dmnew_dllist();a,
 				block_disk = kmalloc(sizeof(t_block_disk));
 				block_disk->lba = block_addr_1;
 				block_disk->data = inode->indirect_block_2->block;
-				ll_append(block_disk_list,block_disk);
+				ll_append(block_disk_list, block_disk);
 			}
 			if (inode->indirect_block_2 == NULL)
 			{
@@ -377,38 +441,41 @@ int _read_write(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dmnew_dllist();a,
 				{
 					inode->indirect_block_2 = indirect_block_init();
 					indirect_lba = FROM_BLOCK_TO_LBA(inode->i_block[13]);
-        				sector_count = BLOCK_SIZE/SECTOR_SIZE;
-					READ(sector_count,indirect_lba,inode->indirect_block_2->block);
+        				sector_count = BLOCK_SIZE / SECTOR_SIZE;
+					READ(sector_count, indirect_lba, inode->indirect_block_2->block);
 				}
 			}
-			if (inode-data_block>indirect_block_2->block_map[second_block] == NULL)
+			if (inode->indirect_block_2->block_map[second_block] == NULL)
 			{
 				if(inode->indirect_block_2->block[second_block] != NULL)
 				{
 					inode->indirect_block_2->block_map[second_block] = indirect_block_init();
 					indirect_lba = FROM_BLOCK_TO_LBA(inode->indirect_block_2->block[second_block]);
-        				sector_count = BLOCK_SIZE/SECTOR_SIZE;
-					READ(sector_count,indirect_lba,inode->indirect_block_2->block_map[second_block]->block);
+        				sector_count = BLOCK_SIZE / SECTOR_SIZE;
+					READ(sector_count,indirect_lba, inode->indirect_block_2->block_map[second_block]->block);
 					data_block = inode->indirect_block_2->block_map[second_block]->block[second_block_offset];
 				}
 				else
 				{
-					block_addr_2 = alloc_indirect_block(ext2,i_node);
+					block_addr_2 = alloc_indirect_block(ext2, inode);
 					if (block_addr_2 == -1)
 					{
 						return -1;
 					}
 					inode->indirect_block_2->block[second_block] = block_addr_2;
 					inode->indirect_block_2->block_map[second_block] = indirect_block_init();
-					data_block = alloc_block(ext2,inode,i);
-					inode->indirect_block_2->block_map[second_block]->block[second_block_offset] = data_block;
 					block_disk = kmalloc(sizeof(t_block_disk));
 					block_disk->lba = block_addr_2;
 					block_disk->data = inode->indirect_block_2->block_map[second_block]->block;
-					ll_append(block_disk_list,block_disk);
+					ll_append(block_disk_list, block_disk);
 				}
 			}
-			lba = FROM_BLOCK_TO_LBA(data_block);
+			if (inode->indirect_block_2->block_map[second_block]->block[second_block_offset] == NULL)
+			{
+				data_block = alloc_block(ext2,inode,i);
+				inode->indirect_block_2->block_map[second_block]->block[second_block_offset] = data_block;
+			}
+			lba = FROM_BLOCK_TO_LBA(inode->indirect_block_2->block_map[second_block]->block[second_block_offset]);
 		}
 		else if ( i > INDIRECT_2_LIMIT  && i <= INDIRECT_3_LIMIT )
 		{
@@ -425,46 +492,46 @@ int _read_write(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dmnew_dllist();a,
 				first_lba = lba;
 				last_lba = lba;
 				dma_lba_list = new_dllist();
-				dma_sector_count = (BLOCK_SIZE/SECTOR_SIZE);
+				dma_sector_count = (BLOCK_SIZE / SECTOR_SIZE);
 			}
 			else if(first_lba == 0 && i == last_inode_block)
 			{
 				dma_lba_list = new_dllist();
-				dma_sector_count = (BLOCK_SIZE/SECTOR_SIZE);
+				dma_sector_count = (BLOCK_SIZE / SECTOR_SIZE);
 				dma_lba_list_size = 1;
 				dma_lba = kmalloc(sizeof(t_dma_lba));
 				dma_lba->lba = lba;
 				dma_lba->sector_count = dma_sector_count;
-				ll_append(dma_lba_list,dma_lba);
+				ll_append(dma_lba_list, dma_lba);
 			}
-			else if(lba == (last_lba + (BLOCK_SIZE/SECTOR_SIZE)) && i < last_inode_block)
+			else if(lba == (last_lba + (BLOCK_SIZE / SECTOR_SIZE)) && i < last_inode_block)
 			{
-				dma_sector_count += (BLOCK_SIZE/SECTOR_SIZE);
+				dma_sector_count += (BLOCK_SIZE / SECTOR_SIZE);
 				last_lba = lba;
 			}
-			else if (i == last_inode_block && lba == (last_lba + (BLOCK_SIZE/SECTOR_SIZE)))
+			else if (i == last_inode_block && lba == (last_lba + (BLOCK_SIZE / SECTOR_SIZE)))
 			{
-				dma_sector_count += (BLOCK_SIZE/SECTOR_SIZE);
+				dma_sector_count += (BLOCK_SIZE / SECTOR_SIZE);
 				dma_lba_list_size++;
 				dma_lba = kmalloc(sizeof(t_dma_lba));		
 				dma_lba->lba = first_lba;
 				dma_lba->sector_count = dma_sector_count;
-				ll_append(dma_lba_list,dma_lba);
+				ll_append(dma_lba_list, dma_lba);
 			}
-			else if (i == last_inode_block && lba != (last_lba + (BLOCK_SIZE/SECTOR_SIZE)))
+			else if (i == last_inode_block && lba != (last_lba + (BLOCK_SIZE / SECTOR_SIZE)))
 			{
 				dma_lba_list_size++;
 				dma_lba = kmalloc(sizeof(t_dma_lba));
 				dma_lba->lba = first_lba;
 				dma_lba->sector_count = dma_sector_count;
-				ll_append(dma_lba_list,dma_lba);
+				ll_append(dma_lba_list, dma_lba);
 
 				dma_lba_list_size++;
-				dma_sector_count = (BLOCK_SIZE/SECTOR_SIZE);
+				dma_sector_count = (BLOCK_SIZE / SECTOR_SIZE);
 				dma_lba = kmalloc(sizeof(t_dma_lba));
 				dma_lba->lba = lba;
 				dma_lba->sector_count = dma_sector_count;
-				ll_append(dma_lba_list,dma_lba);
+				ll_append(dma_lba_list, dma_lba);
 			}
 			else
 			{
@@ -472,57 +539,135 @@ int _read_write(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dmnew_dllist();a,
 				dma_lba = kmalloc(sizeof(t_dma_lba));		
 				dma_lba->lba = first_lba;
 				dma_lba->sector_count = dma_sector_count;
-				ll_append(dma_lba_list,dma_lba);
-				dma_sector_count = (BLOCK_SIZE/SECTOR_SIZE);
+				ll_append(dma_lba_list, dma_lba);
+				dma_sector_count = (BLOCK_SIZE / SECTOR_SIZE);
 				last_lba = lba;
 				first_lba = lba;
 			}
 		}
 		else
 		{
-			if (byte_to_read >= BLOCK_SIZE)
+			if (byte_to_rw >= BLOCK_SIZE)
 			{
 				if (first_data_offset == 0 || i > first_inode_block)
 				{
 					byte_count = BLOCK_SIZE;
-					byte_to_read -= BLOCK_SIZE;
+					byte_to_rw -= BLOCK_SIZE;
 				}
 				else
 				{
 					byte_count = BLOCK_SIZE - first_data_offset;
-					byte_to_read -= (BLOCK_SIZE - first_data_offset);
+					byte_to_rw -= (BLOCK_SIZE - first_data_offset);
 				}	
 			}
 			else
 			{
 				if (first_data_offset == 0 || i > first_inode_block)
 				{
-					byte_count = byte_to_read;
-					byte_to_read = 0;
+					byte_count = byte_to_rw;
+					byte_to_rw = 0;
 				}
 				else 
 				{
-					if (BLOCK_SIZE - first_data_offset > byte_to_read)
+					if (BLOCK_SIZE - first_data_offset > byte_to_rw)
 					{
-						byte_count = byte_to_read;
-						byte_to_read = 0;
+						byte_count = byte_to_rw;
+						byte_to_rw = 0;
 					}
 					else
 					{
 						byte_count = BLOCK_SIZE - first_data_offset;
-						byte_to_read -= (BLOCK_SIZE - first_data_offset);
+						byte_to_rw -= (BLOCK_SIZE - first_data_offset);
 					}	
 				}
 			}
         		sector_count = BLOCK_SIZE/SECTOR_SIZE;
-			READ(sector_count,lba,iob_data_block);
-			kmemcpy(buf,iob_data_block + first_data_offset,byte_count);
+			if (op_type == 0)
+			{
+				READ(sector_count,lba,iob_data_block);
+				kmemcpy(buf,iob_data_block + first_data_offset,byte_count);
+			}
+			else if (op_type == 1)
+			{
+				kmemcpy(iob_data_block + first_data_offset, buf, byte_count);
+				WRITE(sector_count, lba, iob_data_block);
+			}
 			inode->file_offset += byte_count;
 			buf += byte_count;
-			byte_read += byte_count;
+			byte_rw += byte_count;
 			first_data_offset = 0;
 		}
 	}
+	//A bit convoluted code.Is it possible to do better?
+	if (is_dma)
+	{
+		buf_offset = 0;
+		byte_count = 0;
+		len = 0;
+
+		first = ll_first(dma_lba_list);
+		next = first;
+		for (i = 0; i < dma_lba_list_size; i++)
+		{
+
+			dma_buf_offset = 0;
+			dma_lba = next->val;
+			len = dma_lba->sector_count * SECTOR_SIZE;
+			if (i == 0 && dma_lba_list_size > 1)
+			{
+				byte_count = len - first_data_offset;
+				dma_buf_offset = first_data_offset;
+			}
+			else if (i == 0 && dma_lba_list_size == 1)
+			{
+				byte_count = byte_to_rw;
+				dma_buf_offset = first_data_offset;
+			}
+			else if (i == (dma_lba_list_size - 1) && (len + byte_rw > byte_to_rw) && i > 0)
+			{
+				byte_count = byte_to_rw - byte_rw;
+			}
+			else
+			{
+				byte_count = dma_lba->sector_count * SECTOR_SIZE;	
+			}
+			if (op_type == 0)
+			{
+				READ_DMA(dma_lba->sector_count, dma_lba->lba, phy_dma_buffer);
+				kmemcpy(buf + buf_offset, aligned_dma_buffer + dma_buf_offset, byte_count);
+			}
+			else if (op_type == 1)
+			{
+				kmemcpy(aligned_dma_buffer + dma_buf_offset, buf + buf_offset, byte_count);
+				WRITE_DMA(dma_lba->sector_count, dma_lba->lba, phy_dma_buffer);
+			}
+			buf_offset += byte_count;
+			next = ll_next(next);
+			byte_rw += byte_count;
+		}
+		kfree(dma_buffer);
+		inode->file_offset += byte_rw;
+		free_llist(dma_lba_list);
+	}
+	else
+	{
+		kfree(iob_data_block);
+	}
+	if (op_type == 1)
+	{
+		sentinel_node = ll_sentinel(block_disk_list);
+		next = ll_first(block_disk_list);
+		while(next != sentinel_node)
+		{
+			block_disk = next->val;
+			WRITE((BLOCK_SIZE / SECTOR_SIZE), block_disk->lba, block_disk->data);
+			kfree(block_disk->data);
+			next = ll_next(next);
+		}
+		free_llist(block_disk_list);
+	}
+	return byte_rw;
+}
 
 //MAX REQUEST SIZE 64512 (i.e. 64K - 1K) BECAUSE ONE LBA SUPPORTED ONLY.
 //IT NEEDED 1K OFFSET TO AVOID TO GO BEYOND 64K IN LBA
@@ -1112,5 +1257,3 @@ int _umount(int inode_number)
 	kfree(mount_point);
 	return 0;
 }
-
-
