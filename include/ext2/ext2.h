@@ -3,9 +3,9 @@
 
 #include "system.h"
 
-#define READ_BYTE(src,dst) do {unsigned short* p;p=src;dst=(*p)&0xff;} while(0);
-#define READ_WORD(src,dst) do {unsigned short* p;p=src;dst=*p;} while(0);
-#define READ_DWORD(src,dst) do {unsigned int* p;p=src;dst=*p;} while(0);
+#define READ_WRITE_BYTE(src,dst) do {unsigned short* p;p=src;dst=(*p)&0xff;} while(0);
+#define READ_WRITE_WORD(src,dst) do {unsigned short* p;p=src;dst=*p;} while(0);
+#define READ_WRITE_DWORD(src,dst) do {unsigned int* p;p=src;dst=*p;} while(0);
 
 #define BLOCK_SIZE 1024
 #define SECTOR_SIZE 512

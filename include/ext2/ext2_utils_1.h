@@ -61,8 +61,8 @@ int add_entry_to_dir(char* file_name,struct s_inode* parent_dir_inode,struct s_e
 	exit = 0;
 	while(!exit)
 	{
-		READ_WORD(&io_buffer[next_entry + 4],rec_len);
-		READ_BYTE(&io_buffer[next_entry + 6],cur_file_len);
+		READ_WRITE_WORD(&io_buffer[next_entry + 4],rec_len);
+		READ_WRITE_BYTE(&io_buffer[next_entry + 6],cur_file_len);
 		free_space = (BLOCK_SIZE * i) - next_entry - cur_file_len;
 		if ((next_entry + rec_len) == (BLOCK_SIZE * i) && free_space >= new_entry_len)
 		{			
@@ -784,4 +784,20 @@ static void extract_filename(char* fullpath,char* path,char* filename)
 		filename[j]=fullpath[last_element+1+j];
 	}
 	filename[j]='\0';
+}
+
+void update_inode(t_inode* inode)
+{
+	u16 i_mode;
+	u16 i_uid; 
+	u32 i_size;
+	u32 i_atime;
+	u32 i_ctime;
+	u32 i_mtime;
+	u32 i_dtime;
+	u16 i_gid;
+	u16 i_links_count;
+	u32 i_blocks;
+	u32 i_flags;
+
 }

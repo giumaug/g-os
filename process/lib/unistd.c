@@ -59,14 +59,14 @@ int read(int fd, void *buf, int count)
 
 int read_write(int fd, void *buf, int count, unsigned char op_type)
 {
-	unsigned int params[4];
+	unsigned int params[5];
 
 	params[0] = fd;
 	params[1] = buf;
 	params[2] = count;
 	params[3] = op_type;
 	SYSCALL(109, params);
-	return  params[34];
+	return  params[4];
 }
 
 int write(int fd, void *buf, int count)

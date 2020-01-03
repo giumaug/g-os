@@ -123,7 +123,6 @@ void syscall_handler()
 	
 		case 18:
 		//--SELECT_FS(ext2)
-		printk("qui!!! \n");
 		if (system.device_desc->num == 0)        
 		{                                        
 			ext2 = system.root_fs;          
@@ -268,6 +267,7 @@ void syscall_handler()
 		SELECT_FS(ext2)
 	 	params[4] = _read_write(ext2, params[0], params[1], params[2], params[3], 1);
 		on_exit_action = 1;
+		break;
 
 		default:
 		panic();
