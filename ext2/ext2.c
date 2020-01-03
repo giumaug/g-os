@@ -326,6 +326,7 @@ int _read_write(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dmnew_dllist();a,
 	{
 		if (i > INDIRECT_0_LIMIT && i <= INDIRECT_1_LIMIT)
 		{
+			first_block_offset = (i - INDIRECT_0_LIMIT - 1);
 			if (inode->i_block[12] == NULL)
 			{
 				block_addr = alloc_indirect_block(ext2,i_node);
@@ -335,19 +336,21 @@ int _read_write(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dmnew_dllist();a,
 				}
 				inode->i_block[12] = block_addr;
 				inode->indirect_block_1 = indirect_block_init();
+				//write operation!!!!!
 			}
 			if (inode->indirect_block_1 == NULL)
 			{
-				inode->indirect_block_1 = indirect_block_init();
-				indirect_lba = FROM_BLOCK_TO_LBA(inode->i_block[12]);
-        			sector_count = BLOCK_SIZE/SECTOR_SIZE;
-				READ(sector_count,indirect_lba,inode->indirect_block_1->block);
+				if(inode->i_block[12] != NULL)
+				{
+					inode->indirect_block_1 = indirect_block_init();
+					indirect_lba = FROM_BLOCK_TO_LBA(inode->i_block[12]);
+        				sector_count = BLOCK_SIZE/SECTOR_SIZE;
+					READ(sector_count,indirect_lba,inode->indirect_block_1->block);
+				}
 			}
+			if(inode->indirect_block_1->block[first_block_offeset] != NULL)------------------------------------qui!!!
 			data_block = alloc_block(ext2,inode,i);
-			inode->indirect_block_1->block[(i - INDIRECT_0_LIMIT - 1)] = data_block;
-			to write to disk
-			1)inode
-			2)indirect block
+			inode->indirect_block_1->block[first_block_offset] = data_block;
 			lba = FROM_BLOCK_TO_LBA(data_block);
 		}
 		else if (i > INDIRECT_1_LIMIT  && i <= INDIRECT_2_LIMIT)
@@ -366,7 +369,7 @@ int _read_write(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dmnew_dllist();a,
 				block_disk = kmalloc(sizeof(t_block_disk));
 				block_disk->lba = block_addr_1;
 				block_disk->data = inode->indirect_block_2->block;
-				ll_append(block_disk_list,block_disk);--------------------qui!!!
+				ll_append(block_disk_list,block_disk);
 			}
 			if (inode->indirect_block_2 == NULL)
 			{
@@ -399,30 +402,13 @@ int _read_write(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dmnew_dllist();a,
 					inode->indirect_block_2->block_map[second_block] = indirect_block_init();
 					data_block = alloc_block(ext2,inode,i);
 					inode->indirect_block_2->block_map[second_block]->block[second_block_offset] = data_block;
-					//qui sono in write!!!
+					block_disk = kmalloc(sizeof(t_block_disk));
+					block_disk->lba = block_addr_2;
+					block_disk->data = inode->indirect_block_2->block_map[second_block]->block;
+					ll_append(block_disk_list,block_disk);
 				}
 			}
-			to write to disk
-			1)inode
-			2)indirect block
 			lba = FROM_BLOCK_TO_LBA(data_block);
-			qui!!!!!!!!!!!!!!!! rivedere logica considerando anche caso blocco indiretto gia' su disco ma non letto
-			if (inode->indirect_block_2 == NULL)
-			{
-				inode->indirect_block_2 = indirect_block_init();
-				indirect_lba = FROM_BLOCK_TO_LBA(inode->i_block[13]);
-        			sector_count = BLOCK_SIZE/SECTOR_SIZE;
-				READ(sector_count,indirect_lba,inode->indirect_block_2->block);
-			}
-			if (inode->indirect_block_2->block_map[second_block] == NULL)
-			{
-				inode->indirect_block_2->block_map[second_block] = indirect_block_init();
-				indirect_lba = FROM_BLOCK_TO_LBA(inode->indirect_block_2->block[second_block]);
-        			sector_count = BLOCK_SIZE/SECTOR_SIZE;
-				READ(sector_count,indirect_lba,inode->indirect_block_2->block_map[second_block]->block);	
-			}
-			READ_DWORD(&inode->indirect_block_2->block_map[second_block]->block[second_block_offset],inode_block_data);
-			lba = FROM_BLOCK_TO_LBA(inode_block_data);
 		}
 		else if ( i > INDIRECT_2_LIMIT  && i <= INDIRECT_3_LIMIT )
 		{
