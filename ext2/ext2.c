@@ -359,7 +359,7 @@ int _read_write(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dmnew_dllist();a,
 			second_block_offset = (i - INDIRECT_1_LIMIT - 1) % (BLOCK_SIZE /4);
 			if (inode->i_block[13] == NULL)
 			{
-				block_addr_1 = alloc_indirect_block(ext2,i_node);
+				block_addr_1 = alloc_indirect_block(ext2,i_node);s
 				if (block_addr_1 == -1)
 				{
 					return -1;
