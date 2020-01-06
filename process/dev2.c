@@ -26,12 +26,19 @@ int main()
 	free(io_buffer);
 */
 
+	
+        io_buffer = malloc(20);
+	for (i = 0; i < 10; i++)
+	{
+		io_buffer[i] = 'a';
+	}
 	select_dev(1);
 	int sss = O_CREAT | O_RDWR;
 	printf("sss = %d \n",sss);
 	f = open("/xxxxx.txt", O_CREAT | O_RDWR);
-	//f = open("/test.txt", O_RDWR);
+	write(f,io_buffer,10);
 	close(f);
 	printf("end process \n");
+	free(io_buffer);
 	exit(0);
 }

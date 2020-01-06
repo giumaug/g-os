@@ -14,6 +14,7 @@ static void write_group_block(t_ext2* ext2,u32 group_block_number,t_group_block*
 void find_parent_path_and_filename(char* full_path,char* parent_path,char* filename);
 static void indirect_block_free(t_indirect_block* indirect_block);
 static t_indirect_block* indirect_block_init();
+void static write_superblock(struct s_ext2* ext2);
 
 int add_entry_to_dir(char* file_name,struct s_inode* parent_dir_inode,struct s_ext2* ext2,u32 inode_number)
 {
@@ -34,6 +35,7 @@ int add_entry_to_dir(char* file_name,struct s_inode* parent_dir_inode,struct s_e
 	u8 found_entry;
 	char* io_buffer = NULL;
 	char* new_io_buffer = NULL;
+	u32 new_entry;
 
 	file_name_len = strlen(file_name);
 	new_entry_len = 8 + file_name_len;
@@ -61,23 +63,30 @@ int add_entry_to_dir(char* file_name,struct s_inode* parent_dir_inode,struct s_e
 	exit = 0;
 	while(!exit)
 	{
-		READ_WRITE_WORD(&io_buffer[next_entry + 4],rec_len);
-		READ_WRITE_BYTE(&io_buffer[next_entry + 6],cur_file_len);
+		READ_WORD(&io_buffer[next_entry + 4],rec_len);
+		READ_BYTE(&io_buffer[next_entry + 6],cur_file_len);
 		free_space = (BLOCK_SIZE * i) - next_entry - cur_file_len;
+		printk("next_entry is %d ",next_entry);
+		printk("rec_len is %d \n",rec_len);
 		if ((next_entry + rec_len) == (BLOCK_SIZE * i) && free_space >= new_entry_len)
-		{			
+		{
+			new_entry = next_entry + 8 + cur_file_len + (next_entry + 8 + cur_file_len) % 4;
+			io_buffer[next_entry + 4] = (new_entry - next_entry) & 0xFF;
+			io_buffer[next_entry + 5] = ((new_entry - next_entry) & 0xFF00) >> 8;
+			printk("new entry is %d \n",new_entry);	
+                        printk("old last entry size %d \n",(new_entry - next_entry));
 			new_rec_len = (BLOCK_SIZE * i) - next_entry - new_entry_len;
-			io_buffer[next_entry] = inode_number & 0xFF;                   	      //inode fourth word
-			io_buffer[next_entry + 1] = (inode_number & 0xFF00) >> 8;             //inode third word
-			io_buffer[next_entry + 2] = (inode_number & 0xFF0000) >> 16;          //inode second word
-			io_buffer[next_entry + 3] = (inode_number & 0xFF000000) >> 24;        //inode first word
-			io_buffer[next_entry + 4] = (new_rec_len + pad) & 0xFF;        	      //rec len second word
-			io_buffer[next_entry + 5] = ((new_rec_len + pad) & 0xFF00) >> 8;      //rec len first word
-                        io_buffer[next_entry + 6] = file_name_len;                            //file len
-			io_buffer[next_entry + 7] = 1;                                        //file type
+			io_buffer[new_entry] = inode_number & 0xFF;                   	     //inode fourth word
+			io_buffer[new_entry + 1] = (inode_number & 0xFF00) >> 8;             //inode third word
+			io_buffer[new_entry + 2] = (inode_number & 0xFF0000) >> 16;          //inode second word
+			io_buffer[new_entry + 3] = (inode_number & 0xFF000000) >> 24;        //inode first word
+			io_buffer[new_entry + 4] = (new_rec_len + pad) & 0xFF;        	     //rec len second word
+			io_buffer[new_entry + 5] = ((new_rec_len + pad) & 0xFF00) >> 8;      //rec len first word
+                        io_buffer[new_entry + 6] = file_name_len;                            //file len
+			io_buffer[new_entry + 7] = 1;                                        //file type
 			for (j = 0;j < file_name_len;j++)
 			{
-				io_buffer[next_entry + 8 + j] = file_name[j];
+				io_buffer[new_entry + 8 + j] = file_name[j];
 			}
 			block_index = next_entry / BLOCK_SIZE;
 			lba = FROM_BLOCK_TO_LBA(parent_dir_inode->i_block[block_index]);
@@ -262,10 +271,10 @@ void free_inode(t_inode* i_node,t_ext2 *ext2)
 u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
 {
         char* io_buffer = NULL;
-        u32 preferred_block;
+        s32 preferred_block;
         u32 lba;
-        u32 block;
-        u32 offset;
+        s32 block;
+        s32 offset;
         t_group_block* group_block;
 	u32 group_block_index;
 	u32 block_bitmap;
@@ -273,14 +282,16 @@ u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
         u32 free_block;
 	u32 block_sector;
 	u32 discard_preallocated_block;
-	u32 first_preallocated_block;
+	u8 is_preallocated_block_free;
 	u32 buffer_byte;
 	u32 byte_bit;
 	u32 selected_bit;
+	u32 inode_table_size;
+	u32 first_block_data;
         u32 i;
 	
-	block = 0;
-        preferred_block = 0;
+	block = -1;
+        preferred_block = -1;
         discard_preallocated_block = 1;
 	group_block_index = (i_node->i_number - 1) / ext2->superblock->s_inodes_per_group;
 	group_block = kmalloc(sizeof(t_group_block));
@@ -288,38 +299,42 @@ u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
 	
         io_buffer = kmalloc(BLOCK_SIZE);
 	read_block_bitmap(ext2,group_block->bg_block_bitmap,io_buffer);
+	inode_table_size = ((ext2->superblock->s_inodes_per_group * 128) % BLOCK_SIZE) == 0 ?
+			((ext2->superblock->s_inodes_per_group * 128) / BLOCK_SIZE) : 
+				((ext2->superblock->s_inodes_per_group * 128) / BLOCK_SIZE) + 1; 
+	first_block_data = inode_table_size + group_block->bg_inode_table;
 
-        if (block_num == i_node->last_file_block_num + 1)
+        if (i_node->last_file_block_num != -1 && block_num == i_node->last_file_block_num + 1)
         {
-		preferred_block = read_indirect_block(ext2,i_node,(i_node->last_file_block_num + 1)); 
+		preferred_block = read_indirect_block(ext2,i_node,(i_node->last_file_block_num)) + 1;  
         }
-        else if (i_node->last_file_block_num !=0)
+        else if (i_node->last_file_block_num != -1)
         {
                 offset=block_num - 1;
-                while(preferred_block == 0 && offset != 0)
+                while(preferred_block == -1 && offset != -1)
                 {
-			preferred_block = read_indirect_block(ext2,i_node,offset) == 0 ? 0 : offset;
+			preferred_block = read_indirect_block(ext2,i_node,offset) == 0 ? -1 : offset;
                         offset--;
                 }
-                if (preferred_block == 0)
-                {
-			preferred_block = ABSOLUTE_BLOCK_ADDRESS(group_block_index,0);
-                }
         }
-        if(preferred_block >= i_node->first_preallocated_block && preferred_block < i_node->preallocated_block_count)
+	else 
+	{
+		preferred_block = first_block_data + ABSOLUTE_BLOCK_ADDRESS(group_block_index,0);
+	}
+        if(preferred_block == i_node->first_preallocated_block && preferred_block != -1)
         {
-                block = preferred_block;
-                if (--i_node->preallocated_block_count > 0)
+		if (--i_node->preallocated_block_count > 0)
                 {
-                        first_preallocated_block = ++i_node->first_preallocated_block;
+			block = preferred_block;
                         discard_preallocated_block = 0;
                 }
         }
-        if (block == 0)
+        if (block == -1)
         {
-		buffer_byte= preferred_block / 8;
-                byte_bit = preferred_block  % 8;
-                selected_bit = io_buffer[buffer_byte] & (2 >> byte_bit);
+		buffer_byte= (preferred_block - first_block_data) / 8;
+                byte_bit = (preferred_block - first_block_data)  % 8;
+                selected_bit = io_buffer[buffer_byte] & (1 << byte_bit);
+		printk("selected bit is %d \n",selected_bit);
                 if (selected_bit == 0)
                 {
                         block = preferred_block;
@@ -328,9 +343,9 @@ u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
                 {
                         for (i = 0;i < 16;i++)
                         {
-                                buffer_byte = (preferred_block + 1 + i) / 8;
-                                byte_bit = (preferred_block + 1 + i) % 8;
-                                selected_bit = io_buffer[buffer_byte] & (2 >> byte_bit);
+                                buffer_byte = (preferred_block -first_block_data  + 1 + i) / 8;
+                                byte_bit = (preferred_block - first_block_data + 1 + i) % 8;
+                                selected_bit = io_buffer[buffer_byte] & (1 << byte_bit);
                                 if (selected_bit == 0)
                                 {
                                         block = preferred_block + 1 + i;
@@ -338,11 +353,11 @@ u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
                                 }
                         }
                 }
-                if (block == 0)
+                if (block == -1)
                 {
                         block = find_free_block(io_buffer,0);
                 }
-                if (block != 0)
+                if (block != -1)
                 {
                        //nothing
                 }
@@ -361,9 +376,9 @@ u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
                         }
                 }
         }
-        if (block != 0)
+        if (block != -1)
         {
-                if (discard_preallocated_block)
+                if (discard_preallocated_block && i_node->first_preallocated_block != -1)
                 {
 			for(i = i_node->first_preallocated_block; i < (i_node->first_preallocated_block + i_node->preallocated_block_count);i++)
 			{
@@ -373,26 +388,25 @@ u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
 			}
 			group_block->bg_free_blocks_count += i_node->preallocated_block_count;
 			ext2->superblock->s_free_blocks_count += i_node->preallocated_block_count;
-			i_node->preallocated_block_count = 0;
-                      	i_node->first_preallocated_block = 0;
+                      	i_node->first_preallocated_block = -1;
                         free_block = 0;                  
                         for(i = (block + 1);i < (block + 9);i++)
                         {
                                 buffer_byte = i / 8;
                                 byte_bit = i % 8;
-                                selected_bit = io_buffer[buffer_byte] & (2 >> byte_bit);
+                                selected_bit = io_buffer[buffer_byte] & (1 << byte_bit);
                                 if (selected_bit == 0)
                                 {
                                         free_block++;
                                 }
                         }
-                        if (free_block == 8)
+                        if (free_block == PREALLOCATED_BLOCKS)
                         {
-                                i_node->preallocated_block_count = 8;
+                                i_node->preallocated_block_count  = 0;
                                 i_node->first_preallocated_block = block + 1;     
-                                group_block->bg_free_blocks_count -= 8;
-				ext2->superblock->s_free_blocks_count -= 8;
-				for(i = (block + 1);i < (block + 9);i++)
+                                group_block->bg_free_blocks_count -= PREALLOCATED_BLOCKS;
+				ext2->superblock->s_free_blocks_count -= PREALLOCATED_BLOCKS;
+				for(i = (block + 1);i < (block + PREALLOCATED_BLOCKS + 1);i++)
                         	{
                                 	buffer_byte = i / 8;
                                 	byte_bit = i % 8;
@@ -403,11 +417,11 @@ u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
 		buffer_byte = block / 8;
               	byte_bit = block % 8;
                 io_buffer[buffer_byte] &= (255 & (2 >> byte_bit));
-                //write_block_bitmap(ext2,group_block->bg_block_bitmap,io_buffer); !!!!!!!!!!!!!only for test
+                write_block_bitmap(ext2,group_block->bg_block_bitmap,io_buffer);
  		group_block->bg_free_blocks_count--;
-		//write_group_block(ext2,group_block_index,group_block); 	   !!!!!!!!!!!!!only for test
+		write_group_block(ext2,group_block_index,group_block);
 		ext2->superblock->s_free_blocks_count--;
-		//write_superblock(ext2);					   !!!!!!!!!!!!!only for test
+		write_superblock(ext2);
 		i_node->last_file_block_num = block_num;
         }
 	kfree(group_block);

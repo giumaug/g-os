@@ -3,9 +3,14 @@
 
 #include "system.h"
 
-#define READ_WRITE_BYTE(src,dst) do {unsigned short* p;p=src;dst=(*p)&0xff;} while(0);
-#define READ_WRITE_WORD(src,dst) do {unsigned short* p;p=src;dst=*p;} while(0);
-#define READ_WRITE_DWORD(src,dst) do {unsigned int* p;p=src;dst=*p;} while(0);
+//#define READ_BYTE(src, dst) do { unsigned short* p; p = src; dst = ( *p ) & 0xff; } while(0);
+#define READ_BYTE(src, dst) do { unsigned char* p; p = src; dst = ( *p ); } while(0);
+#define READ_WORD(src, dst) do { unsigned short* p; p = src; dst = *p; } while(0);
+#define READ_DWORD(src, dst) do { unsigned int* p; p = src; dst = *p; } while(0);
+
+#define WRITE_BYTE(src, dst) do { unsigned char* p; p = dst; *p = src; } while(0);
+#define WRITE_WORD(src, dst) do { unsigned short* p; p = dst; *p = src; } while(0);
+#define WRITE_DWORD(src, dst) do { unsigned int* p; p = dst; *p = src; } while(0);
 
 #define BLOCK_SIZE 1024
 #define SECTOR_SIZE 512
@@ -15,6 +20,7 @@
 #define BLOCK_NUM(FILE_BLOCK_NUM) 
 #define ROOT_INODE 2
 #define MOUNT_MAP_SIZE 10
+#define PREALLOCATED_BLOCKS 8
 
 #define O_CREAT 0b1
 #define O_APPEND 0b10
@@ -189,10 +195,10 @@ typedef struct s_inode
 	u16 i_number;
 //	u32* indirect_block;
 	u32 last_block_num;
-	u32 last_file_block_num;
+	s32 last_file_block_num;
 	u32 file_offset;
-	u32 preallocated_block_count;
-	u32 first_preallocated_block;
+	u8 preallocated_block_count;
+	s32 first_preallocated_block;
 	struct s_indirect_block* indirect_block_1;
 	struct s_indirect_block* indirect_block_2;
 	struct s_inode* parent_dir;

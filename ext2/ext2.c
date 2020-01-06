@@ -120,14 +120,14 @@ int _open(t_ext2* ext2, const char* full_path, int flags)
 			return -1;
 		}
 		inode->i_mode = 0x81FF;
-	        inode->i_uid = 1; 
+	        inode->i_uid = 0; 
 	        inode->i_size = 0;
                 inode->i_atime = 0;
 	        inode->i_ctime = 0;
 	        inode->i_mtime = 0;
 	        inode->i_dtime = 0;
-	        inode->i_gid = 1;
-	        inode->i_links_count = 0;
+	        inode->i_gid = 0;
+	        inode->i_links_count = 1;
 	        inode->i_blocks = 0;
 	        inode->i_flags = 0;
 		write_inode(ext2,inode);
@@ -286,6 +286,8 @@ t_inode* inode_init()
 	{
 		inode->i_block[i] = NULL;
 	}
+	inode->last_file_block_num = -1;
+	inode->first_preallocated_block = -1;
 	inode->indirect_block_1 = NULL;
 	inode->indirect_block_2 = NULL;
 	inode->parent_dir = NULL;
@@ -500,6 +502,11 @@ int _read_write(t_ext2* ext2, int fd, void* buf, u32 count, u8 op_type, u8 is_dm
 		}
 		else
 		{
+			if(inode->i_block[i] == NULL)
+			{
+				data_block = alloc_block(ext2, inode, i);
+				inode->i_block[i] = data_block;
+			}
 			lba = FROM_BLOCK_TO_LBA(inode->i_block[i]);
 		}
 		if(is_dma)
@@ -767,7 +774,7 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
         			sector_count = BLOCK_SIZE/SECTOR_SIZE;
 				READ(sector_count,indirect_lba,inode->indirect_block_1->block);
 			}
-			READ_WRITE_DWORD(&inode->indirect_block_1->block[(i - INDIRECT_0_LIMIT - 1)],inode_block_data);
+			READ_DWORD(&inode->indirect_block_1->block[(i - INDIRECT_0_LIMIT - 1)],inode_block_data);
 			lba = FROM_BLOCK_TO_LBA(inode_block_data);
 		}
 		else if (i > INDIRECT_1_LIMIT  && i <= INDIRECT_2_LIMIT)
@@ -788,7 +795,7 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
         			sector_count = BLOCK_SIZE/SECTOR_SIZE;
 				READ(sector_count,indirect_lba,inode->indirect_block_2->block_map[second_block]->block);	
 			}
-			READ_WRITE_DWORD(&inode->indirect_block_2->block_map[second_block]->block[second_block_offset],inode_block_data);
+			READ_DWORD(&inode->indirect_block_2->block_map[second_block]->block[second_block_offset],inode_block_data);
 			lba = FROM_BLOCK_TO_LBA(inode_block_data);
 		}
 		else if ( i > INDIRECT_2_LIMIT  && i <= INDIRECT_3_LIMIT )

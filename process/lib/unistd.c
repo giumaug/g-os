@@ -48,36 +48,26 @@ int close(int fd)
 
 int read(int fd, void *buf, int count)
 {
-	unsigned int params[4];
-
-	params[0] = fd;
-	params[1] = buf;
-	params[2] = count;
-	SYSCALL(20, params);
-	return params[3];
-}
-
-int read_write(int fd, void *buf, int count, unsigned char op_type)
-{
 	unsigned int params[5];
 
 	params[0] = fd;
 	params[1] = buf;
 	params[2] = count;
-	params[3] = op_type;
+	params[3] = 0;
 	SYSCALL(109, params);
 	return  params[4];
 }
 
 int write(int fd, void *buf, int count)
 {
-	unsigned int params[4];
+	unsigned int params[5];
 
-	params[0]=fd;
-	params[1]=buf;
-	params[2]=count;
-	SYSCALL(21,params);
-	return  params[3];
+	params[0] = fd;
+	params[1] = buf;
+	params[2] = count;
+	params[3] = 1;
+	SYSCALL(109, params);
+	return  params[4];
 }
 
 int chdir(char* path)
