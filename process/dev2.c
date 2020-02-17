@@ -5,7 +5,8 @@ int main()
 	int f;
 	int i;
 	int b_read;
-	char* io_buffer = NULL;
+	char* io_buffer_a = NULL;
+	char* io_buffer_b = NULL;
 
 /*
 	select_dev(1);
@@ -16,9 +17,9 @@ int main()
 		printf("file not found\n");
 		return;
 	}
-	for (i = 0; i < 7680; i++)
+	for (i = 0; i < 1; i++)
 	{
-		b_read = read_write(f, io_buffer, 4096, 0);
+		b_read = read(f, io_buffer, 4096);
 	}
 	io_buffer[b_read] ='\0';
 	close(f);
@@ -26,19 +27,25 @@ int main()
 	free(io_buffer);
 */
 
-	
-        io_buffer = malloc(20);
+        io_buffer_a = malloc(11);
+	io_buffer_b = malloc(11);
+
 	for (i = 0; i < 10; i++)
 	{
-		io_buffer[i] = 'a';
+		io_buffer_a[i] = 'a';
+		io_buffer_b[i] = 'b';
 	}
 	select_dev(1);
-	int sss = O_CREAT | O_RDWR;
-	printf("sss = %d \n",sss);
 	f = open("/xxxxx.txt", O_CREAT | O_RDWR);
-	write(f,io_buffer,10);
+	for (i = 0; i < 13107; i++)
+	{
+		//printf("count is %d \n",i);
+		write(f,io_buffer_a,10);
+		write(f,io_buffer_b,10);
+	}
 	close(f);
 	printf("end process \n");
-	free(io_buffer);
+	free(io_buffer_a);
+	free(io_buffer_b);
 	exit(0);
 }

@@ -389,7 +389,7 @@ int _read_write(t_ext2* ext2, int fd, void* buf, u32 count, u8 op_type, u8 is_dm
 
 	first_inode_block = inode->file_offset / BLOCK_SIZE;
 	first_data_offset = inode->file_offset % BLOCK_SIZE;
-	if (inode->i_size < (inode->file_offset + (count - 1)))
+	if (inode->i_size < (inode->file_offset + (count - 1)) && op_type == 0)
 	{
 		last_inode_block = (inode->i_size / BLOCK_SIZE) - 1;
 		byte_to_rw = inode->i_size - inode->file_offset;
@@ -506,6 +506,7 @@ int _read_write(t_ext2* ext2, int fd, void* buf, u32 count, u8 op_type, u8 is_dm
 			{
 				data_block = alloc_block(ext2, inode, i);
 				inode->i_block[i] = data_block;
+				printk("allocating block %d \n",i);
 			}
 			lba = FROM_BLOCK_TO_LBA(inode->i_block[i]);
 		}
@@ -613,6 +614,10 @@ int _read_write(t_ext2* ext2, int fd, void* buf, u32 count, u8 op_type, u8 is_dm
 			}
 			else if (op_type == 1)
 			{
+				if (i == 0 && first_data_offset > 0)
+				{
+					READ(sector_count, lba, iob_data_block);
+				}
 				kmemcpy(iob_data_block + first_data_offset, buf, byte_count);
 				WRITE(sector_count, lba, iob_data_block);
 			}
@@ -662,12 +667,16 @@ int _read_write(t_ext2* ext2, int fd, void* buf, u32 count, u8 op_type, u8 is_dm
 			}
 			else if (op_type == 1)
 			{
+				if (i == 0 && first_data_offset > 0)
+				{
+					READ((BLOCK_SIZE/SECTOR_SIZE),dma_lba->lba,aligned_dma_buffer);
+				}
 				kmemcpy(aligned_dma_buffer + dma_buf_offset, buf + buf_offset, byte_count);
 				WRITE_DMA(dma_lba->sector_count, dma_lba->lba, phy_dma_buffer);
 			}
 			buf_offset += byte_count;
 			next = ll_next(next);
-			byte_rw += byte_count;
+		 	byte_rw += byte_count;
 		}
 		kfree(dma_buffer);
 		inode->file_offset += byte_rw;
@@ -689,6 +698,11 @@ int _read_write(t_ext2* ext2, int fd, void* buf, u32 count, u8 op_type, u8 is_dm
 			next = ll_next(next);
 		}
 		free_llist(block_disk_list);
+	}
+	if (op_type == 1)
+	{
+		inode->i_size += byte_rw;
+		write_inode(ext2,inode);
 	}
 	return byte_rw;
 }

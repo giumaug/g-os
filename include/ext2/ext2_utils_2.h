@@ -196,11 +196,10 @@ void static read_superblock(t_ext2* ext2)
         READ_BYTE(&io_buffer[206],superblock->s_padding1);
         //u32[204]
         kmemcpy(&superblock->s_reserved,&io_buffer[208],204);
-	superblock->s_block_group_header_size=3*BLOCK_SIZE
-				    	   +32*superblock->s_blocks_count/superblock->s_blocks_per_group
-				           +128*superblock->s_inodes_per_group;
-
-	superblock->s_block_group_size=superblock->s_block_group_header_size+BLOCK_SIZE*superblock->s_blocks_per_group;
+//	superblock->s_block_group_header_size=3*BLOCK_SIZE
+//				    	   +32*superblock->s_blocks_count/superblock->s_blocks_per_group
+//				           +128*superblock->s_inodes_per_group;
+//	superblock->s_block_group_size=superblock->s_block_group_header_size+BLOCK_SIZE*superblock->s_blocks_per_group;
 	kfree(io_buffer);
 }
 
@@ -440,9 +439,8 @@ void static write_inode(t_ext2* ext2,t_inode* inode)
 	inode_table_offset = i_number * 128 / BLOCK_SIZE;
 	inode_offset = (inode->i_number - 1) * 128 % BLOCK_SIZE;
 	lba = ext2->partition_start_sector + (inode_table_offset + group_block->bg_inode_table) * (BLOCK_SIZE / SECTOR_SIZE);
-	printk("lba is...++ %d \n",lba);
 	sector_count = BLOCK_SIZE / SECTOR_SIZE;
-	READ(sector_count, lba, io_buffer);
+	//READ(sector_count, lba, io_buffer);
 	
 	//u16
 	WRITE_WORD(inode->i_mode, &io_buffer[inode_offset]) 
@@ -721,7 +719,9 @@ int static find_free_block(char* io_buffer,u32 prealloc)
         }
 	if (selected_block != -1)
 	{
-        	io_buffer[buffer_byte]&= (255 & (1 << byte_bit));--------------qui!!!!!!!!!!!!!
+        	//io_buffer[buffer_byte]&= (255 & (1 << byte_bit));
+		io_buffer[buffer_byte] |= (1 << byte_bit);
+
 	}
         return i;      
 }

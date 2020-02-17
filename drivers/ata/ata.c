@@ -94,6 +94,7 @@ t_device_desc* init_ata(u8 device_num)
 	set_idt_entry(0x2E,&i_desc);
 
 	device_desc->read_dma = _read_dma_28_ata;
+	device_desc->write_dma = _write_dma_28_ata;
 	device_desc->read = _read_28_ata;
 	device_desc->write = _write_28_ata;
 	device_desc->p_read = _p_read_28_ata;
@@ -103,10 +104,11 @@ t_device_desc* init_ata(u8 device_num)
 	sem_init(&device_desc->sem,0);
 
 	bar4 = read_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_BAR4);
+	//BUS MASTER BIT SET-UP (2 bit starting from 0)
 	pci_command = read_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_COMMAND);
      	pci_command |= 0x4;
 	write_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_COMMAND,pci_command);
-	pci_command = read_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_COMMAND);
+	//pci_command = read_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_COMMAND);
 
 	if ((u32) bar4 & 0x1) 
 	{
@@ -162,8 +164,8 @@ void int_handler_ata()
 	system.device_desc->status = DEVICE_IDLE;
 	enable_irq_line(14);
 	ENABLE_PREEMPTION
-	EXIT_INT_HANDLER(0,processor_reg)
-/*
+	//--EXIT_INT_HANDLER(0,processor_reg)
+
 	static struct t_process_context _current_process_context;                                                  	
 	static struct t_process_context _old_process_context;                                                      	
 	static struct t_process_context _new_process_context;	                                                        
@@ -231,7 +233,6 @@ void int_handler_ata()
 		RESTORE_PROCESSOR_REG                                                                                   
 		RET_FROM_INT_HANDLER                                                                                    
 	}
-*/
 }
 
 static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
@@ -334,6 +335,7 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 		//sem_down(&device_desc->sem);
 		if (io_request->command == WRITE_28)
 		{
+			system.write_count++;
 			for (i = 0;i < 512;i += 2)
 			{    
 				u8 low_val = ((char*)io_request->io_buffer)[i+(512*k)];
@@ -341,6 +343,7 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 				u16 val = low_val + (hi_val << 0x8);
 				outw((unsigned short)val,0x1F0);
 			}
+			sem_down(&device_desc->sem);
 			int yyy = in(0x1F7);
 			if (yyy == 1)
 			{
@@ -442,6 +445,12 @@ static unsigned int _p_read_write_28_ata(t_io_request* io_request)
 	//Exitpoint mutual exclusion region
 	SPINLOCK_UNLOCK(spinlock);
 	return 0;
+}
+
+unsigned int _write_dma_28_ata(t_io_request* io_request)
+{
+	io_request->command = WRITE_DMA_28;
+	return _read_write_dma_28_ata(io_request);	
 }
 
 unsigned int _read_dma_28_ata(t_io_request* io_request)

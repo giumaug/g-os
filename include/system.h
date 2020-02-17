@@ -93,6 +93,7 @@ typedef struct s_system
 	t_hashtable* mount_map;
 	//trick to use second device
 	u8 device_id;
+	u32 write_count;
  }
 t_system;
 

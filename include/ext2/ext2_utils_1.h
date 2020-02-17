@@ -327,6 +327,9 @@ u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
                 {
 			block = preferred_block;
                         discard_preallocated_block = 0;
+			buffer_byte = block / 8;
+			byte_bit = block % 8;
+			io_buffer[buffer_byte] |= (1 << byte_bit);
                 }
         }
         if (block == -1)
@@ -338,6 +341,9 @@ u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
                 if (selected_bit == 0)
                 {
                         block = preferred_block;
+			buffer_byte = block / 8;
+			byte_bit = block % 8;
+			io_buffer[buffer_byte] |= (1 << byte_bit);
                 }
                 else
                 {
@@ -349,6 +355,9 @@ u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
                                 if (selected_bit == 0)
                                 {
                                         block = preferred_block + 1 + i;
+					buffer_byte = block / 8;
+					byte_bit = block % 8;
+					io_buffer[buffer_byte] |= (1 << byte_bit);
                                         break;  
                                 }
                         }
@@ -370,6 +379,7 @@ u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
                                 block = find_free_block(io_buffer,0);
                                 if (block != 0)
                                 {
+					first_block_data = inode_table_size + group_block->bg_inode_table;
 					group_block_index = i;
                                         break;
                                 }
@@ -414,9 +424,9 @@ u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
                         	}
 			}                     
                 }
-		buffer_byte = block / 8;
-              	byte_bit = block % 8;
-                io_buffer[buffer_byte] &= (255 & (2 >> byte_bit));
+		//buffer_byte = block / 8;
+              	//byte_bit = block % 8;
+                //io_buffer[buffer_byte] &= (255 & (2 >> byte_bit));
                 write_block_bitmap(ext2,group_block->bg_block_bitmap,io_buffer);
  		group_block->bg_free_blocks_count--;
 		write_group_block(ext2,group_block_index,group_block);
@@ -426,7 +436,8 @@ u32 alloc_block(t_ext2* ext2,t_inode* i_node,u32 block_num)
         }
 	kfree(group_block);
         kfree(io_buffer);
-	return BLOCK_SECTOR_ADDRESS(group_block_index,block);
+	//return BLOCK_SECTOR_ADDRESS(group_block_index,block);
+	return ABSOLUTE_BLOCK_ADDRESS(group_block_index,block) + first_block_data;
 }
 
 void _break()

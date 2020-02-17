@@ -28,8 +28,7 @@ unsigned int _write_28_ata(t_io_request* io_request);
 unsigned int _p_read_28_ata(t_io_request* io_request);
 unsigned int _p_write_28_ata(t_io_request* io_request);
 unsigned int _read_dma_28_ata(t_io_request* io_request);
-
-unsigned int ___read_write_28_ata(t_io_request* io_request);
+unsigned int _write_dma_28_ata(t_io_request* io_request);
 
 void free_ata();
 int _flush_ata_pending_request();
