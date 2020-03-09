@@ -35,7 +35,7 @@
 #define INDIRECT_2_LIMIT  ((BLOCK_SIZE / 4)*(BLOCK_SIZE / 4) + (BLOCK_SIZE / 4) + 11)
 #define INDIRECT_3_LIMIT  (BLOCK_SIZE / 4)*(BLOCK_SIZE / 4)*(BLOCK_SIZE / 4) + (BLOCK_SIZE / 4)*(BLOCK_SIZE / 2) + (BLOCK_SIZE / 4)+11
 
-#define FROM_BLOCK_TO_LBA(block_num) ext2->partition_start_sector+block_num*BLOCK_SIZE/SECTOR_SIZE
+#define FROM_BLOCK_TO_LBA(block_num) ext2->partition_start_sector + block_num * BLOCK_SIZE / SECTOR_SIZE
 
 #define BLOCK_SECTOR_ADDRESS(group_block_index,block)    ext2->partition_start_sector                                         \
 							+(BLOCK_SIZE                                                          \
@@ -44,6 +44,20 @@
 							/SECTOR_SIZE;
 
 #define ABSOLUTE_BLOCK_ADDRESS(group_block_index,relative_block_address) ext2->superblock->s_blocks_per_group * group_block_index +     relative_block_address
+
+#define RELATIVE_BLOCK_ADDRESS(group_block_index,absolute_block_address) absolute_block_address - ext2->superblock->s_blocks_per_group * group_block_index
+
+#define RELATIVE_BITMAP_BYTE(block_index,blocks_per_group) (block_index % blocks_per_group) / 8
+#define RELATIVE_BITMAP_BIT(block_index,blocks_per_group) (block_index % blocks_per_group) % 8
+
+#define TOT_FS_GROUP(tot_fs_block, block_per_group) (tot_fs_block / block_per_group) == 0 ? \
+                                                    (tot_fs_block / block_per_group) :      \
+                                                    (tot_fs_block / block_per_group) + 1;
+
+#define FIRST_DATA_BLOCK(ext2,group_block)  ((ext2->superblock->s_inodes_per_group * 128) % BLOCK_SIZE) == 0 ?   \
+			                 ((ext2->superblock->s_inodes_per_group * 128) / BLOCK_SIZE) :           \
+				         ((ext2->superblock->s_inodes_per_group * 128) / BLOCK_SIZE) + 1 +       \
+                                         group_block->bg_inode_table
 
 #define WRITE(_sector_count,_lba,_io_buffer)    do {                                                                    \
 						t_io_request* io_request; 						\
@@ -266,6 +280,21 @@ typedef struct s_block_disk
 	char* data;
 }
 t_block_disk;
+
+u32 static inline  __attribute__((always_inline)) bitmap_block(u32 tot_fs_block, u32 block_per_group, u32 group_block_index)
+{
+	u32 block_count;
+
+	if (BLOCK_SIZE * (group_block_index + 1) > tot_fs_block)
+	{
+		block_count = (tot_fs_block % block_per_group) * 8;
+	}
+	else
+	{
+		block_count = BLOCK_SIZE * 8;
+	}
+	return block_count;
+}
 
 void init_ext2(t_ext2 *ext2,struct s_device_desc* device_desc);
 void free_ext2(t_ext2* ext2);

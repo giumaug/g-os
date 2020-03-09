@@ -77,12 +77,6 @@ void a_fixed_size_free(t_a_fixed_size_desc *a_fixed_size_desc,void *address)
 	t_block_desc *current_block_desc;
         t_block_desc *next_block_desc;
 	t_block_desc *previous_block_desc;
-
-	if (address==0xc221100e)
-	{
-		index=0;
-	}
-
 	block_desc=(char *)address-sizeof(t_block_desc);
 	a_fixed_size_desc->current_free_block++;
 	current_block_desc=address-sizeof(t_block_desc);
@@ -91,7 +85,6 @@ void a_fixed_size_free(t_a_fixed_size_desc *a_fixed_size_desc,void *address)
 	current_block_desc->next_block=first_block_desc;
 	current_block_desc->previous_block=NULL;
 	first_block_desc->previous_block=current_block_desc;
-	//a_fixed_size_reset_block(address,a_fixed_size_desc->block_size);
 }
 
 static void a_fixed_size_init_mem(t_a_fixed_size_desc *a_fixed_size_desc)

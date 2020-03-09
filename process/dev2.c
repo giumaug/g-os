@@ -37,9 +37,13 @@ int main()
 	}
 	select_dev(1);
 	f = open("/xxxxx.txt", O_CREAT | O_RDWR);
-	for (i = 0; i < 13107; i++)
+	for (i = 0; i < 1572864; i++)
 	{
-		//printf("count is %d \n",i);
+		if (i % 10000 == 0)
+		{
+			printf("count is %d \n",i);
+			check_free_mem();
+		}
 		write(f,io_buffer_a,10);
 		write(f,io_buffer_b,10);
 	}

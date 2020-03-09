@@ -335,7 +335,6 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 		//sem_down(&device_desc->sem);
 		if (io_request->command == WRITE_28)
 		{
-			system.write_count++;
 			for (i = 0;i < 512;i += 2)
 			{    
 				u8 low_val = ((char*)io_request->io_buffer)[i+(512*k)];

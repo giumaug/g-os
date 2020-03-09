@@ -24,7 +24,7 @@ void bit_vector_re_init(t_bit_vector* bit_vector,u32 size)
 	}
 }
 
-int static inline  __attribute__((always_inline)) foo();
+//int static inline  __attribute__((always_inline)) foo();
 
 void bit_vector_free(t_bit_vector* bit_vector)
 {	

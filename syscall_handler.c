@@ -269,6 +269,10 @@ void syscall_handler()
 		on_exit_action = 1;
 		break;
 
+		case 103:
+		check_free_mem();
+		break;		
+
 		default:
 		panic();
 	}

@@ -156,6 +156,7 @@ int _close(t_ext2* ext2,int fd)
 
 static t_indirect_block* indirect_block_init()
 {
+	static indirect = 0;
 	int i = 0;
 	t_indirect_block* indirect_block = NULL;
 
@@ -165,7 +166,9 @@ static t_indirect_block* indirect_block_init()
 	for (i = 0 ;i <  (BLOCK_SIZE / 4); i++)
 	{
 		indirect_block->block_map[i] = NULL;
+		indirect_block->block[i] = NULL;
 	}
+	indirect +=2;
 	return indirect_block;
 }
 
@@ -366,6 +369,13 @@ int _read_write(t_ext2* ext2, int fd, void* buf, u32 count, u8 op_type, u8 is_dm
 	
 	byte_rw = 0;
 	byte_to_rw = count;
+
+	t_block_desc* _tmp = 0xc1fe26b0;
+        if (_tmp->next_block == 0xcfffffff)
+	{
+		panic();
+	}
+
 	CURRENT_PROCESS_CONTEXT(current_process_context)
 	if (op_type == 1)
 	{
@@ -410,14 +420,19 @@ int _read_write(t_ext2* ext2, int fd, void* buf, u32 count, u8 op_type, u8 is_dm
 				block_addr = alloc_indirect_block(ext2, inode);
 				if (block_addr == -1)
 				{
+					panic(); //only debug
 					return -1;
 				}
 				inode->i_block[12] = block_addr;
 				inode->indirect_block_1 = indirect_block_init();
-				block_disk = kmalloc(sizeof(t_block_disk));
-				block_disk->lba = block_addr;
-				block_disk->data = inode->indirect_block_1->block;
-				ll_append(block_disk_list, block_disk);
+				//block_disk = kmalloc(sizeof(t_block_disk));
+				//block_disk->lba = FROM_BLOCK_TO_LBA(block_addr);
+				//block_disk->data = inode->indirect_block_1->block;
+				//ll_append(block_disk_list, block_disk);
+			}
+			else
+			{
+				block_addr = inode->i_block[12];
 			}
 			if (inode->indirect_block_1 == NULL)
 			{
@@ -433,11 +448,20 @@ int _read_write(t_ext2* ext2, int fd, void* buf, u32 count, u8 op_type, u8 is_dm
 			{
 				data_block = alloc_block(ext2, inode, i);
 				inode->indirect_block_1->block[first_block_offset] = data_block;
+				block_disk = kmalloc(sizeof(t_block_disk));
+				block_disk->lba = FROM_BLOCK_TO_LBA(block_addr);
+				block_disk->data = inode->indirect_block_1->block;
+				ll_append(block_disk_list, block_disk);
 			}
 			lba = FROM_BLOCK_TO_LBA(inode->indirect_block_1->block[first_block_offset]);
 		}
 		else if (i > INDIRECT_1_LIMIT  && i <= INDIRECT_2_LIMIT)
 		{
+			system.counter++;
+			if (system.counter == 760172)
+			{
+				panic();
+			}
 			second_block = (i - INDIRECT_1_LIMIT - 1) / (BLOCK_SIZE / 4);
 			second_block_offset = (i - INDIRECT_1_LIMIT - 1) % (BLOCK_SIZE /4);
 			if (inode->i_block[13] == NULL)
@@ -445,12 +469,13 @@ int _read_write(t_ext2* ext2, int fd, void* buf, u32 count, u8 op_type, u8 is_dm
 				block_addr_1 = alloc_indirect_block(ext2, inode);
 				if (block_addr_1 == -1)
 				{
+					panic();//only debug
 					return -1;
 				}
 				inode->i_block[13] = block_addr_1;
 				inode->indirect_block_2 = indirect_block_init();
 				block_disk = kmalloc(sizeof(t_block_disk));
-				block_disk->lba = block_addr_1;
+				block_disk->lba = FROM_BLOCK_TO_LBA(block_addr_1);
 				block_disk->data = inode->indirect_block_2->block;
 				ll_append(block_disk_list, block_disk);
 			}
@@ -477,15 +502,21 @@ int _read_write(t_ext2* ext2, int fd, void* buf, u32 count, u8 op_type, u8 is_dm
 				else
 				{
 					block_addr_2 = alloc_indirect_block(ext2, inode);
+					//if (second_block == 29)
+					//{
+					//	panic();
+					//}
 					if (block_addr_2 == -1)
 					{
+						panic(); //only debug
 						return -1;
 					}
 					inode->indirect_block_2->block[second_block] = block_addr_2;
 					inode->indirect_block_2->block_map[second_block] = indirect_block_init();
 					block_disk = kmalloc(sizeof(t_block_disk));
-					block_disk->lba = block_addr_2;
-					block_disk->data = inode->indirect_block_2->block_map[second_block]->block;
+					//block_disk->lba = FROM_BLOCK_TO_LBA(block_addr_2);
+					block_disk->lba = FROM_BLOCK_TO_LBA(inode->i_block[13]);
+					block_disk->data = inode->indirect_block_2->block;
 					ll_append(block_disk_list, block_disk);
 				}
 			}
@@ -493,6 +524,10 @@ int _read_write(t_ext2* ext2, int fd, void* buf, u32 count, u8 op_type, u8 is_dm
 			{
 				data_block = alloc_block(ext2,inode,i);
 				inode->indirect_block_2->block_map[second_block]->block[second_block_offset] = data_block;
+				block_disk = kmalloc(sizeof(t_block_disk));
+				block_disk->lba = FROM_BLOCK_TO_LBA(inode->indirect_block_2->block[second_block]);
+				block_disk->data = inode->indirect_block_2->block_map[second_block]->block;
+				ll_append(block_disk_list, block_disk);
 			}
 			lba = FROM_BLOCK_TO_LBA(inode->indirect_block_2->block_map[second_block]->block[second_block_offset]);
 		}
@@ -506,7 +541,7 @@ int _read_write(t_ext2* ext2, int fd, void* buf, u32 count, u8 op_type, u8 is_dm
 			{
 				data_block = alloc_block(ext2, inode, i);
 				inode->i_block[i] = data_block;
-				printk("allocating block %d \n",i);
+				//printk("allocating block %d \n",data_block);
 			}
 			lba = FROM_BLOCK_TO_LBA(inode->i_block[i]);
 		}
@@ -694,7 +729,8 @@ int _read_write(t_ext2* ext2, int fd, void* buf, u32 count, u8 op_type, u8 is_dm
 		{
 			block_disk = next->val;
 			WRITE((BLOCK_SIZE / SECTOR_SIZE), block_disk->lba, block_disk->data);
-			kfree(block_disk->data);
+			//No kfree.Refereing inode data			
+			//kfree(block_disk->data);
 			next = ll_next(next);
 		}
 		free_llist(block_disk_list);
@@ -703,6 +739,12 @@ int _read_write(t_ext2* ext2, int fd, void* buf, u32 count, u8 op_type, u8 is_dm
 	{
 		inode->i_size += byte_rw;
 		write_inode(ext2,inode);
+	}
+
+	_tmp = 0xc1fe26b0;
+        if (_tmp->next_block == 0xcfffffff)
+	{
+		panic();
 	}
 	return byte_rw;
 }
