@@ -1,13 +1,12 @@
 #include "lib/lib.h"
 
-int main()
+int main(int argc, char* argv[])
 {
 	int f;
 	int i;
 	int b_read;
 	char* io_buffer_a = NULL;
 	char* io_buffer_b = NULL;
-
 /*
 	select_dev(1);
 	io_buffer = malloc(4100);
@@ -30,23 +29,29 @@ int main()
         io_buffer_a = malloc(11);
 	io_buffer_b = malloc(11);
 
-	for (i = 0; i < 10; i++)
+	//printf("argv[0] is- %s \n",argv[0]);
+	//printf("argv[1] is- %s \n",argv[1]);
+	for (i = 0; i < 9; i++)
 	{
 		io_buffer_a[i] = 'a';
 		io_buffer_b[i] = 'b';
 	}
-	select_dev(1);
-	f = open("/xxxxx.txt", O_CREAT | O_RDWR);
-	for (i = 0; i < 1572864; i++)
-	{
-		if (i % 10000 == 0)
-		{
-			printf("count is %d \n",i);
-			check_free_mem();
-		}
+	io_buffer_a[9] = '\n';
+	io_buffer_b[9] = '\n';
+	//select_dev(1);
+	f = open("/xx9.txt", O_CREAT | O_RDWR); //5
+//	//f = open(argv[1], O_CREAT | O_RDWR);
+//	//for (i = 0; i < 1572864; i++)
+//	for (i = 0; i < 1; i++)
+//	{
+//		if (i % 10000 == 0)
+//		{
+//			printf("count is %d \n",i);
+//			check_free_mem();
+//		}
 		write(f,io_buffer_a,10);
-		write(f,io_buffer_b,10);
-	}
+//		//write(f,io_buffer_b,10);
+//	}
 	close(f);
 	printf("end process \n");
 	free(io_buffer_a);

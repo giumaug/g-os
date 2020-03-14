@@ -486,39 +486,3 @@ void _select_dev(int device_num)
 {
 	system.device_desc->num = device_num;
 }
-
-void ___select_dev(int device_num)
-{
-	int i;
-	char* w_buffer = NULL;
-	char* r_buffer = NULL;
-	t_ext2* ext2 = NULL;	
-
-	ext2 = system.scnd_fs;
-	r_buffer = kmalloc(512);
-	w_buffer = kmalloc(512);
-	for (i = 0;i < 512;i++)
-	{
-		w_buffer[i] = 'f';
-		r_buffer[i] = '0';
-	}
-	system.device_desc->num = device_num;
-	WRITE(1,8000,w_buffer)
-	READ(1,8000,r_buffer)
-	r_buffer[6] = '\0';
-	printk("0 = %s \n",r_buffer);
-	printk("\n");
-	kfree(w_buffer);
-	kfree(r_buffer);
-}
-
-//int _flush_ata_pending_request()
-//{
-//	int ret = 0;
-//	if(system.device_desc->serving_request->process_context != NULL)
-//	{
-//		_awake(system.device_desc->serving_request->process_context);
-//		ret = 1;
-//	}
-//	return ret;
-//}

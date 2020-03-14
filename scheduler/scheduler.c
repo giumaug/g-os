@@ -374,7 +374,6 @@ int _fork(struct t_processor_reg processor_reg)
 	child_process_context->sig_num = 0;
 	child_process_context->parent = parent_process_context;
 //	TEMPORARY TRICK.CORRECT SOLUTION IS TO ADD A POINTER TO CLONER FUNTION IN HASMAP CLONE ALONSIDE DESTRUCTOR POINTER
-//	ALSO INODE SHOULD NOT BE CLONED!!!!!!!	
 	child_process_context->file_desc = clone_file_desc(parent_process_context->file_desc);
 	child_process_context->socket_desc = clone_socket_desc(parent_process_context->socket_desc);
 

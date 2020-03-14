@@ -142,14 +142,14 @@ int _open(t_ext2* ext2, const char* full_path, int flags)
 
 int _close(t_ext2* ext2,int fd)
 {
-	u32 ret=-1;
-	struct t_process_context* current_process_context;
-	t_inode* inode;
+	u32 ret = -1;
+	struct t_process_context* current_process_context = NULL;
+	t_inode* inode = NULL;
 
 	CURRENT_PROCESS_CONTEXT(current_process_context)
-	inode=hashtable_remove(current_process_context->file_desc,fd);
+	inode = hashtable_remove(current_process_context->file_desc,fd);
 	ret = inode_free(inode);
-	//AT THE MOMENT READ ONLY	
+	//AT THE MOMENT NO REQUIRED	
 	//write_inode(system.root_fs,inode);
 	return ret;
 }
@@ -250,13 +250,13 @@ t_hashtable* clone_file_desc(t_hashtable* file_desc)
 	t_inode* inode = NULL;
 	t_hashtable* cloned_file_desc = NULL;
 
-	cloned_file_desc = dc_hashtable_init(PROCESS_INIT_FILE,&inode_free);
+	cloned_file_desc = dc_hashtable_init(PROCESS_INIT_FILE, &inode_free);
 	for (i = 0; i < file_desc->size;i++)
 	{
-		inode = hashtable_get(file_desc,i);
+		inode = hashtable_get(file_desc, i);
 		if (inode != NULL)
 		{
-			hashtable_put(cloned_file_desc,i,inode_clone(inode)); 
+			hashtable_put(cloned_file_desc, i, inode_clone(inode));
 		}
 	}
 	return cloned_file_desc;
@@ -289,6 +289,10 @@ t_inode* inode_init()
 	{
 		inode->i_block[i] = NULL;
 	}
+	inode->i_number = 0;
+	inode->last_block_num = 0;
+	inode->file_offset = 0;
+	inode->preallocated_block_count = 0;
 	inode->last_file_block_num = -1;
 	inode->first_preallocated_block = -1;
 	inode->indirect_block_1 = NULL;
@@ -344,7 +348,7 @@ int _read_write(t_ext2* ext2, int fd, void* buf, u32 count, u8 op_type, u8 is_dm
 	u32 byte_to_rw;
 	u32 byte_rw;
 	u32 byte_count;
-	t_inode* inode;
+	t_inode* inode = NULL;
 	u32 inode_block_data; 
 	char* iob_data_block = NULL;
 	u32 second_block;
@@ -369,13 +373,6 @@ int _read_write(t_ext2* ext2, int fd, void* buf, u32 count, u8 op_type, u8 is_dm
 	
 	byte_rw = 0;
 	byte_to_rw = count;
-
-	t_block_desc* _tmp = 0xc1fe26b0;
-        if (_tmp->next_block == 0xcfffffff)
-	{
-		panic();
-	}
-
 	CURRENT_PROCESS_CONTEXT(current_process_context)
 	if (op_type == 1)
 	{
@@ -739,12 +736,6 @@ int _read_write(t_ext2* ext2, int fd, void* buf, u32 count, u8 op_type, u8 is_dm
 	{
 		inode->i_size += byte_rw;
 		write_inode(ext2,inode);
-	}
-
-	_tmp = 0xc1fe26b0;
-        if (_tmp->next_block == 0xcfffffff)
-	{
-		panic();
 	}
 	return byte_rw;
 }

@@ -129,6 +129,8 @@
                                                 kfree(io_request);                                                      \
 						} while(0);
 
+#define ENTRY_PAD(entry_len)  ((entry_len % 4) != 0 ?  4 - (entry_len % 4) : 0)
+
 typedef struct s_superblock
 {	
 	u32 s_block_group_size;
