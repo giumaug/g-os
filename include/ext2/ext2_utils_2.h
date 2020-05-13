@@ -33,6 +33,7 @@ static int alloc_indirect_block(t_ext2* ext2,t_inode* i_node)
 	u32 tot_fs_group;
 	u32 blocks_per_group;
 
+	sem_down(ext2->sem);
 	tot_fs_block = ext2->superblock->s_blocks_count;
 	blocks_per_group = ext2->superblock->s_blocks_per_group;
 	group_block_index = (i_node->i_number - 1) / ext2->superblock->s_inodes_per_group;
@@ -88,6 +89,7 @@ static int alloc_indirect_block(t_ext2* ext2,t_inode* i_node)
 	}
 	kfree(io_buffer);
 	kfree(group_block);
+	sem_up(ext2->sem);
 	return ret;	       
 }
 
@@ -100,6 +102,7 @@ static void free_indirect_block(t_ext2* ext2,t_inode* i_node)
 	t_group_block* group_block;
 	char* io_buffer;
 
+	sem_down(ext2->sem);
 	group_block_index=i_node->i_block[12]/ext2->superblock->s_blocks_per_group;
 	relative_block_address=i_node->i_block[12] % ext2->superblock->s_blocks_per_group;
 	group_block=kmalloc(sizeof(t_group_block));
@@ -111,6 +114,7 @@ static void free_indirect_block(t_ext2* ext2,t_inode* i_node)
 	io_buffer[buffer_byte]&= (255 &  ~(2>>byte_bit));
 	write_block_bitmap(ext2,group_block->bg_block_bitmap,io_buffer);
 	write_group_block(ext2,group_block_index,group_block);
+	sem_up(ext2->sem);
 	kfree(group_block);
 	kfree(io_buffer);
 }
@@ -486,6 +490,8 @@ void static write_inode(t_ext2* ext2,t_inode* inode)
 	char* io_buffer = NULL;
 	u32 i_number;
 
+        // I NEED TO LOCK AGANIST RACE ON INODE TABLE
+	sem_down(ext2->sem);
 	io_buffer = kmalloc(BLOCK_SIZE);	
 	group_block = kmalloc(sizeof(t_group_block));
 	group_number = (inode->i_number - 1) / ext2->superblock->s_inodes_per_group; 
@@ -552,6 +558,7 @@ void static write_inode(t_ext2* ext2,t_inode* inode)
 	//u32 
 	WRITE_WORD(inode->osd2_3, &io_buffer[inode_offset + 124])
 	WRITE(sector_count, lba, io_buffer);
+	sem_up(ext2->sem);
 	kfree(io_buffer);
 	kfree(group_block);
 }
@@ -663,6 +670,7 @@ u32 static find_free_inode(u32 group_block_index, t_ext2* ext2, u32 condition)
 	int j;
 	t_ext2 _ext2;
 
+	sem_down(ext2->sem);
 	i = 0;
 	j = 0;
 	inode_number = -1;
@@ -704,8 +712,8 @@ u32 static find_free_inode(u32 group_block_index, t_ext2* ext2, u32 condition)
 					//printk("lba is %d \n",lba);
 					//printk("current byte is %d \n",*current_byte);
 					//printk("j is %d \n",j);
-					init_ext2(&_ext2,system.device_desc);
-					read_superblock(ext2);
+					//init_ext2(&_ext2,system.device_desc);????
+					//read_superblock(ext2);               ????
 					//printk("ext2 free inode = %d \n",ext2->superblock->s_free_inodes_count);
 					//printk("_ext2 free inode = %d \n",_ext2.superblock->s_free_inodes_count);
 					_group_block = kmalloc(sizeof(t_group_block));
@@ -720,6 +728,7 @@ u32 static find_free_inode(u32 group_block_index, t_ext2* ext2, u32 condition)
 			current_byte++;
                 }
 	}
+	sem_up(ext2->sem);
 	kfree(group_block);
 	kfree(io_buffer);
         return inode_number;

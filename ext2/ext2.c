@@ -11,72 +11,24 @@ static t_indirect_block* indirect_block_init();
 
 void init_ext2(t_ext2 *ext2,t_device_desc* device_desc)
 {	
-	t_group_block* group_block;
-	ext2->device_desc=device_desc;
-	ext2->superblock=kmalloc(sizeof(t_superblock));
-        ext2->partition_start_sector=lookup_partition(ext2,1);  
+	t_group_block* group_block = NULL;
+	struct t_sem_desc* sem_desc = NULL;
+
+	sem_desc = kmalloc(sizeof(t_sem_desc));
+	ext2->sem = sem_desc;
+	ext2->device_desc = device_desc;
+	ext2->superblock = kmalloc(sizeof(t_superblock));
+        ext2->partition_start_sector = lookup_partition(ext2,1);  
         read_superblock(ext2);
-	ext2->device_desc=device_desc;
+	ext2->device_desc = device_desc;
+	sem_init(ext2->sem, 1);
 }
 
 void free_ext2(t_ext2* ext2)
 {
 	kfree(ext2->superblock);
+	kfree(ext2->sem);
 }
-
-//int _open(t_ext2* ext2,const char* full_path, int flags)
-//{
-//	int ret;
-//	u32 fd;
-//	u32 ret_code;
-//	struct t_process_context* current_process_context = NULL;
-//	t_inode* inode = NULL;
-//	t_llist_node* node = NULL;
-//	char parent_path[NAME_MAX];
-//	char file_name[NAME_MAX];
-//
-//	inode = inode_init();
-//	find_parent_path_and_filename(full_path,parent_path,file_name);
-//	lookup_inode(parent_path,ext2,inode->parent_dir);
-//	CURRENT_PROCESS_CONTEXT(current_process_context);
-//	fd = current_process_context->next_fd++;
-//
-//	if ((flags & (O_CREAT | O_RDWR)) == (O_CREAT | O_RDWR))
-//	{
-//		inode->parent_dir = inode_init();
-//		//find_parent_path_and_filename(full_path,parent_path,file_name);
-//		//lookup_inode(parent_path,ext2,inode->parent_dir);
-//		inode->i_number = alloc_inode(inode->parent_dir,0,ext2);
-//		if (inode->i_number == -1)
-//		{
-//			inode_free(inode);
-//			return -1;
-//		}
-//		ret = add_entry_to_dir(file_name,inode->parent_dir,ext2,inode->i_number);
-//		if (ret == -1)
-//		{
-//			inode_free(inode);
-//			return -1;
-//		}
-//		hashtable_put(current_process_context->file_desc,fd,inode);
-//	}
-//	else if ((flags & (O_APPEND | O_RDWR)) == (O_APPEND | O_RDWR))
-//	{
-//		ret_code = lookup_inode(full_path,ext2,inode);		
-//		if (ret_code == -1)
-//		{
-//			inode_free(inode);
-//			return -1;
-//		}
-//		hashtable_put(current_process_context->file_desc,fd,inode);
-//	}
-//	else 
-//	{
-//		return -1;
-//	}
-//	inode->file_offset = 0;
-//	return fd;
-//}
 
 int _open(t_ext2* ext2, const char* full_path, int flags)
 {
@@ -89,7 +41,7 @@ int _open(t_ext2* ext2, const char* full_path, int flags)
 	char parent_path[NAME_MAX];
 	char file_name[NAME_MAX];
 
-	inode = inode_init();
+	inode = inode_init(ext2);
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 	fd = current_process_context->next_fd++;
 	ret_code = lookup_inode(full_path,ext2,inode);		
@@ -97,7 +49,7 @@ int _open(t_ext2* ext2, const char* full_path, int flags)
 	{
 		if (flags & O_CREAT)
 		{
-			inode->parent_dir = inode_init();
+			inode->parent_dir = inode_init(ext2);
 			find_parent_path_and_filename(full_path,parent_path,file_name);
 			lookup_inode(parent_path,ext2,inode->parent_dir);
 			inode->i_number = alloc_inode(inode->parent_dir,0,ext2);
@@ -266,7 +218,7 @@ t_inode* inode_clone(t_inode* inode)
 {
 	t_inode* cloned_inode = NULL;
 	
-	cloned_inode = inode_init();
+	cloned_inode = inode_init(inode->ext2);
 	kmemcpy(cloned_inode,inode,sizeof(t_inode));
 	if (inode->indirect_block_1 != NULL)
 	{
@@ -279,7 +231,7 @@ t_inode* inode_clone(t_inode* inode)
 	return cloned_inode;
 }
 
-t_inode* inode_init()
+t_inode* inode_init(t_ext2* ext2)
 {
 	int i;
 	t_inode* inode = NULL;
@@ -298,11 +250,15 @@ t_inode* inode_init()
 	inode->indirect_block_1 = NULL;
 	inode->indirect_block_2 = NULL;
 	inode->parent_dir = NULL;
+	inode->ext2 = ext2;
 	return inode;
 }
 
 int inode_free(t_inode* inode)
 {
+	t_group_block* group_block = NULL;
+	char* io_buffer = NULL;
+	u32 group_block_index;
 	int ret = -1;
 	
 	if (inode != NULL)
@@ -318,6 +274,23 @@ int inode_free(t_inode* inode)
 		if (inode->parent_dir != NULL)
 		{
 			inode_free(inode->parent_dir);
+		}
+		
+		if (inode->preallocated_block_count > 0)
+		{
+			sem_down(inode->ext2->sem);
+			group_block = kmalloc(sizeof(t_group_block));
+			io_buffer = kmalloc(BLOCK_SIZE);
+			group_block_index = inode->first_preallocated_block / inode->ext2->superblock->s_blocks_per_group;
+			read_group_block(inode->ext2, group_block_index, group_block);
+			read_block_bitmap(inode->ext2, group_block->bg_block_bitmap, io_buffer);
+			discard_prealloc_block(inode->ext2, group_block, inode, io_buffer);
+			write_block_bitmap(inode->ext2, group_block->bg_block_bitmap, io_buffer);
+			write_group_block(inode->ext2, group_block_index, group_block);
+			write_superblock(inode->ext2);
+			sem_up(inode->ext2->sem);
+			kfree(group_block);
+			kfree(io_buffer);
 		}
 		ret = 0;
 	}
@@ -381,11 +354,16 @@ int _read_write(t_ext2* ext2, int fd, void* buf, u32 count, u8 op_type, u8 is_dm
 	inode = hashtable_get(current_process_context->file_desc, fd);
 	if (inode == NULL)
 	{
+		printk("inode not found !!!!! \n");
 		return -1;
 	}
 	if (is_dma == 1)
 	{
 		dma_buffer = kmalloc(DMA_BUFFER_SIZE);
+		for (i = 0; i < DMA_BUFFER_SIZE;i++)
+		{
+			dma_buffer[i] = 0;
+		}
 		aligned_dma_buffer = ALIGN_TO_BOUNDARY((DMA_BUFFER_SIZE / 2), (u32) dma_buffer);
 		phy_dma_buffer = FROM_VIRT_TO_PHY(ALIGN_TO_BOUNDARY((DMA_BUFFER_SIZE / 2), (u32) dma_buffer));
 	}
@@ -1008,139 +986,6 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 	return byte_read;
 }
 
-int ___write(t_ext2* ext2,int fd, const void *buf,u32 count)
-{
-	u32 i;	
-	u32 first_inode_block;
-	u32 first_data_offset;
-	u32 last_inode_block;
-	u32 last_data_offset;
-	u32 inode_block;
-	u32 lba;
-	u32 indirect_lba;
-	u32 indirect_old_lba;
-	u32 sector_count;
-	u32 byte_to_read;
-	u32 byte_read;
-	u32 byte_count;
-	u32 load_block;
-	u32 update_indirct_block;
-	t_inode* inode;
-	char* iob_data_block;
-	char* iob_indirect_block;
-	u32 update_indirect_block;
-	u32 byte_written;
-	u32 byte_to_write;
-
-	iob_data_block=kmalloc(BLOCK_SIZE);
-	iob_indirect_block=kmalloc(BLOCK_SIZE);
-	kfillmem(iob_data_block,0,BLOCK_SIZE);
-	kfillmem(iob_indirect_block,0,BLOCK_SIZE);
-
-	update_indirect_block=FALSE;
-	byte_written=0;
-	inode=hashtable_get(((struct t_process_context*)system.process_info->current_process)->file_desc,fd);
-	first_inode_block=inode->file_offset/BLOCK_SIZE;
-	first_data_offset=inode->file_offset%BLOCK_SIZE;
-	last_inode_block=(inode->file_offset+count)/BLOCK_SIZE;
-	last_data_offset=(inode->file_offset+count)%BLOCK_SIZE;
-
-	byte_to_write=count;
-
-	if (last_inode_block>=12)
-	{
-		if (inode->i_block[12]==0)
-		{
-			inode->i_block[12]=alloc_indirect_block(ext2,inode);
-		}
-		else
-		{
-			sector_count=BLOCK_SIZE/SECTOR_SIZE;
-			READ(sector_count,inode->i_block[12],iob_indirect_block);
-		}
-	}
-
-	for (i=first_inode_block;i<=last_inode_block;i++)
-	{
-		if ((i==first_inode_block && first_data_offset!=0) || (i==last_inode_block && last_data_offset!=0))
-		{
-			load_block=1;
-			if (i>12)
-			{
-				if (iob_indirect_block[i-12]==0)
-				{
-					iob_indirect_block[i-12]=alloc_block(ext2,inode,i);
-					load_block=0;
-					update_indirect_block=TRUE;
-				}
-				lba=iob_indirect_block[i-12];
-			}
-			else
-			{
-				if (inode->i_block[i]==0)
-				{
-					inode->i_block[i]=alloc_block(ext2,inode,i);
-					load_block=0;
-				}
-				lba=inode->i_block[i];
-			}
-			if (load_block)
-			{
-				sector_count=BLOCK_SIZE/SECTOR_SIZE;
-				//_read_28_ata(sector_count,lba,iob_data_block); doesn't compile!!!
-				if (i==first_inode_block)
-				{
-					iob_data_block+=first_data_offset;
-					byte_count=BLOCK_SIZE-first_data_offset;
-					byte_to_write-=byte_count;
-				}
-				else if (i==last_inode_block)
-				{
-					byte_count=last_data_offset;
-					byte_to_write-=byte_count;
-				}	
-			}
-		}
-		else
-		{
-			byte_count=BLOCK_SIZE;
-			byte_to_write-=BLOCK_SIZE;		
-			if (i>12)
-			{
-				if (iob_indirect_block[i-12]==0)
-				{
-					iob_indirect_block[i-12]=alloc_block(ext2,inode,i);
-					update_indirect_block=TRUE;
-				}
-				lba=iob_indirect_block[i-12];
-			}
-			else
-			{
-				if (inode->i_block[i]==0)
-				{
-					inode->i_block[i]=alloc_block(ext2,inode,i);
-				}
-				lba=inode->i_block[i];
-			}
-			byte_count=BLOCK_SIZE;
-			byte_to_write-=BLOCK_SIZE;
-		}
-		kmemcpy(iob_data_block,buf,byte_count);
-		sector_count=BLOCK_SIZE/SECTOR_SIZE;
-		WRITE(sector_count,lba,iob_data_block);
-		inode->file_offset+=byte_count;
-		buf+=byte_count;
-		byte_written+=byte_count;
-	}
-	if (update_indirect_block)
-	{
-		WRITE(sector_count,inode->i_block[12],iob_indirect_block);
-	}
-	kfree(iob_data_block);
-	kfree(iob_indirect_block);
-	return byte_written;
-}
-
 int _seek(t_ext2* ext2,int fd,unsigned int offset,int whence)
 {
 	struct t_process_context* current_process_context;
@@ -1260,7 +1105,7 @@ int _chdir(t_ext2* ext2,char* path)
 	t_inode* inode;
 	struct t_process_context* current_process_context;
 
-	inode = inode_init();
+	inode = inode_init(ext2);
 	CURRENT_PROCESS_CONTEXT(current_process_context)
 	ret=lookup_inode(path,ext2,inode);
 	if (ret==0)
@@ -1276,7 +1121,7 @@ int _stat(t_ext2* ext2,char* pathname,t_stat* stat)
 	t_inode* inode;
 	int ret_code = -1;
 
-	inode = inode_init();
+	inode = inode_init(ext2);
 	ret_code = lookup_inode(pathname,ext2,inode);		
 	if (ret_code == -1)
 	{
@@ -1301,7 +1146,7 @@ int _mount(char* pathname,t_ext2* ext2)
 	t_mount_point* mount_point = NULL;
 	t_inode* inode = NULL;
 
-	inode = inode_init();
+	inode = inode_init(ext2);
 	ret_code = lookup_inode(pathname,ext2,inode);		
 	if (ret_code == -1)
 	{

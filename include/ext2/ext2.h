@@ -132,7 +132,8 @@
 #define ENTRY_PAD(entry_len)  ((entry_len % 4) != 0 ?  4 - (entry_len % 4) : 0)
 
 typedef struct s_superblock
-{	
+{
+	struct s_ext2* ext2;	
 	u32 s_block_group_size;
 	u32 s_block_group_header_size;
 	//disk fields	
@@ -187,6 +188,7 @@ t_superblock;
 
 typedef struct s_group_block
 {
+	struct s_ext2* ext2;
 	//disk fields
 	u32 bg_block_bitmap;
 	u32 bg_inode_bitmap;
@@ -218,6 +220,7 @@ typedef struct s_inode
 	struct s_indirect_block* indirect_block_1;
 	struct s_indirect_block* indirect_block_2;
 	struct s_inode* parent_dir;
+	struct s_ext2* ext2;
 
 	//disk fields
   	u16 i_mode;
@@ -266,6 +269,7 @@ typedef struct s_ext2
 	u32 partition_start_sector;
 	//t_inode* root_dir_inode;
 	struct s_device_desc* device_desc;
+	struct s_sem_desc* sem;
 }
 t_ext2;
 
@@ -310,7 +314,7 @@ int _mkdir(t_ext2* ext2,const char* fullpath);
 int _chdir(t_ext2* ext2,char* path);
 int _stat(t_ext2* ext2,char* pathname,t_stat* stat);
 t_inode* inode_clone(t_inode* inode);
-t_inode* inode_init();
+t_inode* inode_init(t_ext2* ext2);
 int inode_free(t_inode* inode);
 t_indirect_block* clone_indirect_block(t_indirect_block* indirect_block);
 t_hashtable* clone_file_desc(t_hashtable* file_desc);

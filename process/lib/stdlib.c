@@ -70,35 +70,8 @@ void free(void *address)
 	return;
 }
 
-//void *bigMalloc(unsigned int mem_size) 
-//{
-//	int params[2];
-//	params[0]=mem_size;
-//	params[1]=NULL;
-//	SYSCALL(150,params);
-//	return params[1];
-//}
-//
-//void bigFree(void *address) 
-//{	
-//	int params[1];
-//	params[0]=address;
-//	SYSCALL(151,params);
-//	return;
-//}
-
 unsigned int rand()
 {
         seed = seed * 1103515245 + 12345;
         return (seed % ((unsigned int)RAND_MAX + 1));
 }
-
-//extern inline int rand(void)
-//{
-//        return (rand_r(&next));
-//}
-//
-//extern inline void srand(unsigned int seed)
-//{
-//        next = seed;
-//}
