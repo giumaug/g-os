@@ -54,9 +54,9 @@
                                                     (tot_fs_block / block_per_group) :      \
                                                     (tot_fs_block / block_per_group) + 1;
 
-#define FIRST_DATA_BLOCK(ext2,group_block)  ((ext2->superblock->s_inodes_per_group * 128) % BLOCK_SIZE) == 0 ?   \
+#define FIRST_DATA_BLOCK(ext2,group_block)  (((ext2->superblock->s_inodes_per_group * 128) % BLOCK_SIZE) == 0 ?   \
 			                 ((ext2->superblock->s_inodes_per_group * 128) / BLOCK_SIZE) :           \
-				         ((ext2->superblock->s_inodes_per_group * 128) / BLOCK_SIZE) + 1 +       \
+				         ((ext2->superblock->s_inodes_per_group * 128) / BLOCK_SIZE) + 1) +       \
                                          group_block->bg_inode_table
 
 #define WRITE(_sector_count,_lba,_io_buffer)    do {                                                                    \

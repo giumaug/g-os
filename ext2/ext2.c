@@ -56,12 +56,14 @@ int _open(t_ext2* ext2, const char* full_path, int flags)
 			if (inode->i_number == -1)
 			{
 				inode_free(inode);
+				panic();
 				return -1;
 			}
 			ret = add_entry_to_dir(file_name,inode->parent_dir,ext2,inode->i_number);
 			if (ret == -1)
 			{
 				inode_free(inode);
+				panic();
 				return -1;
 			}
 			hashtable_put(current_process_context->file_desc,fd,inode);
@@ -69,6 +71,7 @@ int _open(t_ext2* ext2, const char* full_path, int flags)
 		else
 		{
 			inode_free(inode);
+			panic();
 			return -1;
 		}
 		inode->i_mode = 0x81FF;
@@ -355,6 +358,7 @@ int _read_write(t_ext2* ext2, int fd, void* buf, u32 count, u8 op_type, u8 is_dm
 	if (inode == NULL)
 	{
 		printk("inode not found !!!!! \n");
+		panic();
 		return -1;
 	}
 	if (is_dma == 1)
@@ -362,7 +366,7 @@ int _read_write(t_ext2* ext2, int fd, void* buf, u32 count, u8 op_type, u8 is_dm
 		dma_buffer = kmalloc(DMA_BUFFER_SIZE);
 		for (i = 0; i < DMA_BUFFER_SIZE;i++)
 		{
-			dma_buffer[i] = 0;
+			dma_buffer[i] = 1;
 		}
 		aligned_dma_buffer = ALIGN_TO_BOUNDARY((DMA_BUFFER_SIZE / 2), (u32) dma_buffer);
 		phy_dma_buffer = FROM_VIRT_TO_PHY(ALIGN_TO_BOUNDARY((DMA_BUFFER_SIZE / 2), (u32) dma_buffer));
@@ -433,10 +437,6 @@ int _read_write(t_ext2* ext2, int fd, void* buf, u32 count, u8 op_type, u8 is_dm
 		else if (i > INDIRECT_1_LIMIT  && i <= INDIRECT_2_LIMIT)
 		{
 			system.counter++;
-			if (system.counter == 760172)
-			{
-				panic();
-			}
 			second_block = (i - INDIRECT_1_LIMIT - 1) / (BLOCK_SIZE / 4);
 			second_block_offset = (i - INDIRECT_1_LIMIT - 1) % (BLOCK_SIZE /4);
 			if (inode->i_block[13] == NULL)
@@ -477,10 +477,6 @@ int _read_write(t_ext2* ext2, int fd, void* buf, u32 count, u8 op_type, u8 is_dm
 				else
 				{
 					block_addr_2 = alloc_indirect_block(ext2, inode);
-					//if (second_block == 29)
-					//{
-					//	panic();
-					//}
 					if (block_addr_2 == -1)
 					{
 						panic(); //only debug
@@ -1020,29 +1016,37 @@ int _seek(t_ext2* ext2,int fd,unsigned int offset,int whence)
 	return offset;
 }
 
-//HO TOLTO PARENT_DIR DA LOOKUP_INODE DA RIVEDERE  _RM
 int _rm(t_ext2* ext2,char* fullpath)
 {
-	return 0;
-}
+	int ret = -1;
+	t_inode* inode = NULL;
+	t_inode* inode_dir = NULL;
+	char path[NAME_MAX];
+	char filename[NAME_MAX];
 
-//NON CANCELLARE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-//int _rm(t_ext2* ext2,char* fullpath)
-//{
-//	t_inode* inode;
-//	char path[NAME_MAX];
-//	char filename[NAME_MAX];
-//
-//	inode=kmalloc(sizeof(t_inode));
-//	
-//	extract_filename(fullpath,path,filename);
-//	lookup_inode(filename,ext2,inode);
-//	del_dir_entry(ext2,inode_dir,inode->i_number);
-//	free_inode(inode,ext2);
-//
-//	kfree(inode);
-//	return 0;
-//}
+	inode = kmalloc(sizeof(t_inode));
+	inode_dir = kmalloc(sizeof(t_inode));
+	extract_filename(fullpath, path, filename);
+	ret = lookup_inode(fullpath, ext2, inode);
+	if (ret == -1)
+	{
+		goto EXIT;
+	}
+	ret = lookup_inode(path, ext2, inode_dir);
+	if (ret == -1)
+	{
+		goto EXIT;
+	}
+	if (inode->i_mode == 0x4000)
+	{
+		del_full_dir(ext2, inode_dir);
+	}
+	ret = del_dir_entry(ext2, inode_dir, inode);
+EXIT:
+	kfree(inode);
+	kfree(inode_dir);
+	return ret;
+}
 
 
 //HO TOLTO PARENT_DIR DA LOOKUP_INODE DA RIVEDERE  _MKDIR

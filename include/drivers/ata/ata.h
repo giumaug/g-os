@@ -20,7 +20,7 @@
 #define READ_DMA_28 0xC8
 #define WRITE_DMA_28 0xCA
 
-#define DMA_BUFFER_SIZE 0x20000
+#define DMA_BUFFER_SIZE 0x20000 
 
 t_device_desc* init_ata(u8 device_num);
 unsigned int _read_28_ata(t_io_request* io_request);

@@ -1,14 +1,14 @@
-static void* read_block_bitmap(t_ext2* ext2,u32 bg_block_bitmap,void* io_buffer)
+static void read_block_bitmap(t_ext2* ext2, u32 bg_block_bitmap, void* io_buffer)
 {
 	u32 lba;
 	u32 sector_count;
 		
-        lba=ext2->partition_start_sector+(bg_block_bitmap*BLOCK_SIZE/SECTOR_SIZE);
-        sector_count=BLOCK_SIZE/SECTOR_SIZE;
-	READ(sector_count,lba,io_buffer);
+        lba = ext2->partition_start_sector + (bg_block_bitmap * BLOCK_SIZE / SECTOR_SIZE);
+        sector_count = BLOCK_SIZE / SECTOR_SIZE;
+	READ(sector_count, lba, io_buffer);
 }
 
-static void* write_block_bitmap(t_ext2* ext2,u32 bg_block_bitmap,void* io_buffer)
+static void write_block_bitmap(t_ext2* ext2,u32 bg_block_bitmap,void* io_buffer)
 {
 	u32 lba;
 	u32 sector_count;
@@ -264,6 +264,11 @@ void static write_superblock(struct s_ext2* ext2)
 	
         io_buffer=kmalloc(512);
 	superblock=ext2->superblock;
+
+	if (superblock->s_free_inodes_count <= 25070)
+	{
+		panic();
+	}
    
         //u32
         WRITE_DWORD(superblock->s_inodes_count, &io_buffer[0]);
@@ -331,17 +336,16 @@ static void write_group_block(t_ext2* ext2,u32 group_block_number,t_group_block*
 	u32 lba;
 	char* io_buffer;
 
+	if (group_block_number == 5)
+	{
+		panic();
+	}
+
 	//block_number start from 1
 	sector_number = 32 * group_block_number / SECTOR_SIZE;
 	sector_offset = (32 * group_block_number) % SECTOR_SIZE;
 	lba=(2 * BLOCK_SIZE) / SECTOR_SIZE + ext2->partition_start_sector + sector_number;
 	io_buffer =kmalloc(512);
-
-	//printk("free block = %d \n",group_block->bg_free_blocks_count);
-	if (group_block->bg_free_blocks_count == 0)
-	{
-		panic();
-	}
 
 	//u32
 	WRITE_DWORD(group_block->bg_block_bitmap, &io_buffer[0 + sector_offset]);
