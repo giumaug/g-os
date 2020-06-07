@@ -448,6 +448,7 @@ static unsigned int _p_read_write_28_ata(t_io_request* io_request)
 
 unsigned int _write_dma_28_ata(t_io_request* io_request)
 {
+	//SECOND
 	io_request->command = WRITE_DMA_28;
 	return _read_write_dma_28_ata(io_request);	
 }
@@ -466,6 +467,7 @@ unsigned int _read_28_ata(t_io_request* io_request)
 
 unsigned int _write_28_ata(t_io_request* io_request)
 {
+	//FIRST
 	io_request->command = WRITE_28;
 	return _read_write_28_ata(io_request);	
 }
