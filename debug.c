@@ -57,7 +57,7 @@ void check_free_mem()
 		PRINTK("POOL MEMEMORY LEAK!!!");
 		//panic();
 	}
-	//check_leak();
+	check_leak();
 	//check_not_released();
 	//_check_process_context();
 	printk("BUDDY MEMORY=%d \n",buddy_mem);
@@ -134,7 +134,7 @@ void _is_phy_page_used(unsigned int phy_page_addr)
 
 	page_addr = phy_page_addr+BUDDY_START_ADDR + VIRT_MEM_START_ADDR;
 
-	for (i = collected_mem_index; i < 5000;i++)
+	for (i = collected_mem_index; i < 50000;i++)
 	{
 		if (collected_mem[collected_mem_index] == page_addr)
 		{
@@ -149,7 +149,7 @@ void _collect_mem_alloc(unsigned int page_addr)
 
 	if (collect_mem == 1)
 	{
-		for (i = collected_mem_index; i < 5000;i++)
+		for (i = collected_mem_index; i < 50000;i++)
 		{
 			if (collected_mem[collected_mem_index] == page_addr)
 			{
@@ -164,7 +164,7 @@ void _collect_mem_alloc(unsigned int page_addr)
 			}
 		}
 		collected_mem_index++;
-		if (collected_mem_index > 4999)
+		if (collected_mem_index > 49999)
 		{
 			collected_mem_index = 0;
 			printk("reset counter!!!! \n");
@@ -182,16 +182,21 @@ void collect_mem_alloc(unsigned int mem_addr)
 	if (not_init == 0)
 	{
 		not_init = 1;
-		for (i = 0;i < 5000;i++)
+		for (i = 0; i < 50000; i++)
 		{
 			collected_mem[i] = 0;
 		
 		}
 	}
 	collected_mem_index++;
-	if (collected_mem_index > 4999)
+	if (collected_mem_index > 49999)
 	{
 		collected_mem_index = 0;
+		for (i = 0; i < 50000; i++)
+		{
+			collected_mem[i] = 0;
+		
+		}
 		printk("reset counter!!!! \n");
 		//panic();
 	}
@@ -200,23 +205,22 @@ void collect_mem_alloc(unsigned int mem_addr)
 
 void collect_mem_free(unsigned int page_addr)
 {
-	int found=0;
-	unsigned int i=0;
+	int found = 0;
+	unsigned int i = 0;
 
 	if (collect_mem == 1)
 	{
-		for (i = 0;i < 5000;i++)
+		for (i = 0; i < 50000; i++)
 		{
 			if (collected_mem[i] == page_addr)
 			{
 				collected_mem[i] = 0;
-				found=1;
+				found = 1;
 				break;
 			}
 		}
-		if (found==0) 
+		if (found == 0) 
 		{
-			found=1;
 			//panic();
 		}
 	}
@@ -227,7 +231,7 @@ void check_leak()
 	int i;
 	int xxx = 0;
 	int index;
-	for (i = 0;i < 5000;i++)
+	for (i = 0;i < 50000;i++)
 	{
 		if (collected_mem[i] !=0 )
 		{
@@ -235,6 +239,10 @@ void check_leak()
 			index = i;
 			//panic();
 			printk(" index is %d ",index);
+			if (index == 107 || index == 610)
+			{
+				printk("mem is %d \n",collected_mem[index]);	
+			}
 		}
 	}
 	printk("\n not released count %d \n",xxx);

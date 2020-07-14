@@ -131,62 +131,48 @@ void syscall_handler()
 		{                                        
 			ext2 = system.scnd_fs;           
 		}   
-		//params[2] = _open(system.root_fs,(char*) params[0],params[1]);
 	 	params[2] = _open(ext2,(char*) params[0],params[1]);
 		on_exit_action=1;
 		break; 
 
 		case 19:
 		SELECT_FS(ext2) 
-		//params[1]=_close(system.root_fs,params[0]);
 		params[1]=_close(ext2,params[0]);
 		on_exit_action=1; 
 		break;
 
 		case 20:
 		SELECT_FS(ext2)
-		//params[3]=_read(system.root_fs,params[0],params[1],params[2],1);
 	 	params[3]=_read(ext2,params[0],params[1],params[2],1);
 		on_exit_action=1; 
 		break;
 
-//		case 21:
-//		SELECT_FS(ext2) 
-//		params[3]=_write(ext2,(void*)params[0],params[1],params[2]);
-//		on_exit_action=1;  
-//		break;
-
 		case 36:
 		SELECT_FS(ext2)
-		//params[3] = _seek(system.root_fs,params[0],params[1],params[2]);
 		params[3] = _seek(ext2,params[0],params[1],params[2]);
 		on_exit_action=1; 
 		break;
 	
 		case 22:
 		SELECT_FS(ext2)
-		//params[1]=_rm(system.root_fs,(char*)params[0]);
 		params[1]=_rm(ext2,(char*)params[0]);
 		on_exit_action=1; 
 		break;
 
 		case 23:
 		SELECT_FS(ext2)
-		//params[1]=_mkdir(system.root_fs,params[0]);
 		params[1]=_mkdir(ext2,params[0]);
 		on_exit_action=1; 
 		break;
 
 		case 26:
 		SELECT_FS(ext2)
-		//params[1]=_chdir(system.root_fs,(char*) params[0]); 
 		params[1]=_chdir(system.root_fs,(char*) params[0]); 
 		on_exit_action=1;
 		break; 	
 	
 		case 27:
 		SELECT_FS(ext2)
-		//params[2]=_stat(system.root_fs,(char*) params[0],params[1]); 
 		params[2]=_stat(system.root_fs,(char*) params[0],params[1]);
 		break;
 

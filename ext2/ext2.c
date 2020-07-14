@@ -85,7 +85,7 @@ int _open(t_ext2* ext2, const char* full_path, int flags)
 	        inode->i_links_count = 1;
 	        inode->i_blocks = 0;
 	        inode->i_flags = 0;
-		write_inode(ext2,inode);
+		write_inode(ext2, inode, 1);
 	}
 	else
 	{
@@ -709,7 +709,7 @@ int _read_write(t_ext2* ext2, int fd, void* buf, u32 count, u8 op_type, u8 is_dm
 	if (op_type == 1)
 	{
 		inode->i_size += byte_rw;
-		write_inode(ext2,inode);
+		write_inode(ext2, inode, 1);
 	}
 	return byte_rw;
 }
@@ -1026,7 +1026,8 @@ int _rm(t_ext2* ext2,char* fullpath)
 
 	inode = kmalloc(sizeof(t_inode));
 	inode_dir = kmalloc(sizeof(t_inode));
-	extract_filename(fullpath, path, filename);
+	//extract_filename(fullpath, path, filename);
+	find_parent_path_and_filename(fullpath, path, filename);
 	ret = lookup_inode(fullpath, ext2, inode);
 	if (ret == -1)
 	{
@@ -1037,9 +1038,9 @@ int _rm(t_ext2* ext2,char* fullpath)
 	{
 		goto EXIT;
 	}
-	if (inode->i_mode == 0x4000)
+	if (inode->i_mode  && 0x4000)
 	{
-		del_full_dir(ext2, inode_dir);
+		del_full_dir(ext2, inode);
 	}
 	ret = del_dir_entry(ext2, inode_dir, inode);
 EXIT:

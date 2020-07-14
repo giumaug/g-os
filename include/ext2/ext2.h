@@ -47,8 +47,8 @@
 
 #define RELATIVE_BLOCK_ADDRESS(group_block_index,absolute_block_address) absolute_block_address - ext2->superblock->s_blocks_per_group * group_block_index
 
-#define RELATIVE_BITMAP_BYTE(block_index,blocks_per_group) (block_index % blocks_per_group) / 8
-#define RELATIVE_BITMAP_BIT(block_index,blocks_per_group) (block_index % blocks_per_group) % 8
+#define RELATIVE_BITMAP_BYTE(block_index, blocks_per_group) ((block_index - 1) % blocks_per_group) / 8
+#define RELATIVE_BITMAP_BIT(block_index, blocks_per_group) ((block_index - 1) % blocks_per_group) % 8
 
 #define TOT_FS_GROUP(tot_fs_block, block_per_group) (tot_fs_block / block_per_group) == 0 ? \
                                                     (tot_fs_block / block_per_group) :      \

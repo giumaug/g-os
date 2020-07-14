@@ -23,12 +23,14 @@ u32 elf_loader_init(t_elf_desc* elf_desc,char* path)
 	_stat(ext2,path,stat);
 	if ((stat->st_mode & 0x8000) != 0x8000)
 	{
+		kfree(stat);
 		return -1;
 	}
 
 	fd = _open(ext2,path,O_RDWR | O_APPEND);
 	if (fd == -1)
 	{
+		kfree(stat);
 		return -1;
 	}
 	
@@ -48,6 +50,7 @@ u32 elf_loader_init(t_elf_desc* elf_desc,char* path)
 			break;
 		}
 	}
+	kfree(stat);
 	kfree(elf_header);
 	kfree(elf_prg_header);
 	if (elf_desc->file_desc == -1)

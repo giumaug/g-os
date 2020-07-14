@@ -95,6 +95,10 @@ typedef struct s_system
 	u8 device_id;
 	u32 counter;
 	u32 alloc_counter;
+//	u32 all_inode[3000];
+//	u32 can_inode[3000];
+//	u32 all_inode_index;
+//	u32 can_inode_index;
  }
 t_system;
 

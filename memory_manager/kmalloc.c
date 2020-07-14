@@ -152,6 +152,7 @@ void* kmalloc(unsigned int mem_size)
 	int i;	
 	void *mem_add;
 	struct t_process_context* process_context;
+	static int ss = 0;
 
 	SAVE_IF_STATUS
 	CLI	
@@ -167,17 +168,9 @@ void* kmalloc(unsigned int mem_size)
 	{
 		panic();
 	}
-//	if (collect_mem ==1 && i == 1)
+//	if (collect_mem == 1)
 //	{
 //		collect_mem_alloc(mem_add);
-//		if (mem_add == 3246507739)
-//		{
-//			system.ref_counter++;
-//			if (system.ref_counter == 31)
-//			{
-//				//printk(".");
-//			}
-//		}
 //	}
 	RESTORE_IF_STATUS
 	return mem_add;
@@ -300,7 +293,7 @@ void kfree(void *address)
 		pool_index++;
 	}
 	a_fixed_size_free(&a_fixed_size_desc[pool_index],address);
-//	if (collect_mem == 1 && pool_index == 1)
+//	if (collect_mem == 1)
 //	{
 //		collect_mem_free(address);
 //	}

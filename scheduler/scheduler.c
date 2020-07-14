@@ -363,7 +363,7 @@ int _fork(struct t_processor_reg processor_reg)
 	child_process_context->phy_kernel_stack = FROM_VIRT_TO_PHY(kernel_stack_addr);
 	kmemcpy(kernel_stack_addr,FROM_PHY_TO_VIRT(parent_process_context->phy_kernel_stack),KERNEL_STACK_SIZE);
 	child_process_context->pid = system.process_info->next_pid++;
-	if (child_process_context->pid == 2)
+	if (child_process_context->pid == 3)
 	{
 		//collect_mem = 1;
 	}
