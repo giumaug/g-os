@@ -1040,7 +1040,7 @@ int _rm(t_ext2* ext2,char* fullpath)
 	}
 	if (inode->i_mode  && 0x4000)
 	{
-		del_full_dir(ext2, inode);
+		del_full_dir(ext2, inode, inode_dir);
 	}
 	ret = del_dir_entry(ext2, inode_dir, inode);
 EXIT:

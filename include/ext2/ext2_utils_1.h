@@ -887,7 +887,7 @@ u32 alloc_inode(t_inode* inode_parent_dir ,unsigned int type,t_ext2 *ext2)
 	return inode_number;
 }
 
-static int del_full_dir(t_ext2* ext2, t_inode* inode_dir)
+static int del_full_dir(t_ext2* ext2, t_inode* inode_dir, t_inode* inode_parent_dir)
 {
 	u32 i;
 	u32 offset;
@@ -908,8 +908,11 @@ static int del_full_dir(t_ext2* ext2, t_inode* inode_dir)
 		while (offset < BLOCK_SIZE)
 		{
 			READ_DWORD(&iob_dir[offset - ((BLOCK_SIZE / SECTOR_SIZE) * i)], inode->i_number);
-			read_inode(ext2, inode);
-			free_inode(inode, ext2);
+			if (inode->i_number != inode_dir->i_number && inode->i_number != inode_parent_dir->i_number)
+			{
+				read_inode(ext2, inode);
+				free_inode(inode, ext2);
+			}
 			//AGGIUNGERE RICORSIONE PER DIRECTORY ANNIDATE
 			READ_WORD(&iob_dir[offset + 4 - ((BLOCK_SIZE / SECTOR_SIZE) * i)], current_rec_len);
 			offset += current_rec_len;
