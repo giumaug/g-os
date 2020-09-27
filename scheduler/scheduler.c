@@ -273,6 +273,8 @@ void _exit(int status)
 	struct t_process_context* current_process = NULL;
 	struct t_process_context* next_process = NULL;
 	unsigned int* ret;
+
+	t_ext2* ext2 = NULL;
 	
 	SAVE_IF_STATUS
 	CLI
@@ -363,10 +365,10 @@ int _fork(struct t_processor_reg processor_reg)
 	child_process_context->phy_kernel_stack = FROM_VIRT_TO_PHY(kernel_stack_addr);
 	kmemcpy(kernel_stack_addr,FROM_PHY_TO_VIRT(parent_process_context->phy_kernel_stack),KERNEL_STACK_SIZE);
 	child_process_context->pid = system.process_info->next_pid++;
-	if (child_process_context->pid == 3)
-	{
-		//collect_mem = 1;
-	}
+//	if (child_process_context->pid == 1)
+//	{
+//		//collect_mem = 1;
+//	}
 	child_process_context->pgid = parent_process_context->pgid;
 	hashtable_put(system.process_info->pid_hash,child_process_context->pid,child_process_context);
 	pgid_list = hashtable_get(system.process_info->pgid_hash,parent_process_context->pgid);

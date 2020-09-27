@@ -9,6 +9,9 @@ cd /home/peppe/Desktop/qemu-2.5.0/build/i386-softmmu
 fedora img
 ./qemu-system-i386 -s -S -m 1000M -cdrom /home/peppe/Desktop/Fedora-13-i686-Live.iso  -monitor stdio -netdev tap,id=net0,ifname=tap0,script=no,downscript=no -device e1000,netdev=net0,mac=00:0c:29:10:64:b9
 
+ubuntu img:
+ ./qemu-system-i386 -m 1000M -hda /home/peppe/Desktop/ubuntu-image/bionic-server-cloudimg-i386.img  -monitor stdio -netdev tap,id=net0,ifname=tap0,script=no,downscript=no -device e1000,netdev=net0,mac=00:0c:29:10:64:b9
+
 gdb ./kernel.bin
 dentro gdb:
 target remote: 1234

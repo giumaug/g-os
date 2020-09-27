@@ -57,7 +57,7 @@ void check_free_mem()
 		PRINTK("POOL MEMEMORY LEAK!!!");
 		//panic();
 	}
-	check_leak();
+	//check_leak();
 	//check_not_released();
 	//_check_process_context();
 	printk("BUDDY MEMORY=%d \n",buddy_mem);
@@ -237,9 +237,8 @@ void check_leak()
 		{
 			xxx++;
 			index = i;
-			//panic();
 			printk(" index is %d ",index);
-			if (index == 107 || index == 610)
+			if (index == 20446)
 			{
 				printk("mem is %d \n",collected_mem[index]);	
 			}

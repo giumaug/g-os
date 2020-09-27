@@ -109,6 +109,11 @@ void* _malloc(unsigned int mem_size)
 	{
 		mem_add=-1;
 	}
+	if (a_fixed_size_desc[i].current_free_block < 10)
+	{
+		printf("panic!!!! \n");
+		while(1);
+	}
 	return mem_add;
 }
 

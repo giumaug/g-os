@@ -86,8 +86,6 @@ void itoa (unsigned int val,char *char_val,unsigned int base);
 void exit(int status);
 void *malloc(unsigned int mem_size);
 void free(void *address);
-//void *bigMalloc(unsigned int mem_size);
-//void bigFree(void *address);
 unsigned int rand();
 int getc();
 
@@ -96,6 +94,8 @@ int strcmp(const char* s1, const char* s2);
 int strncmp(const char* s1, const char* s2,unsigned int n);
 unsigned int strlen(const char* s);
 char* strstr(char* string, char* substring);
+char* strcpy(char* dst, const char* src);
+char* strcat(char *dest, const char *src);
 
 //unistd.h
 int exec(char* path,char* argv[]);
@@ -116,7 +116,7 @@ int tcsetpgrp(int fg_pgid);
 void select_dev(int device_num);
 
 //stat.h
-int mkdir(const char *fullpath);
+int mkdir(const char* fullpath);
 
 //debug.h
 void check_free_mem();

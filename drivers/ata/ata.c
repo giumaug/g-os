@@ -292,14 +292,8 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 	}
 	//Endpoint mutual exclusion region
 	sem_up(&device_desc->mutex);
-	kfree(prd);	
+	kfree(prd);
 	return ret;
-}
-
-static unsigned int _read_write_28_ata(t_io_request* io_request);
-unsigned int ___read_write_28_ata(t_io_request* io_request)
-{
-	_read_write_28_ata(io_request);
 }
 
 static unsigned int _read_write_28_ata(t_io_request* io_request)
@@ -310,7 +304,7 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	t_llist_node* node = NULL;
 	int k = 0;
 	int s;
-	
+
 	device_desc = io_request->device_desc;
 	//Entrypoint mutual exclusion region.
 	//Here all requestes are enqueued using semaphore internal queue.
@@ -379,6 +373,8 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	return 0;
 }
 
+
+//COMPLETELY BROKEN!!!!! IT WORKS BECAUSE USED AT STARTUP ONLY AS READ!!!!!!!!!!!!!!!!!!!!!!!!!..
 static unsigned int _p_read_write_28_ata(t_io_request* io_request)
 {
 	int i;

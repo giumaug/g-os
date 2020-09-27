@@ -30,6 +30,11 @@
 #define SEEK_CUR 1
 #define SEEK_END 2
 
+#define FILE      1
+#define DIRECTORY 2
+
+#define INODE_CACHE_SIZE 1000
+
 #define INDIRECT_0_LIMIT  11
 #define INDIRECT_1_LIMIT  ((BLOCK_SIZE / 4) + 11)
 #define INDIRECT_2_LIMIT  ((BLOCK_SIZE / 4)*(BLOCK_SIZE / 4) + (BLOCK_SIZE / 4) + 11)
@@ -136,6 +141,13 @@ typedef struct s_superblock
 	struct s_ext2* ext2;	
 	u32 s_block_group_size;
 	u32 s_block_group_header_size;
+	char** group_block_list;
+	char* group_block_list_status;
+        char** group_block_bitmap_list;
+	char* group_block_bitmap_list_status;
+        struct s_hashtable* inode_map;
+        
+	u8 group_block_num;
 	//disk fields	
 	u32 s_inodes_count; 
 	u32 s_blocks_count; 
@@ -182,7 +194,7 @@ typedef struct s_superblock
 	u8 s_prealloc_blocks;
 	u8 s_prealloc_dir_blocks;
 	u16 s_padding1;
-	u32 s_reserved[204]; 
+	u32 s_reserved[816]; 
 }
 t_superblock;
 
@@ -208,10 +220,14 @@ typedef struct s_indirect_block
 }
 t_indirect_block;
 
+//IMPORTANT CONSIDERATION:INODE IS CONSIDERED A SHARED RESOURCE AMONG PROCESS.
+//SOME FILEDS ARE HOWEVER PER PROCESS I.E:FILE_OFFSET.WE NEED TO DECOUPLE INODE
+//IN TWO STRCTURES LIKE FILE_OBJECT AND INODE IN LINUX.FOR THE MOMENT RACE 
+//CONDITION ON PER PROCESS FILEDS LIKE FILE_OFFSET MUST BE MANAGED ON USER SPACE.
 typedef struct s_inode
 {
+	u32 counter;
 	u16 i_number;
-//	u32* indirect_block;
 	u32 last_block_num;
 	s32 last_file_block_num;
 	u32 file_offset;
@@ -234,14 +250,12 @@ typedef struct s_inode
 	u16 i_links_count;
 	u32 i_blocks;
 	u32 i_flags;
-	//union osd1;
 	u32 osd1;
 	u32 i_block[EXT2_N_BLOCKS];
 	u32 i_generation; 
 	u32 i_file_acl;
 	u32 i_dir_acl;
 	u32 i_faddr;
-	//union osd2;
 	u32 osd2_1;
 	u32 osd2_2;
 	u32 osd2_3;
