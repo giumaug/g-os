@@ -1,0 +1,9 @@
+1)start_bridge.sh
+
+1) cd /home/peppe/Desktop/qemu-2.5.0/build/i386-softmmu
+
+2) ./qemu-system-i386 -s -S  -m 1000M -hda /opt/virtutech/simics-3.0.31/workspace/c.img -hdb /opt/virtutech/simics-3.0.31/workspace/d.img  -monitor stdio -device e1000,netdev=net0,mac=00:0C:29:10:64:B9 -netdev tap,id=net0,script=no,ifname=tap0
+
+3) cd /home/peppe/Desktop/g-os
+
+4) cd /opt/virtutech/simics-3.0.31/workspace
