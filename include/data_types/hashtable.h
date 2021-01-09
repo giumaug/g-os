@@ -26,6 +26,7 @@ typedef t_bucket_data;
 t_hashtable* hashtable_init(u32 init_size);
 t_hashtable* dc_hashtable_init(u32 init_size,void (*data_destructor)(void*));
 void hashtable_free(t_hashtable* hashtable);
+void hashtable_dispose(t_hashtable* hashtable);
 void* hashtable_get(t_hashtable* hashtable,u32 key);
 void* hashtable_remove(t_hashtable* hashtable,u32 key);
 void hashtable_put(t_hashtable* hashtable,u32 key,void* value);

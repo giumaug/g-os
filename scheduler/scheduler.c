@@ -316,7 +316,7 @@ void _exit(int status)
 		delete_mem_reg(current_process->heap_mem_reg);
 		delete_mem_reg(current_process->ustack_mem_reg);
 	}
-	hashtable_free(current_process->file_desc);
+	hashtable_dispose(current_process->file_desc);
 	hashtable_free(current_process->socket_desc);
 	
 	hashtable_remove(system.process_info->pid_hash,current_process->pid);
@@ -430,9 +430,9 @@ u32 _exec(char* path,char* argv[])
 		current_process_context->elf_desc = elf_desc;
 	}
 
-	hashtable_free(current_process_context->file_desc);
+	hashtable_dispose(current_process_context->file_desc);
 	hashtable_free(current_process_context->socket_desc);
-	current_process_context->file_desc = dc_hashtable_init(PROCESS_INIT_FILE,&inode_free);
+	current_process_context->file_desc = hashtable_init(PROCESS_INIT_FILE);
 	current_process_context->socket_desc = dc_hashtable_init(PROCESS_INIT_SOCKET,&socket_free);
 	if (elf_loader_init(current_process_context->elf_desc,path) == -1)
 	{

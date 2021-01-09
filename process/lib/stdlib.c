@@ -72,6 +72,7 @@ void free(void *address)
 
 unsigned int rand()
 {
+		static unsigned int seed = SEED;
         seed = seed * 1103515245 + 12345;
         return (seed % ((unsigned int)RAND_MAX + 1));
 }

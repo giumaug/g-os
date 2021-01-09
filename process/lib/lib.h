@@ -10,9 +10,9 @@
 #define O_RDWR 0b100
 
 #define RAND_MAX 4294967294
+#define SEED 1
 #define IP(a,b,c,d)	(d | (c<<8) | (b<<16) | (a<<24))
 
-unsigned int seed;
 
 struct s_stat 
 {             

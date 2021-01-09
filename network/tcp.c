@@ -615,7 +615,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		}
 	}
 	//CHECK DUPLICATE ACK DEFINITION RFC5681
-	if (CHK_OVRFLW(tcp_conn_desc->snd_queue->nxt_snd,tcp_conn_desc->snd_queue->wnd_min) - (long long)tcp_conn_desc->snd_queue->wnd_min > 0)
+	if (CHK_OVRFLW(tcp_conn_desc->snd_queue->nxt_snd,tcp_conn_desc->snd_queue->wnd_min) - (long long)tcp_conn_desc->snd_queue->wnd_min > 0 && tcp_conn_desc->status != CLOSED)
 	{	
 		rcv_ack(tcp_conn_desc,ack_seq_num,data_len);
 	}
@@ -780,7 +780,6 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 		wnd_nxt = CHK_OVRFLW(tcp_conn_desc->snd_queue->nxt_snd,tcp_conn_desc->snd_queue->wnd_min);
 		if (skip_ack == 0)
 		{
-
 			word_to_ack = CHK_OVRFLW(ack_seq_num,tcp_conn_desc->snd_queue->wnd_min)  - tcp_queue->wnd_min;
 			tcp_queue->wnd_min = tcp_queue->wnd_min + word_to_ack;
 			buf_max = (long long)tcp_conn_desc->snd_queue->wnd_min + (long long)tcp_conn_desc->snd_queue->buf_size;
@@ -813,8 +812,16 @@ void update_snd_window(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 ack_da
 			goto EXIT;
 		}
 		//sender silly window avoidance
-		//implementation lacks receiver case!!! (this is sender case)		
-		w_size = wnd_r_limit - wnd_l_limit;
+		//implementation lacks receiver case!!! (this is sender case)
+		if (wnd_r_limit > wnd_l_limit)
+		{
+			w_size = wnd_r_limit - wnd_l_limit;
+		}
+		else 
+		{
+			w_size = wnd_r_limit + (4294967296 - wnd_l_limit);
+		}
+		
 		expected_ack = wnd_nxt - tcp_queue->wnd_min;
 		if (expected_ack == 0)
 		{
@@ -920,6 +927,11 @@ static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_n
 	u32 len_2;
 	u32 offset;
 	u32 seq_num;
+
+	if (data_to_send > 100000)
+	{
+		panic();
+	}
 
 	tcp_queue = tcp_conn_desc->snd_queue;
 	seq_num = indx;

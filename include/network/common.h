@@ -1,7 +1,8 @@
 #ifndef COMMON_NETWORK_H                
 #define COMMON_NETWORK_H
 
-#define VMWARE
+#define KVM
+//#define VMWARE
 //#define HOME_PC
 //#define WORK_PC
 //#define AMAZON
@@ -25,25 +26,31 @@
 #define ICMP_PROTOCOL	0x1
 
 #ifdef HOME_PC
-#define LOCAL_IP 	0xC0A80165
+#define LOCAL_IP 	    0xC0A80165
 #define LOCAL_NETMASK   0xFFFFFF00
 #define DEFAULT_GW_IP 	0xC0A80102
 #endif
 
+#ifdef KVM
+#define LOCAL_IP	    0xC0A87A65
+#define LOCAL_NETMASK   0xFFFFFF00
+#define DEFAULT_GW_IP   0xC0A87A02
+#endif
+
 #ifdef VMWARE
-#define LOCAL_IP	0xC0A8F765
+#define LOCAL_IP	    0xC0A8F765
 #define LOCAL_NETMASK   0xFFFFFF00
 #define DEFAULT_GW_IP   0xC0A8F702
 #endif
 
 #ifdef WORK_PC
-#define LOCAL_IP	0xC0A8ED65
+#define LOCAL_IP	    0xC0A8ED65
 #define LOCAL_NETMASK   0xFFFFFF00
 #define DEFAULT_GW_IP   0xC0A8ED02
 #endif
 
 #ifdef AMAZON
-#define LOCAL_IP	0xAC100665  
+#define LOCAL_IP	    0xAC100665  
 #define LOCAL_NETMASK   0xFFFFFF00
 #define DEFAULT_GW_IP   0xAC100664
 #endif

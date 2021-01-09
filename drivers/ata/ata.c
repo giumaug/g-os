@@ -106,7 +106,7 @@ t_device_desc* init_ata(u8 device_num)
 	bar4 = read_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_BAR4);
 	//BUS MASTER BIT SET-UP (2 bit starting from 0)
 	pci_command = read_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_COMMAND);
-     	pci_command |= 0x4;
+    pci_command |= 0x4;
 	write_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_COMMAND,pci_command);
 	//pci_command = read_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_COMMAND);
 
@@ -153,7 +153,7 @@ void int_handler_ata()
 	io_request = system.device_desc->serving_request;
 	process_context = io_request->process_context;
 
-	if (system.device_desc->status != POOLING_MODE)
+	if (system.device_desc->status == DEVICE_BUSY)  //POOLING_MODE
 	{
 		sem_up(&system.device_desc->sem);
 	}
@@ -161,7 +161,7 @@ void int_handler_ata()
 	{
 	 	system.force_scheduling = 1;
 	}
-	system.device_desc->status = DEVICE_IDLE;
+	//system.device_desc->status = DEVICE_IDLE;
 	enable_irq_line(14);
 	ENABLE_PREEMPTION
 	//--EXIT_INT_HANDLER(0,processor_reg)
@@ -286,10 +286,10 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 	cmd_status = in(0x1F7);
 	if ((cmd_status & 1) || dma_status & 1)
 	{
-		device_desc->status=DEVICE_IDLE;
 		panic();//only for debugger
 		ret = -1;
 	}
+	device_desc->status=DEVICE_IDLE;
 	//Endpoint mutual exclusion region
 	sem_up(&device_desc->mutex);
 	kfree(prd);
@@ -368,6 +368,7 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 			i=0;
 		}
 	}
+	device_desc->status=DEVICE_IDLE;
 	//Endpoint mutual exclusion region
 	sem_up(&device_desc->mutex);	
 	return 0;
@@ -437,6 +438,7 @@ static unsigned int _p_read_write_28_ata(t_io_request* io_request)
 		}
 	}
 	out(0x0,0x3F6);
+    device_desc->status=DEVICE_IDLE;
 	//Exitpoint mutual exclusion region
 	SPINLOCK_UNLOCK(spinlock);
 	return 0;

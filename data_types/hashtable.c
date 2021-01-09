@@ -126,6 +126,12 @@ void hashtable_free(t_hashtable* hashtable)
 	kfree(hashtable);
 }
 
+void hashtable_dispose(t_hashtable* hashtable)
+{
+	hashtable_free_bucket(hashtable->bucket,hashtable->size,hashtable->data_destructor,FALSE);
+	kfree(hashtable);
+}
+
 void* hashtable_get(t_hashtable* hashtable,u32 key)
 {
 	return hashtable_search(hashtable,key,FALSE);

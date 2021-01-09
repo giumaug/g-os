@@ -2,7 +2,6 @@
 #include "data_types/primitive_types.h"
 
 #include "system.h"
-t_system system;
 
 t_llist* new_dllist()
 {
@@ -24,7 +23,17 @@ t_llist* dc_new_dllist(void (*data_destructor)(void*))
 }
 
 t_llist_node *ll_insert_before(t_llist_node *node, void *val)
-{
+{ 
+	if (node > 0xf0000000)
+	{
+		panic();
+	}
+	else if (node->prev == NULL)
+	{
+		panic();
+	}
+
+
  	t_llist_node *newnode;
  	t_llist_node *prev_node = node->prev;
  	newnode = (t_llist_node *) kmalloc (sizeof(t_llist_node));

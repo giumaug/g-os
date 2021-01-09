@@ -180,7 +180,6 @@ t_i8254x* init_8254x()
 	i_desc.flags=0x08e00;
 	i_desc.baseHi=((int)&int_handler_i8254x)>>0x10;
 	set_idt_entry(0x20+i8254x->irq_line,&i_desc);
-	//qui ok!!
 
 	reset_multicast_array(i8254x);
 	rx_init_i8254x(i8254x);

@@ -7,7 +7,7 @@ int main(int argc, char* argv[])
 	int tot_read = 0;
 	char buffer[4096];
 
-	printf("starting process \n");
+	printf("starting process!!!!!!! \n");
 	//buffer = malloc(4096);
 	for (i = 0; i < 4096; i++)
 	{

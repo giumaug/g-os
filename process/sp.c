@@ -36,7 +36,7 @@ int main()
 	unsigned int port=21846;
     	struct sockaddr_in ssock;
 	//const char path[] = "/usr/src/kernels/g-os/network/tcp.c";
-	const char path[] = "/sample.txt";
+	const char path[] = "/xxx.txt";
 	char* io_buffer;
 	unsigned long current_len;
 	unsigned long file_len;
@@ -95,12 +95,13 @@ int main()
 				while (current_len > 0)
 				{
 					b_read = read(f,io_buffer,b_to_read);
+					io_buffer[4095]='\0';
 					//b_read = b_to_read;
-					ret = write_socket(client_sockfd,buffer_1,b_read);
+					ret = write_socket(client_sockfd,io_buffer,b_read);
 					//ret = 1;
 					while (ret <= 0 )
 					{
-						ret = write_socket(client_sockfd, buffer_1,b_read);
+						ret = write_socket(client_sockfd, io_buffer, b_read);
 						printf("error \n");
 					}			
 					current_len -= b_read;
@@ -226,7 +227,7 @@ int main_net()
 	while(1) 
 	{
 		check_free_mem();
-		printf("server waiting...++\n");
+		printf("server waiting \n");
 
 		client_len = sizeof(client_address);
 		client_sockfd = accept(server_sockfd,(struct sockaddr *)&client_address, &client_len);
@@ -234,28 +235,17 @@ int main_net()
 		printf("accepted \n");
 		if(fork() == 0) 
 		{
-			//stat(path,&stat_data);
-			//file_len = stat_data.st_size;
 			io_buffer = malloc(b_to_read);
 			//file_len = 1073741824;
 			file_len = 31457280;
-			//printf("file len is %d \n",file_len);
 			for (t = 0; t < 1;t++)
 			{
-				f = open(path, O_RDWR | O_APPEND);
-				if (f == -1)
-				{
-					printf("file not found\n");
-					return;
-				}
-				printf("iter %d \n",t);
 				current_len = file_len;
 				while (current_len > 0)
 				{
-					b_read = read(f,io_buffer,b_to_read);
-					//b_read = b_to_read;
+					b_read = b_to_read;
 					ret = write_socket(client_sockfd,buffer_1,b_read);
-					//ret = 1;
+					ret = 1;
 					while (ret <= 0 )
 					{
 						ret = write_socket(client_sockfd, buffer_1,b_read);
@@ -263,9 +253,8 @@ int main_net()
 					}			
 					current_len -= b_read;
 					io_buffer[b_read] = '\0';
+					printf("current len is %d \n",current_len);
 				}
-				//lseek(f,0,SEEK_SET);
-				close(f);
 			}
 			printf("end.----!!!\n");
 			close_socket(client_sockfd);

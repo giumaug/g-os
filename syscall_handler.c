@@ -43,6 +43,9 @@ void syscall_handler()
 	params=processor_reg.ecx;
 	flush_network = 0;
 
+	//printk("syscall num = %d \n",syscall_num);
+	//printk("fg_pgid = %d \n",console_desc->fg_pgid);
+
 	switch (syscall_num) 
 	{
 		case 1:

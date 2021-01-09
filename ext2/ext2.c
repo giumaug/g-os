@@ -57,7 +57,6 @@ void free_ext2(t_ext2* ext2)
 		{
 			kfree(ext2->superblock->group_block_bitmap_list[i]);
 		}
-
 	}
 	kfree(ext2->superblock->group_block_list_status);
 	kfree(ext2->superblock->group_block_bitmap_list_status);
@@ -147,7 +146,7 @@ int _close(t_ext2* ext2, int fd)
 	inode->counter--;
 	if (inode->counter == 0)
 	{
-		ret = inode_free(inode);
+		ret = inode_prealloc_block_free(inode);
 	}
 	sync_fs(ext2);
 	//AT THE MOMENT NO REQUIRED	
@@ -195,7 +194,6 @@ static void sync_fs(t_ext2* ext2)
 
 static t_indirect_block* indirect_block_init()
 {
-	static indirect = 0;
 	int i = 0;
 	t_indirect_block* indirect_block = NULL;
 
@@ -207,7 +205,6 @@ static t_indirect_block* indirect_block_init()
 		indirect_block->block_map[i] = NULL;
 		indirect_block->block[i] = NULL;
 	}
-	indirect +=2;
 	return indirect_block;
 }
 
@@ -256,39 +253,13 @@ void _read_test(t_ext2* ext2)
 	return;	
 }
 
-//t_indirect_block* clone_indirect_block(t_indirect_block* indirect_block)
-//{
-//	int i;
-//	t_indirect_block* cloned_indirect_block = NULL;
-//	
-//	cloned_indirect_block = kmalloc(sizeof(t_indirect_block));
-//	cloned_indirect_block->block = kmalloc(BLOCK_SIZE);
-//
-//	for (i = 0 ;i <  BLOCK_SIZE; i++)
-//	{
-//		if (indirect_block->block_map[i] != NULL)
-//		{
-//			 cloned_indirect_block->block_map[i] = clone_indirect_block(indirect_block->block_map[i]);
-//		}
-//		else
-//		{
-//			cloned_indirect_block->block_map[i] = NULL;
-//		}
-//	}
-//	for (i = 0 ;i <  BLOCK_SIZE; i++)
-//	{
-//		cloned_indirect_block->block = indirect_block->block;
-//	}
-//	return cloned_indirect_block;
-//}
-
 t_hashtable* clone_file_desc(t_hashtable* file_desc)
 {
 	int i;
 	t_inode* inode = NULL;
 	t_hashtable* cloned_file_desc = NULL;
 
-	cloned_file_desc = dc_hashtable_init(PROCESS_INIT_FILE, &inode_free);
+	cloned_file_desc = hashtable_init(PROCESS_INIT_FILE);
 	for (i = 0; i < file_desc->size;i++)
 	{
 		inode = hashtable_get(file_desc, i);
@@ -300,23 +271,6 @@ t_hashtable* clone_file_desc(t_hashtable* file_desc)
 	}
 	return cloned_file_desc;
 }
-
-//t_inode* inode_clone(t_inode* inode)
-//{
-//	t_inode* cloned_inode = NULL;
-//	
-//	cloned_inode = inode_init(inode->ext2);
-//	kmemcpy(cloned_inode,inode,sizeof(t_inode));
-//	if (inode->indirect_block_1 != NULL)
-//	{
-//		cloned_inode->indirect_block_1 = clone_indirect_block(inode->indirect_block_1);
-//	}
-//	if (inode->indirect_block_2 != NULL)
-//	{
-//		cloned_inode->indirect_block_2 = clone_indirect_block(inode->indirect_block_2);
-//	}
-//	return cloned_inode;
-//}
 
 t_inode* inode_init(t_ext2* ext2)
 {
@@ -361,11 +315,27 @@ t_inode* inode_init(t_ext2* ext2)
 	return inode;
 }
 
+void inode_prealloc_block_free(t_inode* inode)
+{
+	char* io_buffer = NULL;
+	t_group_block* group_block = NULL;
+	u32 group_block_index;
+	
+	if (inode->preallocated_block_count > 0)
+	{
+		sem_down(inode->ext2->sem);
+		group_block_index = inode->first_preallocated_block / inode->ext2->superblock->s_blocks_per_group;
+		group_block = read_group_block(inode->ext2, group_block_index);
+		io_buffer = read_block_bitmap(inode->ext2, group_block->bg_block_bitmap, group_block_index);
+		discard_prealloc_block(inode->ext2, group_block, inode, io_buffer);
+		write_block_bitmap(inode->ext2, group_block->bg_block_bitmap, io_buffer, group_block_index, 0);
+		write_group_block(inode->ext2, group_block_index, group_block, 0);
+		sem_up(inode->ext2->sem);
+	}
+}
+
 int inode_free(t_inode* inode)
 {
-	t_group_block* group_block = NULL;
-	char* io_buffer = NULL;
-	u32 group_block_index;
 	int ret = -1;
 	
 	if (inode != NULL)
@@ -382,22 +352,7 @@ int inode_free(t_inode* inode)
 		{	
 			inode_free(inode->parent_dir);
 		}
-		if (inode->preallocated_block_count > 0)
-		{
-			sem_down(inode->ext2->sem);
-			//group_block = kmalloc(sizeof(t_group_block));
-			//io_buffer = kmalloc(BLOCK_SIZE);
-			group_block_index = inode->first_preallocated_block / inode->ext2->superblock->s_blocks_per_group;
-			group_block = read_group_block(inode->ext2, group_block_index);
-			io_buffer = read_block_bitmap(inode->ext2, group_block->bg_block_bitmap, group_block_index);
-			discard_prealloc_block(inode->ext2, group_block, inode, io_buffer);
-			write_block_bitmap(inode->ext2, group_block->bg_block_bitmap, io_buffer, group_block_index, 0);
-			write_group_block(inode->ext2, group_block_index, group_block, 0);
-			//write_superblock(inode->ext2);
-			sem_up(inode->ext2->sem);
-			//kfree(group_block);
-			//kfree(io_buffer);
-		}
+		inode_prealloc_block_free(inode);
 		kfree(inode);
 		ret = 0;
 	}
@@ -494,10 +449,6 @@ int _read_write(t_ext2* ext2, int fd, void* buf, u32 count, u8 op_type, u8 is_dm
 	
 	for (i = first_inode_block; i <= last_inode_block; i++)
 	{
-		if (last_inode_block - first_inode_block > 2)
-		{
-			panic();
-		}
 		if (i > INDIRECT_0_LIMIT && i <= INDIRECT_1_LIMIT)
 		{
 			first_block_offset = (i - INDIRECT_0_LIMIT - 1);
@@ -593,6 +544,10 @@ int _read_write(t_ext2* ext2, int fd, void* buf, u32 count, u8 op_type, u8 is_dm
 					block_disk = kmalloc(sizeof(t_block_disk));
 					block_disk->lba = FROM_BLOCK_TO_LBA(inode->i_block[13]);
 					block_disk->data = inode->indirect_block_2->block;
+					if (block_disk_list == NULL)
+					{
+						panic();
+					}
 					ll_append(block_disk_list, block_disk);
 				}
 			}
@@ -751,11 +706,6 @@ int _read_write(t_ext2* ext2, int fd, void* buf, u32 count, u8 op_type, u8 is_dm
 		next = first;
 		for (i = 0; i < dma_lba_list_size; i++)
 		{
-			if (dma_lba_list_size > 2)
-			{
-				panic();
-			}
-
 			dma_buf_offset = 0;
 			dma_lba = next->val;
 			len = dma_lba->sector_count * SECTOR_SIZE;
@@ -789,10 +739,6 @@ int _read_write(t_ext2* ext2, int fd, void* buf, u32 count, u8 op_type, u8 is_dm
 					READ((BLOCK_SIZE/SECTOR_SIZE),dma_lba->lba,aligned_dma_buffer);
 				}
 				kmemcpy(aligned_dma_buffer + dma_buf_offset, buf + buf_offset, byte_count);
-				if (dma_lba->lba >= 2050 && dma_lba->lba <= 3074)
-				{
-					panic();
-				}
 				WRITE_DMA(dma_lba->sector_count, dma_lba->lba, phy_dma_buffer);
 			}
 			buf_offset += byte_count;

@@ -15,7 +15,9 @@ void exception()
 
 void int_handler_generic() 
 { 
-	exception(); 
+	exception();
+	EOI_TO_SLAVE_PIC
+	EOI_TO_MASTER_PIC
 	STI
 	asm("pop %ebp;iret");
 	return;

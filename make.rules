@@ -1,9 +1,13 @@
 #BASE_DIR	=/home/ec2-user/g-os
-BASE_DIR    =/home/peppe/Desktop/g-os
+BASE_DIR    =/home/peppe/Scrivania/g-os
 INCLUDE		=$(BASE_DIR)/include
 MAKE 		= make
 CC		= gcc 
 LD		= ld
-CFLAGS		= -gstabs+ -c -fno-builtin -m32 -funit-at-a-time
+
+#Switching to gcc 10.2.1 stabs symbols seems not to work with gdb 9.2.7 in interrupt context with local variable.
+CFLAGS		= -O0 -gdwarf -c -fno-builtin -m32
+#CFLAGS		= -O0 -gstabs+ -c -fno-builtin -m32
+#CFLAGS		= -O0 -gstabs+ -c -fno-builtin -m32 -funit-at-a-time
 #CFLAGS		= -O2 -gstabs+ -c -fno-builtin -m32
 CPPFLAGS	=-I $(INCLUDE) 

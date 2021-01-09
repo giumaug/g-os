@@ -49,12 +49,16 @@ void rcv_packet_mac(t_data_sckt_buf* data_sckt_buf)
 	{
 		rcv_packet_arp(data_sckt_buf);
 	}
-	else
+	else if (protocol_type == 0x800)
 	{
 		src_mac=kmalloc(sizeof(t_mac_addr));
 		src_mac->hi = GET_WORD(mac_row_packet[6],mac_row_packet[7]);
 		src_mac->mi = GET_WORD(mac_row_packet[8],mac_row_packet[9]);
 		src_mac->lo = GET_WORD(mac_row_packet[10],mac_row_packet[11]); 
 		rcv_packet_ip4(data_sckt_buf,src_mac);
+	}
+	else
+	{
+		free_sckt(data_sckt_buf);
 	}
 }

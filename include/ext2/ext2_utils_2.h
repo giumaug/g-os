@@ -71,10 +71,6 @@ static int alloc_indirect_block(t_ext2* ext2,t_inode* i_node)
 		ext2->superblock->s_free_blocks_count--;
 		//write_superblock(ext2);
 		ret = indirect_block;
-		if (ret == 8192)
-		{
-			panic();
-		}
 	}
 	else 
 	{
