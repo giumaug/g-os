@@ -260,7 +260,11 @@ void syscall_handler()
 
 		case 103:
 		check_free_mem();
-		break;		
+		break;
+
+		case 200:
+		flush_inode_cache(system.root_fs);
+		break;	
 
 		default:
 		panic();

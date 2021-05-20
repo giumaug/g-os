@@ -228,11 +228,11 @@ void int_handler_i8254x()
 		start_link_i8254x(i8254x);
 		printk("what a fuck!!!! \n");
 	}
-	else if(status & ICR_RXO)
-	{
-		printk("overrun!!!! \n");
-	}
-	else if ((status & ICR_RXT0))
+//	else if(status & ICR_RXO)
+//	{
+//		printk("overrun!!!! \n");
+//	}
+	else if ((status & ICR_RXT0) || (status & ICR_RXO))
 	{
 		cur=i8254x->rx_cur;
 		rx_desc=i8254x->rx_desc;

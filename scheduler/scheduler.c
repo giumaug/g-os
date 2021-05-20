@@ -287,6 +287,11 @@ void _exit(int status)
 			asm("sti;hlt");
 		}
 	}
+	if (current_process->elf_desc != NULL)
+	{
+		elf_loader_free(current_process->elf_desc);
+		kfree(current_process->elf_desc);
+	}
 	current_process->proc_status = EXITING;
 	sentinel = ll_sentinel(system.process_info->pause_queue);
 	next = ll_first(system.process_info->pause_queue);
@@ -305,11 +310,11 @@ void _exit(int status)
 		next = ll_next(next);
 		next_process=next->val;
 	}
-	if (current_process->elf_desc != NULL)
-	{
-		elf_loader_free(current_process->elf_desc);
-		kfree(current_process->elf_desc);
-	}
+//	if (current_process->elf_desc != NULL)
+//	{
+//		elf_loader_free(current_process->elf_desc);
+//		kfree(current_process->elf_desc);
+//	}
 	if (current_process->process_type == USERSPACE_PROCESS)
 	{
 		delete_mem_reg(current_process->process_mem_reg);

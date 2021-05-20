@@ -31,11 +31,11 @@ int main(int argc, char* argv[])
 				"/ddd1/ddd2/ddd3/ddd4",
 				"/ddd1/ddd2/ddd3/ddd4/ddd5"
 			   };
-//	mkdir("/aaa1");
-//	write_file("/aaa1");
+	mkdir("/aaa1");
+	write_file("/aaa1");
 //	remove("/aaa1");
-//	exit(0);
-	for (z = 0; z < 499; z++)
+	exit(0);
+	for (z = 0; z < 1; z++)
 	{
 		printf("iteration number %d \n",z);
 		mkdir("/aaa1");
@@ -49,36 +49,32 @@ int main(int argc, char* argv[])
 			printf("overflow on dir_num %d \n",sub_dir_num);
 			while(1);
 		}
-		//dir_num = 5;
+		dir_num = 5;
 		//printf("dir_num is %d \n",dir_num);
 		for (i = 0; i < dir_num; i++)
 		{
 			sub_dir_num = (rand() % 5 + 1);
 			//sub_dir_num = 5;
-			if (sub_dir_num > 5)
-			{
-				printf("overflow on sub_dir_num %d \n",sub_dir_num);
-				while(1);
-			}
 			//printf("sub_dir_num is %d \n",sub_dir_num);
 			write_file(dirs[i]);
 			for (j = 0; j < sub_dir_num; j++)
 			{
+				full_path[0] = '\0';
 				strcat(full_path, dirs[i]);
 				strcat(full_path, sub_dirs[j]);
 				//Linux version.
 				//mkdir(full_path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-				//printf("full_path is %s \n",full_path);
+				printf("full_path is %s \n",full_path);
 				mkdir(full_path);
+				printf(".....\n");
 				write_file(full_path);
-				full_path[0] = '\0';
 			}
 		}
-		remove("/aaa1");
-		remove("/aaa2");
-		remove("/aaa3");
-		remove("/aaa4");
-		remove("/aaa5");
+		//remove("/aaa1");
+		//remove("/aaa2");
+		//remove("/aaa3");
+		//remove("/aaa4");
+		//remove("/aaa5");
 	}
 	exit(0);
 }
@@ -96,7 +92,7 @@ void write_file(char* src_path)
 
 	src_path_len = strlen(src_path);
 	file_names = malloc(500 * sizeof(char*));
-	for ( i = 0 ; i < 500; i++)
+	for ( i = 0 ; i <= 499; i++)
 	{
 		file_names[i] = malloc(30 + src_path_len);
 		strcpy(file_names[i], src_path);
@@ -140,7 +136,7 @@ void write_file(char* src_path)
 		}
 	}
 
-//	for (i = 0; i <= 499; i++)
+//	for (i = 0; i <= 1; i++)
 //	{
 //		printf("name is %s \n",file_names[i]);
 //	}
@@ -166,4 +162,5 @@ void write_file(char* src_path)
 		free(file_names[i]);
 	}
 	free(file_names);
+	flush_inode_cache();
 }

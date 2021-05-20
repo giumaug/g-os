@@ -173,6 +173,10 @@ void* kmalloc(unsigned int mem_size)
 //		collect_mem_alloc(mem_add);
 //	}
 	RESTORE_IF_STATUS
+	if (mem_add == 0xc1da396a)
+	{
+		printk("o");
+	}
 	return mem_add;
 }
 
@@ -297,6 +301,10 @@ void kfree(void *address)
 //	{
 //		collect_mem_free(address);
 //	}
+	if (address == 0xc1da396a)
+	{
+		printk("c");
+	}
 	RESTORE_IF_STATUS
 }
 

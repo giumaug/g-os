@@ -10,3 +10,10 @@ int open(const char *fullpath, int flags)
 	return  params[2];
 }
 
+void flush_inode_cache()
+{
+	unsigned int params[1];
+
+	SYSCALL(200, params);
+}
+

@@ -67,7 +67,7 @@ u32 elf_loader_free(t_elf_desc* elf_desc)
  	ext2 = system.root_fs;
 	if (elf_desc->file_desc != -1)
 	{
-		//_close(ext2,elf_desc->file_desc);
+		_close(ext2,elf_desc->file_desc);
 	}
 }
 

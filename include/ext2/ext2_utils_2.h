@@ -1,3 +1,43 @@
+static char* read_inode_bitmap(t_ext2* ext2, u32 bg_inode_bitmap, u32 group_block_index)
+{
+	u32 lba;
+	u32 sector_count;
+	char* io_buffer = NULL;
+
+	if (ext2->superblock->group_inode_bitmap_list[group_block_index] == NULL)
+	{
+		io_buffer = kmalloc(BLOCK_SIZE);
+       	lba = ext2->partition_start_sector + (bg_inode_bitmap * BLOCK_SIZE / SECTOR_SIZE);
+        sector_count = BLOCK_SIZE / SECTOR_SIZE;
+		READ(sector_count, lba, io_buffer);
+		ext2->superblock->group_inode_bitmap_list[group_block_index] = io_buffer;
+	}
+	else
+	{
+		system.read_bitmap_count++;
+		io_buffer = ext2->superblock->group_inode_bitmap_list[group_block_index];
+	}
+	return io_buffer;
+}
+
+static void write_inode_bitmap(t_ext2* ext2, u32 bg_inode_bitmap, void* io_buffer, u32 group_block_index, u8 store_on_disk)
+{
+	u32 lba;
+	u32 sector_count;
+
+	if (store_on_disk == 0)
+	{
+		ext2->superblock->group_inode_bitmap_list_status[group_block_index] = 1;
+	}
+	else
+	{
+		ext2->superblock->group_inode_bitmap_list_status[group_block_index] = 0;	
+        lba = ext2->partition_start_sector + (bg_inode_bitmap * BLOCK_SIZE / SECTOR_SIZE);
+        sector_count = BLOCK_SIZE / SECTOR_SIZE;
+		WRITE(sector_count, lba, io_buffer);
+	}
+}
+
 static char* read_block_bitmap(t_ext2* ext2, u32 bg_block_bitmap, u32 group_block_index)
 {
 	u32 lba;
@@ -7,8 +47,8 @@ static char* read_block_bitmap(t_ext2* ext2, u32 bg_block_bitmap, u32 group_bloc
 	if (ext2->superblock->group_block_bitmap_list[group_block_index] == NULL)
 	{
 		io_buffer = kmalloc(BLOCK_SIZE);
-       		lba = ext2->partition_start_sector + (bg_block_bitmap * BLOCK_SIZE / SECTOR_SIZE);
-        	sector_count = BLOCK_SIZE / SECTOR_SIZE;
+       	lba = ext2->partition_start_sector + (bg_block_bitmap * BLOCK_SIZE / SECTOR_SIZE);
+        sector_count = BLOCK_SIZE / SECTOR_SIZE;
 		READ(sector_count, lba, io_buffer);
 		ext2->superblock->group_block_bitmap_list[group_block_index] = io_buffer;
 	}
@@ -32,8 +72,8 @@ static void write_block_bitmap(t_ext2* ext2, u32 bg_block_bitmap, void* io_buffe
 	else
 	{
 		ext2->superblock->group_block_bitmap_list_status[group_block_index] = 0;	
-        	lba = ext2->partition_start_sector + (bg_block_bitmap * BLOCK_SIZE / SECTOR_SIZE);
-        	sector_count = BLOCK_SIZE / SECTOR_SIZE;
+        lba = ext2->partition_start_sector + (bg_block_bitmap * BLOCK_SIZE / SECTOR_SIZE);
+        sector_count = BLOCK_SIZE / SECTOR_SIZE;
 		WRITE(sector_count, lba, io_buffer);
 	}
 }
@@ -293,64 +333,64 @@ void static read_superblock(t_ext2* ext2)
 struct s_ext2;
 void static write_superblock(struct s_ext2* ext2)
 {
-        char* io_buffer = NULL;
+	char* io_buffer = NULL;
 	t_superblock* superblock = NULL;
 	
-        io_buffer=kmalloc(BLOCK_SIZE);
+   	io_buffer=kmalloc(BLOCK_SIZE);
 	superblock=ext2->superblock;
    
-        //u32
-        WRITE_DWORD(superblock->s_inodes_count, &io_buffer[0]);
-        WRITE_DWORD(superblock->s_blocks_count, &io_buffer[4]);
-        WRITE_DWORD(superblock->s_r_blocks_count, &io_buffer[8]);
-        WRITE_DWORD(superblock->s_free_blocks_count, &io_buffer[12]);
-        WRITE_DWORD(superblock->s_free_inodes_count, &io_buffer[16]);
-        WRITE_DWORD(superblock->s_first_data_block, &io_buffer[20]);
-        WRITE_DWORD(superblock->s_log_block_size, &io_buffer[24]);
-        WRITE_DWORD(superblock->s_log_frag_size, &io_buffer[28]);
-        WRITE_DWORD(superblock->s_blocks_per_group, &io_buffer[32]);
-        WRITE_DWORD(superblock->s_frags_per_group, &io_buffer[36]);
-        WRITE_DWORD(superblock->s_inodes_per_group, &io_buffer[40]);
-        WRITE_DWORD(superblock->s_mtime, &io_buffer[44]);
-        WRITE_DWORD(superblock->s_wtime, &io_buffer[48]);
-        //u16
-        WRITE_WORD(superblock->s_mnt_count, &io_buffer[52]);    
-        WRITE_WORD(superblock->s_max_mnt_count, &io_buffer[54]);
-        WRITE_WORD(superblock->s_magic, &io_buffer[56]);
-        WRITE_WORD(superblock->s_state, &io_buffer[58]);
-        WRITE_WORD(superblock->s_errors, &io_buffer[60]);
-        WRITE_WORD(superblock->s_minor_rev_level, &io_buffer[62]);
-        //u32
-        WRITE_DWORD(superblock->s_lastcheck, &io_buffer[64]);        
-        WRITE_DWORD(superblock->s_checkinterval, &io_buffer[68]);
-        WRITE_DWORD(superblock->s_creator_os, &io_buffer[72]);
-        WRITE_DWORD(superblock->s_rev_level, &io_buffer[76]);
-        //u16
-        WRITE_WORD(superblock->s_def_resuid, &io_buffer[80]);          
-        WRITE_WORD(superblock->s_def_resgid, &io_buffer[82]);
-        //u32
-        WRITE_DWORD(superblock->s_first_ino, &io_buffer[84]);                    
-        //u16
-        WRITE_WORD(superblock->s_inode_size, &io_buffer[88]);
-        WRITE_WORD(superblock->s_block_group_nr, &io_buffer[90]);
-        //u32
-        WRITE_DWORD(superblock->s_feature_compat, &io_buffer[92]);
-        WRITE_DWORD(superblock->s_feature_incompat, &io_buffer[96]);
-        WRITE_DWORD(superblock->s_feature_ro_compat, &io_buffer[100]);
-        //u8[16]
+   	//u32
+   	WRITE_DWORD(superblock->s_inodes_count, &io_buffer[0]);
+  	WRITE_DWORD(superblock->s_blocks_count, &io_buffer[4]);
+   	WRITE_DWORD(superblock->s_r_blocks_count, &io_buffer[8]);
+   	WRITE_DWORD(superblock->s_free_blocks_count, &io_buffer[12]);
+   	WRITE_DWORD(superblock->s_free_inodes_count, &io_buffer[16]);
+   	WRITE_DWORD(superblock->s_first_data_block, &io_buffer[20]);
+   	WRITE_DWORD(superblock->s_log_block_size, &io_buffer[24]);
+   	WRITE_DWORD(superblock->s_log_frag_size, &io_buffer[28]);
+   	WRITE_DWORD(superblock->s_blocks_per_group, &io_buffer[32]);
+   	WRITE_DWORD(superblock->s_frags_per_group, &io_buffer[36]);
+   	WRITE_DWORD(superblock->s_inodes_per_group, &io_buffer[40]);
+   	WRITE_DWORD(superblock->s_mtime, &io_buffer[44]);
+   	WRITE_DWORD(superblock->s_wtime, &io_buffer[48]);
+   	//u16
+   	WRITE_WORD(superblock->s_mnt_count, &io_buffer[52]);    
+   	WRITE_WORD(superblock->s_max_mnt_count, &io_buffer[54]);
+   	WRITE_WORD(superblock->s_magic, &io_buffer[56]);
+   	WRITE_WORD(superblock->s_state, &io_buffer[58]);
+   	WRITE_WORD(superblock->s_errors, &io_buffer[60]);
+   	WRITE_WORD(superblock->s_minor_rev_level, &io_buffer[62]);
+   	//u32
+   	WRITE_DWORD(superblock->s_lastcheck, &io_buffer[64]);        
+  	WRITE_DWORD(superblock->s_checkinterval, &io_buffer[68]);
+   	WRITE_DWORD(superblock->s_creator_os, &io_buffer[72]);
+  	WRITE_DWORD(superblock->s_rev_level, &io_buffer[76]);
+   	//u16
+   	WRITE_WORD(superblock->s_def_resuid, &io_buffer[80]);          
+   	WRITE_WORD(superblock->s_def_resgid, &io_buffer[82]);
+  	//u32
+   	WRITE_DWORD(superblock->s_first_ino, &io_buffer[84]);                    
+   	//u16
+   	WRITE_WORD(superblock->s_inode_size, &io_buffer[88]);
+   	WRITE_WORD(superblock->s_block_group_nr, &io_buffer[90]);
+   	//u32
+   	WRITE_DWORD(superblock->s_feature_compat, &io_buffer[92]);
+   	WRITE_DWORD(superblock->s_feature_incompat, &io_buffer[96]);
+   	WRITE_DWORD(superblock->s_feature_ro_compat, &io_buffer[100]);
+   	//u8[16]
 	kmemcpy(&io_buffer[104], &superblock->s_uuid,16);
-        //s8[16]
+    //s8[16]
 	kmemcpy(&io_buffer[120], &superblock->s_volume_name,16);
-        //u64
+    //u64
 	kmemcpy(&io_buffer[136], &superblock->s_last_mounted,64);
-        //u32
-        WRITE_DWORD(superblock->s_algorithm_usage_bitmap, &io_buffer[200]);
-        //u8
-        WRITE_BYTE(superblock->s_prealloc_blocks, &io_buffer[204]);   
-        WRITE_BYTE(superblock->s_prealloc_dir_blocks, &io_buffer[205]);
-        //u16
-        WRITE_WORD(superblock->s_padding1, &io_buffer[206]);
-        //u32[204]
+    //u32
+    WRITE_DWORD(superblock->s_algorithm_usage_bitmap, &io_buffer[200]);
+    //u8
+    WRITE_BYTE(superblock->s_prealloc_blocks, &io_buffer[204]);   
+    WRITE_BYTE(superblock->s_prealloc_dir_blocks, &io_buffer[205]);
+    //u16
+    WRITE_WORD(superblock->s_padding1, &io_buffer[206]);
+    //u32[204]
 	kmemcpy(&io_buffer[208], &superblock->s_reserved, 816);
 
 	WRITE(2, (2 + ext2->partition_start_sector), io_buffer);
@@ -377,6 +417,7 @@ static void write_group_block(t_ext2* ext2, u32 group_block_number, t_group_bloc
 		sector_offset = (32 * group_block_number) % SECTOR_SIZE;
 		lba=(2 * BLOCK_SIZE) / SECTOR_SIZE + ext2->partition_start_sector + sector_number;
 		io_buffer =kmalloc(512);
+		READ(1, lba, io_buffer);
 
 		//u32
 		WRITE_DWORD(group_block->bg_block_bitmap, &io_buffer[0 + sector_offset]);
@@ -459,10 +500,9 @@ static t_inode* read_inode(t_ext2* ext2, u32 i_number)
 	char* io_buffer = NULL;
 	u32 group_i_number;
 
-	if (hashtable_get(ext2->superblock->inode_map, i_number) == NULL)
-	//if (ext2->superblock->inode_list[i_number] == NULL)
+	inode = get_inode_cache(ext2->superblock->inode_cache, i_number);
+	if (inode  == NULL)
 	{
-		//inode = kmalloc(sizeof(t_inode));
 		inode = inode_init(ext2);
 		inode->i_number = i_number;
 		io_buffer = kmalloc(BLOCK_SIZE);
@@ -530,14 +570,7 @@ static t_inode* read_inode(t_ext2* ext2, u32 i_number)
 		//u32 
 		READ_DWORD(&io_buffer[inode_offset + 124], inode->osd2_3);
 		kfree(io_buffer);
-		if (ext2->superblock->inode_map->elements < INODE_CACHE_SIZE)
-		{
-			hashtable_put(ext2->superblock->inode_map, i_number, inode);
-		}
-	}
-	else
-	{
-		inode = hashtable_get(ext2->superblock->inode_map, i_number);
+		put_inode_cache(ext2->superblock->inode_cache, inode);
 	}
 	return inode;
 }
@@ -554,15 +587,16 @@ void static write_inode(t_ext2* ext2, t_inode* inode, u8 store_on_disk, u8 lock)
 	char* io_buffer = NULL;
 	u32 group_i_number;
 
-        // I NEED TO LOCK AGANIST RACE ON INODE TABLE
+    // I NEED TO LOCK AGANIST RACE ON INODE TABLE
 	if (lock)
 	{
 		sem_down(ext2->sem);
 	}
-	if (hashtable_get(ext2->superblock->inode_map, inode->i_number) == NULL)
-		{
-			hashtable_put(ext2->superblock->inode_map, inode->i_number, inode);
-		}
+	
+    if (get_inode_cache(ext2->superblock->inode_cache, inode->i_number) == NULL)
+	{
+		put_inode_cache(ext2->superblock->inode_cache, inode);
+	}
 	if (store_on_disk == 1)
 	{
 		io_buffer = kmalloc(BLOCK_SIZE);	
@@ -761,40 +795,42 @@ u32 static find_free_inode(u32 group_block_index, t_ext2* ext2, u32 condition)
 	    || 
 	    (condition) == 0)
         {
-                lba = ext2->partition_start_sector + (group_block->bg_inode_bitmap * (BLOCK_SIZE / SECTOR_SIZE));
-                sector_count = BLOCK_SIZE / SECTOR_SIZE;
-		READ(sector_count,lba,io_buffer);
+        		//lba = ext2->partition_start_sector + (group_block->bg_inode_bitmap * (BLOCK_SIZE / SECTOR_SIZE));
+                //sector_count = BLOCK_SIZE / SECTOR_SIZE;
+				//READ(sector_count,lba,io_buffer);
+				io_buffer = read_inode_bitmap(ext2, group_block->bg_inode_bitmap, group_block_index);
 
-		current_byte = io_buffer;
+				current_byte = io_buffer;
                 while (inode_number == -1 && i < (inode_per_group / 8))
                 {
                         //current_byte = io_buffer++;
                         while (inode_number == -1 && j < 8)
                         {
-                                if (!((*current_byte) & (1 << j)))
+                        		if (!((*current_byte) & (1 << j)))
                                 {
-                                        inode_number = i * 8 + j + 1;//inode count starts from 1
-                                        *current_byte = *current_byte | 1 << j;
-					WRITE(sector_count,lba,io_buffer);
-					group_block->bg_free_inodes_count--;
-				        if (condition == 1)
-					{
-						group_block->bg_used_dirs_count++;
-					}
-					write_group_block(ext2,group_block_index,group_block, 0);
-					ext2->superblock->s_free_inodes_count--;
-					//write_superblock(ext2);
+                                	inode_number = i * 8 + j + 1;//inode count starts from 1
+                                    *current_byte = *current_byte | 1 << j;
+									//WRITE(sector_count,lba,io_buffer);
+									write_inode_bitmap(ext2, group_block->bg_inode_bitmap, io_buffer, group_block_index, 0);
+									group_block->bg_free_inodes_count--;
+				        			if (condition == 1)
+									{
+										group_block->bg_used_dirs_count++;
+									}
+									write_group_block(ext2,group_block_index,group_block, 0);
+									ext2->superblock->s_free_inodes_count--;
+									//write_superblock(ext2);
                                 }
                                 j++;
                         }
                         i++;
                         j = 0;
-			current_byte++;
+						current_byte++;
                 }
 	}
 	sem_up(ext2->sem);
 	//kfree(group_block);
-	kfree(io_buffer);
+	//kfree(io_buffer);
 	if (inode_number != -1)
 	{
 		inode_number = inode_number + (group_block_index * ext2->superblock->s_inodes_per_group);
@@ -820,15 +856,15 @@ int static find_free_block(char* io_buffer, u32 group_block_index, u32 fs_tot_bl
 	block_count = bitmap_block(fs_tot_block, fs_block_per_group, group_block_index);
         for (i = 0;i < block_count; i++)
         {
-		//i is an index not a logical block number
-		buffer_byte = RELATIVE_BITMAP_BYTE(i + 1, ext2->superblock->s_blocks_per_group);
-		byte_bit = RELATIVE_BITMAP_BIT(i + 1, ext2->superblock->s_blocks_per_group);
-                selected_bit = io_buffer[buffer_byte] & (1 << byte_bit);
-                if (selected_bit == 0)
-                {
-			selected_block = i;
-			break;
-		}   
+			//i is an index not a logical block number
+			buffer_byte = RELATIVE_BITMAP_BYTE(i + 1, ext2->superblock->s_blocks_per_group);
+			byte_bit = RELATIVE_BITMAP_BIT(i + 1, ext2->superblock->s_blocks_per_group);
+            selected_bit = io_buffer[buffer_byte] & (1 << byte_bit);
+            if (selected_bit == 0)
+            {
+				selected_block = i;
+				break;
+			}   
         }
 	if (selected_block != -1)
 	{
@@ -836,5 +872,5 @@ int static find_free_block(char* io_buffer, u32 group_block_index, u32 fs_tot_bl
 		selected_block += (group_block_index * BLOCK_SIZE * 8);
 		selected_block++;
 	}
-        return selected_block;      
+    return selected_block;      
 }

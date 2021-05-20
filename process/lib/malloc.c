@@ -104,12 +104,16 @@ void* _malloc(unsigned int mem_size)
 			malloc_initialized=1;
 		}
 		mem_add=a_usr_space_alloc(&a_fixed_size_desc[i]);
+		if (a_fixed_size_desc[i].current_free_block < 10)
+		{
+			printf("run of memory %d !!! \n",a_fixed_size_desc[i].current_free_block);
+		}
 	}
 	else 
 	{
-		mem_add=-1;
+		mem_add = -1;
 	}
-	if (a_fixed_size_desc[i].current_free_block < 10)
+	if (mem_add == -1)
 	{
 		printf("panic!!!! \n");
 		while(1);

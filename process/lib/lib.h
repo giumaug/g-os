@@ -70,6 +70,8 @@ enum sock_type
 
 //fcntl.h
 int open(const char *fullpath, int flags);
+//temporary system call
+void flush_inode_cache();
 
 //math.h
 unsigned int pow2(unsigned int x);

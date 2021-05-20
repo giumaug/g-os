@@ -136,6 +136,7 @@
 
 #define ENTRY_PAD(entry_len)  ((entry_len % 4) != 0 ?  4 - (entry_len % 4) : 0)
 
+struct s_inode_cache;
 typedef struct s_superblock
 {
 	struct s_ext2* ext2;	
@@ -143,9 +144,11 @@ typedef struct s_superblock
 	u32 s_block_group_header_size;
 	char** group_block_list;
 	char* group_block_list_status;
-        char** group_block_bitmap_list;
+    char** group_block_bitmap_list;
 	char* group_block_bitmap_list_status;
-        struct s_hashtable* inode_map;
+	char** group_inode_bitmap_list;
+	char* group_inode_bitmap_list_status;
+    struct s_inode_cache* inode_cache;
         
 	u8 group_block_num;
 	//disk fields	
@@ -235,7 +238,7 @@ typedef struct s_inode
 	s32 first_preallocated_block;
 	struct s_indirect_block* indirect_block_1;
 	struct s_indirect_block* indirect_block_2;
-	struct s_inode* parent_dir;
+	//struct s_inode* parent_dir;
 	struct s_ext2* ext2;
 
 	//disk fields
@@ -332,7 +335,10 @@ t_inode* inode_init(t_ext2* ext2);
 int inode_free(t_inode* inode);
 t_indirect_block* clone_indirect_block(t_indirect_block* indirect_block);
 t_hashtable* clone_file_desc(t_hashtable* file_desc);
+void flush_inode_cache(t_ext2* ext2);
+
 void _break();
 void _read_test(t_ext2* ext2);
+
 
 #endif

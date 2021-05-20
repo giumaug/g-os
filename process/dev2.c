@@ -11,7 +11,7 @@ int main(int argc, char* argv[])
 	char data;
 	int j;
 
-//      io_buffer_a = malloc(11);
+//  io_buffer_a = malloc(11);
 //	io_buffer_b = malloc(11);
 
 	io_buffer_a = malloc(1024);
@@ -27,13 +27,12 @@ int main(int argc, char* argv[])
 	}
 	
 	f = open(argv[1], O_CREAT | O_RDWR);
+                                      
 	//for (i = 0; i < 1572864; i++) //30841
 	//for (i = 0; i < 786432; i++)
 	//for (i = 0; i < 393216; i++)
 	//for (i = 0; i < 196608; i++)
-	//for (i = 0; i < 150000; i++)
-	for (i = 0; i < 1000; i++)
-
+	for (i = 0; i < 30841; i++)
 	{
 //		data = (i % 26) + 97;
 //		for (j = 0; j < 512; j++)
@@ -55,6 +54,7 @@ int main(int argc, char* argv[])
 	free(io_buffer_b);
 
 	//remove(argv[1]);
-	printf("end process %d \n",tot_read);
+	printf("end process... %d \n",tot_read);
+	flush_inode_cache();
 	exit(0);
 }

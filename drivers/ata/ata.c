@@ -277,6 +277,11 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 	out((unsigned char)(io_request->lba >> 8),0x1F4);
 	out((unsigned char)(io_request->lba >> 16),0x1F5);
 	out(io_request->command,0x1F7);
+
+	if (io_request->command == 0xCA && io_request->lba == 2052)
+	{
+		panic();
+	}
 	
 	write_ata_config_byte(device_desc,ATA_DMA_COMMAND_REG,0x1);
 	//semaphore to avoid race with interrupt handler
@@ -304,6 +309,11 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 	t_llist_node* node = NULL;
 	int k = 0;
 	int s;
+
+//	if (io_request->command == 0x30 && io_request->lba == 2052)
+//	{
+//		//panic();
+//	}
 
 	device_desc = io_request->device_desc;
 	//Entrypoint mutual exclusion region.
