@@ -73,13 +73,9 @@ int main()
 		//printf("accepted request %d \n",request_count++);
 		if(fork() == 0) 
 		{
-			process_request_3(client_sockfd);
-			//sleep(2000);
-			//printf("end child!!! \n");
-			//for (i = 0;i <= 5000;i++);
+			process_request(client_sockfd);
+			//process_request_3(client_sockfd);
 			close_socket(client_sockfd);
-			//sleep(10000);
-			//printf("end child!!! \n");
 			exit(0);
 		}
 		else 

@@ -502,6 +502,11 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		if (seq_num == tcp_conn_desc->rcv_queue->nxt_rcv)
 		{
 			tcp_conn_desc->status = CLOSE_WAIT;
+			if (tcp_conn_desc->process_context != NULL)
+			{
+				printk("awake here !!!! \n");
+				_awake(tcp_conn_desc->process_context);
+			}
 		}
 		else
 		{

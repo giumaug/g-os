@@ -150,41 +150,49 @@ int main (int argc, char* argv[])
 	if (pid == 0)
 	{		
 		exec(params_1[0], params_1);
+		printf("after exec \n");
 	}
 	pid = fork();
 	if (pid == 0)
 	{	
 		exec(params_2[0],params_2);
+		printf("after exec \n");
 	}
 	pid = fork();
 	if (pid == 0)
 	{	
 		exec(params_3[0], params_3);
+		printf("after exec \n");
 	}
 	pid = fork();
 	if (pid == 0)
 	{	
 		exec(params_4[0],params_4);
+		printf("after exec \n");
 	}
 	pid = fork();
 	if (pid == 0)
 	{	
 		exec(params_5[0], params_5);
+		printf("after exec \n");
 	}
 	pid = fork();
 	if (pid == 0)
 	{	
 		exec(params_6[0],params_6);
+		printf("after exec \n");
 	}
 	pid = fork();
 	if (pid == 0)
 	{	
 		exec(params_7[0], params_7);
+		printf("after exec \n");
 	}
 	pid = fork();
 	if (pid == 0)
 	{	
 		exec(params_8[0],params_8);
+		printf("after exec \n");
 	}
 /*
 	pid = fork();

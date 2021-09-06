@@ -157,6 +157,7 @@ void syscall_handler()
 		break;
 	
 		case 22:
+		printk("qui");
 		SELECT_FS(ext2)
 		params[1]=_rm(ext2,(char*)params[0]);
 		on_exit_action=1; 
@@ -263,7 +264,7 @@ void syscall_handler()
 		break;
 
 		case 200:
-		flush_inode_cache(system.root_fs);
+		flush_inode_cache(system.root_fs, 0);
 		break;	
 
 		default:

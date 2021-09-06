@@ -257,6 +257,11 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	{
 		tcp_queue = tcp_conn_desc->rcv_queue;
 		available_data = tcp_queue->nxt_rcv - tcp_queue->wnd_min;
+		if (tcp_conn_desc->status == CLOSE_WAIT && available_data == 0)
+		{
+			ret = 0;
+			goto EXIT;
+		}
 		while (available_data == 0)
 		{
 			tcp_conn_desc->process_context = current_process_context;

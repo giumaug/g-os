@@ -34,7 +34,7 @@ int main()
 	int index = 16;
 	int i,t,f;
 	unsigned int port=21846;
-    	struct sockaddr_in ssock;
+    struct sockaddr_in ssock;
 	//const char path[] = "/usr/src/kernels/g-os/network/tcp.c";
 	const char path[] = "/xxx.txt";
 	char* io_buffer;
@@ -82,7 +82,7 @@ int main()
 			//file_len = 1073741824;
 			file_len = 31457280;
 			//printf("file len is %d \n",file_len);
-			for (t = 0; t < 1;t++)
+			for (t = 0; t < 2;t++)
 			{
 				f = open(path, O_RDWR | O_APPEND);
 				if (f == -1)

@@ -211,7 +211,6 @@ int _close_socket(int sockfd)
 
 	CURRENT_PROCESS_CONTEXT(process_context);
 	socket = hashtable_remove(process_context->socket_desc,sockfd);
-	
 	socket_free(socket);
 }
 

@@ -31,10 +31,10 @@ int main(int argc, char* argv[])
 				"/ddd1/ddd2/ddd3/ddd4",
 				"/ddd1/ddd2/ddd3/ddd4/ddd5"
 			   };
-	mkdir("/aaa1");
-	write_file("/aaa1");
+//	mkdir("/aaa1");
+//	write_file("/aaa1");
 //	remove("/aaa1");
-	exit(0);
+//	exit(0);
 	for (z = 0; z < 1; z++)
 	{
 		printf("iteration number %d \n",z);
@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
 		for (i = 0; i < dir_num; i++)
 		{
 			sub_dir_num = (rand() % 5 + 1);
-			//sub_dir_num = 5;
+			sub_dir_num = 5;
 			//printf("sub_dir_num is %d \n",sub_dir_num);
 			write_file(dirs[i]);
 			for (j = 0; j < sub_dir_num; j++)
@@ -66,15 +66,15 @@ int main(int argc, char* argv[])
 				//mkdir(full_path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 				printf("full_path is %s \n",full_path);
 				mkdir(full_path);
-				printf(".....\n");
 				write_file(full_path);
 			}
 		}
-		//remove("/aaa1");
-		//remove("/aaa2");
-		//remove("/aaa3");
-		//remove("/aaa4");
-		//remove("/aaa5");
+		printf("--------------------------\n");
+		remove("/aaa1");
+		remove("/aaa2");
+		remove("/aaa3");
+		remove("/aaa4");
+		remove("/aaa5");
 	}
 	exit(0);
 }
@@ -162,5 +162,5 @@ void write_file(char* src_path)
 		free(file_names[i]);
 	}
 	free(file_names);
-	flush_inode_cache();
+	//flush_inode_cache();
 }

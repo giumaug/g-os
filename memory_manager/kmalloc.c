@@ -168,15 +168,16 @@ void* kmalloc(unsigned int mem_size)
 	{
 		panic();
 	}
+	if (i == 6 && a_fixed_size_desc[i].current_free_block < 100)
+	{
+		panic();
+	}
+
 //	if (collect_mem == 1)
 //	{
 //		collect_mem_alloc(mem_add);
 //	}
 	RESTORE_IF_STATUS
-	if (mem_add == 0xc1da396a)
-	{
-		printk("o");
-	}
 	return mem_add;
 }
 

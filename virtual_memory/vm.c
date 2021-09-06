@@ -406,11 +406,6 @@ void page_fault_handler()
 	aligned_fault_addr=fault_addr & (~(PAGE_SIZE-1));
 	parent_page_table=current_process_context->parent->page_dir;
 
-	PRINTK("page fault address=%d \n",fault_addr);
-	PRINTK("\n");
-
-	ustack_pointer=processor_reg.esp+20;
-
 	if (CHECK_MEM_REG(fault_addr,current_process_context->process_mem_reg)
 		    || CHECK_MEM_REG(fault_addr,current_process_context->heap_mem_reg)
 		    || CHECK_MEM_REG(fault_addr,current_process_context->ustack_mem_reg))
@@ -436,7 +431,7 @@ void page_fault_handler()
 			page_table=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*) current_process_context->page_dir)[pd_num]));
 			phy_fault_addr=ALIGN_4K(((unsigned int*) page_table)[pt_num]);
 			((unsigned int*) page_table)[pt_num] |= 7;
-                                
+     	                           
 			u32 tmp=BLOCK_INDEX_FROM_PHY(phy_fault_addr);
 			if (system.buddy_desc->count[BLOCK_INDEX_FROM_PHY(phy_fault_addr)]>1)
 			{
@@ -452,6 +447,7 @@ void page_fault_handler()
 			printk("Unexpected path!!! \n");
 		}
 	}
+    //*processor_reg.esp+20 is the user stack pointer.This case manages user stack enlargment.
 	else if ((fault_code & 0x4)==USER && ((*(u32*)(processor_reg.esp+20))-32)<=fault_addr)
 	{
 		current_process_context->ustack_mem_reg->start_addr=aligned_fault_addr;

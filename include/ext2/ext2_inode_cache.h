@@ -7,6 +7,7 @@ struct s_inode;
 typedef struct s_element
 {
 	struct s_inode* inode;
+	t_llist_node* list_ref;
 	long age;
 }
 t_element;
@@ -56,9 +57,9 @@ static void free_inode_cache(t_inode_cache* inode_cache)
 }
 
 //For the moment I flush everything, next I will implement a cleaver strategy.
-void flush_inode_cache(t_ext2* ext2)
+void flush_inode_cache(t_ext2* ext2, u8 lock)
 {
-	u32 i;
+	s32 i;
 	t_inode* inode = NULL;
 	t_element* element = NULL;
 	t_llist_node* next = NULL;
@@ -72,7 +73,10 @@ void flush_inode_cache(t_ext2* ext2)
 	inode_cache = ext2->superblock->inode_cache;
 	inode_count = inode_cache->map->elements;
 
-	sem_down(ext2->sem);
+	if (lock)
+	{
+		sem_down(ext2->sem);
+	}
 	inode_to_free = kmalloc(sizeof(t_llist_node*) * inode_count);
 	sentinel = ll_sentinel(inode_cache->list);
 	next = ll_first(inode_cache->list);
@@ -80,29 +84,35 @@ void flush_inode_cache(t_ext2* ext2)
 	{
 		element = (t_element*) next->val;
 		inode = element->inode;
-		printk("reading inode %d \n",inode->i_number);
 		if (inode->counter == 0)
 		{
 			index++;
 			inode_to_free[index] = next;
-			printk("inode zero ref %d \n",inode->i_number);
 		}
 		next=ll_next(next);
 	}
 
-	for (i = 0; i < index; i++) 
+	for (i = 0; i <= index; i++) 
 	{
-		next = inode_to_free[index];
+		next = inode_to_free[i];
 		element = (t_element*) next->val;
 		inode = element->inode;
 		hashtable_remove(inode_cache->map, inode->i_number);
-		write_inode(ext2, inode, 1, 0);
+		if (inode->status == 1)
+		{
+			write_inode(ext2, inode, 1, 0);
+		}
 		ll_delete_node(next);
-		element_free(element);
 		inode_prealloc_block_free(inode, 0);
-		inode_free(inode);
+		element_free(element);
 	}
-	sem_up(ext2->sem);
+	sync_fs(ext2, 0);
+	if (lock)
+	{
+		sem_up(ext2->sem);
+	}
+	printk("cache hashmap size = %d \n", inode_cache->map->elements);
+	printk("cache list size = %d \n", ll_size(inode_cache->list));
 }
 
 static void put_inode_cache(t_inode_cache* inode_cache,t_inode* inode)
@@ -113,12 +123,17 @@ static void put_inode_cache(t_inode_cache* inode_cache,t_inode* inode)
 	element = element_init();
 	element->inode = inode;
 	element->age = system.time;
-	
-	if (inode_cache->map->elements < INODE_CACHE_SIZE)
+
+	if ((float) (inode_cache->map->elements + 1) / (float) inode_cache->map->size > LOAD_FACTOR) 
 	{
-		hashtable_put(inode_cache->map, inode->i_number, element);
-		ll_append(inode_cache->list, element);
+		flush_inode_cache(inode->ext2, 0);
 	}
+	if (hashtable_get(inode_cache->map, inode->i_number != NULL))
+	{
+		panic();
+	}
+	hashtable_put(inode_cache->map, inode->i_number, element);
+	element->list_ref = ll_append(inode_cache->list, element);
 	sem_up(inode_cache->sem);
 }
 
@@ -132,9 +147,30 @@ static t_inode* get_inode_cache(t_inode_cache* inode_cache, u32 i_number)
 	if (element != NULL)
 	{
 		inode = element->inode;
+		inode->counter++;
 	}
 	sem_up(inode_cache->sem);
 	return inode;
+}
+
+static void remove_inode_cache(t_inode_cache* inode_cache, u32 i_number)
+{
+	t_inode* inode = NULL;
+	t_element* element = NULL;
+
+	sem_down(inode_cache->sem);
+	element = hashtable_remove(inode_cache->map, i_number);
+	if (hashtable_get(inode_cache->map, i_number) != NULL)
+	{
+		panic();
+	}
+	if (element != NULL)
+	{
+		inode = element->inode;
+		ll_delete_node(element->list_ref);
+		element_free(element);
+	}
+	sem_up(inode_cache->sem);
 }
 
 #endif

@@ -229,6 +229,7 @@ t_indirect_block;
 //CONDITION ON PER PROCESS FILEDS LIKE FILE_OFFSET MUST BE MANAGED ON USER SPACE.
 typedef struct s_inode
 {
+	u8 status;
 	u32 counter;
 	u16 i_number;
 	u32 last_block_num;
@@ -333,9 +334,10 @@ int _stat(t_ext2* ext2,char* pathname,t_stat* stat);
 t_inode* inode_clone(t_inode* inode);
 t_inode* inode_init(t_ext2* ext2);
 int inode_free(t_inode* inode);
+int inode_free_indirect_block(t_inode* inode);
 t_indirect_block* clone_indirect_block(t_indirect_block* indirect_block);
 t_hashtable* clone_file_desc(t_hashtable* file_desc);
-void flush_inode_cache(t_ext2* ext2);
+void flush_inode_cache(t_ext2* ext2, u8 lock);
 
 void _break();
 void _read_test(t_ext2* ext2);
