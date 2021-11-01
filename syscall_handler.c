@@ -157,7 +157,6 @@ void syscall_handler()
 		break;
 	
 		case 22:
-		printk("qui");
 		SELECT_FS(ext2)
 		params[1]=_rm(ext2,(char*)params[0]);
 		on_exit_action=1; 
@@ -198,7 +197,7 @@ void syscall_handler()
 		break;
 	
 		case 32:
- 		params[1]=_close_socket(params[0]);
+ 		params[0]=_close_socket(params[0]);
 		break;
 	
 		case 33:
@@ -261,6 +260,10 @@ void syscall_handler()
 
 		case 103:
 		check_free_mem();
+		break;
+
+        case 104:
+		panic();
 		break;
 
 		case 200:

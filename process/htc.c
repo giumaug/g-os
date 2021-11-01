@@ -13,9 +13,9 @@ int main (int argc, char* argv[])
 	char p_name[] = "/htcs";
 	char path_1[] = "/tcp.c";
 	char path_2[] = "/scheduler.c";
-	char path_3[] = "/buddy.c";
-	char path_4[] = "/vm.c";
-	char path_5[] = "/tcp_socket.c";
+	char path_3[] = "/vm.c";
+	char path_4[] = "/8042.c";
+	char path_5[] = "/ext2.c";
 	
 	params_1 = malloc(sizeof(char*) * 4);
 	params_1[0] = p_name;
@@ -53,24 +53,28 @@ int main (int argc, char* argv[])
 		exec(params_1[0], params_1);
 		printf("after exec \n");
 	}
+
 	pid = fork();
 	if (pid == 0)
 	{	
 		exec(params_2[0],params_2);
 		printf("after exec \n");
 	}
+
 	pid = fork();
 	if (pid == 0)
 	{	
 		exec(params_3[0], params_3);
 		printf("after exec \n");
 	}
+
 	pid = fork();
 	if (pid == 0)
 	{	
 		exec(params_4[0],params_4);
 		printf("after exec \n");
 	}
+
 	pid = fork();
 	if (pid == 0)
 	{	

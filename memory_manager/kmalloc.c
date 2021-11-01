@@ -302,10 +302,6 @@ void kfree(void *address)
 //	{
 //		collect_mem_free(address);
 //	}
-	if (address == 0xc1da396a)
-	{
-		printk("c");
-	}
 	RESTORE_IF_STATUS
 }
 

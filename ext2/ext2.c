@@ -116,7 +116,6 @@ int _open(t_ext2* ext2, const char* full_path, int flags)
 			{
 				inode_prealloc_block_free(inode, 1);
 				inode_free(inode);
-				panic();
 				return -1;
 			}
 			hashtable_put(current_process_context->file_desc, fd, inode);
@@ -139,6 +138,10 @@ int _open(t_ext2* ext2, const char* full_path, int flags)
 	{
 		hashtable_put(current_process_context->file_desc, fd, inode);
 		inode->file_offset = 0;
+		if (inode->i_number > 48) 
+		{
+			panic();
+		}
 	}
 	return fd;
 }
@@ -151,6 +154,12 @@ int _close(t_ext2* ext2, int fd)
 
 	CURRENT_PROCESS_CONTEXT(current_process_context)
 	inode = hashtable_remove(current_process_context->file_desc, fd);
+	if (inode == NULL)
+	{
+		printk("inode not found !!!!! \n");
+		panic();
+		return -1;
+	}
 	if (inode->status == 1)
 	{
 		write_inode(ext2, inode, 1, 1);
@@ -1112,7 +1121,9 @@ int _rm(t_ext2* ext2,char* fullpath)
 	t_inode* inode_dir = NULL;
 	char path[NAME_MAX];
 	char filename[NAME_MAX];
+	int dir_entry;
 
+	printk("path is %s \n",fullpath);
 	find_parent_path_and_filename(fullpath, path, filename);
 	inode = lookup_inode(fullpath, ext2);
 
@@ -1127,13 +1138,20 @@ int _rm(t_ext2* ext2,char* fullpath)
 	}
 	if (inode->i_mode  & 0x4000)
 	{
-		del_full_dir(ext2, inode, inode_dir, 1);
-		inode_dir->i_links_count--;
-		write_inode(ext2, inode_dir, 1, 1);
+		dir_entry = num_dir_entry(ext2, inode);
+		if (dir_entry == 2)
+		{
+			inode_dir->i_links_count--;
+			write_inode(ext2, inode_dir, 1, 1);
+			ret = del_dir_entry(ext2, inode_dir, inode);
+		}
 	}
-	inode->counter--;
-	inode_dir->counter--;
-	ret = del_dir_entry(ext2, inode_dir, inode);
+	else if (inode->i_mode  & 0x8000)
+	{
+		inode->counter--;
+		inode_dir->counter--;
+		ret = del_dir_entry(ext2, inode_dir, inode);
+	}
 	sync_fs(ext2, 1);
 EXIT:
 	return ret;

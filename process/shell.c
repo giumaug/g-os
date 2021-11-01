@@ -16,6 +16,7 @@ int main (int _argc, char* _argv[])
 	unsigned int index;
 	
 	printf("g-shell v 0.1 \n");
+	check_free_mem();
 	while(1)
 	{
 		argc = 0;

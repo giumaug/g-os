@@ -548,7 +548,6 @@ void _sleep_time(unsigned int time)
 	_sleep();
 	t2 = system.time;
 	current_process->sleep_wait_queue_ref = NULL;
-	printk("sleep for %d \n",(t2-t1));
 	RESTORE_IF_STATUS
 }
 
