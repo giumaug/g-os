@@ -623,7 +623,7 @@ void breakpoint()
 	return;
 }
 
-static t_inode* read_dir_inode(char* file_name, t_inode* parent_dir_inode, t_ext2* ext2)
+static t_inode* ___read_dir_inode(char* file_name, t_inode* parent_dir_inode, t_ext2* ext2)
 {
 	int i;
 	int j;
@@ -677,6 +677,79 @@ static t_inode* read_dir_inode(char* file_name, t_inode* parent_dir_inode, t_ext
 	}
 	if(found_inode == 1)
 	{
+		if (i_number == 0)
+		{
+			panic();
+		}
+		inode = read_inode(ext2, i_number);
+	}
+	else 
+	{
+		PRINTK("INODE NOT FOUND !!!!!!!!!!");
+		inode = NULL;
+	}
+	kfree(io_buffer);
+	sem_up(ext2->sem);
+	return inode;
+}
+
+static t_inode* read_dir_inode(char* file_name, t_inode* parent_dir_inode, t_ext2* ext2)
+{
+	int i;
+	int j;
+	u32 i_number;
+	u32 next_entry;
+	u32 name_len;
+	u32 rec_len;
+	char* io_buffer;
+	u32 lba;
+	u8 found_inode;
+	char file_name_entry[NAME_MAX];
+	//u32 ret_code = -1;
+	u32 file_name_len;
+	t_inode* inode = NULL;
+
+	int xxx = 0;
+
+	sem_down(ext2->sem);
+	// For directory inode supposed max 12 block	
+	for (i = 0; i <= 11; i++)
+	{
+		if (parent_dir_inode->i_block[i] == 0)
+		{	
+			break;
+		} 
+	}
+	io_buffer = kmalloc(BLOCK_SIZE);
+	for (j = 0; j <= (i - 1); j++)
+	{
+		lba = FROM_BLOCK_TO_LBA(parent_dir_inode->i_block[j]);
+		READ((BLOCK_SIZE / SECTOR_SIZE), lba, io_buffer);
+		found_inode = 0;
+		next_entry = 0;
+		file_name_len = strlen(file_name);
+		while(next_entry < BLOCK_SIZE)
+		{
+			READ_DWORD(&io_buffer[next_entry], i_number);
+			READ_BYTE(&io_buffer[next_entry + 6], name_len);
+			READ_WORD(&io_buffer[next_entry + 4], rec_len);
+			if (i_number != 0 && strncmp(file_name, &io_buffer[next_entry + 8], file_name_len) == 0) 
+			{
+				found_inode = 1;
+				goto EXIT;
+			}
+			xxx = next_entry;
+			next_entry += rec_len;
+		}
+	}
+
+EXIT:
+	if(found_inode == 1)
+	{
+		if (i_number == 0)
+		{
+			panic();
+		}
 		inode = read_inode(ext2, i_number);
 	}
 	else 

@@ -40,7 +40,7 @@ int main(int argc, char **argv)
 	((unsigned char*) &(send_addr.sin_port))[0]=((unsigned char*) &(port))[1];
 	((unsigned char*) &(send_addr.sin_port))[1]=((unsigned char*) &(port))[0];
 
-	iteration = 80;
+	iteration = 2;
 	printf("starting .... \n");
 
 	//check_free_mem();

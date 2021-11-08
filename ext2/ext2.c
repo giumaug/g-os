@@ -1123,7 +1123,6 @@ int _rm(t_ext2* ext2,char* fullpath)
 	char filename[NAME_MAX];
 	int dir_entry;
 
-	printk("path is %s \n",fullpath);
 	find_parent_path_and_filename(fullpath, path, filename);
 	inode = lookup_inode(fullpath, ext2);
 
