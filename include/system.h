@@ -65,7 +65,7 @@ typedef struct s_device_desc
 	unsigned int status;
 	t_io_request* serving_request;
 	t_sem_desc mutex;
-        t_sem_desc sem;
+    t_sem_desc sem;
 	u32 dma_pci_io_base;
 	u32 dma_pci_mem_base;
 	u8 dma_pci_bar_type;

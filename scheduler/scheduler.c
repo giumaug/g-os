@@ -437,7 +437,7 @@ u32 _exec(char* path,char* argv[])
 
 	hashtable_free(current_process_context->file_desc);
 	hashtable_free(current_process_context->socket_desc);
-	current_process_context->file_desc = hashtable_init(PROCESS_INIT_FILE);
+	current_process_context->file_desc = dc_hashtable_init(PROCESS_INIT_FILE, &file_free);
 	current_process_context->socket_desc = dc_hashtable_init(PROCESS_INIT_SOCKET,&socket_free);
 	if (elf_loader_init(current_process_context->elf_desc,path) == -1)
 	{

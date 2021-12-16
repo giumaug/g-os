@@ -26,7 +26,6 @@ int main(int argc, char* argv[])
 		printf("starting process!!!!!!! \n");
 		//printf("iteration %d \n", j);
 		f = open(argv[1], O_CREAT | O_RDWR);                                      
-		//for (i = 0; i < 1572864; i++) //30841
 		for (i = 0; i < 30841; i++)
 		//for (i = 0; i < 3080; i++)
 		{

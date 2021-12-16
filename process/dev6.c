@@ -18,7 +18,7 @@ int main(int argc, char* argv[])
 	}
 
 	f = open(argv[1], O_CREAT | O_RDWR);
-	for (i = 0; i < (30841 * 2); i++)
+	for (i = 0; i < 30841; i++)
 //	for (i = 0; i < 3080; i++)
 	{	
 		//printf("index is %d \n", i);

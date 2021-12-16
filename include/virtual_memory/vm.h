@@ -12,7 +12,7 @@
 #define PAGE_DIR_ENTRY PAGE_TABLE_ENTRY/0x400
 #define PROC_VIRT_MEM_START_ADDR 0x100000    //1M - 1G
 #define HEAP_VIRT_MEM_START_ADDR 0x40000000  //1G - 2G
-#define HEAP_INIT_SIZE 0x100000
+#define HEAP_INIT_SIZE 0x200000
 #define KERNEL_STACK 0xBFFFF000              //3G-4K hole
 #define KERNEL_STACK_SIZE 0x2000          
 #define USER_STACK 0xBFFFC000                //3G-4Khole -8K -4Khole    

@@ -46,7 +46,7 @@ int main()
 
 	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=192;
 	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=168;
-	((unsigned char*) &(server_address.sin_addr.s_addr))[2]=247;
+	((unsigned char*) &(server_address.sin_addr.s_addr))[2]=122;
         ((unsigned char*) &(server_address.sin_addr.s_addr))[3]=101;
 
 	((unsigned char*) &(server_address.sin_port))[0]=((unsigned char*) &(port))[1];
@@ -62,15 +62,18 @@ int main()
 	while(1) 
 	{
 		age++;
-		if (((age % 1000) == 0) || age > 100000)
+		if ((age % 10) == 0)
 		{
 			check_free_mem();
 		}
 		client_len = sizeof(client_address);
 		client_sockfd = accept(server_sockfd,(struct sockaddr *)&client_address, &client_len);
-		//sleep(5000);
 
-		//printf("accepted request %d \n",request_count++);
+//		if ((request_count % 100) == 0)
+//		{
+//			printf("accepted request %d \n",request_count++);
+//		}
+
 		if(fork() == 0) 
 		{
 			process_request(client_sockfd);
@@ -166,8 +169,8 @@ void process_request_2(int client_sockfd)
 void process_request(int client_sockfd)
 {
 	int ret = -1;
-	char get[100];
-	char path[100];
+	char get[1000];
+	char path[1000];
 	char content_len[10];
     	char* io_buffer;
 	t_stat stat_data;
@@ -180,7 +183,7 @@ void process_request(int client_sockfd)
 	const char root_path[] = "/usr/src/kernels/g-os";
 	const char text[] = "text/plain";
 	const char html[] = "text/html";
-	char http_header[200];
+	char http_header[2000];
 	char* p = NULL;
 	
 	char* http_response = NULL;
@@ -190,7 +193,7 @@ void process_request(int client_sockfd)
 	int b_read = 0;
 	int b_to_read = 4096;
 
-        char get2[100];	
+    char get2[1000];	
 	int get_index;
 
 	http_header_len = sizeof(http_header);

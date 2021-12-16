@@ -278,11 +278,6 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 	out((unsigned char)(io_request->lba >> 16),0x1F5);
 	out(io_request->command,0x1F7);
 
-	if (io_request->command == 0xCA && io_request->lba == 2052)
-	{
-		panic();
-	}
-	
 	write_ata_config_byte(device_desc,ATA_DMA_COMMAND_REG,0x1);
 	//semaphore to avoid race with interrupt handler
 	sem_down(&device_desc->sem);

@@ -91,15 +91,12 @@ static int alloc_indirect_block(t_ext2* ext2,t_inode* i_node)
 	u32 tot_fs_group;
 	u32 blocks_per_group;
 
-	sem_down(ext2->sem);
 	tot_fs_block = ext2->superblock->s_blocks_count;
 	blocks_per_group = ext2->superblock->s_blocks_per_group;
 	group_block_index = (i_node->i_number - 1) / ext2->superblock->s_inodes_per_group;
 	tot_fs_group = TOT_FS_GROUP(ext2->superblock->s_blocks_count, ext2->superblock->s_blocks_per_group);
 	ret = -1;
-	//group_block = kmalloc(sizeof(t_group_block));
 	group_block = read_group_block(ext2,group_block_index);
-	//io_buffer = kmalloc(BLOCK_SIZE);
 	io_buffer = read_block_bitmap(ext2,group_block->bg_block_bitmap,group_block_index);
 	rel_block = find_free_block(io_buffer, group_block_index, tot_fs_block, blocks_per_group, ext2);
 	if (rel_block != -1)
@@ -109,7 +106,7 @@ static int alloc_indirect_block(t_ext2* ext2,t_inode* i_node)
 		group_block->bg_free_blocks_count--;
 		write_group_block(ext2,group_block_index,group_block, 0);
 		ext2->superblock->s_free_blocks_count--;
-		//write_superblock(ext2);
+
 		ret = indirect_block;
 	}
 	else 
@@ -135,13 +132,10 @@ static int alloc_indirect_block(t_ext2* ext2,t_inode* i_node)
 			}
 		}
 	}
-	//kfree(io_buffer);
-	//kfree(group_block);
-	sem_up(ext2->sem);
 	return ret;	       
 }
 
-static void free_indirect_block(t_ext2* ext2,t_inode* i_node, u8 lock)
+static void free_indirect_block(t_ext2* ext2,t_inode* i_node)
 {
 	u32 buffer_byte;
 	u32 byte_bit;
@@ -150,26 +144,15 @@ static void free_indirect_block(t_ext2* ext2,t_inode* i_node, u8 lock)
 	t_group_block* group_block;
 	char* io_buffer = NULL;
 
-	if (lock)
-	{
-		sem_down(ext2->sem);
-	}
 	group_block_index = i_node->i_block[12] / ext2->superblock->s_blocks_per_group;
 	relative_block_address = i_node->i_block[12] % ext2->superblock->s_blocks_per_group;
-	group_block = kmalloc(sizeof(t_group_block));
 	group_block = read_group_block(ext2, group_block_index);
-	//io_buffer = kmalloc(BLOCK_SIZE);
 	io_buffer = read_block_bitmap(ext2, group_block->bg_block_bitmap,group_block_index);
 	buffer_byte = RELATIVE_BITMAP_BYTE(relative_block_address, ext2->superblock->s_blocks_per_group);
 	byte_bit = RELATIVE_BITMAP_BIT(relative_block_address, ext2->superblock->s_blocks_per_group);
 	io_buffer[buffer_byte] &= (255 &  ~ (2 >> byte_bit));
 	write_block_bitmap(ext2, group_block->bg_block_bitmap, io_buffer,group_block_index, 0);
 	write_group_block(ext2, group_block_index, group_block, 0);
-	if (lock) {
-		sem_up(ext2->sem);
-	}
-	//kfree(group_block);
-	//kfree(io_buffer);
 }
 
 static u32 read_indirect_block(t_ext2* ext2,t_inode* inode,u32 key)
@@ -512,7 +495,7 @@ static t_inode* read_inode(t_ext2* ext2, u32 i_number)
 	return inode;
 }
 
-void static write_inode(t_ext2* ext2, t_inode* inode, u8 store_on_disk, u8 lock)
+void static write_inode(t_ext2* ext2, t_inode* inode, u8 store_on_disk)
 {
 	u32 group_number;
 	u32 group_offset;
@@ -523,12 +506,6 @@ void static write_inode(t_ext2* ext2, t_inode* inode, u8 store_on_disk, u8 lock)
 	u32 sector_count;
 	char* io_buffer = NULL;
 	u32 group_i_number;
-
-    // I NEED TO LOCK AGANIST RACE ON INODE TABLE
-	if (lock)
-	{
-		sem_down(ext2->sem);
-	}
 	
     if (get_inode_cache(ext2->superblock->inode_cache, inode->i_number) == NULL)
 	{
@@ -612,85 +589,11 @@ void static write_inode(t_ext2* ext2, t_inode* inode, u8 store_on_disk, u8 lock)
 	{
 		inode->status = 1;
 	}
-	if (lock)
-	{
-		sem_up(ext2->sem);
-	}
 }
 
 void breakpoint()
 {
 	return;
-}
-
-static t_inode* ___read_dir_inode(char* file_name, t_inode* parent_dir_inode, t_ext2* ext2)
-{
-	int i;
-	int j;
-	u32 i_number;
-	u32 next_entry;
-	u32 name_len;
-	u32 rec_len;
-	char* io_buffer;
-	u32 lba;
-	u8 found_inode;
-	char file_name_entry[NAME_MAX];
-	//u32 ret_code = -1;
-	u32 file_name_len;
-	t_inode* inode = NULL;
-
-	int xxx = 0;
-
-	sem_down(ext2->sem);
-	// For directory inode supposed max 12 block	
-	for (i = 0; i <= 11; i++)
-	{
-		if (parent_dir_inode->i_block[i] == 0)
-		{	
-			break;
-		} 
-	}
-	io_buffer = kmalloc(BLOCK_SIZE * (i + 1));
-
-	for (j = 0; j <= (i - 1); j++)
-	{
-		lba = FROM_BLOCK_TO_LBA(parent_dir_inode->i_block[j]);
-		READ((BLOCK_SIZE / SECTOR_SIZE), lba, (io_buffer + BLOCK_SIZE * j));
-	}
-
-	found_inode = 0;
-	next_entry = 0;
-	file_name_len = strlen(file_name);
-	while(next_entry < i * BLOCK_SIZE)
-	{
-		j = 0;
-		READ_DWORD(&io_buffer[next_entry], i_number);
-		READ_BYTE(&io_buffer[next_entry + 6], name_len);
-		READ_WORD(&io_buffer[next_entry + 4], rec_len);
-		if (strncmp(file_name, &io_buffer[next_entry + 8 + j], file_name_len) == 0) 
-		{
-			found_inode = 1;
-			break;
-		}
-		xxx = next_entry;
-		next_entry += rec_len;
-	}
-	if(found_inode == 1)
-	{
-		if (i_number == 0)
-		{
-			panic();
-		}
-		inode = read_inode(ext2, i_number);
-	}
-	else 
-	{
-		PRINTK("INODE NOT FOUND !!!!!!!!!!");
-		inode = NULL;
-	}
-	kfree(io_buffer);
-	sem_up(ext2->sem);
-	return inode;
 }
 
 static t_inode* read_dir_inode(char* file_name, t_inode* parent_dir_inode, t_ext2* ext2)
@@ -709,9 +612,6 @@ static t_inode* read_dir_inode(char* file_name, t_inode* parent_dir_inode, t_ext
 	u32 file_name_len;
 	t_inode* inode = NULL;
 
-	int xxx = 0;
-
-	sem_down(ext2->sem);
 	// For directory inode supposed max 12 block	
 	for (i = 0; i <= 11; i++)
 	{
@@ -733,12 +633,11 @@ static t_inode* read_dir_inode(char* file_name, t_inode* parent_dir_inode, t_ext
 			READ_DWORD(&io_buffer[next_entry], i_number);
 			READ_BYTE(&io_buffer[next_entry + 6], name_len);
 			READ_WORD(&io_buffer[next_entry + 4], rec_len);
-			if (i_number != 0 && strncmp(file_name, &io_buffer[next_entry + 8], file_name_len) == 0) 
+			if (i_number != 0 && strncmp(file_name, &io_buffer[next_entry + 8], file_name_len) == 0 && name_len == strlen(file_name)) 
 			{
 				found_inode = 1;
 				goto EXIT;
 			}
-			xxx = next_entry;
 			next_entry += rec_len;
 		}
 	}
@@ -758,7 +657,6 @@ EXIT:
 		inode = NULL;
 	}
 	kfree(io_buffer);
-	sem_up(ext2->sem);
 	return inode;
 }
 
@@ -799,11 +697,9 @@ u32 static find_free_inode(u32 group_block_index, t_ext2* ext2, u32 condition)
 	int j;
 	t_ext2 _ext2;
 
-	sem_down(ext2->sem);
 	i = 0;
 	j = 0;
 	inode_number = -1;
-	//io_buffer = kmalloc(BLOCK_SIZE);
 	group_block = read_group_block(ext2,group_block_index);  
     tot_group_block = TOT_FS_GROUP(ext2->superblock->s_blocks_count, ext2->superblock->s_blocks_per_group);
 	avg_free_inode = ext2->superblock->s_free_inodes_count / tot_group_block;
@@ -844,8 +740,6 @@ u32 static find_free_inode(u32 group_block_index, t_ext2* ext2, u32 condition)
 			current_byte++;
     	}
 	}
-	sem_up(ext2->sem);
-	//kfree(io_buffer);
 	if (inode_number != -1)
 	{
 		inode_number = inode_number + (group_block_index * ext2->superblock->s_inodes_per_group);
@@ -855,32 +749,32 @@ u32 static find_free_inode(u32 group_block_index, t_ext2* ext2, u32 condition)
 
 int static find_free_block(char* io_buffer, u32 group_block_index, u32 fs_tot_block,u32 fs_block_per_group, t_ext2* ext2)
 {
-        u32 buffer_byte;
-        u32 byte_bit;
-        u32 selected_bit;
-        u32 i;
+   	u32 buffer_byte;
+    u32 byte_bit;
+    u32 selected_bit;
+    u32 i;
 	u32 buffer_byte2;
-        u32 byte_bit2;
-        u32 selected_bit2;
-        u32 j;
+    u32 byte_bit2;
+    u32 selected_bit2;
+    u32 j;
 	u32 free_block;
 	int selected_block;
 	u32 block_count;
 	
 	selected_block = -1;
 	block_count = bitmap_block(fs_tot_block, fs_block_per_group, group_block_index);
-        for (i = 0;i < block_count; i++)
+    for (i = 0;i < block_count; i++)
+    {
+		//i is an index not a logical block number
+		buffer_byte = RELATIVE_BITMAP_BYTE(i + 1, ext2->superblock->s_blocks_per_group);
+		byte_bit = RELATIVE_BITMAP_BIT(i + 1, ext2->superblock->s_blocks_per_group);
+        selected_bit = io_buffer[buffer_byte] & (1 << byte_bit);
+        if (selected_bit == 0)
         {
-			//i is an index not a logical block number
-			buffer_byte = RELATIVE_BITMAP_BYTE(i + 1, ext2->superblock->s_blocks_per_group);
-			byte_bit = RELATIVE_BITMAP_BIT(i + 1, ext2->superblock->s_blocks_per_group);
-            selected_bit = io_buffer[buffer_byte] & (1 << byte_bit);
-            if (selected_bit == 0)
-            {
-				selected_block = i;
-				break;
-			}   
-        }
+			selected_block = i;
+			break;
+		}   
+    }
 	if (selected_block != -1)
 	{
 		io_buffer[buffer_byte] |= (1 << byte_bit);

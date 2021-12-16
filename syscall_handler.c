@@ -267,7 +267,7 @@ void syscall_handler()
 		break;
 
 		case 200:
-		flush_inode_cache(system.root_fs, 0);
+		flush_inode_cache(system.root_fs);
 		break;	
 
 		default:

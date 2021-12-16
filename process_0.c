@@ -4,9 +4,9 @@
 #include "virtual_memory/vm.h"
 #include "process_0.h"
 
-//_exec SWITCH KERNEL THREAD TO USERSPACE PROCESS
-// THREAD_FORK CLONE KERNEL THREAD
-// THREAD_EXEC CREATE NEW KERNEL THREAD TO BE IMPLEMENTED!!!!!!!!!
+//_exec SWITCHES KERNEL THREAD TO USERSPACE PROCESS
+// THREAD_FORK CLONES KERNEL THREAD
+// THREAD_EXEC CREATES NEW KERNEL THREAD TO BE IMPLEMENTED!!!!!!!!!
 void process_0() 
 {
 	unsigned int pid;
@@ -17,7 +17,7 @@ void process_0()
 	argv[0] = argv1;
 	argv[1] = NULL;	
 
-    	THREAD_FORK(pid);
+    THREAD_FORK(pid);
 	if (pid == 0)
 	{
 		child_pid = _getpid();

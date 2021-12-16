@@ -99,7 +99,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	process_context->sleep_wait_queue_ref = 0;
 	hashtable_put(system.process_info->pgid_hash,0,new_dllist());
 	
-        process_context->tick = TICK;
+    process_context->tick = TICK;
 	process_context->processor_reg.esp = NULL;
 	process_context->console_desc = &console_desc;
 	system.process_info->current_process = ll_prepend(system.scheduler_desc->scheduler_queue[9],process_context);
@@ -108,7 +108,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	system.process_info->pause_queue = new_dllist();
 	process_context->phy_kernel_stack = FROM_VIRT_TO_PHY(buddy_alloc_page(system.buddy_desc,KERNEL_STACK_SIZE));
 	process_context->process_type = KERNEL_THREAD;
-	process_context->file_desc = dc_hashtable_init(PROCESS_INIT_FILE,&inode_free);
+	process_context->file_desc = dc_hashtable_init(PROCESS_INIT_FILE, NULL);
 	process_context->socket_desc = hashtable_init(PROCESS_INIT_SOCKET);
 	process_context->next_sd = 0;
 	process_context->sig_num = 0;

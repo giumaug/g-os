@@ -49,15 +49,21 @@ struct t_processor_reg
 	unsigned int es;
 };
 
+typedef struct s_file
+{
+	t_inode* inode;
+	u32 file_offset;
+}
+t_file;
+
 struct t_process_context 
 {
 	struct t_processor_reg processor_reg;
-        unsigned int pid;
+    unsigned int pid;
 	unsigned int pgid;
 	struct t_process_context* parent;
 	unsigned int tick;
 	struct s_console_desc* console_desc;
-//	unsigned int phy_add_space;
 	//0 thread 1 process
 	u32 process_type;
 	unsigned int phy_space_size;

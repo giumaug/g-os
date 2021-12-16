@@ -136,6 +136,7 @@
 
 #define ENTRY_PAD(entry_len)  ((entry_len % 4) != 0 ?  4 - (entry_len % 4) : 0)
 
+struct s_file;
 struct s_inode_cache;
 typedef struct s_superblock
 {
@@ -234,7 +235,7 @@ typedef struct s_inode
 	u16 i_number;
 	u32 last_block_num;
 	s32 last_file_block_num;
-	u32 file_offset;
+	//u32 file_offset;
 	u8 preallocated_block_count;
 	s32 first_preallocated_block;
 	struct s_indirect_block* indirect_block_1;
@@ -337,7 +338,9 @@ int inode_free(t_inode* inode);
 int inode_free_indirect_block(t_inode* inode);
 t_indirect_block* clone_indirect_block(t_indirect_block* indirect_block);
 t_hashtable* clone_file_desc(t_hashtable* file_desc);
-void flush_inode_cache(t_ext2* ext2, u8 lock);
+void flush_inode_cache(t_ext2* ext2);
+struct s_file* file_init(t_inode* inode);
+int file_free(struct s_file* file);
 
 void _break();
 void _read_test(t_ext2* ext2);

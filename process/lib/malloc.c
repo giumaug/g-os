@@ -15,7 +15,7 @@ static void a_usr_space_init(t_a_usr_space_desc *a_fixed_size_desc,unsigned int 
 	t_us_block_desc *previous_block_desc;
 	t_us_block_desc *next_block_desc;
 
-	num_block=size/(sizeof(t_us_block_desc)+block_size); 
+	num_block=size/(sizeof(t_us_block_desc)+block_size);
 	a_fixed_size_desc->first_block=mem_addr;
 	first_block_desc=a_fixed_size_desc->first_block;
 	a_fixed_size_desc->has_initialized =1;
@@ -83,7 +83,7 @@ static void init_malloc()
 	for (i=0;i<POOL_NUM;i++)
 	{
 		mem_addr+=MEM_TO_POOL;
-		a_usr_space_init(&a_fixed_size_desc[i],pow2(2+i),mem_addr,MEM_TO_POOL); 
+		a_usr_space_init(&a_fixed_size_desc[i],pow2(2+i),mem_addr,MEM_TO_POOL);
 	}
 }
 
@@ -103,11 +103,13 @@ void* _malloc(unsigned int mem_size)
 			init_malloc();
 			malloc_initialized=1;
 		}
-		mem_add=a_usr_space_alloc(&a_fixed_size_desc[i]);
-		if (a_fixed_size_desc[i].current_free_block < 10)
+		if (a_fixed_size_desc[i].current_free_block == 0)
 		{
 			printf("run of memory %d !!! \n",a_fixed_size_desc[i].current_free_block);
+			printf("i = %d \n",i);
+			printf("mem size %d \n",mem_size);
 		}
+		mem_add=a_usr_space_alloc(&a_fixed_size_desc[i]);
 	}
 	else 
 	{

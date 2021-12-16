@@ -207,6 +207,7 @@ void free_vm_process_user_space(struct t_process_context* process_context)
 	
 	for (i=256;i<1024;i++)
 	{
+		int sss = system.buddy_desc->count[BLOCK_INDEX_FROM_PHY(ALIGN_4K(page_table[i]))];
 		if (page_table[i]!=0 && system.buddy_desc->count[BLOCK_INDEX_FROM_PHY(ALIGN_4K(page_table[i]))]==1)
 		{
 			buddy_free_page(system.buddy_desc,ALIGN_4K(FROM_PHY_TO_VIRT(page_table[i])));
@@ -462,6 +463,9 @@ void page_fault_handler()
 		//_exit(0);
 		//on_exit_action=2;
 		on_exit_action = 0;
+		page_addr=buddy_alloc_page(system.buddy_desc,PAGE_SIZE);
+		map_vm_mem(current_process_context->page_dir,aligned_fault_addr,FROM_VIRT_TO_PHY(page_addr),PAGE_SIZE,7);
+
 	}
 
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 	
