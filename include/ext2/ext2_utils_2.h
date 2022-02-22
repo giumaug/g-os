@@ -669,6 +669,7 @@ u32 static lookup_partition(t_ext2* ext2,u8 partition_number)
 	u32 sector;
 	u32 cylinder;
 
+	partition_number = 2;
 	io_buffer = kmalloc(BLOCK_SIZE);
 	partition_offset = 446 + ((partition_number - 1) * 16) + 1;			
 	P_READ(1, 0, io_buffer);

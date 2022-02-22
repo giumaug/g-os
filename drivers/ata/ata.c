@@ -383,6 +383,8 @@ static unsigned int _read_write_28_ata(t_io_request* io_request)
 //COMPLETELY BROKEN!!!!! IT WORKS BECAUSE USED AT STARTUP ONLY AS READ!!!!!!!!!!!!!!!!!!!!!!!!!..
 static unsigned int _p_read_write_28_ata(t_io_request* io_request)
 {
+	int xxx;
+
 	int i;
 	t_device_desc* device_desc = NULL;
 	t_io_request* pending_request = NULL;
@@ -429,7 +431,8 @@ static unsigned int _p_read_write_28_ata(t_io_request* io_request)
 	{
 		while (in(0x1F7) & 0x80);
 		if ((in(0x1F7) & 0x21))
-		{
+		{  
+			xxx = in(0x1F7); 
 			device_desc->status = DEVICE_IDLE;
 			panic();
 			return -1;

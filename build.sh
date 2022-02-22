@@ -1,26 +1,30 @@
 target=$1;
 if [[ $target == "a" ]] || [[ $target == "i" ]]    
 then
-   umount /dev/loop7
-   losetup -d /dev/loop7
+   umount /dev/loop3
+   umount /dev/loop4
+   losetup -d /dev/loop3
+   losetup -d /dev/loop4
 #  cp ./c.img_bk_9_11_2019 c.img
 #  cp ./c.img_with_dirs c.img
 #  cp ./c.img_bk_03_08_2021 c.img attuale
-cp ./img2.img c.img
+cp /home/peppe/Scrivania/g-os-grub2/img/gpt2.img_orig /home/peppe/Scrivania/g-os-grub2/img/c.img
 
-   losetup -o 1048576 /dev/loop7 ./c.img
+   losetup -o 1048576 /dev/loop3 /home/peppe/Scrivania/g-os-grub2/img/c.img
+   losetup -o 26214400 /dev/loop4 /home/peppe/Scrivania/g-os-grub2/img/c.img
+   
    echo 'Image copy completed'
 fi
 if [[ $target == "a" ]] || [[ $target == "k" ]] 
 then
-   cd /home/peppe/Scrivania/g-os
+   cd /home/peppe/Scrivania/g-os-grub2/g-os
    make clean
    make bochs
    echo 'Kernal build completed'
 fi
 if [[ $target == "a" ]] || [[ $target == "p" ]]    
 then
-   cd /home/peppe/Scrivania/g-os/process
+   cd /home/peppe/Scrivania/g-os-grub2/g-os/process
    make process=shell clean
    make process=shell all
    make process=shell install

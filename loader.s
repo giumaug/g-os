@@ -21,6 +21,19 @@
 .set START_LOADER_PHY_ADD, 0xC00000
 .set END_LOADER_PHY_ADD, 0xE00000
 
+# setting up the Multiboot header - see GRUB docs for details
+.set MODULEALIGN,  1<<0                   # align loaded modules on page boundaries
+.set MEMINFO,      1<<1                   # provide memory map
+.set FLAGS,        MODULEALIGN | MEMINFO  # this is the Multiboot 'flag' field
+.set MAGIC,        0x1BADB002             # 'magic number' lets bootloader find the header
+.set CHECKSUM,     -(MAGIC + FLAGS)       # checksum required
+
+.align 4
+MultiBootHeader:
+.long MAGIC
+.long FLAGS
+.long CHECKSUM
+
 PAGE_DIR_OFFSET:
       .long PAGE_DIR_OFFSET_VAL+4
 
