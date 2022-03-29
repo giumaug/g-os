@@ -17,11 +17,12 @@ t_system system;
 
 void kmain( void* mbd, unsigned int magic,int init_data_add)
 {
+	char* mem = 0x000b8000;
 	static struct t_process_info process_info;
 	static t_scheduler_desc scheduler_desc;
 	static t_buddy_desc buddy_desc;
 	static unsigned int* init_data;
-        init_data = init_data_add;
+    init_data = init_data_add;
 	static struct t_process_context* process_context = NULL;
 	static struct t_i_desc i_desc;
 	static t_console_desc console_desc;
@@ -30,7 +31,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	static u32 kernel_stack;
 	system.time = 0;
 	system.flush_network = 0;
-        system.read_block_count = 0;
+    system.read_block_count = 0;
 	system.read_bitmap_count = 0;
 	system.read_write_count = 0;
 	system.run_time = 0;
@@ -40,6 +41,7 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	if ( magic != 0x2BADB002 )
    	{
       		/* Something went not according to specs. Print an error */
+			//new
    	}
  	CLI
 	system.force_scheduling = 0;
@@ -50,17 +52,25 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	system.scheduler_desc->scheduler_queue[0] = 0;
 	system.process_info->current_process = NULL;
 	init_kmalloc();
-   	init_idt();
-   	init_pic();
-   	init_pit();
+	init_idt();
+	*mem='H';
+    *(mem+1) = 0x2a;
+	system.master_page_dir = init_virtual_memory();
+	*mem='S';
+	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int)system.master_page_dir)))
+   	while(1);
+   	//init_pic();
+   	//init_pit();
+    init_lapic();
+	while(1);
 	init_kbc();
 	init_console(&console_desc,4000,0);
 	buddy_init(system.buddy_desc);
 	init_scheduler();
 
-	//static t_device_desc device_desc;
-	//init_ata(&device_desc);
-	//system.device_desc = &device_desc;
+	static t_device_desc device_desc;
+	init_ata(&device_desc);
+	system.device_desc = &device_desc;
 
 	system.root_fs = &ext2_d1;
 	system.scnd_fs = &ext2_d2;
@@ -71,8 +81,8 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	init_ext2(&ext2_d2,system.device_desc);
 	_select_dev(0);
 
-	system.master_page_dir = init_virtual_memory();
-	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int)system.master_page_dir)))
+	//system.master_page_dir = init_virtual_memory();
+	//SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int)system.master_page_dir)))
 	system.active_console_desc = &console_desc;
 	i_desc.baseLow = ((int)&syscall_handler) & 0xFFFF;
 	i_desc.selector = 0x8;

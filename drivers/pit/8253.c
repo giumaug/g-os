@@ -36,6 +36,8 @@ void int_handler_pit()
 	t_llist_node* node = NULL;
 	t_llist_node* first_node = NULL;
 	t_timer* timer = NULL;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
 
 	SAVE_PROCESSOR_REG
 	EOI_TO_MASTER_PIC

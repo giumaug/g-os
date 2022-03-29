@@ -9,21 +9,21 @@ all:	kmain.o                       \
         syscall_handler.o             \
         asm.o loader.o                \
         kernel_init.o                 \
-	debug.o                       \
+	    debug.o                       \
         scheduler.o                   \
         memory_manager.o              \
         virtual_memory.o              \
         console.o                     \
-	lib.o                         \
+		lib.o                         \
         drivers.o                     \
-        data_types.o		      \
-	synchro_types.o               \
-	ext2.o                        \
-	elf_loader.o                  \
-	process_0.o                   \
-	mem_regs.o		      \
-	network.o	              \
-	pci.o
+        data_types.o		      	  \
+		synchro_types.o               \
+		ext2.o                        \
+		elf_loader.o                  \
+		process_0.o                   \
+		mem_regs.o		              \
+		network.o	                  \
+		pci.o
 
 	ld -T linker.ld -melf_i386 -o kernel.bin \
 	*.o                           \
@@ -32,12 +32,12 @@ all:	kmain.o                       \
 	virtual_memory/*.o            \
 	console/*.o                   \
 	lib/*.o                       \
-	drivers/pit/*.o               \
-	drivers/pic/*.o               \
+    drivers/pit/*.o               \
+	drivers/lapic/*.o             \
 	drivers/kbc/*.o               \
 	drivers/ata/*.o               \
 	drivers/i8254x/i8254x.o       \
-	data_types/*.o		      \
+	data_types/*.o		          \
 	synchro_types/*.o             \
 	ext2/*.o                      \
 	elf_loader/*.o                \
