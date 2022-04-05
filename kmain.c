@@ -53,20 +53,17 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	system.process_info->current_process = NULL;
 	init_kmalloc();
 	init_idt();
-	*mem='H';
-    *(mem+1) = 0x2a;
-	system.master_page_dir = init_virtual_memory();
-	*mem='S';
-	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int)system.master_page_dir)))
-   	while(1);
    	//init_pic();
    	//init_pit();
-    init_lapic();
-	while(1);
 	init_kbc();
 	init_console(&console_desc,4000,0);
 	buddy_init(system.buddy_desc);
 	init_scheduler();
+	
+	system.master_page_dir = init_virtual_memory();
+	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int)system.master_page_dir)))
+	init_lapic();
+
 
 	static t_device_desc device_desc;
 	init_ata(&device_desc);

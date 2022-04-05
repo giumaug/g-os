@@ -9,8 +9,8 @@ static u32 interrupt_counter = 0;
 
 static void init_timer();
 static void int_handler_lapic();
-static u32 read_config_word(u32 reg_offset);
-static void write_config_word(u32 reg_offset, u32 val);
+static u32 read_reg(u32 reg_offset);
+static void write_reg(u32 reg_offset, u32 val);
 static void set_timer_divisor(int divisor);
 
 void enable_irq_line()
@@ -30,14 +30,15 @@ void init_lapic()
 	map_vm_mem(system.master_page_dir, LAPIC_BASE, LAPIC_BASE, PAGE_SIZE,3);
 	init_pit();
 	// Clear Task Priority register; this enables all LAPIC interrupts
-	val = read_config_word(LAPIC_TPR);
+	val = read_reg(LAPIC_TPR);
 	val &= ~0xff;
-	write_config_word(LAPIC_TPR, val);
+	write_reg(LAPIC_TPR, val);
 	// Enable the LAPIC
-	val = read_config_word(LAPIC_SVR);
+	val = read_reg(LAPIC_SVR);
     val |= LAPIC_SVR_APIC_EN;
-	write_config_word(LAPIC_SVR, val);
+	write_reg(LAPIC_SVR, val);
 	STI
+	while(1);
 	init_timer();
 	CLI
 	free_pit();
@@ -56,11 +57,11 @@ static void init_timer()
 	for (divisor = 2; divisor <= 128; divisor *= 2)
 	{
 		set_timer_divisor(divisor);
-		write_config_word(LAPIC_TMR, LAPIC_TMR_ONESHOT | LAPIC_TMR_M);
-		write_config_word(LAPIC_ICR, max_timer_count);
+		write_reg(LAPIC_TMR, LAPIC_TMR_ONESHOT | LAPIC_TMR_M);
+		write_reg(LAPIC_ICR, max_timer_count);
 		timer_set(timer, ONE_SEC_DELAY);
 		while (timer->val > 0 );
-		lapic_freq = max_timer_count - read_config_word(LAPIC_CCR);
+		lapic_freq = max_timer_count - read_reg(LAPIC_CCR);
 		if (lapic_freq != max_timer_count) 
 		{
 			break;
@@ -78,8 +79,8 @@ static void init_timer()
 	set_idt_entry(0x38, &i_desc); // 32 + 24 dai verificare
 
 	count = lapic_freq / TICK_FRQ; //lapic_freq * count = TICK_FREQ 
-	write_config_word(LAPIC_TMR, LAPIC_TMR_PERIODIC | LAPIC_TMR_VECTOR);
-	write_config_word(LAPIC_ICR, count);
+	write_reg(LAPIC_TMR, LAPIC_TMR_PERIODIC | LAPIC_TMR_VECTOR);
+	write_reg(LAPIC_ICR, count);
 }
 
 static void set_timer_divisor(int divisor)
@@ -115,10 +116,10 @@ static void set_timer_divisor(int divisor)
       		panic();
 			break;
 	}
-	write_config_word(LAPIC_DCR, dv);
+	write_reg(LAPIC_DCR, dv);
 }
 
-static u32 read_config_word(u32 reg_offset)
+static u32 read_reg(u32 reg_offset)
 {
 	unsigned char* address = NULL;
 	u32 val;
@@ -128,7 +129,7 @@ static u32 read_config_word(u32 reg_offset)
 	return val;
 }
 
-static void write_config_word(u32 reg_offset, u32 val)
+static void write_reg(u32 reg_offset, u32 val)
 {
 	unsigned char* address = NULL;
 
