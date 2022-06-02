@@ -3,11 +3,12 @@ include make.rules
 
 vpath %.h $(INCLUDE)
 
-all:	kmain.o                       \
+all:	loader.o                      \
+        kmain.o                       \
         timer.o                       \
         idt.o                         \
         syscall_handler.o             \
-        asm.o loader.o                \
+        asm.o                         \
         kernel_init.o                 \
 	    debug.o                       \
         scheduler.o                   \
@@ -33,6 +34,7 @@ all:	kmain.o                       \
 	console/*.o                   \
 	lib/*.o                       \
     drivers/pit/*.o               \
+	drivers/ioapic/*.o            \
 	drivers/lapic/*.o             \
 	drivers/kbc/*.o               \
 	drivers/ata/*.o               \

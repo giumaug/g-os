@@ -13,9 +13,9 @@
 #define HI_QUANTUM				QUANTUM >> 8
 #define LOW_QUANTUM				QUANTUM & 0xff
 
-#define STAND_BY_QUANTUM		11931 //1000ms
-#define HI_STAND_BY_QUANTUM		QUANTUM >> 8
-#define LOW_STAND_BY_QUANTUM	QUANTUM & 0xff
+//#define STAND_BY_QUANTUM		11931 //1000ms
+//#define HI_STAND_BY_QUANTUM		QUANTUM >> 8
+//#define LOW_STAND_BY_QUANTUM	QUANTUM & 0xff
 
 void init_pit();
 void int_handler_pit();

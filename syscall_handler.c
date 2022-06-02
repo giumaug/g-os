@@ -289,10 +289,10 @@ void syscall_handler()
 	CLI                                                                                                             
 	if (system.int_path_count == 0 && system.force_scheduling == 0 && system.flush_network == 1)                    
 	{                                                                                                               
-                        system.flush_network = 0;                                                                       
-			dequeue_packet(system.network_desc);                                                            
-			equeue_packet(system.network_desc);                                                             
-                        system.flush_network = 1;                                                                       
+        system.flush_network = 0;                                                                       
+		dequeue_packet(system.network_desc);                                                            
+		equeue_packet(system.network_desc);                                                             
+		system.flush_network = 1;                                                                       
 	}                                                                                                               
 	_action2=on_exit_action;                                                                                      
 	_current_process_context=*(struct t_process_context*)system.process_info->current_process->val;                 

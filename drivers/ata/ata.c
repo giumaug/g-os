@@ -122,7 +122,7 @@ t_device_desc* init_ata(u8 device_num)
 		device_desc->dma_pci_io_base = NULL;
 		device_desc->dma_pci_bar_type = 0;
 		CURRENT_PROCESS_CONTEXT(current_process_context);
-	map_vm_mem(current_process_context->page_dir,ATA_PCI_VIRT_BAR4_MEM,(((u32) (bar4)) & 0xFFFFFFF0),ATA_PCI_VIRT_BAR4_MEM_SIZE,3);
+		map_vm_mem(current_process_context->page_dir,ATA_PCI_VIRT_BAR4_MEM,(((u32) (bar4)) & 0xFFFFFFF0),ATA_PCI_VIRT_BAR4_MEM_SIZE,3);
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 
 	}
 	return device_desc;

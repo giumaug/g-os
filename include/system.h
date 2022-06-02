@@ -97,7 +97,7 @@ typedef struct s_system
 	u32 alloc_counter;
 	u32 open_call_counter;
 	u32 read_block_count;
-        u32 read_bitmap_count;
+    u32 read_bitmap_count;
 	u32 read_write_count;
 	u32 run_time;
 	u32 run_time_1;

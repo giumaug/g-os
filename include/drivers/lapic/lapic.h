@@ -13,7 +13,8 @@
 #define LAPIC_TMR_ONESHOT 0x0
 #define LAPIC_TMR_M (1 << 16)
 #define LAPIC_TMR_PERIODIC (1 << 17)
-#define LAPIC_TMR_VECTOR 0x18
+#define LAPIC_TMR_VECTOR 0x38
+#define EOI 0x00b0
 
 #define LAPIC_ICR 0x0380
 #define LAPIC_CCR 0x0390
@@ -30,6 +31,8 @@
 
 #define ONE_SEC_DELAY 100
 #define TICK_FRQ 100
+#define EOI_TO_LAPIC unsigned char* p = (LAPIC_BASE + EOI); \
+    *p = 0;
 
 void init_lapic();
 

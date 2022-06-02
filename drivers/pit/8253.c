@@ -1,4 +1,5 @@
-#include "drivers/pit/8253.h" 
+#include "drivers/pit/8253.h"
+#include "drivers/lapic/lapic.h"
 #include "asm.h"  
 #include "idt.h" 
 #include "timer.h" 
@@ -8,6 +9,8 @@
 //#define K_STACK 0x1FFFFB
 
 int static status = 0;
+
+int counter = 0;
 
 void init_pit()
 {	
@@ -34,20 +37,19 @@ void int_handler_pit()
 {
 	t_llist_node* sentinel_node = NULL;
 	t_llist_node* node = NULL;
-	t_llist_node* first_node = NULL;
 	t_timer* timer = NULL;
 	struct t_processor_reg processor_reg;
 	struct t_processor_reg _processor_reg;
 
 	SAVE_PROCESSOR_REG
-	EOI_TO_MASTER_PIC
+	//EOI_TO_LAPIC
 	SWITCH_DS_TO_KERNEL_MODE
+	counter++;
 	if (status == 1)
 	{
 		sentinel_node = ll_sentinel(system.timer_list);
 		node = ll_first(system.timer_list);
-		first_node = node;
-		do
+		while(node != sentinel_node)
 		{
 			timer = node->val;
 			timer->val --;
@@ -58,9 +60,10 @@ void int_handler_pit()
 			}
 			node = ll_next(node);
 		}
-		while(node != ll_first(system.timer_list));
 	}
 
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
 	RESTORE_PROCESSOR_REG                                                                                   
 	RET_FROM_INT_HANDLER    
 }

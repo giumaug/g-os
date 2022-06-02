@@ -7,6 +7,8 @@
 
 static u32 interrupt_counter = 0;
 
+extern int counter;
+
 static void init_timer();
 static void int_handler_lapic();
 static u32 read_reg(u32 reg_offset);
@@ -38,7 +40,6 @@ void init_lapic()
     val |= LAPIC_SVR_APIC_EN;
 	write_reg(LAPIC_SVR, val);
 	STI
-	while(1);
 	init_timer();
 	CLI
 	free_pit();
@@ -76,9 +77,9 @@ static void init_timer()
 	i_desc.selector = 0x8;
 	i_desc.flags = 0x08e00;
 	i_desc.baseHi =((int) &int_handler_lapic) >> 0x10;
-	set_idt_entry(0x38, &i_desc); // 32 + 24 dai verificare
+	set_idt_entry(0x38, &i_desc);
 
-	count = lapic_freq / TICK_FRQ; //lapic_freq * count = TICK_FREQ 
+	count = lapic_freq / TICK_FRQ; //lapic_freq / count = TICK_FRQ
 	write_reg(LAPIC_TMR, LAPIC_TMR_PERIODIC | LAPIC_TMR_VECTOR);
 	write_reg(LAPIC_ICR, count);
 }
@@ -143,14 +144,20 @@ static void int_handler_lapic()
 	struct t_processor_reg _processor_reg;
 
 	SAVE_PROCESSOR_REG
-	EOI_TO_MASTER_PIC
 	SWITCH_DS_TO_KERNEL_MODE
+	
+	if (interrupt_counter == 0)
+	{
+			interrupt_counter = 0;
+	}
 
 	interrupt_counter++;
-	if(interrupt_counter % 10 == 0)
+	if(interrupt_counter == 1000)
 	{
-		printk(".");
+		interrupt_counter = 0;
 	}
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
 	RESTORE_PROCESSOR_REG                                                                                   
 	RET_FROM_INT_HANDLER
 }

@@ -21,7 +21,9 @@ typedef struct s_console_desc
 	unsigned int out_window_start;
 	unsigned int out_window_end;
 	unsigned int out_buf_len;
-	char *video_buf;
+	//char* video_buf;
+	//ext2->device_desc->write_dma(io_request); 
+	void (*write_video_buf)(u32 index, char val);
 	unsigned int video_buf_index;
 	unsigned int first_char;
 	struct t_process_context* sleeping_process;

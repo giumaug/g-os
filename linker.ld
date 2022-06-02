@@ -1,5 +1,5 @@
 ENTRY (loader)
-kernel_load_address = 0x100000;
+kernel_load_address = 0x100000;                                    
 
 MEMORY { kernel_phy_address_space : ORIGIN = 0xC00000, LENGTH = 0x200000 }
 MEMORY { kernel_address_space : ORIGIN = 0xC0000000, LENGTH = 0x200000 }
@@ -9,7 +9,7 @@ SECTIONS{
     /*kernel_phy_address_space*/
 
     .text_1 :{
-	loader.o(.text) 
+     loader.o(.text)
     }>kernel_phy_address_space
 
     .rodata_1 :{
@@ -28,6 +28,7 @@ SECTIONS{
 
     .text :AT(kernel_load_address){
 	text = .;
+	 loader.o(.multiboot)
 	 *(EXCLUDE_FILE (loader.o).text)
     }>kernel_address_space
 

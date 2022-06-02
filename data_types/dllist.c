@@ -17,6 +17,7 @@ t_llist* dc_new_dllist(void (*data_destructor)(void*))
 	d->data_destructor=data_destructor;
  	node = (t_llist_node *)kmalloc(sizeof(t_llist_node));
  	d->sentinel_node = node;
+	node->val = NULL;
  	node->next = node;
  	node->prev = node;
  	return d;

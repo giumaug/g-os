@@ -1,3 +1,4 @@
+#include "multiboot.h"
 #include "system.h"
 #include "asm.h"
 #include "idt.h"
@@ -15,9 +16,10 @@ unsigned int seed=105491;
 extern unsigned int PAGE_DIR;
 t_system system;
 
-void kmain( void* mbd, unsigned int magic,int init_data_add)
+void kmain(multiboot_info_t* mbd, unsigned int magic, int init_data_add)
 {
-	char* mem = 0x000b8000;
+	static multiboot_info_t _mbd;
+	_mbd = *mbd;
 	static struct t_process_info process_info;
 	static t_scheduler_desc scheduler_desc;
 	static t_buddy_desc buddy_desc;
@@ -38,11 +40,10 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	system.run_time_1 = 0;
 
 	init_data = init_data_add;
-	if ( magic != 0x2BADB002 )
-   	{
-      		/* Something went not according to specs. Print an error */
-			//new
-   	}
+//	if ( magic != 0x2BADB002 )
+//   	{
+//		panic();
+//   	}
  	CLI
 	system.force_scheduling = 0;
 	system.process_info = &process_info;
@@ -56,30 +57,32 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
    	//init_pic();
    	//init_pit();
 	init_kbc();
+	init_fb(mbd);
 	init_console(&console_desc,4000,0);
 	buddy_init(system.buddy_desc);
 	init_scheduler();
 	
 	system.master_page_dir = init_virtual_memory();
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int)system.master_page_dir)))
+	system.timer_list = new_dllist();
+	init_ioapic();
 	init_lapic();
 
-
-	static t_device_desc device_desc;
-	init_ata(&device_desc);
-	system.device_desc = &device_desc;
-
-	system.root_fs = &ext2_d1;
-	system.scnd_fs = &ext2_d2;
-	system.device_desc = init_ata(0);
-	_select_dev(0);
-	init_ext2(&ext2_d1,system.device_desc);
-	_select_dev(1);
-	init_ext2(&ext2_d2,system.device_desc);
-	_select_dev(0);
-
-	//system.master_page_dir = init_virtual_memory();
-	//SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int)system.master_page_dir)))
+//	static t_device_desc device_desc;
+//	init_ata(&device_desc);
+//	system.device_desc = &device_desc;
+//
+//	system.root_fs = &ext2_d1;
+//	system.scnd_fs = &ext2_d2;
+//	system.device_desc = init_ata(0);
+//	_select_dev(0);
+//	init_ext2(&ext2_d1,system.device_desc);
+//	_select_dev(1);
+//	init_ext2(&ext2_d2,system.device_desc);
+//	_select_dev(0);
+//
+//	//system.master_page_dir = init_virtual_memory();
+//	//SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int)system.master_page_dir)))
 	system.active_console_desc = &console_desc;
 	i_desc.baseLow = ((int)&syscall_handler) & 0xFFFF;
 	i_desc.selector = 0x8;
@@ -124,14 +127,52 @@ void kmain( void* mbd, unsigned int magic,int init_data_add)
 	init_vm_process(process_context);
 	*(system.process_info->tss.ss) = 0x18;
 	*(system.process_info->tss.esp) = KERNEL_STACK;
-	system.network_desc = network_init();
-	//system.network_desc = NULL;
-	system.timer_list = new_dllist();                       		
+	//system.network_desc = network_init();
+	system.network_desc = NULL;
+	//system.timer_list = new_dllist();                       		
 	kernel_stack = KERNEL_STACK - 100;
 	asm volatile ("movl %0,%%ebp;"::"r"(kernel_stack));
 	asm volatile ("movl %0,%%esp;"::"r"(kernel_stack));
 	STI
+	diplay_test(&_mbd, process_context->page_dir);
 	process_0();	       	
+}
+
+diplay_test(multiboot_info_t* mbd, void* page_dir)
+{
+	int i;	            
+	long fb_virt_addr = 0xc5A7000; 
+	long fb_phy_addr = mbd->framebuffer_addr;
+	char* fbdata = NULL;
+	
+	int fb_width = mbd->framebuffer_width;
+	int fb_height = mbd->framebuffer_height;
+	int fb_bpp = mbd->framebuffer_bpp;
+	int fb_bytes = fb_bpp / 8; 
+
+	int fb_data_size = fb_width * fb_height * fb_bytes;
+	map_vm_mem(page_dir, fb_virt_addr,fb_phy_addr, (fb_data_size + PAGE_SIZE), 7);
+	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int)page_dir)))
+	
+	fbdata = fb_virt_addr;
+	for (i = 0; i < fb_data_size; i++)
+	{
+		fbdata[i] = 0;
+	}
+
+	int offset = (100 * fb_width + 100) * 4;
+	int r = 255; 
+	int g = 255; 
+	int b = 255;
+
+	for (i = 0; i < 100; i++)
+	{
+		fbdata[offset + 0 + i] = b;
+		fbdata [offset + 1 + i] = g;
+		fbdata[offset + 2 + i] = r;
+		fbdata[offset + 3 + i] = 0; // May not be neeeded
+	}
+	while(1);
 }
 
 void panic()

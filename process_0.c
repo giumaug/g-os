@@ -17,16 +17,17 @@ void process_0()
 	argv[0] = argv1;
 	argv[1] = NULL;	
 
-    THREAD_FORK(pid);
-	if (pid == 0)
-	{
-		child_pid = _getpid();
-		_setpgid(child_pid,child_pid);
-		_tcsetpgrp(child_pid);
-		_exec("/shell",argv);	
-	}
-	else 
-	{
-		THREAD_EXIT(0);
-	}
+//    THREAD_FORK(pid);
+//	if (pid == 0)
+//	{
+//		child_pid = _getpid();
+//		_setpgid(child_pid,child_pid);
+//		_tcsetpgrp(child_pid);
+//		_exec("/shell",argv);	
+//	}
+//	else 
+//	{
+//		THREAD_EXIT(0);
+//	}
+	THREAD_EXIT(0);
 }

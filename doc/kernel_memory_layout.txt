@@ -6,6 +6,7 @@ process_virtual_address 0x100000 (size: 1M - 1G)
 process_heap_virtual_address 0x40000000 (size: 1G - 2G)
 kernel_virtual_stack 0xBFFFF000 (3G - 4k hole; size = 0x2000)
 user_virtual_stack  0xBFFFC000 (3G - 4K hole -8K -4K hole;size 0x100000)
+video memory 4G - 3M (physical video memory size 2457600 bytes)
 
 initial loader virtual address:  0xC00000
 initial loader physical address: 0x100000
@@ -14,6 +15,7 @@ physical to virtual memory mapping:
 
 0 - 0x100000 -> 0 - 0x100000 
 0x1700000 - end mem -> 3G - end mem
+
 
 
 
