@@ -317,10 +317,10 @@ void int_handler_kbc()
 	scan_code = in(0x60);
 	switch(scan_code) 
 	{
-        	case 0x2a: 
-        		shift_state = 1; 
-        		break;
-        	case 0xaa: 
+		case 0x2a: 
+			shift_state = 1; 
+			break;
+		case 0xaa: 
 			shift_state = 0;
 			break;
 		case 0x1d:
@@ -329,58 +329,48 @@ void int_handler_kbc()
 		case 0x9d:
 			control_state = 0;
 			break;
-        	default:
-		// need exclude 56 and 29 because i use ctrl+alt in debug mode 
-		if (!(scan_code & 0x80) && scan_code != 56) 
-		{
-			//All logic manages SIGINT should be outside interrupt handler!!!!
-			if (control_state == 1 && scan_code == 0x2e)
+        default:
+			// need exclude 56 and 29 because i use ctrl+alt in debug mode 
+			if (!(scan_code & 0x80) && scan_code != 56) 
 			{
-				static int sss = 0;
-				SAVE_IF_STATUS
-				CLI
-				sss++;
-				if (sss > 2)
+				//All logic manages SIGINT should be outside interrupt handler!!!!
+				if (control_state == 1 && scan_code == 0x2e)
 				{
-					//check_leak();
-				}
-				fg_pgid = system.active_console_desc->fg_pgid;
-				if (fg_pgid !=1)
-				{
-					pgid_list = hashtable_get(system.process_info->pgid_hash,fg_pgid);
-					if (pgid_list != NULL)
+					SAVE_IF_STATUS
+					CLI
+					fg_pgid = system.active_console_desc->fg_pgid;
+					if (fg_pgid !=1)
 					{
-						sentinel = ll_sentinel(pgid_list);
-						next = ll_first(pgid_list);
-						while(next != sentinel)
+						pgid_list = hashtable_get(system.process_info->pgid_hash,fg_pgid);
+						if (pgid_list != NULL)
 						{
-							next_process_context = next->val;
-							next_process_context->sig_num = SIGINT;
-							if (next_process_context->pid == next_process_context->pgid)
+							sentinel = ll_sentinel(pgid_list);
+							next = ll_first(pgid_list);
+							while(next != sentinel)
 							{
-								next_process_context->parent->sig_num = SIGCHLD;
+								next_process_context = next->val;
+								next_process_context->sig_num = SIGINT;
+								if (next_process_context->pid == next_process_context->pgid)
+								{
+									next_process_context->parent->sig_num = SIGCHLD;
+								}
+								if (next_process_context->proc_status == SLEEPING)
+								{
+									_awake(next_process_context);
+								}
+								next = ll_next(next);
 							}
-							if (next_process_context->proc_status == SLEEPING)
-							{
-								_awake(next_process_context);
-							}
-							printk("aaa\n");
-							next = ll_next(next);
-							//ll_delete_node(next->prev);
 						}
-						//kfree(pgid_list->sentinel_node);
-						//kfree(pgid_list);
 					}
+					RESTORE_IF_STATUS
 				}
-				RESTORE_IF_STATUS
+				else
+				{
+					char_code = &(shift_state ? uppercase_charset : lowercase_charset)[scan_code];
+					enqueue(in_buf,char_code);
+					system.active_console_desc->is_empty = 0;
+				}
 			}
-			else
-			{
-				char_code = &(shift_state ? uppercase_charset : lowercase_charset)[scan_code];
-				enqueue(in_buf,char_code);
-				system.active_console_desc->is_empty = 0;
-			}
-		}
            	break;
 	}
 	enable_irq_line(1);

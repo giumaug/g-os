@@ -14,6 +14,7 @@ all:	loader.o                      \
         scheduler.o                   \
         memory_manager.o              \
         virtual_memory.o              \
+        framebuffer.o                 \
         console.o                     \
 		lib.o                         \
         drivers.o                     \
@@ -31,6 +32,7 @@ all:	loader.o                      \
 	scheduler/*.o                 \
 	memory_manager/*.o            \
 	virtual_memory/*.o            \
+	framebuffer/*.o               \
 	console/*.o                   \
 	lib/*.o                       \
     drivers/pit/*.o               \
@@ -82,6 +84,9 @@ memory_manager.o:
 
 virtual_memory.o:
 	$(MAKE) -C virtual_memory
+
+framebuffer.o:
+	$(MAKE) -C framebuffer
 
 console.o:
 	$(MAKE) -C console

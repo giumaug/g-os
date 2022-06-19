@@ -1,12 +1,5 @@
-#include "framebuffer.h"
-#include "charset.h"
-
-static u8 CHAR_WIDTH = 10;
-static u8 CHAR_HEIGHT = 14; 
-static u8* ascii_characters_BIG[128];
-static u8* ascii_characters_SMALL[128];
-static u8* numbers_BIG[10];
-static u8* numbers_small[10];
+#include "framebuffer/charset.h"
+#include "framebuffer/framebuffer.h"
 
 static char* fb = NULL;
 static u32 fb_width;
@@ -14,9 +7,12 @@ static u32 fb_height;
 static u32 fb_bpp;
 static u32 fb_bytes;
 static u32 fb_size;
+static u8 fb_text_width;
+static u8 fb_text_height;
 
 void init_fb(multiboot_info_t* mbd)
 {
+/*
 	ascii_characters[32] = SPACE__10x14;
 	ascii_characters[48] = AR0__10x14;
 	ascii_characters[49] = AR1__10x14;
@@ -55,6 +51,7 @@ void init_fb(multiboot_info_t* mbd)
 	ascii_characters[88] = X__10x14;
 	ascii_characters[89] = Y__10x14;
 	ascii_characters[90] = Z__10x14;
+	ascii_characters[95] = UNDERSCORE__10x14;
 
 	numbers[0] = AR0__10x14;
 	numbers[1] = AR1__10x14;
@@ -66,65 +63,110 @@ void init_fb(multiboot_info_t* mbd)
 	numbers[7] = AR7__10x14;
 	numbers[8] = AR8__10x14;
 	numbers[9] = AR9__10x14;
+*/
 
 	int i;
 	long fb_virt_addr = FB_VIRT_ADDR;
 	long fb_phy_addr = mbd->framebuffer_addr;
-	char* fb = FB_VIRT_ADDR;
+	fb = FB_VIRT_ADDR;
 	
 	fb_width = mbd->framebuffer_width;
 	fb_height = mbd->framebuffer_height;
 	fb_bpp = mbd->framebuffer_bpp;
-	fb_bytes = fb_bpp / 8; 
+	fb_bytes = fb_bpp / 8;
+	
+	fb_text_width = fb_width / FONT_WIDTH;
+	fb_text_height = fb_height / FONT_HEIGHT;
 
 	fb_size = fb_width * fb_height * fb_bytes;
 	map_vm_mem(system.master_page_dir, fb_virt_addr, fb_phy_addr, (fb_size + PAGE_SIZE), 7);
-	//SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int)page_dir)))
+	//SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) system.master_page_dir)))
 	
-	fbdata = fb_virt_addr;
-	for (i = 0; i < fb_data_size; i++)
+	for (i = 0; i < fb_size; i++)
 	{
-		fbdata[i] = 0;
+		//fb[i] = 0;
 	}
 }
 
 static void put_pixel(int x, int y, u8 c)
 {
-    unsigned int pix_offset = (4 * x) + (4 * y) * vinfo.xres;
+    unsigned int pix_offset = (4 * x) + (4 * y) * fb_width;
     
-    *((char*)(fbp + pix_offset)) = (0xff * c);
-    *((char*)(fbp + pix_offset + 1)) =  (0xff * c);
-    *((char*)(fbp + pix_offset + 2)) = (0xff + c);
-    *((char*)(fbp + pix_offset + 3)) = 0;
+    *((char*)(fb + pix_offset)) = (0xff * c);
+    *((char*)(fb + pix_offset + 1)) =  (0xff * c);
+    *((char*)(fb + pix_offset + 2)) = (0xff * c);
+    *((char*)(fb + pix_offset + 3)) = 0;
 }
 
 void free_fb()
 {
-	umap_vm_mem(system.master_page_dir, FB_VIRT_ADDR, KERNEL_STACK_SIZE, (fb_size + PAGE_SIZE), 1);	
+	umap_vm_mem(system.master_page_dir, FB_VIRT_ADDR, (fb_size + PAGE_SIZE), 1);
 }
 
-void draw_char_fb(u8 val, unsigned int index) 
+//void render(char *bitmap) {
+//    int x,y;
+//    int set;
+//    int mask;
+//    for (x=0; x < 8; x++) {
+//        for (y=0; y < 8; y++) {
+//            set = bitmap[x] & 1 << y;
+//            printf("%c", set ? 'X' : ' ');
+//        }
+//        printf("\n");
+//    }
+//}
+
+
+void draw_char_fb(unsigned int index, u8 val) 
 {
 	unsigned short cx, cy;
 	unsigned short x, y;
-	char* glyph;
+	short glyph;
+	short low_glyph;
+	short hi_glyph;
+	int offset;
 	
-	y = index / fb_width;
-	x = index % fb_width;
-	glyph = ascii_characters_BIG[val];
+	int set;
 	
-    for (cy = 0; cy < CHAR_HEIGHT; cy++) 
+	int pippo_1 = FONT_HEIGHT;
+	int pippo_2 = FONT_WIDTH;
+	if (pippo_1 == pippo_2) set = 0;
+	
+	y = (index / fb_text_width) * FONT_HEIGHT;
+	x = (index % fb_text_width) * FONT_WIDTH;
+	
+	//102 x 42
+	//index = 12
+	//cahr 10 x 14
+	
+	//1024x600 = 128 x 75 (with 8x8 font)
+	
+	
+	
+	
+    for (cy = 0; cy < FONT_HEIGHT; cy++) 
     {
-        for (cx = 0; cx < CHAR_WIDTH; cx++) 
-        {
-			if (glyph[cy * CHAR_WIDTH + cx] > 0)
+		low_glyph = font8x16_basic[0][cy * 2];
+		hi_glyph = font8x16_basic[0][cy + 1];
+		glyph = (hi_glyph << 8) + low_glyph;
+		//glyph = FONT[0][cx];
+        for (cx = 0; cx < FONT_WIDTH; cx++) 
+        {	
+			//set = (font8x16_basic[0][cy]) & 1 << cx;
+			set = glyph & 1 << cx;
+			if (set  > 0)
 			{ 
-				put_pixel(x+cx, y+cy, 1);
+				put_pixel(x + cx, y + cy, 1);
 			} 
 			else  
 			{
-				put_pixel(x+cx, y+cy, 0);
+				put_pixel(x + cx, y + cy, 0);
 			}
         }
     }
+}
+
+void update_cursor_fb(unsigned int index)
+{
+	draw_char_fb(index, CURSOR);
 }

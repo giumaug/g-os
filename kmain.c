@@ -10,6 +10,7 @@
 #include "network/network.h"
 #include "drivers/kbc/8042.h"
 #include "drivers/ata/ata.h"
+#include "framebuffer/framebuffer.h"
 
 //to fix when file system working!!
 unsigned int seed=105491;
@@ -56,17 +57,21 @@ void kmain(multiboot_info_t* mbd, unsigned int magic, int init_data_add)
 	init_idt();
    	//init_pic();
    	//init_pit();
-	init_kbc();
-	init_fb(mbd);
-	init_console(&console_desc,4000,0);
+	//init_kbc();
+	//init_fb(mbd);
+	//init_console(&console_desc, &draw_char_fb, &update_cursor_fb, 4000, 0);
 	buddy_init(system.buddy_desc);
 	init_scheduler();
 	
 	system.master_page_dir = init_virtual_memory();
-	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int)system.master_page_dir)))
+	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) system.master_page_dir)))
 	system.timer_list = new_dllist();
 	init_ioapic();
 	init_lapic();
+	
+	init_kbc();
+	init_fb(mbd);
+	init_console(&console_desc, &draw_char_fb, &update_cursor_fb, 4000, 0);
 
 //	static t_device_desc device_desc;
 //	init_ata(&device_desc);
@@ -134,7 +139,7 @@ void kmain(multiboot_info_t* mbd, unsigned int magic, int init_data_add)
 	asm volatile ("movl %0,%%ebp;"::"r"(kernel_stack));
 	asm volatile ("movl %0,%%esp;"::"r"(kernel_stack));
 	STI
-	diplay_test(&_mbd, process_context->page_dir);
+	//diplay_test(&_mbd, process_context->page_dir);
 	process_0();	       	
 }
 

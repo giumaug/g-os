@@ -23,7 +23,8 @@ typedef struct s_console_desc
 	unsigned int out_buf_len;
 	//char* video_buf;
 	//ext2->device_desc->write_dma(io_request); 
-	void (*write_video_buf)(u32 index, char val);
+	void (*write_char)(u32 index, char val);
+	void (*update_cursor)();
 	unsigned int video_buf_index;
 	unsigned int first_char;
 	struct t_process_context* sleeping_process;
@@ -31,17 +32,17 @@ typedef struct s_console_desc
 	t_spinlock_desc spinlock;
 	u32 fg_pgid;
 }
-t_console_desc;
 
-void init_console(t_console_desc *console_desc,int out_buf_len,int in_buf_len);
-void free_console(t_console_desc *console_desc);
-char _read_char(t_console_desc *console_desc);
-void _write_char(t_console_desc *console_desc,char data);
-void _delete_char(t_console_desc *console_desc);
-void _echo_char(t_console_desc *console_desc,char data);
-void _enable_cursor(t_console_desc *console_desc);
-void _disable_cursor(t_console_desc *console_desc);
-void _update_cursor(t_console_desc *console_desc);
-void _write_char_no_irq(t_console_desc *console_desc,char data);
+t_console_desc;
+void init_console(t_console_desc* console_desc, void (*f)(u32, char), void (*g)(), int out_buf_len, int in_buf_len);
+void free_console(t_console_desc* console_desc);
+char _read_char(t_console_desc* console_desc);
+void _write_char(t_console_desc* console_desc, char data);
+void _delete_char(t_console_desc* console_desc);
+void _echo_char(t_console_desc* console_desc, char data);
+void _enable_cursor(t_console_desc* console_desc);
+void _disable_cursor(t_console_desc* console_desc);
+void _update_cursor(t_console_desc* console_desc);
+void _write_char_no_irq(t_console_desc* console_desc, char data);
 
 #endif
