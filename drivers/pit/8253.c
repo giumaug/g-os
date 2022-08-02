@@ -23,7 +23,7 @@ void init_pit()
 	i_desc.flags=0x08e00; //0x0EF00;
 	i_desc.baseHi=((int)&int_handler_pit)>>0x10;
 	status = 1;
-	set_idt_entry(0x20,&i_desc);
+	set_idt_entry(0x22,&i_desc);
 }
 
 void free_pit()
@@ -64,7 +64,8 @@ void int_handler_pit()
 
 	_processor_reg = processor_reg;
 	EOI_TO_LAPIC
-	RESTORE_PROCESSOR_REG                                                                                   
+	RESTORE_PROCESSOR_REG
+	// tmp put for test fake console. Put EXIT_INT_HANDLER                                                                                
 	RET_FROM_INT_HANDLER    
 }
 

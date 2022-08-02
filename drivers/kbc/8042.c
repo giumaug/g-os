@@ -2,7 +2,8 @@
 #include "idt.h"
 #include "virtual_memory/vm.h"  
 #include "memory_manager/kmalloc.h" 
-#include "idt.h" 
+//#include "idt.h"
+#include "drivers/lapic/lapic.h"
 #include "drivers/kbc/8042.h" 
 #include "lib/lib.h"
 #include "debug.h"
@@ -302,6 +303,7 @@ void int_handler_kbc()
 	unsigned static int shift_state = 0;
 	unsigned static int control_state = 0;
 	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
 	struct t_process_context* next_process_context = NULL;
 	u32 fg_pgid;
 	t_llist* pgid_list = NULL;
@@ -309,9 +311,10 @@ void int_handler_kbc()
 	t_llist_node* next = NULL;
 	
 	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
 	DISABLE_PREEMPTION
-	disable_irq_line(1);
-	EOI_TO_MASTER_PIC
+	mask_entry(1);
+	EOI_TO_LAPIC
 	STI	
 	
 	scan_code = in(0x60);
@@ -373,9 +376,13 @@ void int_handler_kbc()
 			}
            	break;
 	}
-	enable_irq_line(1);
+	unmask_entry(1);
+	_processor_reg = processor_reg;
 	ENABLE_PREEMPTION
-	EXIT_INT_HANDLER(0,processor_reg)                                                                              
+	// tmp put for test fake console. Put EXIT_INT_HANDLER    
+	RESTORE_PROCESSOR_REG                                                                            
+	RET_FROM_INT_HANDLER   
+	//EXIT_INT_HANDLER(0,processor_reg)                                                                              
 /*                                                                                                                        
 	static struct t_process_context _current_process_context;                                                  	
 	static struct t_process_context _old_process_context;                                                      	
@@ -448,12 +455,19 @@ void int_handler_kbc()
 
 char read_buf()
 {
-	char* char_code;
+	char* char_code = NULL;
+	char ret = NULL;
+	u32 i;
+	
+	mask_entry(1);
 	char_code = dequeue(in_buf);
 	if (char_code != NULL) 
 	{	
-		return *char_code;	
+		ret = *char_code;
 	}
 	else system.active_console_desc->is_empty = 1;
-	return 0;
+	//CRAPPY SLEEP
+	unmask_entry(1);
+	for (i = 0; i < 1000000; i++);
+	return ret;
 }

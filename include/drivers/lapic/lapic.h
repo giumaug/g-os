@@ -4,6 +4,7 @@
 #include "system.h"
 
 #define LAPIC_BASE 0xfee00000
+#define LAPIC_ID 0x20
 #define LAPIC_DFR  0x00e0
 #define LAPIC_LDR  0x00d0
 #define LAPIC_TPR  0x0080

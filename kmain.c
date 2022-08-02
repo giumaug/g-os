@@ -55,11 +55,6 @@ void kmain(multiboot_info_t* mbd, unsigned int magic, int init_data_add)
 	system.process_info->current_process = NULL;
 	init_kmalloc();
 	init_idt();
-   	//init_pic();
-   	//init_pit();
-	//init_kbc();
-	//init_fb(mbd);
-	//init_console(&console_desc, &draw_char_fb, &update_cursor_fb, 4000, 0);
 	buddy_init(system.buddy_desc);
 	init_scheduler();
 	
@@ -71,7 +66,7 @@ void kmain(multiboot_info_t* mbd, unsigned int magic, int init_data_add)
 	
 	init_kbc();
 	init_fb(mbd);
-	init_console(&console_desc, &draw_char_fb, &update_cursor_fb, 4000, 0);
+	init_console(&console_desc, &draw_char_fb, &update_cursor_fb, 10000, 0);
 
 //	static t_device_desc device_desc;
 //	init_ata(&device_desc);

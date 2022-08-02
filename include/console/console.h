@@ -8,8 +8,8 @@
 #define SCREEN_FOREGROUND_COLOR 0x07;
 #define	SCREEN_BACKGROUND_COLOR 0x0;
 #define CHAR_NULL 0x0
-#define SCREEN_WIDTH 80
-#define SCREEN_LENGTH 25
+#define SCREEN_WIDTH 113
+#define SCREEN_LENGTH 33
 #define SCREEN_AREA SCREEN_WIDTH*SCREEN_LENGTH
 #define INC(x,y,z,w) if ((x+=z)>=y) x=w;
 
@@ -24,7 +24,7 @@ typedef struct s_console_desc
 	//char* video_buf;
 	//ext2->device_desc->write_dma(io_request); 
 	void (*write_char)(u32 index, char val);
-	void (*update_cursor)();
+	void (*update_cursor)(u32 index);
 	unsigned int video_buf_index;
 	unsigned int first_char;
 	struct t_process_context* sleeping_process;

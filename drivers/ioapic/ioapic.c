@@ -15,25 +15,18 @@ void init_ioapic()
 	map_vm_mem(system.master_page_dir, IOREGSEL, IOREGSEL, PAGE_SIZE,3);
 	ioregsel = IOREGSEL;
 	ioregwin = IOREGWIN;
-	for (i = 0; i <= 23; i += 2)
+	for (i = 0; i <= 23; i += 2) //23
 	{
-		offset = 0x10 + 2 * i;
-		val = REDTBL_LOW_ENTRY & (0x20 + (i / 2));
+		//offset = 0x10 + 2 * i;
+		offset = 16 + i;
+		//val = REDTBL_LOW_ENTRY & (0x20 + (i / 2));
+		val = (32 + (i / 2));
 		write_reg(offset, val);
 		offset++;
 		write_reg(offset, REDTBL_HI_ENTRY);
 	}
-}
-
-void mask_entry(u8 offset)
-{
-	u32 _offset;
-	u32 val;
-
-	_offset = (0x10 + 2 * offset);
-	val = read_reg(_offset);
-	val = val & (~0x10);
-	write_reg(_offset, val);
+	//write_reg(16, 32);
+	//write_reg(17, 0);
 }
 
 void unmask_entry(u8 offset)
@@ -41,10 +34,27 @@ void unmask_entry(u8 offset)
 	u32 _offset;
 	u32 val;
 
+	SAVE_IF_STATUS
+	CLI
 	_offset = (0x10 + 2 * offset);
 	val = read_reg(_offset);
-	val = val | 0x10;
+	val = val & (~0x10000);
 	write_reg(_offset, val);
+	RESTORE_IF_STATUS
+}
+
+void mask_entry(u8 offset)
+{
+	u32 _offset;
+	u32 val;
+
+	SAVE_IF_STATUS
+	CLI
+	_offset = (0x10 + 2 * offset);
+	val = read_reg(_offset);
+	val = val | 0x10000;
+	write_reg(_offset, val);
+	RESTORE_IF_STATUS
 }
 
 static void write_reg(u32 reg_offset, u32 val)

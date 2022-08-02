@@ -28,6 +28,7 @@ void disable_irq_line()
 void init_lapic()
 {
 	u32 val;
+	u32 lapic_id;
 	
 	map_vm_mem(system.master_page_dir, LAPIC_BASE, LAPIC_BASE, PAGE_SIZE,3);
 	init_pit();
@@ -39,6 +40,7 @@ void init_lapic()
 	val = read_reg(LAPIC_SVR);
     val |= LAPIC_SVR_APIC_EN;
 	write_reg(LAPIC_SVR, val);
+	lapic_id = read_reg(LAPIC_ID);
 	STI
 	init_timer();
 	CLI

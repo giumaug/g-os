@@ -1,0 +1,92 @@
+$disk0_image="/home/peppe/Scrivania/g-os-grub2/cl-b28910-v2.craff"
+$disk0_image="/home/peppe/Scrivania/g-os-grub2/img/simic-linux.img"
+
+$disk0_image="/home/peppe/Scrivania/g-os-grub2/img/c.img"
+run-command-file /opt/simics/simics-qsp-x86-6.0.43/targets/qsp-x86/qsp-hdd-boot.simics
+enable-debugger
+add-symbol-file /home/peppe/Scrivania/g-os-grub2/g-os/kernel.bin
+bp.source_line.break filename = console.c line-number = 89
+bp.source_location.break mask_entry
+bp.source_location.break int_handler_generic_49
+bp.source_line.break filename = console.c line-number = 100
+bp.source_location.break draw_char_fb
+bp.source_line.break filename = framebuffer.c line-number = 150
+bp.source_location.break int_handler_pit
+bp.source_location.break write_out_buf
+bp.source_location.break int_handler_kbc
+bp.source_line.break filename = process_0.c line-number = 55
+bp.source_location.break init_fb
+
+bp.source_line.break filename = kmain.c line-number = 69
+
+bp.source_location.break kmain
+bp.source_line.break filename = lapic.c line-number = 65
+bp.source_location.break int_handler_generic
+bp.source_line.break filename = lapic.c line-number = 65
+bp.source_location.break int_handler_lapic
+bp.source_location.break init_timer
+bp.source_location.break kmain
+bp.source_line.break filename = lapic.c line-number = 61
+
+tolgo break point: bp.delete 2
+performance system-perfmeter
+
+board.mb.cpu0.core[0][0].pregs o pregs
+
+bp.source_location.break _p_read_write_28_ata
+
+bp.source_line.break filename = ata.c line-number = 425
+
+r 1 / si vado avanti 1
+n (next) vado avanti una linea di codice
+
+enable-reverse-execution
+bp.source_location.break int_handler_kbc
+
+rev (count)
+
+sym-value <variabile> leggo valore variabile
+
+sym-value "*<variabile> per deferenziare puntatore
+
+stacktrace: stack-trace 
+
+hardware
+list-objects namespace = board.mb.cpu0 -tree
+
+registri
+board.mb.cpu0.core[0][0].pregs
+
+memoria
+x 0xc0000553 4
+
+break point fisico b 0x0
+
+
+Inspection
+list-objects
+list-objects namespace = board
+
+list-objects namespace = board.mb.cpu0 -tree
+
+inspect ioapic (status and info)
+board.mb.sb.ioapic.status
+board.mb.sb.pic.info
+
+search a specific class
+list-classes -l substr = "8254"
+
+
+
+PER CONFIGURARE NUMERO CPU
+./simics-qsp-x86-6.0.43/targets/qsp-x86/qsp-system.include
+
+CONFIGURAZIONE PIC (8259)
+acpi=noirq noapic pci=nomsi hpet=disable
+
+CONFIGURAZIONE APIC (IOAPIC + LAPIC)
+pci=nomsi hpet=disable (acpi serve)
+
+
+ 
+

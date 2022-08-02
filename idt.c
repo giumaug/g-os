@@ -15,438 +15,746 @@ void exception()
 }
 
 void int_handler_generic() 
-{ 
+{
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
 	exception();
+	_processor_reg = processor_reg;
 	EOI_TO_LAPIC
-	STI
-	asm("pop %ebp;iret");
-	return;
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_0() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_1() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_2() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_3() 
 { 
-	exception(); 
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_4() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_5() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_6() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_7() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_8() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_9() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_10() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_11() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_12() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_13() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_14() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_15() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_16() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_17() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_18() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_19() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_20() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_21() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
-
-
-
-
 
 void int_handler_generic_22() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_23() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_24() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_25() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_26() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_27() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_28() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_29() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_30() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_31() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_32() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_33() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_34() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_35() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_36() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_37() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_38() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_39() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_40() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_41() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_42() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_43() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_44() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_45() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_46() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_47() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_48() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_49() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void int_handler_generic_50() 
 {
-	exception();  
-	STI
-	asm("pop %ebp;iret");
-	return;
+	struct t_processor_reg processor_reg;
+	struct t_processor_reg _processor_reg;
+	
+	SAVE_PROCESSOR_REG
+	SWITCH_DS_TO_KERNEL_MODE
+	exception();
+	_processor_reg = processor_reg;
+	EOI_TO_LAPIC
+	RESTORE_PROCESSOR_REG                                                                                   
+	RET_FROM_INT_HANDLER    
 }
 
 void init_idt()
 {
 	int i;
 	
-//	for (i=0;i<255;i++)
-//	{
-//		idt[i].baseLow=((int)(&int_handler_generic)) & 0xFFFF;
-//		idt[i].selector=0x8;
-//		idt[i].flags=0x08e00;
-//		idt[i].baseHi=((int)(&int_handler_generic))>>0x010;
-//	}
-
+/*
+	for (i=0;i<255;i++)
+	{
+		idt[i].baseLow=((int)(&int_handler_generic)) & 0xFFFF;
+		idt[i].selector=0x8;
+		idt[i].flags=0x08e00;
+		idt[i].baseHi=((int)(&int_handler_generic))>>0x010;
+	}
+*/
 
 	idt[0].baseLow=((int)(&int_handler_generic_0)) & 0xFFFF;
 	idt[0].selector=0x8;

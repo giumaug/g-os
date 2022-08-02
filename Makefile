@@ -135,6 +135,7 @@ clean:
 	$(MAKE) -C memory_manager clean
 	$(MAKE) -C virtual_memory clean
 	$(MAKE) -C console clean
+	$(MAKE) -C framebuffer clean
 	$(MAKE) -C lib clean
 	$(MAKE) -C drivers clean
 	$(MAKE) -C data_types clean

@@ -37,19 +37,45 @@ t_console_desc* console_desc = NULL;
 
 void fake_shell()
 {
+	int i;
+	int scan_code = 0;
 	struct t_process_context* current_process_context = NULL;
-	char cmd[100];
+	char cmd[300];
 	
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 	console_desc = current_process_context->console_desc;
 	
-	//_printf("g-shell v 0.1 \n");
 	_printf("G-SHELL V 0.1 \n");
+	
+	_printf("aaaaaaaaaaa111111111111111111 \n");
+	_printf("aaaaaaaaaaa222222222222222222 \n");
+	_printf("aaaaaaaaaaa333333333333333333 \n");
+	_printf("aaaaaaaaaaa444444444444444444 \n");
+	_printf("aaaaaaaaaaa555555555555555555 \n");
+	_printf("aaaaaaaaaaa666666666666666666 \n");
+	_printf("aaaaaaaaaaa777777777777777777 \n");
+	_printf("aaaaaaaaaaa888888888888888888 \n");
+	_printf("aaaaaaaaaaa999999999999999999 \n");
+	_printf("aaaaaaaaaaa000000000000000000 \n");
+	_printf("bbbbbbbbbbb111111111111111111 \n");
+	_printf("bbbbbbbbbbb222222222222222222 \n");
+	_printf("bbbbbbbbbbb333333333333333333 \n");
+	_printf("bbbbbbbbbbb444444444444444444 \n");
+	_printf("bbbbbbbbbbb555555555555555555 \n");
+	_printf("bbbbbbbbbbb666666666666666666 \n");
+	_printf("bbbbbbbbbbb777777777777777777 \n");
+	_printf("bbbbbbbbbbb888888888888888888 \n");
+	_printf("bbbbbbbbbbb999999999999999999 \n");
+	_printf("bbbbbbbbbbb000000000000000000 \n");
+	_printf("ccccccccccc111111111111111111 \n");
+	_printf("ccccccccccc222222222222222222 \n");
+	_printf("ccccccccccc333333333333333333 \n");
+	_printf("ccccccccccc444444444444444444 \n");
 	while(1)
 	{
 		_printf("=>");
 		_scanf("%s", &cmd);
-		_printf("echo command: %s \n", cmd);
+		_printf("\necho command: %s \n", cmd);
 	}
 }
 

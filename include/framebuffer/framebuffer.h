@@ -8,7 +8,7 @@
 #include "system.h"
 
 #define FB_VIRT_ADDR 0xFFFFFFFF - 0x300000
-#define FONT font8x16_basic
+#define FONT font9x18
 #define FONT_WIDTH 9
 #define FONT_HEIGHT 18
 #define CURSOR 95
