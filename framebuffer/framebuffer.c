@@ -52,20 +52,6 @@ void free_fb()
 	umap_vm_mem(system.master_page_dir, FB_VIRT_ADDR, (fb_size + PAGE_SIZE), 1);
 }
 
-//void render(char *bitmap) {
-//    int x,y;
-//    int set;
-//    int mask;
-//    for (x=0; x < 8; x++) {
-//        for (y=0; y < 8; y++) {
-//            set = bitmap[x] & 1 << y;
-//            printf("%c", set ? 'X' : ' ');
-//        }
-//        printf("\n");
-//    }
-//}
-
-
 void draw_char_fb(unsigned int index, u8 val) 
 {
 	unsigned short cx, cy;
