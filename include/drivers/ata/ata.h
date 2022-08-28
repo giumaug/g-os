@@ -1,6 +1,7 @@
 #ifndef ATA_H                
 #define ATA_H
 
+#include "device.h"
 #include "system.h"
 #include "scheduler/process.h"
 

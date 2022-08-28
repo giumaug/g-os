@@ -7,6 +7,7 @@
 
 void static int_handler_ata();
 
+/*
 u32 dma_pci_io_base;
 u32 dma_pci_mem_base;
 u8 dma_pci_bar_type;
@@ -75,6 +76,7 @@ static void write_ata_config_byte(t_device_desc* device_desc,u32 address,u8 valu
 		out(value,device_desc->dma_pci_io_base + address);
 	}
 }
+*/
 
 t_device_desc* init_ata(u8 device_num)
 {
@@ -85,8 +87,9 @@ t_device_desc* init_ata(u8 device_num)
 	struct t_process_context* current_process_context = NULL;
 	u8 int_entry;
 	
-	device_desc = kmalloc(sizeof(t_device_desc));
-	device_desc->num = device_num;
+	//device_desc = kmalloc(sizeof(t_device_desc));
+	//device_desc->num = device_num;
+	device_desc = init_device(device_num);
 	i_desc.baseLow = ((int)&int_handler_ata) & 0xFFFF;
 	i_desc.selector = 0x8;
 	i_desc.flags = 0x08e00;
@@ -268,8 +271,7 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 	prd_aligned[6] = 0;
 	prd_aligned[7] = 0x80;
 		
-	write_ata_config_dword(device_desc,ATA_DMA_PRD_REG,FROM_VIRT_TO_PHY(prd_aligned));
-	//write_ata_config_byte(device_desc,ATA_DMA_STATUS_REG,0x6);
+	write_config_dword(device_desc,ATA_DMA_PRD_REG,FROM_VIRT_TO_PHY(prd_aligned));
 	
 	out(0xE0 | (device_desc->num * 16) | (unsigned char)(io_request->lba >> 24),0x1F6);
 	out((unsigned char)io_request->sector_count,0x1F2);
@@ -278,11 +280,11 @@ static unsigned int _read_write_dma_28_ata(t_io_request* io_request)
 	out((unsigned char)(io_request->lba >> 16),0x1F5);
 	out(io_request->command,0x1F7);
 
-	write_ata_config_byte(device_desc,ATA_DMA_COMMAND_REG,0x1);
+	write_config_byte(device_desc,ATA_DMA_COMMAND_REG,0x1);
 	//semaphore to avoid race with interrupt handler
 	sem_down(&device_desc->sem);
-	write_ata_config_byte(device_desc,ATA_DMA_COMMAND_REG,0x0);	
-	dma_status = read_ata_config_byte(device_desc,ATA_DMA_STATUS_REG);
+	write_config_byte(device_desc,ATA_DMA_COMMAND_REG,0x0);	
+	dma_status = read_config_byte(device_desc,ATA_DMA_STATUS_REG);
 	cmd_status = in(0x1F7);
 	if ((cmd_status & 1) || dma_status & 1)
 	{

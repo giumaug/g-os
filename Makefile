@@ -6,6 +6,7 @@ vpath %.h $(INCLUDE)
 all:	loader.o                      \
         kmain.o                       \
         timer.o                       \
+        device.o                      \
         idt.o                         \
         syscall_handler.o             \
         asm.o                         \
@@ -57,6 +58,9 @@ kmain.o:kmain.c
 
 timer.o:   timer.c timer.h
 	$(CC) $(CPPFLAGS) $(CFLAGS) timer.c
+	
+device.o:   device.c device.h
+	$(CC) $(CPPFLAGS) $(CFLAGS) device.c	
 
 idt.o:	idt.c idt.h
 	$(CC) $(CPPFLAGS) $(CFLAGS) idt.c
@@ -130,7 +134,7 @@ bochs:all
 	cp $(BASE_DIR)/kernel.bin /mnt/boot/kernel.bin
 	umount /mnt
 clean:	
-	rm -f kmain.o idt.o syscall_handler.o asm.o loader.o kernel_init.o debug.o process_0.o timer.o
+	rm -f kmain.o idt.o syscall_handler.o asm.o loader.o kernel_init.o debug.o process_0.o timer.o device.o
 	$(MAKE) -C scheduler clean
 	$(MAKE) -C memory_manager clean
 	$(MAKE) -C virtual_memory clean

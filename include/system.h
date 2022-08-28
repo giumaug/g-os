@@ -13,6 +13,7 @@
 #include "scheduler/scheduler.h"
 #include "memory_manager/buddy.h"
 #include "network/network.h"
+#include "device.h"
 #include "timer.h"
 
 #define TEST_STACK 0x101636
@@ -36,6 +37,7 @@ struct s_buddy_desc;
 struct s_device_desc;
 struct s_network_desc;
 
+/*
 typedef struct s_dma_lba
 {
 	unsigned int lba;
@@ -72,6 +74,7 @@ typedef struct s_device_desc
 	u8 num;
 }
 t_device_desc;
+*/
 
 typedef struct s_system
 {
