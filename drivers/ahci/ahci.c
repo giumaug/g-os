@@ -14,7 +14,13 @@ int static find_cmd_slot(t_hba_port* port)
 
 t_device_desc* init_ahci(u8 device_num)
 {
-	
+    //Dovrebbe essere memory mapped. Per verificare controllare il valore letto da bar5 con quello resituito da lspci
+	bar4 = read_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_BAR4);
+	//BUS MASTER BIT SET-UP (2 bit starting from 0)
+	pci_command = read_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_COMMAND);
+    pci_command |= 0x4;
+	write_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_COMMAND,pci_command);
+	//pci_command = read_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_COMMAND);
 }
 
 void free_ahci(t_device_desc* device_desc)

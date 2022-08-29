@@ -3,6 +3,11 @@
 
 #include "system.h"
 
+#define AHCI_PCI_BUS
+#define AHCI_PCI_SLOT
+#define AHCI_PCI_FUNC
+#define AHCI_PCI_BAR5
+
 typedef struct s_fis_reg_h2d
 {
 	//DW0
