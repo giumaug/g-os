@@ -6,36 +6,45 @@
 #define AHCI_PCI_BUS
 #define AHCI_PCI_SLOT
 #define AHCI_PCI_FUNC
-#define AHCI_PCI_BAR5
+#define AHCI_PORT_COUNT 1
+#define AHCI_PCI_BAR5 0x24
+
+#define HBA_PxCMD_ST    0x0001
+#define HBA_PxCMD_FRE   0x0010
+#define HBA_PxCMD_FR    0x4000
+#define HBA_PxCMD_CR    0x8000
+
 
 typedef struct s_fis_reg_h2d
 {
-	//DW0
-	u8 fis_type;
-	u8 pmport;
-	u8 rsv0;
-	u8 c;
-	u8 command;
-	u8 featurel;
-	//DW1
-	u8 lba0;
-	u8 lba1;
-	u8 lba2;
-	u8 device;
-	//DW2
-	u8 lba3;
-	u8 lba4;
-	u8 lba5;
-	u8 featureh;
-	//DW3
-	u8  countl;
-	u8  counth;
-	u8  icc;
-	u8  control;
-	//DW4
-	u8  rsv1[4];
+	// DW0
+	u8  cfl:5;		// Command FIS length in DWORDS, 2 ~ 16
+	u8  a:1;		// ATAPI
+	u8  w:1;		// Write, 1: H2D, 0: D2H
+	u8  p:1;		// Prefetchable
+ 
+	u8  r:1;		// Reset
+	u8  b:1;		// BIST
+	u8  c:1;		// Clear busy upon R_OK
+	u8  rsv0:1;		// Reserved
+	u8  pmp:4;		// Port multiplier port
+ 
+	u16 prdtl;		// Physical region descriptor table length in entries
+ 
+	// DW1
+	volatile
+	uint32_t prdbc;		// Physical region descriptor byte count transferred
+ 
+	// DW2, 3
+	uint32_t ctba;		// Command table descriptor base address
+	uint32_t ctbau;		// Command table descriptor base address upper 32 bits
+ 
+	// DW4 - 7
+	uint32_t rsv1[4];	// Reserved
 }
 t_fis_reg_h2d;
+
+
 
 typedef struct s_hba_cmd_header
 {
@@ -104,6 +113,13 @@ typedef struct s_hba_port
 	u32 vendor[4];
 }
 t_hba_port;
+
+typedef struct s_ahci_device
+{
+    struct s_device_desc* device;
+    char* abar;
+}
+t_ahci_device;
 
 t_device_desc* init_ahci(u8 device_num);
 void free_ahci(t_device_desc* device_desc);
