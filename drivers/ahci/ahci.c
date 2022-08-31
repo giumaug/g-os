@@ -121,11 +121,23 @@ void stop_cmd(t_hba_port* port)
 }
 
 
+command list 1024 aligned
+command table 128 aligned
+received fis 256  aligned
+FROM_VIRT_TO_PHY((u32)data_buffer);
+rx_desc=kmalloc(16 + sizeof(t_rx_desc_i8254x) * NUM_RX_DESC);
+rx_desc = ((u32)rx_desc + 16) - ((u32)rx_desc % 16);
 
-static void port_init(t_hba_port port, u8 port_num)
+static void port_init(u32 abar, t_hba_port port, u8 port_num)
 {
+    // Command list offset: 1K*portno
+	// Command list entry size = 32
+	// Command list entry maxim count = 32
+	// Command list maxim size = 32*32 = 1K per port
     stop_cmd(port);
-
+    port->clb = abar + (portno<<10); // check low/hi real address 
+    port->clbu = 0;
+    kfillmem(new_io_buffer,0,BLOCK_SIZE);
 }
 
 
