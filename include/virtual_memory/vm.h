@@ -33,6 +33,7 @@
 
 #define CHECK_MEM_REG(fault_addr,mem_reg) fault_addr>=mem_reg->start_addr && fault_addr<=mem_reg->end_addr 
 #define ALIGN_4K(address) (address & 0xFFFFF000)
+#define ALIGNED_TO_OFFSET(address, offset) ((u32)address + offset) - ((u32)address % offset);
 
 void init_vm_process(struct t_process_context* process_context);
 void free_vm_process(struct t_process_context* process_context);

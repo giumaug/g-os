@@ -2,7 +2,9 @@
 #define AHCI_H
 
 #include "system.h"
-
+//ABAR NEEDS 4352 BYTES
+#define AHCI_VIRT_MEM      0x90000
+#define AHCI_VIRT_MEM_SIZE 0x1400
 #define AHCI_PCI_BUS
 #define AHCI_PCI_SLOT
 #define AHCI_PCI_FUNC

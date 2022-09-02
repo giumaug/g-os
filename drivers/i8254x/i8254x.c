@@ -167,6 +167,7 @@ t_i8254x* init_8254x()
 		i8254x->io_base=NULL;
 		i8254x->bar_type=0;
 		CURRENT_PROCESS_CONTEXT(current_process_context);
+		//PERCHE' USO PAGE DIR SPECIFICA DEL PROCESSO??? COME FA A FUNZIONARE ???
 		map_vm_mem(current_process_context->page_dir,I8254X_VIRT_BAR0_MEM,(((u32) (bar0)) & 0xFFFFFFF0),I8254X_VIRT_BAR0_MEM_SIZE,3);
 		SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 
 	}

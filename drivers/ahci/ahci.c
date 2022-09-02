@@ -15,7 +15,7 @@ int static find_cmd_slot(t_hba_port* port)
 t_ahci_device_desc* init_ahci(u8 device_num)
 {
     u8 i;
-    char* abar;
+    char* phy_abar;
     t_hba_port* port = NULL;
     t_ahci_device_desc* device_desc = NULL;
     
@@ -23,26 +23,35 @@ t_ahci_device_desc* init_ahci(u8 device_num)
     device_desc->device = init_device(device_num);
     
     //Dovrebbe essere memory mapped. Per verificare controllare il valore letto da bar5 con quello resituito da lspci
-	abar = read_pci_config_word(ATA_PCI_BUS, ATA_PCI_SLOT, ATA_PCI_FUNC, ATA_PCI_BAR5);
-	device_desc->abar = bar5;
+	phy_abar = read_pci_config_word(ATA_PCI_BUS, ATA_PCI_SLOT, ATA_PCI_FUNC, ATA_PCI_BAR5);
+	device_desc->abar = AHCI_VIRT_MEM;
 	//BUS MASTER BIT SET-UP (2 bit starting from 0)
 	pci_command = read_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_COMMAND);
     pci_command |= 0x4;
 	write_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_COMMAND,pci_command);
 	//pci_command = read_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_COMMAND);
 	
+    map_vm_mem(system.master_page_dir, AHCI_VIRT_MEM, ((u32) (phy_abar)), AHCI_VIRT_MEM_SIZE, 3);
 	for (i = 1; i <= AHCI_PORT_COUNT; i++)
     {
-        port = abar + (128 * i);
+        port = device_desc->abar + (128 * i);
         port_init(port, i);
     }
-	
-	
 }
 
-void free_ahci(t_device_desc* device_desc)
+void free_ahci(t_ahci_device_desc* device_desc)
 {
-	
+    for (i = 1; i <= AHCI_PORT_COUNT; i++)
+    {
+        port = device_desc->abar + (128 * i);
+        port_free(port, i);
+    }
+    CURRENT_PROCESS_CONTEXT(current_process_context);
+    umap_vm_mem(process_context->page_dir, AHCI_VIRT_MEM, AHCI_VIRT_MEM_SIZE,0);
+	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir)
+    
+    free_device(device_desc->device);
+    kfree(device_desc);
 }
 
 void int_handler_ahci()
@@ -120,60 +129,56 @@ void stop_cmd(t_hba_port* port)
 	}
 }
 
-
-command list 1024 aligned
-command table 128 aligned
-received fis 256  aligned
-FROM_VIRT_TO_PHY((u32)data_buffer);
-rx_desc=kmalloc(16 + sizeof(t_rx_desc_i8254x) * NUM_RX_DESC);
-rx_desc = ((u32)rx_desc + 16) - ((u32)rx_desc % 16);
-
 static void port_init(u32 abar, t_hba_port port, u8 port_num)
 {
-    // Command list offset: 1K*portno
-	// Command list entry size = 32
-	// Command list entry maxim count = 32
-	// Command list maxim size = 32*32 = 1K per port
+    //command list 1024 aligned
+    //command table 128 aligned
+    //received fis 256  aligned
+    char* addr;
+    t_hba_cmd_header* cmd_header = NULL;
+    
     stop_cmd(port);
-    port->clb = abar + (portno<<10); // check low/hi real address 
-    port->clbu = 0;
-    kfillmem(new_io_buffer,0,BLOCK_SIZE);
-}
-
-
-void port_rebase(HBA_PORT *port, int portno)
-{
-	stop_cmd(port);	// Stop command engine
- 
-	// Command list offset: 1K*portno
-	// Command list entry size = 32
-	// Command list entry maxim count = 32
-	// Command list maxim size = 32*32 = 1K per port
-	port->clb = AHCI_BASE + (portno<<10);
-	port->clbu = 0;
-	memset((void*)(port->clb), 0, 1024);
- 
-	// FIS offset: 32K+256*portno
-	// FIS entry size = 256 bytes per port
-	port->fb = AHCI_BASE + (32<<10) + (portno<<8);
-	port->fbu = 0;
-	memset((void*)(port->fb), 0, 256);
- 
-	// Command table offset: 40K + 8K*portno
-	// Command table size = 256*32 = 8K per port
-	HBA_CMD_HEADER *cmdheader = (HBA_CMD_HEADER*)(port->clb);
-	for (int i=0; i<32; i++)
+    addr = kmalloc(1024 + 1024);
+    addr = ALIGNED_TO_OFFSET(addr, 1024);
+    port->clb = FROM_VIRT_TO_PHY((u32) addr);
+    port->clbu = 0; // to check address size
+    kfillmem(addr, 0, 1024);
+    
+    addr = kmalloc(256 + 256);
+    addr = ALIGNED_TO_OFFSET(addr, 256);
+    port->fb = FROM_VIRT_TO_PHY((u32) addr);
+    port->fbu = 0; // to check address size
+    kfillmem(addr, 0, 256);
+    
+    cmdheader = port->clb;
+    for (i = 0; i < 32; i++)
 	{
-		cmdheader[i].prdtl = 8;	// 8 prdt entries per command table
-					// 256 bytes per command table, 64+16+48+16*8
-		// Command table offset: 40K + 8K*portno + cmdheader_index*256
-		cmdheader[i].ctba = AHCI_BASE + (40<<10) + (portno<<13) + (i<<8);
-		cmdheader[i].ctbau = 0;
-		memset((void*)cmdheader[i].ctba, 0, 256);
-	}
- 
-	start_cmd(port);	// Start command engine
+	    // 8 prdt entries per command table
+	    // 256 bytes per command table, 64+16+48+16*8
+        cmd_header[i].prdtl = 8;
+        addr = kmalloc(256 + 256);
+        addr = ALIGNED_TO_OFFSET(addr, 256);
+        cmd_header[i].ctba = FROM_VIRT_TO_PHY((u32) addr);
+        cmd_header[i].ctbau = 0;
+        kfillmem(addr, 0, 256);
+    }
+    stop_cmd(port);   
 }
+
+static void port_free()
+{
+
+}  
+        
+    
+    
+    
+    
+    
+
+
+
+
 
 
 
