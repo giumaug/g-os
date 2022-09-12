@@ -2,6 +2,7 @@
 #define AHCI_H
 
 #include "system.h"
+#define ALIGNED_MEM_MAP_SIZE 100
 //ABAR NEEDS 4352 BYTES
 #define AHCI_VIRT_MEM      0x90000
 #define AHCI_VIRT_MEM_SIZE 0x1400
@@ -132,6 +133,7 @@ typedef struct s_ahci_device
 {
     struct s_device_desc* device;
     char* abar;
+    t_hashtable* mem_map;
 }
 t_ahci_device;
 
