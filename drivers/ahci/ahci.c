@@ -12,6 +12,7 @@ int static find_cmd_slot(t_hba_port* port)
 	return -1;
 }
 
+//WE CONSIDER A DEVICE WITH ONE PORT ONLY
 t_ahci_device_desc* init_ahci(u8 device_num)
 {
     u8 i;
@@ -33,23 +34,16 @@ t_ahci_device_desc* init_ahci(u8 device_num)
 	//pci_command = read_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_COMMAND);
 	
     map_vm_mem(system.master_page_dir, AHCI_VIRT_MEM, ((u32) (phy_abar)), AHCI_VIRT_MEM_SIZE, 3);
-	for (i = 1; i <= AHCI_PORT_COUNT; i++)
-    {
-        port = device_desc->abar + (128 * i);
-        port_init(port, device_desc->mem_map, i);
-    }
+    port = device_desc->abar + (128 * 0);
+    port_init(port, device_desc->mem_map, 0);
+    device_desc->active_port = port;
 }
 
 void free_ahci(t_ahci_device_desc* device_desc)
 {
-	int i;
-	
-    for (i = 1; i <= AHCI_PORT_COUNT; i++)
-    {
-        port = device_desc->abar + (128 * i);
-        port_free(port, i);
-    }
-    umap_vm_mem(process_context->page_dir, AHCI_VIRT_MEM, AHCI_VIRT_MEM_SIZE,0);
+    port = device_desc->abar + (128 * 0);
+    port_free(port, 0);
+    umap_vm_mem(process_context->page_dir, AHCI_VIRT_MEM, AHCI_VIRT_MEM_SIZE, 0);
     free_device(device_desc->device);
     kfree(device_desc);
 }
@@ -58,6 +52,43 @@ void int_handler_ahci()
 {
 	
 }
+
+//--------------nuove---------------
+
+static u8 _read_write_ahci(t_io_request* io_request)
+{
+    t_ahci_device_desc* device_desc = NULL;
+    t_hba_port* port = NULL;
+    t_hba_cmd_header* cmd_header = NULL;
+
+    device_desc = io_request->device_desc;
+    port = device_desc->active_port;
+    
+    port->is = (u32) -1;		// Clear pending interrupt bits
+	int spin = 0; // Spin lock timeout counter
+	int slot = find_cmd_slot(port);
+	if (slot == -1)
+	{
+		return 0;
+    }
+    cmd_header = port->clb;
+    io_request->command == READ_DMA_28 || io_request->command == READ_28 ? 0 : 1;
+    cmd_header += slot;
+	cmd_header->cfl = sizeof(t_fis_reg_h2d) / sizeof(u32);
+	cmd_header->w = (io_request->command == READ_DMA_28 || io_request->command == READ_28 ? 0 : 1);
+	//cmd_header->prdtl = 1;--------qui!!!!!!!!!!!!!!!!
+ 
+	
+    
+	
+}
+
+static u8 _p_read_write_ahci(t_io_request* io_request)
+{
+	
+}
+
+//--------------------------------------
 
 static u8 _read_write_dma_28_ahci(t_io_request* io_request)
 {
@@ -156,14 +187,14 @@ static void port_init(u32 abar, t_hba_port port, t_hashtable* mem_map, u8 port_n
     cmd_header = port->clb;
     for (i = 0; i < 32; i++)
 	{
-	    // 8 prdt entries per command table
-	    // 256 bytes per command table, 64+16+48+16*8
-        cmd_header[i].prdtl = 8;
-        addr = kmalloc(256 + 256);
-        addr = ALIGNED_TO_OFFSET(addr, 256);
+	    // 1 prdt entry per command table
+	    // 144 bytes per command table, 64+16+48+16;
+        cmd_header[i].prdtl = 1;
+        addr = kmalloc(144 + 144);
+        addr = ALIGNED_TO_OFFSET(addr, 144);
         cmd_header[i].ctba = FROM_VIRT_TO_PHY((u32) addr);
         cmd_header[i].ctbau = 0;
-        kfillmem(addr, 0, 256);
+        kfillmem(addr, 0, 144);
         hashtable_put(mem_map, algnd_addr, addr);
     }
     stop_cmd(port);   

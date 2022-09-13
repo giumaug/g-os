@@ -133,6 +133,7 @@ typedef struct s_ahci_device
 {
     struct s_device_desc* device;
     char* abar;
+    t_hba_port* active_port;
     t_hashtable* mem_map;
 }
 t_ahci_device;
