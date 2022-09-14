@@ -53,13 +53,13 @@ void int_handler_ahci()
 	
 }
 
-//--------------nuove---------------
-
-static u8 _read_write_ahci(t_io_request* io_request)
+static u8 _read_write_28_ahci(t_io_request* io_request)
 {
     t_ahci_device_desc* device_desc = NULL;
     t_hba_port* port = NULL;
     t_hba_cmd_header* cmd_header = NULL;
+    t_hba_cmd_tbl* cmd_tbl = NULL;
+    t_fis_reg_h2d* cmd_fis = NULL;
 
     device_desc = io_request->device_desc;
     port = device_desc->active_port;
@@ -76,48 +76,76 @@ static u8 _read_write_ahci(t_io_request* io_request)
     cmd_header += slot;
 	cmd_header->cfl = sizeof(t_fis_reg_h2d) / sizeof(u32);
 	cmd_header->w = (io_request->command == READ_DMA_28 || io_request->command == READ_28 ? 0 : 1);
-	//cmd_header->prdtl = 1;--------qui!!!!!!!!!!!!!!!!
- 
 	
-    
+	cmd_tbl = cmd_header->ctba;
+	cmd_tbl->prdt_entry[0].dba = io_request->io_buffer;
+	cmd_tbl->prdt_entry[0].dba = 0;
+	cmd_tbl->prdt_entry[i].dbc = io_request->sector_count * AHCI_SECTOR_SIZE;
+	cmd_tbl->prdt_entry[i].i = 1;
 	
+	cmd_fis = &cmd_tbl->cfis;
+	cmd_fis->fis_type = FIS_TYPE_REG_H2D;
+	cmd_fis->c = 1;
+	cmd_fis_command = io_request->command;
+	
+	cmd_fis->lba0 = (unsigned char) io_request->lba;
+	cmd_fis->lba1 = (unsigned char)(io_request->lba >> 8);
+	cmd_fis->lba2 = (unsigned char)(io_request->lba >> 16);
+	cmd_fis->lba3 = 0;
+	cmd_fis->lba4 = 0;
+	cmd_fis->lba5 = 0;
+	cmd_fis->device = 1<<6;
+	cmd_fis->countl = io_request->sector_count & 0xFF;
+	cmd_fis->counth = (io_request->sector_count >> 8) & 0xFF;
+	
+	//WAIT PORT IS READ AND ISSUE THE COMMAND
+	while ((port->tfd & (ATA_DEV_BUSY | ATA_DEV_DRQ)) && spin < ATA_SPIN_TIMEOUT)
+	{
+		spin++;
+	}
+	if (spin == ATA_SPIN_TIMEOUT)
+	{
+		return -1;
+	}
+	port->ci = 1<<slot;
+	
+	// Wait for completion
+	while (1)
+	{
+		if ((port->ci & (1 << slot)) == 0) break;
+		if (port->is & HBA_PxIS_TFES)
+		{
+			return -1;
+		}
+	}
+	// Check again
+	if (port->is & HBA_PxIS_TFES)
+	{
+		trace_ahci("Read disk error\n");
+		return -1;
+	}
+	return 0;
 }
 
-static u8 _p_read_write_ahci(t_io_request* io_request)
+static u8 _p_read_write_28_ahci(t_io_request* io_request)
 {
 	
-}
-
-//--------------------------------------
-
-static u8 _read_write_dma_28_ahci(t_io_request* io_request)
-{
-	
-}
-
-static u8 _read_write_28_ahci(t_io_request* io_request)
-{
-	
-}
-
-u8 _write_dma_28_ahci(t_io_request* io_request)
-{
-	
-}
-
-u8 _read_dma_28_ahci(t_io_request* io_request)
-{
-
-}
-
-u8 _read_28_ahci(t_io_request* io_request)
-{
-
 }
 
 u8 _write_28_ahci(t_io_request* io_request)
 {
 	
+}
+
+u8 _read_28_ahci(t_io_request* io_request)
+{
+	io_request->command = ATA_READ_DMA_28;
+	return _read_write_28_ata(io_request);	
+}
+
+u8 _read_28_ahci(t_io_request* io_request)
+{
+
 }
 
 u8 _p_read_28_ahci(t_io_request* io_request)

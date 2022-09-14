@@ -2,6 +2,7 @@
 #define AHCI_H
 
 #include "system.h"
+#define AHCI_SECTOR_SIZE 512
 #define ALIGNED_MEM_MAP_SIZE 100
 //ABAR NEEDS 4352 BYTES
 #define AHCI_VIRT_MEM      0x90000
@@ -17,6 +18,14 @@
 #define HBA_PxCMD_FR    0x4000
 #define HBA_PxCMD_CR    0x8000
 
+#define HBA_PxIS_TFES 0x40000000
+
+#define FIS_TYPE_REG_H2D 0x27
+#define ATA_READ_DMA_28 0xC8
+#define ATA_WRITE_DMA_28 0xCA
+#define ATA_DEV_BUSY 0x80
+#define ATA_DEV_DRQ 0x08
+#define ATA_SPIN_TIMEOUT 1000000
 
 typedef struct s_fis_reg_h2d
 {
@@ -140,12 +149,10 @@ t_ahci_device;
 
 t_device_desc* init_ahci(u8 device_num);
 void free_ahci(t_device_desc* device_desc);
-void int_handler_ahci()
-u8 _write_dma_28_ahci(t_io_request* io_request);
-u8 _read_dma_28_ahci(t_io_request* io_request);
-u8 _read_28_ahci(t_io_request* io_request);
+void int_handler_ahci();
 u8 _write_28_ahci(t_io_request* io_request);
+u8 _read_28_ahci(t_io_request* io_request);
+u8 _read_28_ahci(t_io_request* io_request);
 u8 _p_read_28_ahci(t_io_request* io_request);
 u8 _p_write_28_ahci(t_io_request* io_request);
-
 #endif
