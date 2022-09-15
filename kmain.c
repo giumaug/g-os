@@ -10,6 +10,7 @@
 #include "network/network.h"
 #include "drivers/kbc/8042.h"
 #include "drivers/ata/ata.h"
+#include "drivers/ahci/ahci.h"
 #include "framebuffer/framebuffer.h"
 
 //to fix when file system working!!
@@ -32,6 +33,7 @@ void kmain(multiboot_info_t* mbd, unsigned int magic, int init_data_add)
 	static t_ext2 ext2_d1;
 	static t_ext2 ext2_d2;
 	static u32 kernel_stack;
+	static t_ahci_device* device_desc = NULL;
 	system.time = 0;
 	system.flush_network = 0;
     system.read_block_count = 0;
@@ -71,6 +73,9 @@ void kmain(multiboot_info_t* mbd, unsigned int magic, int init_data_add)
 //	static t_device_desc device_desc;
 //	init_ata(&device_desc);
 //	system.device_desc = &device_desc;
+
+	device_desc = init_ahci(0);
+	system.device_desc = device_desc;
 //
 //	system.root_fs = &ext2_d1;
 //	system.scnd_fs = &ext2_d2;

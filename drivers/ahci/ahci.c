@@ -1,5 +1,8 @@
 #include "drivers/ahci/ahci.h"
 
+static void port_init(u32 abar, t_hba_port port, t_hashtable* mem_map, u8 port_num);
+static void port_free(u32 abar, t_hba_port port, t_hashtable* mem_map);
+
 int static find_cmd_slot(t_hba_port* port)
 {
 	u32 slots = (port->sact | port->ci);
@@ -16,6 +19,7 @@ int static find_cmd_slot(t_hba_port* port)
 t_ahci_device_desc* init_ahci(u8 device_num)
 {
     u8 i;
+    u32 pci_command;
     char* phy_abar;
     t_hba_port* port = NULL;
     t_ahci_device_desc* device_desc = NULL;
@@ -25,12 +29,12 @@ t_ahci_device_desc* init_ahci(u8 device_num)
     device_desc->mem_map = hashtable_init(ALIGNED_MEM_MAP_SIZE);
     
     //Dovrebbe essere memory mapped. Per verificare controllare il valore letto da bar5 con quello resituito da lspci
-	phy_abar = read_pci_config_word(ATA_PCI_BUS, ATA_PCI_SLOT, ATA_PCI_FUNC, ATA_PCI_BAR5);
+	phy_abar = read_pci_config_word(AHCI_PCI_BUS, AHCI_PCI_SLOT, AHCI_PCI_FUNC, AHCI_PCI_BAR5);
 	device_desc->abar = AHCI_VIRT_MEM;
 	//BUS MASTER BIT SET-UP (2 bit starting from 0)
-	pci_command = read_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_COMMAND);
+	pci_command = read_pci_config_word(AHCI_PCI_BUS, AHCI_PCI_SLOT, AHCI_PCI_FUNC, AHCI_PCI_COMMAND);
     pci_command |= 0x4;
-	write_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_COMMAND,pci_command);
+	write_pci_config_word(AHCI_PCI_BUS, AHCI_PCI_SLOT, AHCI_PCI_FUNC, AHCI_PCI_COMMAND, pci_command);
 	//pci_command = read_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_COMMAND);
 	
     map_vm_mem(system.master_page_dir, AHCI_VIRT_MEM, ((u32) (phy_abar)), AHCI_VIRT_MEM_SIZE, 3);
@@ -41,9 +45,11 @@ t_ahci_device_desc* init_ahci(u8 device_num)
 
 void free_ahci(t_ahci_device_desc* device_desc)
 {
+    t_hba_port* port = NULL;
+    
     port = device_desc->abar + (128 * 0);
     port_free(port, 0);
-    umap_vm_mem(process_context->page_dir, AHCI_VIRT_MEM, AHCI_VIRT_MEM_SIZE, 0);
+    umap_vm_mem(system.master_page_dir, AHCI_VIRT_MEM, AHCI_VIRT_MEM_SIZE, 0);
     free_device(device_desc->device);
     kfree(device_desc);
 }
@@ -72,21 +78,21 @@ static u8 _read_write_28_ahci(t_io_request* io_request)
 		return 0;
     }
     cmd_header = port->clb;
-    io_request->command == READ_DMA_28 || io_request->command == READ_28 ? 0 : 1;
+    io_request->command == ATA_READ_DMA_28 ? 0 : 1;
     cmd_header += slot;
 	cmd_header->cfl = sizeof(t_fis_reg_h2d) / sizeof(u32);
-	cmd_header->w = (io_request->command == READ_DMA_28 || io_request->command == READ_28 ? 0 : 1);
+	cmd_header->w = (io_request->command == ATA_READ_DMA_28 ? 0 : 1);
 	
 	cmd_tbl = cmd_header->ctba;
 	cmd_tbl->prdt_entry[0].dba = io_request->io_buffer;
 	cmd_tbl->prdt_entry[0].dba = 0;
-	cmd_tbl->prdt_entry[i].dbc = io_request->sector_count * AHCI_SECTOR_SIZE;
-	cmd_tbl->prdt_entry[i].i = 1;
+	cmd_tbl->prdt_entry[0].dbc = io_request->sector_count * AHCI_SECTOR_SIZE;
+	cmd_tbl->prdt_entry[0].i = 1;
 	
 	cmd_fis = &cmd_tbl->cfis;
 	cmd_fis->fis_type = FIS_TYPE_REG_H2D;
 	cmd_fis->c = 1;
-	cmd_fis_command = io_request->command;
+	cmd_fis->command = io_request->command;
 	
 	cmd_fis->lba0 = (unsigned char) io_request->lba;
 	cmd_fis->lba1 = (unsigned char)(io_request->lba >> 8);
@@ -107,7 +113,7 @@ static u8 _read_write_28_ahci(t_io_request* io_request)
 	{
 		return -1;
 	}
-	port->ci = 1<<slot;
+	port->ci = 1 << slot;
 	
 	// Wait for completion
 	while (1)
@@ -121,7 +127,6 @@ static u8 _read_write_28_ahci(t_io_request* io_request)
 	// Check again
 	if (port->is & HBA_PxIS_TFES)
 	{
-		trace_ahci("Read disk error\n");
 		return -1;
 	}
 	return 0;
@@ -143,7 +148,7 @@ u8 _read_28_ahci(t_io_request* io_request)
 	return _read_write_28_ata(io_request);	
 }
 
-u8 _read_28_ahci(t_io_request* io_request)
+u8 _write_28_ahci(t_io_request* io_request)
 {
 
 }
@@ -250,7 +255,25 @@ static void port_free(u32 abar, t_hba_port port, t_hashtable* mem_map)
 	algnd_addr = FROM_PHY_TO_VIRT(port->fb);
 	addr = hashtable_remove(mem_map, algnd_addr);
 	kfree(addr);
-}  
+}
+
+void test_ahci()
+{
+    char* io_buffer = NULL;
+    t_io_request* io_request = NULL;
+    int partition_start_sector = 0; // DA CERCARE A MANO!!!!
+    
+    io_buffer = kmalloc(BLOCK_SIZE);
+    io_request = kmalloc(sizeof(t_io_request));
+    io_request->device_desc = system.device_desc;
+    io_request->sector_count= 1;
+    io_request->lba= 2 + partition_start_sector;
+    io_request->io_buffer = io_buffer;
+    io_request->process_context = NULL;
+    _read_28_ahci(io_request);
+    kfree(io_request);
+    kfree(io_buffer);                                                      					
+}
         
     
     

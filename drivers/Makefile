@@ -12,7 +12,8 @@ kbc.o:
 	$(MAKE) -C kbc
 ata.o:
 	$(MAKE) -C ata
-
+ata.o:
+	$(MAKE) -C ahci	
 i8254x.o:
 	$(MAKE) -C i8254x
 
@@ -22,4 +23,5 @@ clean:
 	$(MAKE) -C lapic clean
 	$(MAKE) -C kbc clean
 	$(MAKE) -C ata clean
+	$(MAKE) -C ahci clean
 	$(MAKE) -C i8254x clean

@@ -184,67 +184,67 @@ static u32 read_indirect_block(t_ext2* ext2,t_inode* inode,u32 key)
 
 void static read_superblock(t_ext2* ext2)
 {
-        char* io_buffer = NULL;
+    char* io_buffer = NULL;
 	t_superblock* superblock = NULL;
 	int i=0;
 	
-        io_buffer = kmalloc(BLOCK_SIZE);
-        P_READ(2, (2 + ext2->partition_start_sector), io_buffer);	
+    io_buffer = kmalloc(BLOCK_SIZE);
+    P_READ(2, (2 + ext2->partition_start_sector), io_buffer);	
 	superblock = ext2->superblock;
        
-        //u32
-        READ_DWORD(&io_buffer[0], superblock->s_inodes_count);
-        READ_DWORD(&io_buffer[4], superblock->s_blocks_count);
-        READ_DWORD(&io_buffer[8], superblock->s_r_blocks_count);
-        READ_DWORD(&io_buffer[12], superblock->s_free_blocks_count);
-        READ_DWORD(&io_buffer[16], superblock->s_free_inodes_count);
-        READ_DWORD(&io_buffer[20], superblock->s_first_data_block);
-        READ_DWORD(&io_buffer[24], superblock->s_log_block_size);
-        READ_DWORD(&io_buffer[28], superblock->s_log_frag_size);
-        READ_DWORD(&io_buffer[32], superblock->s_blocks_per_group);
-        READ_DWORD(&io_buffer[36], superblock->s_frags_per_group);
-        READ_DWORD(&io_buffer[40], superblock->s_inodes_per_group);
-        READ_DWORD(&io_buffer[44], superblock->s_mtime);
-        READ_DWORD(&io_buffer[48], superblock->s_wtime);
-        //u16
-        READ_WORD(&io_buffer[52], superblock->s_mnt_count);
-        READ_WORD(&io_buffer[54], superblock->s_max_mnt_count);
-        READ_WORD(&io_buffer[56], superblock->s_magic);
-        READ_WORD(&io_buffer[58], superblock->s_state);
-        READ_WORD(&io_buffer[60], superblock->s_errors);
-        READ_WORD(&io_buffer[62], superblock->s_minor_rev_level);
-        //u32
-        READ_DWORD(&io_buffer[64], superblock->s_lastcheck);          
-        READ_DWORD(&io_buffer[68], superblock->s_checkinterval);
-        READ_DWORD(&io_buffer[72], superblock->s_creator_os);
-        READ_DWORD(&io_buffer[76], superblock->s_rev_level);
-        //u16
-        READ_WORD(&io_buffer[80], superblock->s_def_resuid);            
-        READ_WORD(&io_buffer[82], superblock->s_def_resgid);
-        //u32
-        READ_DWORD(&io_buffer[84], superblock->s_first_ino);                      
-        //u16
-        READ_WORD(&io_buffer[88], superblock->s_inode_size);
-        READ_WORD(&io_buffer[90], superblock->s_block_group_nr);
-        //u32
-        READ_DWORD(&io_buffer[92], superblock->s_feature_compat);
-        READ_DWORD(&io_buffer[96], superblock->s_feature_incompat);
-        READ_DWORD(&io_buffer[100], superblock->s_feature_ro_compat);
-        //u8[16]
-        kmemcpy(&superblock->s_uuid, &io_buffer[104],16);  
-        //s8[16]
-        kmemcpy(&superblock->s_volume_name, &io_buffer[120],16);
-        //u64
-        kmemcpy(&superblock->s_last_mounted, &io_buffer[136],64);
-        //u32
-        READ_DWORD(&io_buffer[200], superblock->s_algorithm_usage_bitmap);
-        //u8
-        READ_BYTE(&io_buffer[204], superblock->s_prealloc_blocks);      
-        READ_BYTE(&io_buffer[205], superblock->s_prealloc_dir_blocks);
-        //u16
-        READ_WORD(&io_buffer[206], superblock->s_padding1);
-        //u32[204]
-        kmemcpy(&superblock->s_reserved, &io_buffer[208], 816);
+    //u32
+    READ_DWORD(&io_buffer[0], superblock->s_inodes_count);
+    READ_DWORD(&io_buffer[4], superblock->s_blocks_count);
+    READ_DWORD(&io_buffer[8], superblock->s_r_blocks_count);
+    READ_DWORD(&io_buffer[12], superblock->s_free_blocks_count);
+    READ_DWORD(&io_buffer[16], superblock->s_free_inodes_count);
+    READ_DWORD(&io_buffer[20], superblock->s_first_data_block);
+    READ_DWORD(&io_buffer[24], superblock->s_log_block_size);
+    READ_DWORD(&io_buffer[28], superblock->s_log_frag_size);
+    READ_DWORD(&io_buffer[32], superblock->s_blocks_per_group);
+    READ_DWORD(&io_buffer[36], superblock->s_frags_per_group);
+    READ_DWORD(&io_buffer[40], superblock->s_inodes_per_group);
+    READ_DWORD(&io_buffer[44], superblock->s_mtime);
+    READ_DWORD(&io_buffer[48], superblock->s_wtime);
+    //u16
+    READ_WORD(&io_buffer[52], superblock->s_mnt_count);
+    READ_WORD(&io_buffer[54], superblock->s_max_mnt_count);
+    READ_WORD(&io_buffer[56], superblock->s_magic);
+    READ_WORD(&io_buffer[58], superblock->s_state);
+    READ_WORD(&io_buffer[60], superblock->s_errors);
+    READ_WORD(&io_buffer[62], superblock->s_minor_rev_level);
+    //u32
+    READ_DWORD(&io_buffer[64], superblock->s_lastcheck);          
+    READ_DWORD(&io_buffer[68], superblock->s_checkinterval);
+    READ_DWORD(&io_buffer[72], superblock->s_creator_os);
+    READ_DWORD(&io_buffer[76], superblock->s_rev_level);
+    //u16
+    READ_WORD(&io_buffer[80], superblock->s_def_resuid);            
+    READ_WORD(&io_buffer[82], superblock->s_def_resgid);
+    //u32
+    READ_DWORD(&io_buffer[84], superblock->s_first_ino);                      
+    //u16
+    READ_WORD(&io_buffer[88], superblock->s_inode_size);
+    READ_WORD(&io_buffer[90], superblock->s_block_group_nr);
+    //u32
+    READ_DWORD(&io_buffer[92], superblock->s_feature_compat);
+    READ_DWORD(&io_buffer[96], superblock->s_feature_incompat);
+    READ_DWORD(&io_buffer[100], superblock->s_feature_ro_compat);
+    //u8[16]
+    kmemcpy(&superblock->s_uuid, &io_buffer[104],16);  
+    //s8[16]
+    kmemcpy(&superblock->s_volume_name, &io_buffer[120],16);
+    //u64
+    kmemcpy(&superblock->s_last_mounted, &io_buffer[136],64);
+    //u32
+    READ_DWORD(&io_buffer[200], superblock->s_algorithm_usage_bitmap);
+    //u8
+    READ_BYTE(&io_buffer[204], superblock->s_prealloc_blocks);      
+    READ_BYTE(&io_buffer[205], superblock->s_prealloc_dir_blocks);
+    //u16
+    READ_WORD(&io_buffer[206], superblock->s_padding1);
+    //u32[204]
+    kmemcpy(&superblock->s_reserved, &io_buffer[208], 816);
 	kfree(io_buffer);
 }
 

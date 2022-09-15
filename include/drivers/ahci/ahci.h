@@ -7,11 +7,12 @@
 //ABAR NEEDS 4352 BYTES
 #define AHCI_VIRT_MEM      0x90000
 #define AHCI_VIRT_MEM_SIZE 0x1400
-#define AHCI_PCI_BUS
-#define AHCI_PCI_SLOT
-#define AHCI_PCI_FUNC
+#define AHCI_PCI_BUS 0x0
+#define AHCI_PCI_SLOT 0x0
+#define AHCI_PCI_FUNC 0x0
 #define AHCI_PORT_COUNT 1
 #define AHCI_PCI_BAR5 0x24
+#define AHCI_PCI_COMMAND 0x0
 
 #define HBA_PxCMD_ST    0x0001
 #define HBA_PxCMD_FRE   0x0010
@@ -138,21 +139,22 @@ typedef struct s_hba_port
 }
 t_hba_port;
 
-typedef struct s_ahci_device
+typedef struct s_ahci_device_desc
 {
     struct s_device_desc* device;
     char* abar;
     t_hba_port* active_port;
     t_hashtable* mem_map;
 }
-t_ahci_device;
+t_ahci_device_desc;
 
-t_device_desc* init_ahci(u8 device_num);
-void free_ahci(t_device_desc* device_desc);
+t_ahci_device_desc* init_ahci(u8 device_num);
+void free_ahci(t_ahci_device_desc* device_desc);
 void int_handler_ahci();
 u8 _write_28_ahci(t_io_request* io_request);
 u8 _read_28_ahci(t_io_request* io_request);
 u8 _read_28_ahci(t_io_request* io_request);
 u8 _p_read_28_ahci(t_io_request* io_request);
 u8 _p_write_28_ahci(t_io_request* io_request);
+void test_ahci();
 #endif

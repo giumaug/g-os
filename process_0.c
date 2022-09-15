@@ -29,6 +29,7 @@ void process_0()
 //	{
 //		THREAD_EXIT(0);
 //	}
+    ahci_test();
 	fake_shell();
 	THREAD_EXIT(0);
 }
