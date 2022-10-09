@@ -41,6 +41,7 @@ all:	loader.o                      \
 	drivers/lapic/*.o             \
 	drivers/kbc/*.o               \
 	drivers/ata/*.o               \
+	drivers/ahci/*.o              \
 	drivers/i8254x/i8254x.o       \
 	data_types/*.o		          \
 	synchro_types/*.o             \

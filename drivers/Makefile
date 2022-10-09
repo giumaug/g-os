@@ -1,6 +1,6 @@
 include ../make.rules
 
-all:	pit.o ioapic.o lapic.o kbc.o ata.o i8254x.o
+all:	pit.o ioapic.o lapic.o kbc.o ata.o i8254x.o ahci.o
 
 pit.o:
 	$(MAKE) -C pit
@@ -12,7 +12,7 @@ kbc.o:
 	$(MAKE) -C kbc
 ata.o:
 	$(MAKE) -C ata
-ata.o:
+ahci.o:
 	$(MAKE) -C ahci	
 i8254x.o:
 	$(MAKE) -C i8254x

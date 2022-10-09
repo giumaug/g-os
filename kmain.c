@@ -20,6 +20,8 @@ t_system system;
 
 void kmain(multiboot_info_t* mbd, unsigned int magic, int init_data_add)
 {
+	unsigned int* xxx;
+	
 	static multiboot_info_t _mbd;
 	_mbd = *mbd;
 	static struct t_process_info process_info;
@@ -33,7 +35,7 @@ void kmain(multiboot_info_t* mbd, unsigned int magic, int init_data_add)
 	static t_ext2 ext2_d1;
 	static t_ext2 ext2_d2;
 	static u32 kernel_stack;
-	static t_ahci_device* device_desc = NULL;
+	static t_ahci_device_desc* device_desc = NULL;
 	system.time = 0;
 	system.flush_network = 0;
     system.read_block_count = 0;
@@ -62,6 +64,10 @@ void kmain(multiboot_info_t* mbd, unsigned int magic, int init_data_add)
 	
 	system.master_page_dir = init_virtual_memory();
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) system.master_page_dir)))
+	
+	xxx = FROM_PHY_TO_VIRT(((unsigned int*)system.master_page_dir)[0]);
+	
+	
 	system.timer_list = new_dllist();
 	init_ioapic();
 	init_lapic();

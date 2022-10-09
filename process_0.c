@@ -2,6 +2,7 @@
 #include "lib/lib.h"
 #include "scheduler/scheduler.h"
 #include "virtual_memory/vm.h"
+#include "drivers/ahci/ahci.h"
 #include "process_0.h"
 
 //_exec SWITCHES KERNEL THREAD TO USERSPACE PROCESS
@@ -29,7 +30,7 @@ void process_0()
 //	{
 //		THREAD_EXIT(0);
 //	}
-    ahci_test();
+    test_ahci();
 	fake_shell();
 	THREAD_EXIT(0);
 }

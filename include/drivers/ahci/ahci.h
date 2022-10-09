@@ -8,8 +8,8 @@
 #define AHCI_VIRT_MEM      0x90000
 #define AHCI_VIRT_MEM_SIZE 0x1400
 #define AHCI_PCI_BUS 0x0
-#define AHCI_PCI_SLOT 0x0
-#define AHCI_PCI_FUNC 0x0
+#define AHCI_PCI_SLOT 0x1F
+#define AHCI_PCI_FUNC 0x02
 #define AHCI_PORT_COUNT 1
 #define AHCI_PCI_BAR5 0x24
 #define AHCI_PCI_COMMAND 0x0
@@ -27,6 +27,22 @@
 #define ATA_DEV_BUSY 0x80
 #define ATA_DEV_DRQ 0x08
 #define ATA_SPIN_TIMEOUT 1000000
+
+//-----------------------------
+#define	SATA_SIG_ATA	0x00000101	// SATA drive
+#define	SATA_SIG_ATAPI	0xEB140101	// SATAPI drive
+#define	SATA_SIG_SEMB	0xC33C0101	// Enclosure management bridge
+#define	SATA_SIG_PM	0x96690101	// Port multiplier
+ 
+#define AHCI_DEV_NULL 0
+#define AHCI_DEV_SATA 1
+#define AHCI_DEV_SEMB 2
+#define AHCI_DEV_PM 3
+#define AHCI_DEV_SATAPI 4
+ 
+#define HBA_PORT_IPM_ACTIVE 1
+#define HBA_PORT_DET_PRESENT 3
+//------------------------------------
 
 typedef struct s_fis_reg_h2d
 {

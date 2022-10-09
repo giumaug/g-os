@@ -42,28 +42,39 @@ void* init_virtual_memory()
 void init_vm_process(struct t_process_context* process_context)
 {
 	u32 i;
-	unsigned int* page_dir;
-	unsigned int* page_table;
+	unsigned int* page_dir =  NULL;
+	unsigned int* page_table = NULL;
+	unsigned int* master_page_table = NULL;
 	struct t_process_context* current_process_context;
 
-	page_dir=process_context->page_dir;
-	map_vm_mem(page_dir,0,0,0x100000,3);
-	page_table=FROM_PHY_TO_VIRT(((unsigned int*)page_dir)[0]);
+	page_dir = process_context->page_dir;
+	//map_vm_mem(page_dir,0,0,0x100000,3);
+	//page_table = FROM_PHY_TO_VIRT(((unsigned int*)page_dir)[0]);
 	
-	for (i=256;i<1024;i++)
+	master_page_table = ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*)system.master_page_dir)[0]));
+	page_table = buddy_alloc_page(system.buddy_desc, 0x1000);
+	buddy_clean_mem(page_table);
+	((unsigned int*)page_dir)[0] = FROM_VIRT_TO_PHY((unsigned int) page_table) | 7;
+	
+	for (i = 0;i < 256;i++)
 	{
-		page_table[i]=0;
+		page_table[i] = master_page_table[i];
+	}
+	
+	for (i = 256;i < 1024;i++)
+	{
+		page_table[i] = 0;
 	}
 
-	for (i=1;i<768;i++) 
+	for (i = 1;i < 768;i++) 
 	{
-		page_dir[i]=0;
+		page_dir[i] = 0;
 	}
-	for (i=768;i<1024;i++) 
+	for (i = 768;i < 1024;i++) 
 	{
-		page_dir[i]=((unsigned int*)system.master_page_dir)[i];
+		page_dir[i] = ((unsigned int*)system.master_page_dir)[i];
 	}
-	map_vm_mem(page_dir,(KERNEL_STACK-KERNEL_STACK_SIZE),process_context->phy_kernel_stack,KERNEL_STACK_SIZE,3);
+	map_vm_mem(page_dir, (KERNEL_STACK-KERNEL_STACK_SIZE), process_context->phy_kernel_stack, KERNEL_STACK_SIZE, 3);
 	CURRENT_PROCESS_CONTEXT(current_process_context);
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) current_process_context->page_dir))) 
 }
@@ -291,7 +302,6 @@ void map_vm_mem(void* page_dir,unsigned int vir_mem_addr,unsigned int phy_mem_ad
 		else 
 		{
 			page_table=ALIGN_4K(FROM_PHY_TO_VIRT(((unsigned int*)page_dir)[i]));
-			
 		}
 		if (i==first_pd && pd_count>1) 
 		{
