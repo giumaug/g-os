@@ -96,7 +96,7 @@ static u8 _read_write_28_ahci(t_io_request* io_request)
 	
 	//cmd_fis = &cmd_tbl->cfis; original !!!
 	cmd_fis = cmd_tbl->cfis;
-	cmd_fis->fis_type = 0; //FIS_TYPE_REG_H2D;
+	cmd_fis->fis_type = FIS_TYPE_REG_H2D;
 	cmd_fis->c = 1;
 	cmd_fis->command = io_request->command;
 	
