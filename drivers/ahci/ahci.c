@@ -90,7 +90,7 @@ static u8 _read_write_28_ahci(t_io_request* io_request)
 	
 	cmd_tbl = FROM_PHY_TO_VIRT(cmd_header->ctba);
 	cmd_tbl->prdt_entry[0].dba = FROM_VIRT_TO_PHY(io_request->io_buffer);
-	cmd_tbl->prdt_entry[0].dba = 0;
+	cmd_tbl->prdt_entry[0].dbau = 0;
 	cmd_tbl->prdt_entry[0].dbc = io_request->sector_count * AHCI_SECTOR_SIZE;
 	cmd_tbl->prdt_entry[0].i = 1;
 	
@@ -223,13 +223,13 @@ static void port_init(t_hba_port* port, t_hashtable* mem_map, u8 port_num)
     for (i = 0; i < 32; i++)
 	{
 	    // 1 prdt entry per command table
-	    // 144 bytes per command table, 64+16+48+16;
+	    // 256 bytes per command table, 64+16+48+128;
         cmd_header[i].prdtl = 1;
-        addr = kmalloc(144 + 144);
-        algnd_addr = ALIGNED_TO_OFFSET(addr, 144);
+        addr = kmalloc(256 + 256);
+        algnd_addr = ALIGNED_TO_OFFSET(addr, 256);
         cmd_header[i].ctba = FROM_VIRT_TO_PHY((u32) algnd_addr);
         cmd_header[i].ctbau = 0;
-        kfillmem(algnd_addr, 0, 144);
+        kfillmem(algnd_addr, 0, 256);
         hashtable_put(mem_map, algnd_addr, addr);
     }
     start_cmd(port);   

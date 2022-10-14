@@ -1,3 +1,4 @@
+BASE_DIR=/home/peppe/Scrivania/g-os-grub2/g-os
 target=$1;
 if [[ $target == "a" ]] || [[ $target == "i" ]]    
 then
@@ -8,23 +9,23 @@ then
 #  cp ./c.img_bk_9_11_2019 c.img
 #  cp ./c.img_with_dirs c.img
 #  cp ./c.img_bk_03_08_2021 c.img attuale
-cp /home/peppe/Scrivania/g-os-grub2/img/gpt2.img_orig /home/peppe/Scrivania/g-os-grub2/img/c.img
+   cp $(BASE_DIR)/img/gpt2.img_orig $(BASE_DIR)/img/c.img
 
-   losetup -o 1048576 /dev/loop3 /home/peppe/Scrivania/g-os-grub2/img/c.img
-   losetup -o 26214400 /dev/loop4 /home/peppe/Scrivania/g-os-grub2/img/c.img
+   losetup -o 1048576 /dev/loop3 $(BASE_DIR)/img/c.img
+   losetup -o 26214400 /dev/loop4 $(BASE_DIR)/img/c.img
    
    echo 'Image copy completed'
 fi
 if [[ $target == "a" ]] || [[ $target == "k" ]] 
 then
-   cd /home/peppe/Scrivania/g-os-grub2/g-os
+   cd $(BASE_DIR)/g-os
    make clean
    make bochs
    echo 'Kernal build completed'
 fi
 if [[ $target == "a" ]] || [[ $target == "p" ]]    
 then
-   cd /home/peppe/Scrivania/g-os-grub2/g-os/process
+   cd $(BASE_DIR)/g-os/process
    make process=shell clean
    make process=shell all
    make process=shell install
