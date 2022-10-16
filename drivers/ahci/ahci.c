@@ -23,7 +23,10 @@ t_ahci_device_desc* init_ahci(u8 device_num)
     u32 pci_command;
     char* phy_abar;
     t_hba_port* port = NULL;
+    t_hba_mem* mem = NULL;
     t_ahci_device_desc* device_desc = NULL;
+    
+    t_hba_port* _port = NULL;
     
     device_desc = kmalloc(sizeof(t_ahci_device_desc));
     device_desc->device = init_device(device_num);
@@ -32,14 +35,23 @@ t_ahci_device_desc* init_ahci(u8 device_num)
     //Dovrebbe essere memory mapped. Per verificare controllare il valore letto da bar5 con quello resituito da lspci
 	phy_abar = read_pci_config_word(AHCI_PCI_BUS, AHCI_PCI_SLOT, AHCI_PCI_FUNC, AHCI_PCI_BAR5);
 	device_desc->abar = AHCI_VIRT_MEM;
+	device_desc->mem = AHCI_VIRT_MEM; 
 	//BUS MASTER BIT SET-UP (2 bit starting from 0)
 	pci_command = read_pci_config_word(AHCI_PCI_BUS, AHCI_PCI_SLOT, AHCI_PCI_FUNC, AHCI_PCI_COMMAND);
     pci_command |= 0x4;
 	write_pci_config_word(AHCI_PCI_BUS, AHCI_PCI_SLOT, AHCI_PCI_FUNC, AHCI_PCI_COMMAND, pci_command);
+	// INTERRUPT LINE
+	pci_command = read_pci_config_word(AHCI_PCI_BUS, AHCI_PCI_SLOT, AHCI_PCI_FUNC, AHCI_PCI_INT_LINE);
+    pci_command |= 0x1;
+	write_pci_config_word(AHCI_PCI_BUS, AHCI_PCI_SLOT, AHCI_PCI_FUNC, AHCI_PCI_INT_LINE, pci_command);
+	
 	//pci_command = read_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_COMMAND);
 	
     map_vm_mem(system.master_page_dir, AHCI_VIRT_MEM, ((u32) (phy_abar)), AHCI_VIRT_MEM_SIZE, 3);
-    port = device_desc->abar + (0x100 * 1);
+    _port = device_desc->abar + (0x100 * 1);
+    
+    device_desc->mem->ghc = device_desc->mem->ghc | 2;
+    port = &(device_desc->mem->ports[0]);
     port_init(port, device_desc->mem_map, 0);
     device_desc->active_port = port;
 }
@@ -48,7 +60,8 @@ void free_ahci(t_ahci_device_desc* device_desc)
 {
     t_hba_port* port = NULL;
     
-    port = device_desc->abar + (128 * 0);
+    //port = device_desc->abar + (128 * 0);
+    port = &(device_desc->mem->ports[0]);
     port_free(port, 0);
     umap_vm_mem(system.master_page_dir, AHCI_VIRT_MEM, AHCI_VIRT_MEM_SIZE, 0);
     free_device(device_desc->device);
@@ -68,12 +81,8 @@ static u8 _read_write_28_ahci(t_io_request* io_request)
     t_hba_cmd_tbl* cmd_tbl = NULL;
     t_fis_reg_h2d* cmd_fis = NULL;
     
-    int xxx;
-    
     device_desc = io_request->device_desc;
     port = device_desc->active_port;
-    
-    xxx = check_type(port);
     
     port->is = (u32) -1;		// Clear pending interrupt bits
 	int spin = 0; // Spin lock timeout counter
@@ -98,7 +107,7 @@ static u8 _read_write_28_ahci(t_io_request* io_request)
 	cmd_fis = cmd_tbl->cfis;
 	cmd_fis->fis_type = FIS_TYPE_REG_H2D;
 	cmd_fis->c = 1;
-	cmd_fis->command = io_request->command;
+	cmd_fis->command = io_request->command; // 0x25
 	
 	cmd_fis->lba0 = (unsigned char) io_request->lba;
 	cmd_fis->lba1 = (unsigned char)(io_request->lba >> 8);
@@ -135,7 +144,7 @@ static u8 _read_write_28_ahci(t_io_request* io_request)
 	{
 		return -1;
 	}
-	return 0;
+	return 0; guardare port->is perche' non parte interrupt + verificare pci + ghc + port->ie
 }
 
 static u8 _p_read_write_28_ahci(t_io_request* io_request)
@@ -232,6 +241,7 @@ static void port_init(t_hba_port* port, t_hashtable* mem_map, u8 port_num)
         kfillmem(algnd_addr, 0, 256);
         hashtable_put(mem_map, algnd_addr, addr);
     }
+    port->ie = 1;
     start_cmd(port);   
 }
 

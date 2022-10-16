@@ -12,7 +12,8 @@
 #define AHCI_PCI_FUNC 0x02
 #define AHCI_PORT_COUNT 1
 #define AHCI_PCI_BAR5 0x24
-#define AHCI_PCI_COMMAND 0x0
+#define AHCI_PCI_INT_LINE 0x3C
+#define AHCI_PCI_COMMAND 0x4
 
 #define HBA_PxCMD_ST    0x0001
 #define HBA_PxCMD_FRE   0x0010
@@ -155,10 +156,30 @@ typedef struct s_hba_port
 }
 t_hba_port;
 
+typedef struct s_hba_mem
+{
+	u32 cap;
+	u32 ghc;
+	u32 is;
+	u32 pi;
+	u32 vs;
+	u32 ccc_ctl;
+	u32 ccc_pts;
+	u32 em_loc;
+	u32 em_ctl;
+	u32 cap2;
+	u32 bohc;
+	u8 rsv[0xA0-0x2C];
+	u8 vendor[0x100-0xA0];
+	t_hba_port ports[32];
+}
+t_hba_mem;
+
 typedef struct s_ahci_device_desc
 {
     struct s_device_desc* device;
     char* abar;
+    t_hba_mem* mem;
     t_hba_port* active_port;
     t_hashtable* mem_map;
 }
