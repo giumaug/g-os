@@ -380,9 +380,9 @@ void int_handler_kbc()
 	_processor_reg = processor_reg;
 	ENABLE_PREEMPTION
 	// tmp put for test fake console. Put EXIT_INT_HANDLER    
-	RESTORE_PROCESSOR_REG                                                                            
-	RET_FROM_INT_HANDLER   
-	//EXIT_INT_HANDLER(0,processor_reg)                                                                              
+	//RESTORE_PROCESSOR_REG                                                                            
+	//RET_FROM_INT_HANDLER   
+	EXIT_INT_HANDLER(0,processor_reg)                                                                              
 /*                                                                                                                        
 	static struct t_process_context _current_process_context;                                                  	
 	static struct t_process_context _old_process_context;                                                      	

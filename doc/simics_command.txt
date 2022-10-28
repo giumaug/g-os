@@ -1,13 +1,19 @@
+$disk0_image="/home/peppe/Scrivania/g-os/img/c.img"
+run-command-file /opt/simics-package/simics-qsp-x86-6.0.61/targets/qsp-x86/qsp-hdd-boot.simics
+enable-debugger
+add-symbol-file /home/peppe/Scrivania/g-os/kernel.bin
+bp.source_line.break filename = ahci.c line-number = 147
+bp.source_location.break exception
+
+
+
 $disk0_image="/home/peppe/Scrivania/g-os-grub2/cl-b28910-v2.craff"
 $disk0_image="/home/peppe/Scrivania/g-os-grub2/img/simic-linux.img"
 
-$disk0_image="/home/peppe/Scrivania/g-os-grub2/g-os/img/c.img"
+$disk0_image="/home/peppe/Scrivania/g-os-grub2/img/c.img"
 run-command-file /opt/simics/simics-qsp-x86-6.0.43/targets/qsp-x86/qsp-hdd-boot.simics
 enable-debugger
 add-symbol-file /home/peppe/Scrivania/g-os-grub2/g-os/kernel.bin
-bp.source_location.break exception
-bp.source_line.break filename = ahci.c line-number = 147
-
 bp.source_location.break _read_write_28_ahci
 
 bp.source_line.break filename = console.c line-number = 215

@@ -14,7 +14,7 @@ typedef struct s_io_request
 {
 	unsigned int sector_count;
 	unsigned int lba;
-	struct s_device_desc* device_desc;
+	void* device_desc;
 	void* io_buffer;
 	struct t_process_context* process_context;
 	unsigned int command;

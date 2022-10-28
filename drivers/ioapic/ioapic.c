@@ -15,7 +15,7 @@ void init_ioapic()
 	map_vm_mem(system.master_page_dir, IOREGSEL, IOREGSEL, PAGE_SIZE,3);
 	ioregsel = IOREGSEL;
 	ioregwin = IOREGWIN;
-	for (i = 0; i <= 23; i += 2) //23
+	for (i = 0; i < 46; i += 2) //23
 	{
 		//offset = 0x10 + 2 * i;
 		offset = 16 + i;

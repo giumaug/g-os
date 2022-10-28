@@ -21,12 +21,12 @@ t_ahci_device_desc* init_ahci(u8 device_num)
 {
     u8 i;
     u32 pci_command;
+    u32 pci_int_line;
     char* phy_abar;
     t_hba_port* port = NULL;
     t_hba_mem* mem = NULL;
     t_ahci_device_desc* device_desc = NULL;
-    
-    t_hba_port* _port = NULL;
+    struct t_i_desc i_desc;
     
     device_desc = kmalloc(sizeof(t_ahci_device_desc));
     device_desc->device = init_device(device_num);
@@ -41,19 +41,32 @@ t_ahci_device_desc* init_ahci(u8 device_num)
     pci_command |= 0x4;
 	write_pci_config_word(AHCI_PCI_BUS, AHCI_PCI_SLOT, AHCI_PCI_FUNC, AHCI_PCI_COMMAND, pci_command);
 	// INTERRUPT LINE
-	pci_command = read_pci_config_word(AHCI_PCI_BUS, AHCI_PCI_SLOT, AHCI_PCI_FUNC, AHCI_PCI_INT_LINE);
-    pci_command |= 0x1;
-	write_pci_config_word(AHCI_PCI_BUS, AHCI_PCI_SLOT, AHCI_PCI_FUNC, AHCI_PCI_INT_LINE, pci_command);
+	pci_int_line = read_pci_config_word(AHCI_PCI_BUS, AHCI_PCI_SLOT, AHCI_PCI_FUNC, AHCI_PCI_INT_LINE);
+    pci_int_line |= 0x1;
+	write_pci_config_word(AHCI_PCI_BUS, AHCI_PCI_SLOT, AHCI_PCI_FUNC, AHCI_PCI_INT_LINE, pci_int_line);
 	
 	//pci_command = read_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_COMMAND);
 	
     map_vm_mem(system.master_page_dir, AHCI_VIRT_MEM, ((u32) (phy_abar)), AHCI_VIRT_MEM_SIZE, 3);
-    _port = device_desc->abar + (0x100 * 1);
     
     device_desc->mem->ghc = device_desc->mem->ghc | 2;
     port = &(device_desc->mem->ports[0]);
     port_init(port, device_desc->mem_map, 0);
     device_desc->active_port = port;
+    
+    device_desc = init_device(device_num);
+	i_desc.baseLow = ((int) &int_handler_ahci) & 0xFFFF;
+	i_desc.selector = 0x8;
+	i_desc.flags = 0x08e00;
+	i_desc.baseHi = ((int) &int_handler_ahci) >> 0x10;
+	set_idt_entry(0x31, &i_desc);
+	
+	device_desc->read_dma = _read_28_ahci;
+	device_desc->write_dma = _write_28_ahci;
+	device_desc->read = _read_28_ahci;
+	device_desc->write = _write_28_ahci;
+	device_desc->p_read = _p_read_28_ahci;
+	device_desc->p_write = _p_write_28_ahci;
 }
 
 void free_ahci(t_ahci_device_desc* device_desc)
@@ -68,13 +81,110 @@ void free_ahci(t_ahci_device_desc* device_desc)
     kfree(device_desc);
 }
 
+mask_entry(1);
+	EOI_TO_LAPIC
 void int_handler_ahci()
 {
+	struct t_processor_reg processor_reg;
+	t_io_request* io_request = NULL;
+	struct t_process_context* process_context = NULL;
+	struct t_process_context* current_process_context = NULL;
+
+	SAVE_PROCESSOR_REG
+	mask_entry(???);---------------------------------qui1!!!
+	DISABLE_PREEMPTION
+	EOI_TO_LAPIC
+	STI
+	CURRENT_PROCESS_CONTEXT(current_process_context);
 	
+	io_request = system.device_desc->serving_request;
+	process_context = io_request->process_context;
+
+	if (system.device_desc->status == DEVICE_BUSY)  //POOLING_MODE
+	{
+		sem_up(&system.device_desc->sem);
+	}
+	if (current_process_context->pid != process_context->pid) 
+	{
+	 	system.force_scheduling = 1;
+	}
+	unmask_entry(???);
+	ENABLE_PREEMPTION
+	EXIT_INT_HANDLER(0,processor_reg)
 }
 
-static u8 _read_write_28_ahci(t_io_request* io_request)
+static __read_write_28_ahci(t_io_request* io_request)
 {
+	t_ahci_device_desc* device_desc = NULL;
+    t_hba_port* port = NULL;
+    t_hba_cmd_header* cmd_header = NULL;
+    t_hba_cmd_tbl* cmd_tbl = NULL;
+    t_fis_reg_h2d* cmd_fis = NULL;
+    
+    device_desc = io_request->device_desc;
+    port = device_desc->active_port;
+    
+    port->is = (u32) -1;		// Clear pending interrupt bits
+	int spin = 0; // Spin lock timeout counter
+	int slot = find_cmd_slot(port);
+	if (slot == -1)
+	{
+		return 0;
+    }
+    cmd_header = FROM_PHY_TO_VIRT(port->clb);
+    io_request->command == ATA_READ_DMA_28 ? 0 : 1;
+    cmd_header += slot;
+	cmd_header->cfl = sizeof(t_fis_reg_h2d) / sizeof(u32);
+	cmd_header->w = (io_request->command == ATA_READ_DMA_28 ? 0 : 1);
+	
+	cmd_tbl = FROM_PHY_TO_VIRT(cmd_header->ctba);
+	cmd_tbl->prdt_entry[0].dba = FROM_VIRT_TO_PHY(io_request->io_buffer);
+	cmd_tbl->prdt_entry[0].dbau = 0;
+	cmd_tbl->prdt_entry[0].dbc = io_request->sector_count * AHCI_SECTOR_SIZE;
+	cmd_tbl->prdt_entry[0].i = 1;
+	
+	cmd_fis = cmd_tbl->cfis;
+	cmd_fis->fis_type = FIS_TYPE_REG_H2D;
+	cmd_fis->c = 1;
+	cmd_fis->command = io_request->command; // 0x25
+	
+	cmd_fis->lba0 = (unsigned char) io_request->lba;
+	cmd_fis->lba1 = (unsigned char)(io_request->lba >> 8);
+	cmd_fis->lba2 = (unsigned char)(io_request->lba >> 16);
+	cmd_fis->lba3 = 0;
+	cmd_fis->lba4 = 0;
+	cmd_fis->lba5 = 0;
+	cmd_fis->device = 1<<6;
+	cmd_fis->countl = io_request->sector_count & 0xFF;
+	cmd_fis->counth = (io_request->sector_count >> 8) & 0xFF;
+	
+	//WAIT PORT IS READ AND ISSUE THE COMMAND
+	while ((port->tfd & (ATA_DEV_BUSY | ATA_DEV_DRQ)) && spin < ATA_SPIN_TIMEOUT)
+	{
+		spin++;
+	}
+	if (spin == ATA_SPIN_TIMEOUT)
+	{
+		return -1;
+	}
+	port->ci = 1 << slot;	
+}
+
+static s8 _p_read_write_28_ahci(t_io_request* io_request)
+{
+	s8 ret = 0;
+	t_ahci_device_desc* device_desc = NULL;
+	t_spinlock_desc spinlock;
+	
+	SPINLOCK_INIT(spinlock);
+	//Entrypoint mutual exclusion region.
+	SPINLOCK_LOCK(spinlock);
+	device_desc->device->status = DEVICE_BUSY || POOLING_MODE;
+	device_desc = io_request->device_desc;
+    port = device_desc->active_port;
+	__read_write_28_ahci(t_io_request* io_request);
+	
+/*
     t_ahci_device_desc* device_desc = NULL;
     t_hba_port* port = NULL;
     t_hba_cmd_header* cmd_header = NULL;
@@ -103,7 +213,6 @@ static u8 _read_write_28_ahci(t_io_request* io_request)
 	cmd_tbl->prdt_entry[0].dbc = io_request->sector_count * AHCI_SECTOR_SIZE;
 	cmd_tbl->prdt_entry[0].i = 1;
 	
-	//cmd_fis = &cmd_tbl->cfis; original !!!
 	cmd_fis = cmd_tbl->cfis;
 	cmd_fis->fis_type = FIS_TYPE_REG_H2D;
 	cmd_fis->c = 1;
@@ -129,6 +238,7 @@ static u8 _read_write_28_ahci(t_io_request* io_request)
 		return -1;
 	}
 	port->ci = 1 << slot;
+*/
 	
 	// Wait for completion
 	while (1)
@@ -136,20 +246,38 @@ static u8 _read_write_28_ahci(t_io_request* io_request)
 		if ((port->ci & (1 << slot)) == 0) break;
 		if (port->is & HBA_PxIS_TFES)
 		{
-			return -1;
+			ret = -1;
 		}
 	}
 	// Check again
 	if (port->is & HBA_PxIS_TFES)
 	{
-		return -1;
+		ret = -1;
 	}
-	return 0; guardare port->is perche' non parte interrupt + verificare pci + ghc + port->ie
+	device_desc->device->status = DEVICE_IDLE;
+	//Exitpoint mutual exclusion region
+	SPINLOCK_UNLOCK(spinlock);
+	return ret;
 }
 
-static u8 _p_read_write_28_ahci(t_io_request* io_request)
+static u8 _read_write_28_ahci(t_io_request* io_request)
 {
+	t_ahci_device_desc* device_desc = NULL;
 	
+	device_desc = io_request->device_desc;
+	//Entrypoint mutual exclusion region.
+	//Here all requestes are enqueued using semaphore internal queue.
+	//In order to implement a multilevel disk scheduler a better design
+	//is to use an external queue with multilevel priority slots.
+	sem_down(&device_desc->device->mutex);
+	device_desc->device->status = DEVICE_BUSY;
+    port = device_desc->active_port;
+	__read_write_28_ahci(io_request);
+	//semaphore to avoid race with interrupt handler
+	sem_down(&device_desc->device->sem);
+	device_desc->status = DEVICE_IDLE;
+	//Endpoint mutual exclusion region
+	sem_up(&device_desc->device->mutex);
 }
 
 u8 _read_28_ahci(t_io_request* io_request)
@@ -160,17 +288,21 @@ u8 _read_28_ahci(t_io_request* io_request)
 
 u8 _write_28_ahci(t_io_request* io_request)
 {
+	io_request->command = ATA_WRITE_DMA_28;
+	return _read_write_28_ahci(io_request);
 
 }
 
 u8 _p_read_28_ahci(t_io_request* io_request)
 {
-		
+	io_request->command = ATA_READ_DMA_28;
+	return _p_read_write_28_ahci(io_request);		
 }
 
 u8 _p_write_28_ahci(t_io_request* io_request)
 {
-
+	io_request->command = ATA_WRITE_DMA_28;
+	return _p_read_write_28_ahci(io_request);
 }
 
 void start_cmd(t_hba_port* port)
@@ -282,7 +414,7 @@ void test_ahci()
     io_request->lba= 2 + partition_start_sector;
     io_request->io_buffer = io_buffer;
     io_request->process_context = NULL;
-    _read_28_ahci(io_request);
+    _p_read_28_ahci(io_request);
     kfree(io_request);
     kfree(io_buffer);                                                      					
 }

@@ -1,4 +1,4 @@
-BASE_DIR=/home/peppe/Scrivania/g-os-grub2
+BASE_DIR=/home/peppe/Scrivania
 target=$1;
 if [[ $target == "a" ]] || [[ $target == "i" ]]    
 then
