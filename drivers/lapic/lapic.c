@@ -140,7 +140,125 @@ static void write_reg(u32 reg_offset, u32 val)
 	(*((volatile u32*)(address))) = (val);
 }
 
-static void int_handler_lapic()
+void int_handler_lapic()
+{
+	int is_schedule = 0;
+	struct t_process_context* process_context;
+	struct t_process_context* sleeping_process;
+	struct t_processor_reg processor_reg;
+	t_llist_node* next = NULL;
+	t_llist_node* sentinel = NULL;
+	t_llist_node* old_node = NULL;
+	struct t_process_context* next_process = NULL;
+	unsigned int queue_index;
+	unsigned int priority;
+	t_llist_node* sentinel_node = NULL;
+	t_llist_node* node = NULL;
+	t_llist_node* first_node = NULL;
+	t_timer* timer = NULL;
+	
+	SAVE_PROCESSOR_REG
+	EOI_TO_LAPIC
+	SWITCH_DS_TO_KERNEL_MODE
+	process_context = system.process_info->current_process->val;
+
+	system.time += QUANTUM_DURATION;
+	if (system.int_path_count > 0)
+	{
+		goto EXIT_HANDLER;
+	}
+	sleeping_process = system.active_console_desc->sleeping_process;
+	sentinel = ll_sentinel(system.process_info->sleep_wait_queue);
+	next = ll_first(system.process_info->sleep_wait_queue);
+	next_process = next->val;
+	//THIS STUFF MUST BE MOVED INSIDE ASSIGNED SLEEP MANAGER LIKE IO
+	while(next != sentinel)
+	{
+		next_process->assigned_sleep_time -= QUANTUM_DURATION;
+		next_process->sleep_time += QUANTUM_DURATION;
+		
+		if (next_process->sleep_time > 1000) 	
+		{
+			next_process->sleep_time = 1000;
+		}
+		else if (next_process->sleep_time < 0)
+		{
+			next_process->sleep_time = 0;
+		}
+		if (next_process->assigned_sleep_time == 0)
+		{		
+			adjust_sched_queue(next->val);			
+			next_process->assigned_sleep_time = 0;
+			next_process->proc_status = RUNNING;
+			queue_index = next_process->curr_sched_queue_index;
+			ll_append(system.scheduler_desc->scheduler_queue[queue_index], next_process);
+			old_node = next;
+			next=ll_next(next);
+			ll_delete_node(old_node);
+			is_schedule = 1;
+		}
+		else 
+		{
+			next=ll_next(next);
+		}
+		next_process = next->val;
+	}
+
+	if (sleeping_process != NULL && !system.active_console_desc->is_empty)
+	{
+		_awake(sleeping_process);
+		system.active_console_desc->sleeping_process = NULL;
+	}
+	else
+	{	
+		process_context = system.process_info->current_process->val;
+		process_context->sleep_time -= QUANTUM_DURATION;
+		if (process_context->sleep_time > 1000) 	
+		{
+			process_context->sleep_time = 1000;
+		}
+		else if (process_context->sleep_time < 0)
+		{
+			process_context->sleep_time = 0;
+		}
+
+		if (process_context->proc_status == EXITING)
+		{
+			is_schedule = 2;
+		}
+		else 
+		{
+			process_context->tick--;
+			if (process_context->tick == 0) 
+			{
+				process_context->tick = TICK;
+				is_schedule = 1;	
+			}
+		}
+	}
+
+	//MANAGE TIMERS
+EXIT_HANDLER:;
+	sentinel_node = ll_sentinel(system.timer_list);
+	node = ll_first(system.timer_list);
+	first_node = node;
+	do
+	{
+		timer = node->val;
+		timer->val --;
+		if (timer->val <= 0 )
+		{
+			(*timer->handler)(timer->handler_arg);
+			break;
+		}
+		node = ll_next(node);
+	}
+	while(node != ll_first(system.timer_list));
+	EXIT_INT_HANDLER(is_schedule,processor_reg);
+}
+
+/*
+static void __int_handler_lapic()
 {
 	struct t_processor_reg processor_reg;
 	struct t_processor_reg _processor_reg;
@@ -163,3 +281,4 @@ static void int_handler_lapic()
 	RESTORE_PROCESSOR_REG                                                                                   
 	RET_FROM_INT_HANDLER
 }
+*/

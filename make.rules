@@ -1,5 +1,5 @@
 #BASE_DIR	=/home/ec2-user/g-os
-BASE_DIR        =/home/peppe/Scrivania/g-os
+BASE_DIR        =/home/peppe/Scrivania/g-os-grub2/g-os
 INCLUDE		=$(BASE_DIR)/include
 MAKE 		= make
 CC		= gcc 

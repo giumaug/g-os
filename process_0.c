@@ -5,6 +5,23 @@
 #include "drivers/ahci/ahci.h"
 #include "process_0.h"
 
+/*
+void __process_0() 
+{
+	unsigned int pid;
+	unsigned int child_pid;
+	static char* argv[2];
+	static char argv1[] = "/shell";	
+	
+	argv[0] = argv1;
+	argv[1] = NULL;	
+
+    test_ahci();
+	fake_shell();
+	THREAD_EXIT(0);
+}
+*/
+
 //_exec SWITCHES KERNEL THREAD TO USERSPACE PROCESS
 // THREAD_FORK CLONES KERNEL THREAD
 // THREAD_EXEC CREATES NEW KERNEL THREAD TO BE IMPLEMENTED!!!!!!!!!
@@ -18,25 +35,24 @@ void process_0()
 	argv[0] = argv1;
 	argv[1] = NULL;	
 
-//    THREAD_FORK(pid);
-//	if (pid == 0)
-//	{
-//		child_pid = _getpid();
-//		_setpgid(child_pid,child_pid);
-//		_tcsetpgrp(child_pid);
-//		_exec("/shell",argv);	
-//	}
-//	else 
-//	{
-//		THREAD_EXIT(0);
-//	}
-    test_ahci();
-	fake_shell();
+    THREAD_FORK(pid);
+	if (pid == 0)
+	{
+		child_pid = _getpid();
+		_setpgid(child_pid,child_pid);
+		_tcsetpgrp(child_pid);
+		_exec("/shell",argv);	
+	}
+	else 
+	{
+		THREAD_EXIT(0);
+	}
 	THREAD_EXIT(0);
 }
 
 t_console_desc* console_desc = NULL;
 
+/*
 void fake_shell()
 {
 	int i;
@@ -48,39 +64,6 @@ void fake_shell()
 	console_desc = current_process_context->console_desc;
 	
 	_printf("G-SHELL V 0.1 \n");
-/*
-	_printf("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n");
-	_printf("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa11111111111111111111\n");
-	_printf("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa22222222222222222222\n");
-	_printf("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa33333333333333333333\n");
-	_printf("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa44444444444444444444\n");
-	_printf("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa55555555555555555555\n");
-	_printf("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa66666666666666666666\n");
-	_printf("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa77777777777777777777\n");
-	_printf("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa88888888888888888888\n");
-	_printf("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa99999999999999999999\n");
-	_printf("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb11111111111111111111\n");
-	_printf("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb22222222222222222222\n");
-	_printf("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb33333333333333333333\n");
-	_printf("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb44444444444444444444\n");
-	_printf("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb55555555555555555555\n");
-	_printf("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb66666666666666666666\n");
-	_printf("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb77777777777777777777\n");
-	_printf("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb88888888888888888888\n");
-	_printf("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb99999999999999999999\n");
-	_printf("ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc11111111111111111111\n");
-	_printf("ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc22222222222222222222\n");
-	_printf("ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc33333333333333333333\n");
-	_printf("ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc44444444444444444444\n");
-	_printf("ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc55555555555555555555\n");
-	_printf("ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc66666666666666666666\n");
-	_printf("ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc77777777777777777777\n");
-	_printf("ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc88888888888888888888\n");
-	_printf("ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc99999999999999999999\n");
-	_printf("ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd11111111111111111111\n");
-	_printf("ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd22222222222222222222\n");
-	_printf("ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd33333333333333333333\n");
-*/
 
 	_printf("aaaaaaaaaaa111111111111111111 \n");
 	_printf("aaaaaaaaaaa222222222222222222 \n");
@@ -165,7 +148,6 @@ static void _itoa (unsigned int val,char *char_val,unsigned int base)
 	while(res!=0);
         for (i=0;i<=index;i++) char_val[i]=_char_val[index-i];
 	char_val[++index]='\0';
-	//while(_char_val[++index]=='\0') char_val[++index]==_char_val[index];
 	return;
 }
 
@@ -292,3 +274,4 @@ int _getc()
 	_disable_cursor(console_desc);
 	return data;
 }
+*/

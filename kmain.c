@@ -20,8 +20,6 @@ t_system system;
 
 void kmain(multiboot_info_t* mbd, unsigned int magic, int init_data_add)
 {
-	unsigned int* xxx;
-	
 	static multiboot_info_t _mbd;
 	_mbd = *mbd;
 	static struct t_process_info process_info;
@@ -35,7 +33,8 @@ void kmain(multiboot_info_t* mbd, unsigned int magic, int init_data_add)
 	static t_ext2 ext2_d1;
 	static t_ext2 ext2_d2;
 	static u32 kernel_stack;
-	static t_ahci_device_desc* device_desc = NULL;
+	static t_ahci_device_desc* device_desc_ahaci = NULL;
+	t_device_desc* device_desc = NULL;
 	system.time = 0;
 	system.flush_network = 0;
     system.read_block_count = 0;
@@ -65,9 +64,6 @@ void kmain(multiboot_info_t* mbd, unsigned int magic, int init_data_add)
 	system.master_page_dir = init_virtual_memory();
 	SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int) system.master_page_dir)))
 	
-	xxx = FROM_PHY_TO_VIRT(((unsigned int*)system.master_page_dir)[0]);
-	
-	
 	system.timer_list = new_dllist();
 	init_ioapic();
 	init_lapic();
@@ -75,14 +71,17 @@ void kmain(multiboot_info_t* mbd, unsigned int magic, int init_data_add)
 	init_kbc();
 	init_fb(mbd);
 	init_console(&console_desc, &draw_char_fb, &update_cursor_fb, 10000, 0);
-
+	
+	device_desc = init_device(device_num);
+	device_desc_ahci = init_ahci(device_desc);
+	system.device_desc = device_desc;
+	_select_dev(0);
+	init_ext2(&ext2_d1,system.device_desc);
+	
 //	static t_device_desc device_desc;
 //	init_ata(&device_desc);
 //	system.device_desc = &device_desc;
 
-	device_desc = init_ahci(0);
-	system.device_desc = device_desc;
-//
 //	system.root_fs = &ext2_d1;
 //	system.scnd_fs = &ext2_d2;
 //	system.device_desc = init_ata(0);
@@ -90,10 +89,10 @@ void kmain(multiboot_info_t* mbd, unsigned int magic, int init_data_add)
 //	init_ext2(&ext2_d1,system.device_desc);
 //	_select_dev(1);
 //	init_ext2(&ext2_d2,system.device_desc);
-//	_select_dev(0);
 //
 //	//system.master_page_dir = init_virtual_memory();
 //	//SWITCH_PAGE_DIR(FROM_VIRT_TO_PHY(((unsigned int)system.master_page_dir)))
+
 	system.active_console_desc = &console_desc;
 	i_desc.baseLow = ((int)&syscall_handler) & 0xFFFF;
 	i_desc.selector = 0x8;
@@ -145,10 +144,10 @@ void kmain(multiboot_info_t* mbd, unsigned int magic, int init_data_add)
 	asm volatile ("movl %0,%%ebp;"::"r"(kernel_stack));
 	asm volatile ("movl %0,%%esp;"::"r"(kernel_stack));
 	STI
-	//diplay_test(&_mbd, process_context->page_dir);
 	process_0();	       	
 }
 
+/*
 diplay_test(multiboot_info_t* mbd, void* page_dir)
 {
 	int i;	            
@@ -185,6 +184,7 @@ diplay_test(multiboot_info_t* mbd, void* page_dir)
 	}
 	while(1);
 }
+*/
 
 void panic()
 {

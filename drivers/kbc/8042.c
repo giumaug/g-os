@@ -299,12 +299,11 @@ void free_kbc()
 void int_handler_kbc()
 {
 	u8 scan_code;
-	u8* char_code;
+	u8* char_code = NULL;
 	unsigned static int shift_state = 0;
 	unsigned static int control_state = 0;
 	struct t_processor_reg processor_reg;
-	struct t_processor_reg _processor_reg;
-	struct t_process_context* next_process_context = NULL;
+	struct t_process_context* next_process_context;
 	u32 fg_pgid;
 	t_llist* pgid_list = NULL;
 	t_llist_node* sentinel  = NULL;
@@ -377,7 +376,6 @@ void int_handler_kbc()
            	break;
 	}
 	unmask_entry(1);
-	_processor_reg = processor_reg;
 	ENABLE_PREEMPTION
 	// tmp put for test fake console. Put EXIT_INT_HANDLER    
 	//RESTORE_PROCESSOR_REG                                                                            
