@@ -20,6 +20,7 @@ t_system system;
 
 void kmain(multiboot_info_t* mbd, unsigned int magic, int init_data_add)
 {
+	u32 device_num;
 	static multiboot_info_t _mbd;
 	_mbd = *mbd;
 	static struct t_process_info process_info;
@@ -33,7 +34,7 @@ void kmain(multiboot_info_t* mbd, unsigned int magic, int init_data_add)
 	static t_ext2 ext2_d1;
 	static t_ext2 ext2_d2;
 	static u32 kernel_stack;
-	static t_ahci_device_desc* device_desc_ahaci = NULL;
+	static t_ahci_device_desc* device_desc_ahci = NULL;
 	t_device_desc* device_desc = NULL;
 	system.time = 0;
 	system.flush_network = 0;
@@ -42,6 +43,7 @@ void kmain(multiboot_info_t* mbd, unsigned int magic, int init_data_add)
 	system.read_write_count = 0;
 	system.run_time = 0;
 	system.run_time_1 = 0;
+	device_num = 0;
 
 	init_data = init_data_add;
 //	if ( magic != 0x2BADB002 )
@@ -72,11 +74,12 @@ void kmain(multiboot_info_t* mbd, unsigned int magic, int init_data_add)
 	init_fb(mbd);
 	init_console(&console_desc, &draw_char_fb, &update_cursor_fb, 10000, 0);
 	
-	device_desc = init_device(device_num);
+	device_desc = init_device(device_num, 2);
 	device_desc_ahci = init_ahci(device_desc);
 	system.device_desc = device_desc;
 	_select_dev(0);
 	init_ext2(&ext2_d1,system.device_desc);
+	system.root_fs = &ext2_d1;
 	
 //	static t_device_desc device_desc;
 //	init_ata(&device_desc);

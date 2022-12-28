@@ -78,15 +78,19 @@ void free_ahci(t_ahci_device_desc* device_desc)
 }
 
 void int_handler_ahci()
-{
+{	
 	struct t_processor_reg processor_reg;
 	t_io_request* io_request = NULL;
 	struct t_process_context* process_context = NULL;
 	struct t_process_context* current_process_context = NULL;
+	
+	t_ahci_device_desc* ahci_device_desc = NULL;
+	t_hba_port* port = NULL;
 
 	SAVE_PROCESSOR_REG
-	mask_entry(17);
+	SWITCH_DS_TO_KERNEL_MODE
 	DISABLE_PREEMPTION
+	mask_entry(17);
 	EOI_TO_LAPIC
 	STI
 	CURRENT_PROCESS_CONTEXT(current_process_context);
@@ -102,6 +106,12 @@ void int_handler_ahci()
 	{
 	 	system.force_scheduling = 1;
 	}
+	
+	port = ((t_ahci_device_desc*) system.device_desc->dev)->active_port;
+	port->is = 1;
+	ahci_device_desc = system.device_desc->dev;
+	ahci_device_desc->mem->is = 1;
+	
 	unmask_entry(17);
 	ENABLE_PREEMPTION
 	EXIT_INT_HANDLER(0,processor_reg)
@@ -116,7 +126,7 @@ static s8 __read_write_28_ahci(t_io_request* io_request)
     t_fis_reg_h2d* cmd_fis = NULL;
     
     device_desc = io_request->device_desc;
-    port = device_desc->dev->active_port;
+    port = ((t_ahci_device_desc*) device_desc->dev)->active_port;
   
     port->is = (u32) -1;		// Clear pending interrupt bits
 	int spin = 0; // Spin lock timeout counter
@@ -178,7 +188,7 @@ static s8 _p_read_write_28_ahci(t_io_request* io_request)
 	SPINLOCK_LOCK(spinlock);
 	device_desc = io_request->device_desc;
 	device_desc->status = DEVICE_BUSY || POOLING_MODE;
-    port = device_desc->dev->active_port;
+    port = ((t_ahci_device_desc*) device_desc->dev)->active_port;
 	slot = __read_write_28_ahci(io_request);
 	if (slot == 1)
 	{
@@ -260,29 +270,29 @@ EXIT:
 	device_desc->status = DEVICE_IDLE;
 	//Exitpoint mutual exclusion region
 	SPINLOCK_UNLOCK(spinlock);
-	return ret;-------------partire da  qui!!!!
+	return ret;
 }
 
 static u8 _read_write_28_ahci(t_io_request* io_request)
 {
 	s8 ret;
 	t_hba_port* port = NULL;
-	t_ahci_device_desc* device_desc = NULL;
+	t_device_desc* device_desc = NULL;
 	
 	device_desc = io_request->device_desc;
 	//Entrypoint mutual exclusion region.
 	//Here all requestes are enqueued using semaphore internal queue.
 	//In order to implement a multilevel disk scheduler a better design
 	//is to use an external queue with multilevel priority slots.
-	sem_down(&device_desc->device->mutex);
-	device_desc->device->status = DEVICE_BUSY;
-    port = device_desc->active_port;
+	sem_down(&device_desc->mutex);
+	device_desc->status = DEVICE_BUSY;
+    port = ((t_ahci_device_desc*) device_desc->dev)->active_port;
 	ret = __read_write_28_ahci(io_request);
 	//semaphore to avoid race with interrupt handler
-	sem_down(&device_desc->device->sem);
-	device_desc->device->status = DEVICE_IDLE;
+	sem_down(&device_desc->sem);
+	device_desc->status = DEVICE_IDLE;
 	//Endpoint mutual exclusion region
-	sem_up(&device_desc->device->mutex);
+	sem_up(&device_desc->mutex);
 	return ret;
 }
 

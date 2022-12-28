@@ -29,7 +29,7 @@ typedef struct s_device_desc
 	u32 (*p_write)(t_io_request* io_request);
 	u32 (*read_dma)(t_io_request* io_request);
 	u32 (*write_dma)(t_io_request* io_request);
-	void dev;
+	void* dev;
 	unsigned int status;
 	t_io_request* serving_request;
 	t_sem_desc mutex;
@@ -38,10 +38,11 @@ typedef struct s_device_desc
 	u32 dma_pci_mem_base;
 	u8 dma_pci_bar_type;
 	u8 num;
+	u8 partition_num;
 }
 t_device_desc;
 
-t_device_desc* init_device(u8 device_num);
+t_device_desc* init_device(u8 device_num, u8 partition_num);
 void free_device(t_device_desc* device_desc);
 u8 read_config_byte(t_device_desc* device_desc,u32 address);
 u32 read_config_dword(t_device_desc* device_desc,u32 address);

@@ -660,10 +660,11 @@ EXIT:
 	return inode;
 }
 
+//Old version used for MBR partition
 u32 static lookup_partition(t_ext2* ext2,u8 partition_number)
 {
 	char* io_buffer = NULL;
-        u32 first_partition_sector;
+    u32 first_partition_sector;
 	u32 partition_offset;
 	u32 head;
 	u32 sector;
@@ -676,9 +677,26 @@ u32 static lookup_partition(t_ext2* ext2,u8 partition_number)
 	head = io_buffer[partition_offset];
 	sector = (io_buffer[partition_offset + 1]) & 0x3F;
 	cylinder=((io_buffer[partition_offset + 1] & 0xc0) << 2) | io_buffer[partition_offset + 2];
-        first_partition_sector = ((cylinder * 16) + head) * 63 + sector - 1;
-        kfree(io_buffer);
-        return first_partition_sector;
+    first_partition_sector = ((cylinder * 16) + head) * 63 + sector - 1;
+    kfree(io_buffer);
+    return first_partition_sector;
+}
+
+u32 static lookup_gpt_partition(t_ext2* ext2,u8 partition_number)
+{
+	unsigned char* io_buffer = NULL;
+    u32 first_partition_sector;
+	u32 partition_offset;
+	
+	io_buffer = kmalloc(BLOCK_SIZE);		
+	P_READ(1, 2, io_buffer);
+	partition_offset = 32 + (partition_number - 1) * 128;
+	first_partition_sector = io_buffer[partition_offset]
+	                         + (io_buffer[partition_offset + 1] << 8) 
+	                         + (io_buffer[partition_offset + 2] << 16)  
+	                         + (io_buffer[partition_offset + 3] << 24);
+	kfree(io_buffer);
+	return first_partition_sector;
 }
 
 u32 static find_free_inode(u32 group_block_index, t_ext2* ext2, u32 condition)

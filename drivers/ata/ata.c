@@ -89,7 +89,7 @@ t_device_desc* init_ata(u8 device_num)
 	
 	//device_desc = kmalloc(sizeof(t_device_desc));
 	//device_desc->num = device_num;
-	device_desc = init_device(device_num);
+	device_desc = init_device(device_num, 2);
 	i_desc.baseLow = ((int)&int_handler_ata) & 0xFFFF;
 	i_desc.selector = 0x8;
 	i_desc.flags = 0x08e00;
@@ -103,8 +103,8 @@ t_device_desc* init_ata(u8 device_num)
 	device_desc->p_read = _p_read_28_ata;
 	device_desc->p_write = _p_write_28_ata;
 	device_desc->status = DEVICE_IDLE;
-	sem_init(&device_desc->mutex,1);
-	sem_init(&device_desc->sem,0);
+	//sem_init(&device_desc->mutex,1);
+	//sem_init(&device_desc->sem,0);
 
 	bar4 = read_pci_config_word(ATA_PCI_BUS,ATA_PCI_SLOT,ATA_PCI_FUNC,ATA_PCI_BAR4);
 	//BUS MASTER BIT SET-UP (2 bit starting from 0)

@@ -1,11 +1,14 @@
 #include "device.h"
 
-t_device_desc* init_device(u8 device_num)
+t_device_desc* init_device(u8 device_num, u8 partition_num)
 {
 	t_device_desc* device_desc = NULL;
 	
 	device_desc = kmalloc(sizeof(t_device_desc));
 	device_desc->num = device_num;
+	device_desc->partition_num = partition_num;
+	sem_init(&device_desc->mutex, 1);
+	sem_init(&device_desc->sem, 0);
 	return device_desc;
 }
 

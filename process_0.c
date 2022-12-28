@@ -41,7 +41,7 @@ void process_0()
 		child_pid = _getpid();
 		_setpgid(child_pid,child_pid);
 		_tcsetpgrp(child_pid);
-		_exec("/shell",argv);	
+		_exec("/shell",argv);
 	}
 	else 
 	{
