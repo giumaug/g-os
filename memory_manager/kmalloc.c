@@ -12,19 +12,28 @@ extern unsigned int allocated_block;
 
 t_a_fixed_size_desc a_fixed_size_desc[POOL_NUM];
 unsigned int free_mem_list[POOL_NUM];
+t_hashtable* aligned_address_map = NULL;
 
-void init_kmalloc() 
+void init_kmallocs() 
 {
 	unsigned int i;
-	void* mem_addr;
+	void* mem_addr = NULL;
 
-	mem_addr=POOL_START_ADDR + VIRT_MEM_START_ADDR - MEM_TO_POOL;
+	mem_addr = POOL_START_ADDR + VIRT_MEM_START_ADDR - MEM_TO_POOL;
 	//ALLOCATED POOL OF 4 8 16 32 64 128 256 512 1024 2048 4096 8192 16384 32768 65536 131072 BYTE
-	for (i=0;i<POOL_NUM;i++)
+	for (i = 0; i < POOL_NUM; i++)
 	{
-		mem_addr+=MEM_TO_POOL;
-		u32 www=pow2(2+i);
-		a_fixed_size_init(&a_fixed_size_desc[i],pow2(2+i),mem_addr,MEM_TO_POOL);  
+		mem_addr += MEM_TO_POOL;
+		a_fixed_size_init(&a_fixed_size_desc[i], pow2(2+i), mem_addr, MEM_TO_POOL);  
+	}
+	aligned_address_map = hashtable_init(ALGND_ADDR_MAP_INIT_SIZE);
+}
+
+void free_kmallocs()--------no!!!!!!!
+{
+	for (i = 0; i < POOL_NUM; i++)
+	{
+		
 	}
 }
 
@@ -324,3 +333,8 @@ unsigned int kfree_mem()
 	}
 	return tot;
 }
+
+void* aligned_kmalloc(u32 mem_size, u32 alignment)
+{
+	
+} 

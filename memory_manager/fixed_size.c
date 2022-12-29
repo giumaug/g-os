@@ -9,7 +9,7 @@ static void a_fixed_size_init_mem(t_a_fixed_size_desc *a_fixed_size_desc);
 
 void a_fixed_size_init(t_a_fixed_size_desc *a_fixed_size_desc,unsigned int block_size,void* mem_addr,int size) 
 {
-        int index;
+    int index;
 	unsigned int num_block;
 	t_block_desc *first_block_desc;	
 	t_block_desc *current_block_desc;
@@ -26,30 +26,20 @@ void a_fixed_size_init(t_a_fixed_size_desc *a_fixed_size_desc,unsigned int block
 	previous_block_desc=NULL;
 	current_block_desc=a_fixed_size_desc->first_block;
 	for (index=1;index<num_block;index++)
-        {	
-                next_block_desc=((char *)current_block_desc)+sizeof(t_block_desc)+a_fixed_size_desc->block_size;
+    {	
+        next_block_desc=((char *)current_block_desc)+sizeof(t_block_desc)+a_fixed_size_desc->block_size;
 		current_block_desc->next_block=next_block_desc;
 		current_block_desc->previous_block=previous_block_desc;
-                previous_block_desc=current_block_desc;
-                current_block_desc=next_block_desc;
-        }
+        previous_block_desc=current_block_desc;
+        current_block_desc=next_block_desc;
+    }
 	current_block_desc->next_block=first_block_desc;
 	current_block_desc->previous_block=previous_block_desc;
 	first_block_desc->previous_block=current_block_desc;
-	//a_fixed_size_init_mem(a_fixed_size_desc);
 }
 
 void *a_fixed_size_alloc(t_a_fixed_size_desc *a_fixed_size_desc) 
-{
-//	if (a_fixed_size_desc->block_size == 131072)
-//	{
-//		printk("size is %d \n",a_fixed_size_desc->current_free_block);
-//		if (a_fixed_size_desc->current_free_block == 7)
-//		{	req_count++;
-//			printk("leak!!! %d \n",req_count);
-//		}
-//	}
-	
+{	
 	if ((a_fixed_size_desc->current_free_block) == 0)
 	{
 		printk("run out of kmalloc memory!!!");
@@ -75,7 +65,7 @@ void a_fixed_size_free(t_a_fixed_size_desc *a_fixed_size_desc,void *address)
 	t_block_desc *block_desc;
 	t_block_desc *first_block_desc;
 	t_block_desc *current_block_desc;
-        t_block_desc *next_block_desc;
+    t_block_desc *next_block_desc;
 	t_block_desc *previous_block_desc;
 	block_desc=(char *)address-sizeof(t_block_desc);
 	a_fixed_size_desc->current_free_block++;
@@ -93,8 +83,6 @@ static void a_fixed_size_init_mem(t_a_fixed_size_desc *a_fixed_size_desc)
 	int y=0;
 	unsigned char* address;
 	int k;
-	
-
 	t_block_desc *current_block_desc;
 
 	current_block_desc=a_fixed_size_desc->first_block;

@@ -380,12 +380,13 @@ t_group_block* read_group_block(t_ext2 *ext2,u32 group_block_number)
 		//---------tmp trick
 		int i;
 		char* _io_buffer;
+		char* __io_buffer;
       	_io_buffer = kmalloc(1024 + 16);
-        ALIGNED_TO_OFFSET(_io_buffer, 16);
-		READ(1, lba, _io_buffer);
+        __io_buffer = ALIGNED_TO_OFFSET(_io_buffer, 16);
+		READ(1, lba, __io_buffer);
 		for (i = 0; i < 1024; i++)
 		{
-			io_buffer[i] = _io_buffer[i];
+			io_buffer[i] = __io_buffer[i];
 		}
 		kfree(_io_buffer);
         //-----------------
