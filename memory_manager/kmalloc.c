@@ -29,14 +29,6 @@ void init_kmallocs()
 	aligned_address_map = hashtable_init(ALGND_ADDR_MAP_INIT_SIZE);
 }
 
-void free_kmallocs()--------no!!!!!!!
-{
-	for (i = 0; i < POOL_NUM; i++)
-	{
-		
-	}
-}
-
 void  *_malloc(unsigned int mem_size) 
 {
 	return kmalloc(mem_size);
@@ -295,7 +287,7 @@ void _kfree(void *address)
 	RESTORE_IF_STATUS
 }
 
-void kfree(void *address) 
+void kfree(void* address) 
 {	
 	unsigned int pool_index;
 
@@ -336,5 +328,21 @@ unsigned int kfree_mem()
 
 void* aligned_kmalloc(u32 mem_size, u32 alignment)
 {
+	void* addr = NULL;
+	void* aligned_addr = NULL;
 	
-} 
+	addr = kmalloc(mem_size + alignment);
+    aligned_addr = ALIGNED_TO_OFFSET(addr, alignment);
+    hashtable_put(aligned_address_map, aligned_addr, addr);
+    return aligned_addr;
+}
+
+void aligned_kfree(void* address)
+{
+	void* address_orig = NULL;
+	
+	address_orig = hashtable_remove(aligned_address_map, address);
+	kfree(address_orig);
+}
+
+

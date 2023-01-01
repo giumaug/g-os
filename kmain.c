@@ -58,7 +58,7 @@ void kmain(multiboot_info_t* mbd, unsigned int magic, int init_data_add)
 	system.int_path_count = 0;
 	system.scheduler_desc->scheduler_queue[0] = 0;
 	system.process_info->current_process = NULL;
-	init_kmalloc();
+	init_kmallocs();
 	init_idt();
 	buddy_init(system.buddy_desc);
 	init_scheduler();

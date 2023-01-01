@@ -81,7 +81,7 @@ void _write_char(t_console_desc *console_desc,char data)
 	SPINLOCK_UNLOCK(console_desc->spinlock);
 }
 
-void _write_char_no_irq(t_console_desc *console_desc,char data)
+void _write_char_no_irq(t_console_desc *console_desc, char data)
 {
 	unsigned int to_end_line;
 	unsigned int i;
@@ -90,10 +90,10 @@ void _write_char_no_irq(t_console_desc *console_desc,char data)
 	CLI
 	if (data=='\n')
 	{
-		to_end_line=SCREEN_WIDTH -1 - (console_desc->out_buf_index %  SCREEN_WIDTH);
-		for (i=0;i<to_end_line;i++) write_out_buf(console_desc,'\0');
+		to_end_line = SCREEN_WIDTH -1 - (console_desc->out_buf_index %  SCREEN_WIDTH);
+		for (i = 0; i < to_end_line; i++) write_out_buf(console_desc, CHAR_NULL);
 	}
-	else write_out_buf(console_desc,data);
+	else write_out_buf(console_desc, data);
 	RESTORE_IF_STATUS
 }
 

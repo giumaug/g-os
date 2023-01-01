@@ -5,7 +5,7 @@
 //#undef VM_H
 //#undef FIXED_SIZE_H
 
-#define aligned_address_map ALGND_ADDR_MAP_INIT_SIZE 100
+#define ALGND_ADDR_MAP_INIT_SIZE 100
 
 #include "memory_manager/fixed_size.h"
 #include "asm.h"
@@ -16,12 +16,13 @@
 #include "debug.h"
 
 void init_kmallocs();
-void free_kmallocs();
 void* kmalloc(unsigned int mem_size);
 void kfree(void *address);
 void* _malloc(unsigned int mem_size);
 void  _free(void *address);
 unsigned int kfree_mem();
+void* aligned_kmalloc(u32 mem_size, u32 alignment);
+void aligned_kfree(void* address);
 
 #endif
 

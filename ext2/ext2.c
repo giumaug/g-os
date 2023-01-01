@@ -60,11 +60,11 @@ void free_ext2(t_ext2* ext2)
 		}
 		if (ext2->superblock->group_block_bitmap_list[i] != NULL)
 		{
-			kfree(ext2->superblock->group_block_bitmap_list[i]);
+			aligned_kfree(ext2->superblock->group_block_bitmap_list[i]);
 		}
 		if (ext2->superblock->group_inode_bitmap_list[i] != NULL)
 		{
-			kfree(ext2->superblock->group_inode_bitmap_list[i]);
+			aligned_kfree(ext2->superblock->group_inode_bitmap_list[i]);
 		}
 	}
 	kfree(ext2->superblock->group_block_list);
@@ -220,7 +220,7 @@ static t_indirect_block* indirect_block_init()
 	t_indirect_block* indirect_block = NULL;
 
 	indirect_block = kmalloc(sizeof(t_indirect_block));
-	indirect_block->block = kmalloc(BLOCK_SIZE);
+	indirect_block->block = aligned_kmalloc(BLOCK_SIZE, 16);
 	indirect_block->block_map = kmalloc((BLOCK_SIZE / 4) * sizeof(t_indirect_block*));
 	for (i = 0 ;i <  (BLOCK_SIZE / 4); i++)
 	{
@@ -242,7 +242,7 @@ static void indirect_block_free(t_indirect_block* indirect_block)
 		}
 	}
 	kfree(indirect_block->block_map);
-	kfree(indirect_block->block);
+	aligned_kfree(indirect_block->block);
 	kfree(indirect_block);
 }
 
@@ -261,7 +261,7 @@ void _read_test(t_ext2* ext2)
 	first_block = 3000;
 	last_block = 33720;
 	cons_block = 1;
-	buf = kmalloc(1024 * cons_block);
+	buf = aligned_kmalloc(1024 * cons_block, 16);
 	iob_data_block = kmalloc(1024 * cons_block);	
 
 	for (i = first_block;i <= last_block;i += cons_block)
@@ -272,6 +272,7 @@ void _read_test(t_ext2* ext2)
 		READ(sector_count,lba,iob_data_block);
 		kmemcpy(buf,iob_data_block,(1024 * cons_block));
 	}
+	aligned_kfree(buf);
 	return;	
 }
 
@@ -471,7 +472,7 @@ int _read_write(t_ext2* ext2, int fd, void* buf, u32 count, u8 op_type, u8 is_dm
 	}
 	else
 	{
-		iob_data_block = kmalloc(BLOCK_SIZE);
+		iob_data_block = aligned_kmalloc(BLOCK_SIZE, 16);
 	}
 
 	first_inode_block = file->file_offset / BLOCK_SIZE;
@@ -797,7 +798,7 @@ int _read_write(t_ext2* ext2, int fd, void* buf, u32 count, u8 op_type, u8 is_dm
 	}
 	else
 	{
-		kfree(iob_data_block);
+		aligned_kfree(iob_data_block);
 	}
 	if (op_type == 1)
 	{
@@ -879,7 +880,7 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 	}
 	else
 	{
-		iob_data_block = kmalloc(BLOCK_SIZE);
+		iob_data_block = aligned_kmalloc(BLOCK_SIZE, 16);
 	}
 
 	first_inode_block = file->file_offset / BLOCK_SIZE;
@@ -901,10 +902,9 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 		{
 			if (inode->indirect_block_1 == NULL)
 			{
-
 				inode->indirect_block_1 = indirect_block_init();
 				indirect_lba = FROM_BLOCK_TO_LBA(inode->i_block[12]);
-        			sector_count = BLOCK_SIZE/SECTOR_SIZE;
+        	    sector_count = BLOCK_SIZE/SECTOR_SIZE;
 				READ(sector_count,indirect_lba,inode->indirect_block_1->block);
 			}
 			READ_DWORD(&inode->indirect_block_1->block[(i - INDIRECT_0_LIMIT - 1)],inode_block_data);
@@ -918,7 +918,7 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 			{
 				inode->indirect_block_2 = indirect_block_init();
 				indirect_lba = FROM_BLOCK_TO_LBA(inode->i_block[13]);
-        			sector_count = BLOCK_SIZE/SECTOR_SIZE;
+        	    sector_count = BLOCK_SIZE/SECTOR_SIZE;
 				READ(sector_count,indirect_lba,inode->indirect_block_2->block);
 			}
 			if (inode->indirect_block_2->block_map[second_block] == NULL)
@@ -1055,7 +1055,6 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 		next = first;
 		for (i = 0; i < dma_lba_list_size;i++)
 		{
-
 			dma_buf_offset = 0;
 			dma_lba = next->val;
 			len = dma_lba->sector_count * SECTOR_SIZE;
@@ -1089,7 +1088,7 @@ int _read(t_ext2* ext2,int fd, void* buf,u32 count,u8 is_dma)
 	}
 	else
 	{
-		kfree(iob_data_block);
+		aligned_kfree(iob_data_block);
 	}
 	sem_up(ext2->sem);
 	return byte_read;
@@ -1196,7 +1195,7 @@ int _mkdir(t_ext2* ext2,const char* full_path)
 	
 	sem_down(ext2->sem);
 	ret = 0;
-	iob_dir = kmalloc(BLOCK_SIZE);
+	iob_dir = aligned_kmalloc(BLOCK_SIZE);
 	inode = inode_init(ext2);
 	inode->status = 1;
 	find_parent_path_and_filename(full_path, parent_path, file_name);
@@ -1263,7 +1262,7 @@ int _mkdir(t_ext2* ext2,const char* full_path)
 	inode_parent_dir->counter--;
 EXIT:
 	sync_fs(ext2);
-	kfree(iob_dir);
+	aligned_kfree(iob_dir);
 	sem_up(ext2->sem);
 	return ret;
 }
