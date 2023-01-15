@@ -1,6 +1,7 @@
 #include "lib/lib.h"
 #include "common.h"
-#include "drivers/ata/ata.h"
+//#include "drivers/ata/ata.h"
+#include "drivers/ahci/ahci.h"
 #include "ext2/ext2.h"
 #include "ext2/ext2_utils_1.h"
 #include "ext2/ext2_utils_2.h"
@@ -466,9 +467,10 @@ int _read_write(t_ext2* ext2, int fd, void* buf, u32 count, u8 op_type, u8 is_dm
 	inode = file->inode;
 	if (is_dma == 1)
 	{
-		dma_buffer = kmalloc(DMA_BUFFER_SIZE);
-		aligned_dma_buffer = ALIGN_TO_BOUNDARY((DMA_BUFFER_SIZE / 2), (u32) dma_buffer);
-		phy_dma_buffer = FROM_VIRT_TO_PHY(ALIGN_TO_BOUNDARY((DMA_BUFFER_SIZE / 2), (u32) dma_buffer));
+		//dma_buffer = kmalloc(DMA_BUFFER_SIZE);
+		//aligned_dma_buffer = ALIGN_TO_BOUNDARY((DMA_BUFFER_SIZE / 2), (u32) dma_buffer);
+		//phy_dma_buffer = FROM_VIRT_TO_PHY(ALIGN_TO_BOUNDARY((DMA_BUFFER_SIZE / 2), (u32) dma_buffer));
+		dma_buffer = aligned_kmalloc(DMA_BUFFER_SIZE, 16);
 	}
 	else
 	{
@@ -776,8 +778,10 @@ int _read_write(t_ext2* ext2, int fd, void* buf, u32 count, u8 op_type, u8 is_dm
 			}
 			if (op_type == 0)
 			{
-				READ_DMA(dma_lba->sector_count, dma_lba->lba, phy_dma_buffer);
-				kmemcpy(buf + buf_offset, aligned_dma_buffer + dma_buf_offset, byte_count);
+				//READ_DMA(dma_lba->sector_count, dma_lba->lba, phy_dma_buffer);
+				//kmemcpy(buf + buf_offset, aligned_dma_buffer + dma_buf_offset, byte_count);
+				READ_DMA(dma_lba->sector_count, dma_lba->lba, dma_buffer);
+				kmemcpy(buf + buf_offset, dma_buffer + dma_buf_offset, byte_count);
 			}
 			else if (op_type == 1)
 			{
@@ -785,14 +789,16 @@ int _read_write(t_ext2* ext2, int fd, void* buf, u32 count, u8 op_type, u8 is_dm
 				{
 					READ((BLOCK_SIZE/SECTOR_SIZE),dma_lba->lba,aligned_dma_buffer);
 				}
-				kmemcpy(aligned_dma_buffer + dma_buf_offset, buf + buf_offset, byte_count);
-				WRITE_DMA(dma_lba->sector_count, dma_lba->lba, phy_dma_buffer);
+				//kmemcpy(aligned_dma_buffer + dma_buf_offset, buf + buf_offset, byte_count);
+				//WRITE_DMA(dma_lba->sector_count, dma_lba->lba, phy_dma_buffer);
+				kmemcpy(dma_buffer + dma_buf_offset, buf + buf_offset, byte_count);
+				WRITE_DMA(dma_lba->sector_count, dma_lba->lba, dma_buffer);
 			}
 			buf_offset += byte_count;
 			next = ll_next(next);
 		 	byte_rw += byte_count;
 		}
-		kfree(dma_buffer);
+		aligned_kfree(dma_buffer);
 		file->file_offset += byte_rw;
 		free_llist(dma_lba_list);
 	}
@@ -1195,7 +1201,7 @@ int _mkdir(t_ext2* ext2,const char* full_path)
 	
 	sem_down(ext2->sem);
 	ret = 0;
-	iob_dir = aligned_kmalloc(BLOCK_SIZE);
+	iob_dir = aligned_kmalloc(BLOCK_SIZE, 16);
 	inode = inode_init(ext2);
 	inode->status = 1;
 	find_parent_path_and_filename(full_path, parent_path, file_name);

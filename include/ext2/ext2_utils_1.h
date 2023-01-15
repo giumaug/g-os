@@ -60,7 +60,7 @@ int add_entry_to_dir(char* file_name, struct s_inode* parent_dir_inode, struct s
 	{
 		return -1;
 	}
-	io_buffer = aligned_kmalloc(BLOCK_SIZE);
+	io_buffer = aligned_kmalloc(BLOCK_SIZE, 16);
 	lba = FROM_BLOCK_TO_LBA(parent_dir_inode->i_block[i - 1]);
 	READ((BLOCK_SIZE / SECTOR_SIZE), lba, io_buffer);
 
@@ -116,7 +116,7 @@ int add_entry_to_dir(char* file_name, struct s_inode* parent_dir_inode, struct s
 		//old_rec_len = (BLOCK_SIZE * i) - next_entry;
 		parent_dir_inode->i_block[i] = alloc_block(ext2, parent_dir_inode, i);
 		parent_dir_inode->status = 1;
-		new_io_buffer = aligned_kmalloc(BLOCK_SIZE);
+		new_io_buffer = aligned_kmalloc(BLOCK_SIZE, 16);
 		kfillmem(new_io_buffer,0,BLOCK_SIZE);
 		new_io_buffer[0] = inode_number & 0xFF;          	    //inode fourth word
 		new_io_buffer[1] = (inode_number & 0xFF00) >> 8;     	//inode third word
@@ -205,7 +205,7 @@ static void fill_group_hash_2(t_ext2* ext2, t_llist* group_list, t_hashtable* gr
 	u32 block_addr;
 	char* io_buffer = NULL;
 
-	io_buffer = aligned_kmalloc(BLOCK_SIZE);
+	io_buffer = aligned_kmalloc(BLOCK_SIZE, 16);
 	group_block_index = (indirect_block - 1) / ext2->superblock->s_blocks_per_group;
 	lba = FROM_BLOCK_TO_LBA(indirect_block);
 	READ(BLOCK_SIZE / SECTOR_SIZE, lba, io_buffer);
@@ -245,7 +245,7 @@ static void fill_group_hash_3(t_ext2* ext2, t_llist* group_list, t_hashtable* gr
 	u32 block_addr;
 	char* io_buffer = NULL;
 
-	io_buffer = aligned_kmalloc(BLOCK_SIZE);
+	io_buffer = aligned_kmalloc(BLOCK_SIZE, 16);
 	group_block_index = (i_node->i_block[13] - 1) / ext2->superblock->s_blocks_per_group;
 	lba = FROM_BLOCK_TO_LBA(i_node->i_block[13]);
 	READ(BLOCK_SIZE / SECTOR_SIZE, lba, io_buffer);
@@ -914,7 +914,7 @@ static int del_full_dir(t_ext2* ext2, t_inode* inode_dir, t_inode* inode_parent_
 		return -1;
 	}
 
-	iob_dir = aligned_kmalloc(BLOCK_SIZE * i);
+	iob_dir = aligned_kmalloc(BLOCK_SIZE * i, 16);
 	for(j = 0; j < i; j++)
 	{
 		lba = FROM_BLOCK_TO_LBA(inode_dir->i_block[j]);
@@ -971,7 +971,7 @@ static int del_dir_entry(t_ext2* ext2, t_inode* inode_dir, t_inode* inode)
 	{
 		return -1;
 	}
-	iob_dir = aligned_kmalloc(BLOCK_SIZE);
+	iob_dir = aligned_kmalloc(BLOCK_SIZE, 16);
 	for(j = 0; j < i; j++)
 	{
 		lba = FROM_BLOCK_TO_LBA(inode_dir->i_block[j]);
@@ -1042,7 +1042,7 @@ static int num_dir_entry(t_ext2* ext2, t_inode* inode_dir)
 	{
 		return -1;
 	}
-	iob_dir = aligned_kmalloc(BLOCK_SIZE);
+	iob_dir = aligned_kmalloc(BLOCK_SIZE, 16);
 	for(j = 0; j < i; j++)
 	{
 		lba = FROM_BLOCK_TO_LBA(inode_dir->i_block[j]);

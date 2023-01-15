@@ -15,23 +15,9 @@ run-command-file /opt/simics/simics-qsp-x86-6.0.43/targets/qsp-x86/qsp-hdd-boot.
 enable-debugger
 add-symbol-file /home/peppe/Scrivania/g-os-grub2/g-os/kernel.bin
 bp.source_location.break panic
-bp.source_line.break filename = ext2_utils_1.h line-number = 642
-bp.source_location.break read_inode
-bp.source_location.break read_group_block
-
-bp.source_location.break _read_write_28_ahci
+bp.source_location.break test_ahci
 bp.source_location.break int_handler_ahci
-bp.source_line.break filename = ahci.c line-number = 264
-
-bp.source_line.break filename = ahci.c line-number = 264
 bp.source_location.break __read_write_28_ahci
-bp.source_location.break lookup_gpt_partition
-
-bp.source_location.break __read_write_28_ahci
-bp.source_location.break process_0
-bp.source_location.break init_ext2
-bp.source_location.break int_handler_lapic
-bp.source_location.break init_ext2
 
 bp.source_line.break filename = console.c line-number = 215
 bp.source_location.break int_handler_generic_49

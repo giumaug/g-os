@@ -288,6 +288,26 @@ static u8 _read_write_28_ahci(t_io_request* io_request)
 	device_desc->status = DEVICE_BUSY;
     port = ((t_ahci_device_desc*) device_desc->dev)->active_port;
 	ret = __read_write_28_ahci(io_request);
+	
+	
+	if (io_request->command != ATA_READ_DMA_28)
+	{
+		while (1)
+		{
+			if (port->ci == 0) break;
+			if (port->is & HBA_PxIS_TFES)
+			{
+				ret = -1;
+			}
+		}
+		// Check again
+		if (port->is & HBA_PxIS_TFES)
+		{
+			ret = -1;
+		}
+	}
+	
+	
 	//semaphore to avoid race with interrupt handler
 	sem_down(&device_desc->sem);
 	device_desc->status = DEVICE_IDLE;
@@ -419,20 +439,28 @@ static void port_free(t_hba_port* port, t_hashtable* mem_map)
 
 void test_ahci()
 {
+	int i;
     char* io_buffer = NULL;
     t_io_request* io_request = NULL;
     int partition_start_sector = 51200;
     
-    io_buffer = kmalloc(BLOCK_SIZE);
+    io_buffer = aligned_kmalloc(BLOCK_SIZE, 16);
+    
+    for (i = 0; i < 512; i++)
+	{
+			io_buffer[i] = 'a';
+	}
+    
     io_request = kmalloc(sizeof(t_io_request));
     io_request->device_desc = system.device_desc;
     io_request->sector_count= 1;
-    io_request->lba= 2 + partition_start_sector;
+    //io_request->lba= 2 + partition_start_sector;
+    io_request->lba= partition_start_sector;
     io_request->io_buffer = io_buffer;
     io_request->process_context = NULL;
-    _p_read_28_ahci(io_request);
+    _p_write_28_ahci(io_request);
     kfree(io_request);
-    kfree(io_buffer);                                                      					
+    aligned_kfree(io_buffer);                                                      					
 }
 
 static int check_type(t_hba_port* port)

@@ -6,7 +6,7 @@ static char* read_inode_bitmap(t_ext2* ext2, u32 bg_inode_bitmap, u32 group_bloc
 
 	if (ext2->superblock->group_inode_bitmap_list[group_block_index] == NULL)
 	{
-		io_buffer = aligned_kmalloc(BLOCK_SIZE);
+		io_buffer = aligned_kmalloc(BLOCK_SIZE, 16);
        	lba = ext2->partition_start_sector + (bg_inode_bitmap * BLOCK_SIZE / SECTOR_SIZE);
         sector_count = BLOCK_SIZE / SECTOR_SIZE;
 		READ(sector_count, lba, io_buffer);
@@ -46,7 +46,7 @@ static char* read_block_bitmap(t_ext2* ext2, u32 bg_block_bitmap, u32 group_bloc
 
 	if (ext2->superblock->group_block_bitmap_list[group_block_index] == NULL)
 	{
-		io_buffer = aligned_kmalloc(BLOCK_SIZE);
+		io_buffer = aligned_kmalloc(BLOCK_SIZE, 16);
        	lba = ext2->partition_start_sector + (bg_block_bitmap * BLOCK_SIZE / SECTOR_SIZE);
         sector_count = BLOCK_SIZE / SECTOR_SIZE;
 		READ(sector_count, lba, io_buffer);
@@ -188,7 +188,7 @@ void static read_superblock(t_ext2* ext2)
 	t_superblock* superblock = NULL;
 	int i=0;
 	
-    io_buffer = aligned_kmalloc(BLOCK_SIZE);
+    io_buffer = aligned_kmalloc(BLOCK_SIZE, 16);
     P_READ(2, (2 + ext2->partition_start_sector), io_buffer);	
 	superblock = ext2->superblock;
        
@@ -254,7 +254,7 @@ void static write_superblock(struct s_ext2* ext2)
 	char* io_buffer = NULL;
 	t_superblock* superblock = NULL;
 	
-   	io_buffer=aligned_kmalloc(BLOCK_SIZE);
+   	io_buffer=aligned_kmalloc(BLOCK_SIZE, 16);
 	superblock=ext2->superblock;
    
    	//u32
@@ -334,7 +334,7 @@ static void write_group_block(t_ext2* ext2, u32 group_block_number, t_group_bloc
 		sector_number = 32 * group_block_number / SECTOR_SIZE;
 		sector_offset = (32 * group_block_number) % SECTOR_SIZE;
 		lba=(2 * BLOCK_SIZE) / SECTOR_SIZE + ext2->partition_start_sector + sector_number;
-		io_buffer = aligned_kmalloc(512);
+		io_buffer = aligned_kmalloc(512, 16);
 		READ(1, lba, io_buffer);
 
 		//u32
@@ -424,7 +424,7 @@ static t_inode* read_inode(t_ext2* ext2, u32 i_number)
 		inode = inode_init(ext2);
 		inode->status = 0;
 		inode->i_number = i_number;
-		io_buffer = aligned_kmalloc(BLOCK_SIZE);
+		io_buffer = aligned_kmalloc(BLOCK_SIZE, 16);
 		group_number = (i_number - 1) / ext2->superblock->s_inodes_per_group; 
 		group_block = read_group_block(ext2, group_number);
 		group_i_number = i_number - (group_number * ext2->superblock->s_inodes_per_group) - 1;
@@ -518,7 +518,7 @@ void static write_inode(t_ext2* ext2, t_inode* inode, u8 store_on_disk)
 	if (store_on_disk == 1)
 	{
 		inode->status = 0;
-		io_buffer = aligned_kmalloc(BLOCK_SIZE);	
+		io_buffer = aligned_kmalloc(BLOCK_SIZE, 16);	
 		group_number = (inode->i_number - 1) / ext2->superblock->s_inodes_per_group; 
 		group_block = read_group_block(ext2, group_number);
 		group_i_number = inode->i_number - (group_number * ext2->superblock->s_inodes_per_group) - 1;
@@ -620,7 +620,7 @@ static t_inode* read_dir_inode(char* file_name, t_inode* parent_dir_inode, t_ext
 			break;
 		} 
 	}
-	io_buffer = aligned_kmalloc(BLOCK_SIZE);
+	io_buffer = aligned_kmalloc(BLOCK_SIZE, 16);
 	for (j = 0; j <= (i - 1); j++)
 	{
 		lba = FROM_BLOCK_TO_LBA(parent_dir_inode->i_block[j]);
@@ -671,7 +671,7 @@ u32 static lookup_partition(t_ext2* ext2,u8 partition_number)
 	u32 cylinder;
 
 	partition_number = 2;
-	io_buffer = aligned_kmalloc(BLOCK_SIZE);
+	io_buffer = aligned_kmalloc(BLOCK_SIZE, 16);
 	partition_offset = 446 + ((partition_number - 1) * 16) + 1;			
 	P_READ(1, 0, io_buffer);
 	head = io_buffer[partition_offset];
@@ -688,7 +688,7 @@ u32 static lookup_gpt_partition(t_ext2* ext2,u8 partition_number)
     u32 first_partition_sector;
 	u32 partition_offset;
 	
-	io_buffer = aligned_kmalloc(BLOCK_SIZE);		
+	io_buffer = aligned_kmalloc(BLOCK_SIZE, 16);		
 	P_READ(1, 2, io_buffer);
 	partition_offset = 32 + (partition_number - 1) * 128;
 	first_partition_sector = io_buffer[partition_offset]

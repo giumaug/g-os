@@ -43,6 +43,8 @@
  
 #define HBA_PORT_IPM_ACTIVE 1
 #define HBA_PORT_DET_PRESENT 3
+
+#define DMA_BUFFER_SIZE 0x10000
 //------------------------------------
 
 typedef struct s_fis_reg_h2d
