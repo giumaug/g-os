@@ -33,14 +33,6 @@ void free_console(t_console_desc *console_desc)
 	kfree(console_desc->out_buf);
 }
 
-char ____read_char(t_console_desc *console_desc)
-{
-	char data;
-
-	while (!(data=read_buf()));
-	return data;	
-}
-
 char _read_char(t_console_desc *console_desc)
 {
 	char data = NULL;

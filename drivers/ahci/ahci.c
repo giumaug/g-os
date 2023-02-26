@@ -73,7 +73,6 @@ void free_ahci(t_ahci_device_desc* device_desc)
     port = &(device_desc->mem->ports[0]);
     port_free(port, 0);
     umap_vm_mem(system.master_page_dir, AHCI_VIRT_MEM, AHCI_VIRT_MEM_SIZE, 0);
-    //free_device(device_desc->device);
     kfree(device_desc);
 }
 
@@ -196,62 +195,6 @@ static s8 _p_read_write_28_ahci(t_io_request* io_request)
 			goto EXIT;
 	}
 	
-/*
-    t_ahci_device_desc* device_desc = NULL;
-    t_hba_port* port = NULL;
-    t_hba_cmd_header* cmd_header = NULL;
-    t_hba_cmd_tbl* cmd_tbl = NULL;
-    t_fis_reg_h2d* cmd_fis = NULL;
-    
-    device_desc = io_request->device_desc;
-    port = device_desc->active_port;
-    
-    port->is = (u32) -1;		// Clear pending interrupt bits
-	int spin = 0; // Spin lock timeout counter
-	int slot = find_cmd_slot(port);
-	if (slot == -1)
-	{
-		return 0;
-    }
-    cmd_header = FROM_PHY_TO_VIRT(port->clb);
-    io_request->command == ATA_READ_DMA_28 ? 0 : 1;
-    cmd_header += slot;
-	cmd_header->cfl = sizeof(t_fis_reg_h2d) / sizeof(u32);
-	cmd_header->w = (io_request->command == ATA_READ_DMA_28 ? 0 : 1);
-	
-	cmd_tbl = FROM_PHY_TO_VIRT(cmd_header->ctba);
-	cmd_tbl->prdt_entry[0].dba = FROM_VIRT_TO_PHY(io_request->io_buffer);
-	cmd_tbl->prdt_entry[0].dbau = 0;
-	cmd_tbl->prdt_entry[0].dbc = io_request->sector_count * AHCI_SECTOR_SIZE;
-	cmd_tbl->prdt_entry[0].i = 1;
-	
-	cmd_fis = cmd_tbl->cfis;
-	cmd_fis->fis_type = FIS_TYPE_REG_H2D;
-	cmd_fis->c = 1;
-	cmd_fis->command = io_request->command; // 0x25
-	
-	cmd_fis->lba0 = (unsigned char) io_request->lba;
-	cmd_fis->lba1 = (unsigned char)(io_request->lba >> 8);
-	cmd_fis->lba2 = (unsigned char)(io_request->lba >> 16);
-	cmd_fis->lba3 = 0;
-	cmd_fis->lba4 = 0;
-	cmd_fis->lba5 = 0;
-	cmd_fis->device = 1<<6;
-	cmd_fis->countl = io_request->sector_count & 0xFF;
-	cmd_fis->counth = (io_request->sector_count >> 8) & 0xFF;
-	
-	//WAIT PORT IS READ AND ISSUE THE COMMAND
-	while ((port->tfd & (ATA_DEV_BUSY | ATA_DEV_DRQ)) && spin < ATA_SPIN_TIMEOUT)
-	{
-		spin++;
-	}
-	if (spin == ATA_SPIN_TIMEOUT)
-	{
-		return -1;
-	}
-	port->ci = 1 << slot;
-*/
-	
 	// Wait for completion
 	while (1)
 	{
@@ -288,25 +231,6 @@ static u8 _read_write_28_ahci(t_io_request* io_request)
 	device_desc->status = DEVICE_BUSY;
     port = ((t_ahci_device_desc*) device_desc->dev)->active_port;
 	ret = __read_write_28_ahci(io_request);
-	
-	
-	if (io_request->command != ATA_READ_DMA_28)
-	{
-		while (1)
-		{
-			if (port->ci == 0) break;
-			if (port->is & HBA_PxIS_TFES)
-			{
-				ret = -1;
-			}
-		}
-		// Check again
-		if (port->is & HBA_PxIS_TFES)
-		{
-			ret = -1;
-		}
-	}
-	
 	
 	//semaphore to avoid race with interrupt handler
 	sem_down(&device_desc->sem);
