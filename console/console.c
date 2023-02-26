@@ -33,11 +33,23 @@ void free_console(t_console_desc *console_desc)
 	kfree(console_desc->out_buf);
 }
 
-char _read_char(t_console_desc *console_desc)
+char ____read_char(t_console_desc *console_desc)
 {
 	char data;
 
 	while (!(data=read_buf()));
+	return data;	
+}
+
+char _read_char(t_console_desc *console_desc)
+{
+	char data = NULL;
+
+	while (!(data = read_buf())) 
+	{
+		system.active_console_desc->sleeping_process=system.process_info->current_process->val;
+		_sleep();
+	}	
 	return data;	
 }
 

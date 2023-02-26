@@ -34,10 +34,11 @@ void process_0()
 	
 	argv[0] = argv1;
 	argv[1] = NULL;	
+	
+	//test_ahci();
+    //while(1);
 
     THREAD_FORK(pid);
-    
-    test_ahci();
     
 	if (pid == 0)
 	{

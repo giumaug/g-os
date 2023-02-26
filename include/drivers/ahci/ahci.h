@@ -25,6 +25,7 @@
 #define FIS_TYPE_REG_H2D 0x27
 #define ATA_READ_DMA_28 0xC8
 #define ATA_WRITE_DMA_28 0xCA
+//#define ATA_WRITE_DMA_28 0x35
 #define ATA_DEV_BUSY 0x80
 #define ATA_DEV_DRQ 0x08
 #define ATA_SPIN_TIMEOUT 1000000

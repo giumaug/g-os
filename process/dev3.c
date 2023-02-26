@@ -152,6 +152,7 @@ int main (int argc, char* argv[])
 		exec(params_1[0], params_1);
 		printf("after exec \n");
 	}
+
 	pid = fork();
 	if (pid == 0)
 	{	

@@ -5,19 +5,28 @@ add-symbol-file /home/peppe/Scrivania/g-os/kernel.bin
 bp.source_line.break filename = ahci.c line-number = 147
 bp.source_location.break exception
 
-
-
-$disk0_image="/home/peppe/Scrivania/g-os-grub2/cl-b28910-v2.craff"
-$disk0_image="/home/peppe/Scrivania/g-os-grub2/img/simic-linux.img"
-
+$disk0_image="/home/peppe/Scrivania/g-os-grub2/img/cl-b28910-v2.craff"
 $disk0_image="/home/peppe/Scrivania/g-os-grub2/g-os/img/c.img"
 run-command-file /opt/simics/simics-qsp-x86-6.0.43/targets/qsp-x86/qsp-hdd-boot.simics
 enable-debugger
 add-symbol-file /home/peppe/Scrivania/g-os-grub2/g-os/kernel.bin
 bp.source_location.break panic
+@files = conf.board.disk0.hd_image.files
+@files[-1][1] = "rw"
+bp.source_location.break _write_28_ahci
 bp.source_location.break test_ahci
+bp.source_line.break filename = ahci.c line-number = 310
+bp.source_location.break int_handler_ahci
+bp.source_location.break kmain
+bp.source_location.break panic
+board.mb.sb.sata2.log-level 4
+board.disk0.sata.log-level 4
+log-setup log.log
+
+
 bp.source_location.break int_handler_ahci
 bp.source_location.break __read_write_28_ahci
+bp.source_line.break filename = ahci.c line-number = 148
 
 bp.source_line.break filename = console.c line-number = 215
 bp.source_location.break int_handler_generic_49
@@ -72,6 +81,7 @@ board.mb.cpu0.core[0][0].pregs
 
 memoria
 x 0xc0000553 4
+x p:0xc0000553 4 indirizzo fisico
 
 break point fisico b 0x0
 
@@ -99,6 +109,16 @@ acpi=noirq noapic pci=nomsi hpet=disable
 
 CONFIGURAZIONE APIC (IOAPIC + LAPIC)
 pci=nomsi hpet=disable (acpi serve)
+
+
+board.mb.sb.sata2.log-level 4
+board.disk0.sata.log-level 4
+log-setup log2.log
+system-perfmeter
+
+@files = conf.board.disk0.hd_image.files
+@files[-1][1] = "rw"
+
 
 
  

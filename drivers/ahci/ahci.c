@@ -144,13 +144,13 @@ static s8 __read_write_28_ahci(t_io_request* io_request)
 	cmd_tbl = FROM_PHY_TO_VIRT(cmd_header->ctba);
 	cmd_tbl->prdt_entry[0].dba = FROM_VIRT_TO_PHY(io_request->io_buffer);
 	cmd_tbl->prdt_entry[0].dbau = 0;
-	cmd_tbl->prdt_entry[0].dbc = io_request->sector_count * AHCI_SECTOR_SIZE;
+	cmd_tbl->prdt_entry[0].dbc = (io_request->sector_count * AHCI_SECTOR_SIZE) - 1;
 	cmd_tbl->prdt_entry[0].i = 1;
 	
 	cmd_fis = cmd_tbl->cfis;
 	cmd_fis->fis_type = FIS_TYPE_REG_H2D;
 	cmd_fis->c = 1;
-	cmd_fis->command = io_request->command; // 0x25
+	cmd_fis->command = io_request->command;
 	
 	cmd_fis->lba0 = (unsigned char) io_request->lba;
 	cmd_fis->lba1 = (unsigned char)(io_request->lba >> 8);
@@ -442,13 +442,13 @@ void test_ahci()
 	int i;
     char* io_buffer = NULL;
     t_io_request* io_request = NULL;
-    int partition_start_sector = 51200;
+    int partition_start_sector = 51400;
     
     io_buffer = aligned_kmalloc(BLOCK_SIZE, 16);
     
     for (i = 0; i < 512; i++)
 	{
-			io_buffer[i] = 'a';
+			io_buffer[i] = 'k';
 	}
     
     io_request = kmalloc(sizeof(t_io_request));
@@ -458,7 +458,7 @@ void test_ahci()
     io_request->lba= partition_start_sector;
     io_request->io_buffer = io_buffer;
     io_request->process_context = NULL;
-    _p_write_28_ahci(io_request);
+    _write_28_ahci(io_request);
     kfree(io_request);
     aligned_kfree(io_buffer);                                                      					
 }

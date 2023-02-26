@@ -476,12 +476,12 @@ int _read_write(t_ext2* ext2, int fd, void* buf, u32 count, u8 op_type, u8 is_dm
 	{
 		iob_data_block = aligned_kmalloc(BLOCK_SIZE, 16);
 	}
-
+	
 	first_inode_block = file->file_offset / BLOCK_SIZE;
 	first_data_offset = file->file_offset % BLOCK_SIZE;
 	if (inode->i_size < (file->file_offset + (count - 1)) && op_type == 0)
 	{
-		last_inode_block = (inode->i_size / BLOCK_SIZE) - 1;
+		last_inode_block = inode->i_size / BLOCK_SIZE;
 		byte_to_rw = inode->i_size - file->file_offset;
 	}
 	else
