@@ -1,5 +1,5 @@
 #include "lib/lib.h"
-#include "udpclient.h"
+#include "udpwriter.h"
 
 //#include <stdio.h>
 //#include <unistd.h>
@@ -35,9 +35,7 @@ int main(int argc, char **argv)
 	char* pippo="sssssssssssssssssssssssssssssss";
 
 	printf("starting udp_writer... \n");
-	unsigned char a1=argv[2][0];
-	unsigned char a2=argv[2][1];
-	port=(a2<<8)+a1;
+	port=21846;
 
 	printf("....\n");
 	printf("port is.......++... %d \n",port);
@@ -80,18 +78,9 @@ int main(int argc, char **argv)
 			sent=0;
 		}
 		printf("sending data: %d \n",len);
-    		n_to = sendto(sockfd,(io_buffer+offset),len,0,&send_addr, send_len);
-		//n_to = sendto(sockfd,(pippo),10,0,&send_addr, send_len);
+    	n_to = sendto(sockfd,(io_buffer+offset),len,0,&send_addr, send_len);
 		printf("sent data \n");
-		//printf("offset=%d\n",offset);
-		//printf("data_len=%d \n",data_len);
-		//printf("ff=%d \n",ff);
-		//printf("sent=%d \n",sent);
-		//printf("n_to=%d \n",n_to);
-	
 	}
-	//n_to = sendto(sockfd,end,3,0,&send_addr, send_len);
 	close(sockfd);
-	// kfree ci pensa exit!!!
     	exit(0);
 }

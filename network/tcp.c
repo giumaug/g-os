@@ -10,6 +10,8 @@ static u16 checksum_tcp(char* tcp_row_packet,u32 src_ip,u32 dst_ip,u16 data_len,
 static void flush_data(t_tcp_conn_desc* tcp_conn_desc,u32 data_to_send,u32 ack_num,u32 indx);
 void delay();
 
+static t_tcp_conn_desc* guard_tcp_conn_desc = NULL;
+
 static void upd_max_adv_wnd(t_tcp_conn_desc* tcp_conn_desc,u32 rcv_wmd_adv)
 {
 	tcp_conn_desc->rcv_wmd_adv = rcv_wmd_adv;
@@ -43,11 +45,16 @@ static void tcp_snd_queue_free(t_tcp_snd_queue* tcp_snd_queue)
 
 static t_tcp_rcv_queue* tcp_rcv_queue_init(u32 size)
 {
+	int i;
 	t_tcp_rcv_queue* tcp_rcv_queue;
 
 	tcp_rcv_queue = kmalloc(sizeof(t_tcp_rcv_queue));
 	tcp_rcv_queue->buf = kmalloc(TCP_RCV_SIZE);
 	tcp_rcv_queue->buf_state = kmalloc(TCP_RCV_SIZE);
+	for (i = 0; i < TCP_RCV_SIZE; i++)
+	{
+		tcp_rcv_queue->buf_state[i] = 0;
+	}
 	tcp_rcv_queue->wnd_min = 0;
 	tcp_rcv_queue->wnd_size = TCP_RCV_SIZE;
 	tcp_rcv_queue->buf_size = TCP_RCV_SIZE;
@@ -65,35 +72,6 @@ static void tcp_rcv_queue_free(t_tcp_rcv_queue* tcp_rcv_queue)
 	kfree(tcp_rcv_queue->buf_state);
 	kfree(tcp_rcv_queue->buf);
 	kfree(tcp_rcv_queue);
-}
-
-void reset(t_tcp_conn_desc* tcp_conn_desc)
-{
-	bit_vector_re_init(tcp_conn_desc->rcv_queue->buf_state,TCP_RCV_SIZE);
-	if (tcp_conn_desc->rtrsn_timer->ref != NULL)
-	{
-  		ll_delete_node(tcp_conn_desc->rtrsn_timer->ref);
-		tcp_conn_desc->rtrsn_timer->ref = NULL;
-	}
-	if (tcp_conn_desc->pgybg_timer->ref != NULL)
-	{
-  		ll_delete_node(tcp_conn_desc->pgybg_timer->ref);
-		tcp_conn_desc->pgybg_timer->ref = NULL;
-	}
-
-	tcp_conn_desc->rcv_queue->wnd_min = 0;
-	tcp_conn_desc->rcv_queue->wnd_size = TCP_RCV_SIZE;
-	tcp_conn_desc->rcv_queue->buf_size = TCP_RCV_SIZE;
-	tcp_conn_desc->rcv_queue->nxt_rcv = 0; 
-
-	tcp_conn_desc->rcv_queue->seq_num = 0;
-	tcp_conn_desc->rcv_queue->data_len = 0;
-
-	tcp_conn_desc->snd_queue->wnd_min = 1;
-	tcp_conn_desc->snd_queue->wnd_size = SMSS;
-	tcp_conn_desc->snd_queue->cur = 1;
-	tcp_conn_desc->snd_queue->buf_size = TCP_SND_SIZE;
-	tcp_conn_desc->snd_queue->nxt_snd = 1;
 }
 
 t_tcp_conn_desc* tcp_conn_desc_int()
@@ -128,11 +106,13 @@ t_tcp_conn_desc* tcp_conn_desc_int()
 	tcp_conn_desc->isActive = 0;
 	tcp_conn_desc->process_context = NULL;
 	tcp_conn_desc->pending_ack = 0;
+	//tcp_conn_desc->log.index = -1;
 	return tcp_conn_desc;
 }
 
 void tcp_conn_desc_free(t_tcp_conn_desc* tcp_conn_desc)
 {
+	int i;
 	t_tcp_desc* tcp_desc = system.network_desc->tcp_desc;
 
 	tcp_rcv_queue_free(tcp_conn_desc->rcv_queue);
@@ -144,6 +124,13 @@ void tcp_conn_desc_free(t_tcp_conn_desc* tcp_conn_desc)
 	if (tcp_conn_desc->isActive)
 	{
 		hashtable_remove(system.network_desc->tcp_desc->ep_port_map,tcp_conn_desc->src_port);
+	}
+	for (i = 0; i <= system.tcp_open_conn_index; i++)
+	{
+		if (system.tcp_open_conn[i] == tcp_conn_desc->src_port)
+		{ 
+			system.tcp_open_conn[i] = 0;
+		}
 	}
 	kfree(tcp_conn_desc);
 }
@@ -158,6 +145,7 @@ t_tcp_desc* tcp_init()
 	tcp_desc->req_map = tcp_conn_map_init();
 	tcp_desc->ep_port_map = hashtable_init(EPHEMERAL_PORT_MAP_SIZE);
 	tcp_desc->ep_port_index = 32767;
+	system.tcp_open_conn_index = -1;
 	return tcp_desc;
 }
 
@@ -177,44 +165,76 @@ static u8 _update_rcv_window_and_ack(t_tcp_rcv_queue* tcp_queue,int data_len)
 	u32 min;
 	u32 offset;
 	unsigned long long index;
-	
+	unsigned long long start_index;
 	u32 state_index;
-	unsigned long long wnd_max;
 	u8 slot_state;
 	u8 ret;
-
+	u32 buf_low;
+	u32 buf_high;
+	unsigned long long wnd_max;
+	unsigned long long _wnd_max;
+	unsigned long long _nxt_rcv;
+	unsigned long long _max_seq_num;
+	
 	ret = 0;
 	index = tcp_queue->wnd_min;
-	wnd_max = index + (long long)tcp_queue->buf_size;
-	
-	//Second condition in order to manage buffer overflow.
-	while(index < wnd_max && index < tcp_queue->max_seq_num)
+	start_index = index;
+	_wnd_max = index + (long long)tcp_queue->buf_size;
+	_nxt_rcv = CHK_OVRFLW(tcp_queue->nxt_rcv ,tcp_queue->wnd_min);
+	_max_seq_num = tcp_queue->max_seq_num;
+		
+	while(index < _wnd_max && index < _max_seq_num)
 	{
 		state_index = SLOT_WND((u32)index,tcp_queue->buf_size);
-		//state_index = index & TCP_RCV_SIZE;
 		if (tcp_queue->buf_state[state_index] == 0)
 		{
 			break;
 		}
 		index++;
 	}
-	tcp_queue->nxt_rcv = index;
-	if (tcp_queue->nxt_rcv > tcp_queue->wnd_min)
+	if (index > _nxt_rcv)
+	{
+			if (index > 4294967295)
+			{
+				tcp_queue->nxt_rcv = index - 4294967295;
+			}
+			else
+			{
+				tcp_queue->nxt_rcv = index;
+			}
+			_nxt_rcv = index;
+	}
+	if (_nxt_rcv > tcp_queue->wnd_min)
 	{
 		ret = 1;
-		if (index < tcp_queue->max_seq_num)
-		{
-			panic();
-		}
 	}
 	if (tcp_queue->nxt_rcv == tcp_queue->max_seq_num)
 	{
 		tcp_queue->is_wnd_hole = 0;
-		for (i = 0; i <= TCP_RCV_SIZE;i++)
-		{
-			tcp_queue->buf_state[i]	= 0;
-		}
 		tcp_queue->max_seq_num = 0;
+	}
+	if (start_index != index)
+	{
+		buf_low = SLOT_WND((u32)start_index,tcp_queue->buf_size);
+		buf_high = SLOT_WND((u32)index,tcp_queue->buf_size);
+		if (buf_low < buf_high)
+		{
+			for (i = buf_low; i <= buf_high; i++)
+			{
+				tcp_queue->buf_state[i]	= 0;
+			}
+		}
+		else if (buf_low > buf_high)
+		{
+				for (i = buf_low; i < tcp_queue->buf_size; i++)
+				{
+					tcp_queue->buf_state[i]	= 0;
+				}
+				for (i = 0; i <=buf_high; i++)
+				{
+					tcp_queue->buf_state[i]	= 0;
+				}
+		}
 	}
 	return ret;
 }
@@ -248,7 +268,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	u32 seq_num;
 	u32 ack_seq_num;
 	u32 ack_num;
-	long long wnd_max;
 	u32 rcv_wmd_adv;
 	u32 len_1;
 	u32 len_2;
@@ -268,8 +287,10 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	u8 free_conn;
 	u8 no_piggy = 0;
 	u32 adv_wnd_size = 0;
-	static counter = 0;
-	static miss_seq_num = 0;
+	long long _wnd_max = 0;
+	long long _nxt_rcv = 0;
+	long long _max_seq_num = 0;
+	long long _seq_num = 0;
 	
 	#ifdef PROFILE
 	long long time_1;
@@ -285,6 +306,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 	dst_port = GET_WORD(tcp_row_packet[2],tcp_row_packet[3]);
 	ack_seq_num = GET_DWORD(tcp_row_packet[8],tcp_row_packet[9],tcp_row_packet[10],tcp_row_packet[11]);
 	seq_num = GET_DWORD(tcp_row_packet[4],tcp_row_packet[5],tcp_row_packet[6],tcp_row_packet[7]);
+	
 	flags = tcp_row_packet[13];
 	rcv_wmd_adv = GET_WORD(tcp_row_packet[14],tcp_row_packet[15]);
 	
@@ -354,6 +376,8 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			timer_reset(tcp_req_desc->rtrsn_timer);
 			_awake(tcp_req_desc->process_context);
 			tcp_req_desc->process_context = NULL;
+			system.tcp_open_conn_index++;
+			system.tcp_open_conn[system.tcp_open_conn_index] = dst_port;
 		}
 		//RETRY
 		else if (tcp_conn_desc != NULL)
@@ -417,7 +441,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 					_awake(tcp_listen_desc->process_context);
 					tcp_listen_desc->process_context = NULL;
 				}
-				timer_reset(new_tcp_conn_desc->rtrsn_timer);	
+				timer_reset(new_tcp_conn_desc->rtrsn_timer);
 			}
 			goto EXIT;
 		}
@@ -431,7 +455,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 
 	t_tcp_rcv_queue* tcp_queue = tcp_conn_desc->rcv_queue;
 	upd_max_adv_wnd(tcp_conn_desc,rcv_wmd_adv);
-
+	
 //START ACTIVE CLOSE
 //	FIN,ACK OR FIN AND ACK FROM SERVER
 	u32 fin_num = tcp_conn_desc->snd_queue->nxt_snd;
@@ -456,7 +480,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 					    tcp_conn_desc->src_ip,
 					    tcp_conn_desc->dst_ip,
 					    tcp_conn_desc->src_port,
-				            tcp_conn_desc->dst_port);
+				        tcp_conn_desc->dst_port);
 
 			tcp_conn_desc->snd_queue->nxt_snd = fin_num + 1;
 			timer_reset(tcp_conn_desc->rtrsn_timer);
@@ -504,7 +528,6 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 			tcp_conn_desc->status = CLOSE_WAIT;
 			if (tcp_conn_desc->process_context != NULL)
 			{
-				printk("awake here !!!! \n");
 				_awake(tcp_conn_desc->process_context);
 			}
 		}
@@ -529,16 +552,50 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 //END PASSIVE CLOSE
 	if (data_len != 0)
 	{
+//		tcp_conn_desc->log.index++;
+//		
+//		if (tcp_conn_desc->log.index == 500)
+//		{
+//			panic();
+//		}		
+//		tcp_conn_desc->log.item[tcp_conn_desc->log.index].action = 0;
+//		tcp_conn_desc->log.item[tcp_conn_desc->log.index].b_data_len = data_len;
+//		tcp_conn_desc->log.item[tcp_conn_desc->log.index].b_wnd_size = tcp_queue->wnd_size;
+//		tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_wnd_size = -1;
+//		tcp_conn_desc->log.item[tcp_conn_desc->log.index].sleep = 0;
+//		tcp_conn_desc->log.item[tcp_conn_desc->log.index].pid = tcp_conn_desc->process_context->pid;
+//		tcp_conn_desc->log.item[tcp_conn_desc->log.index].b_wnd_min = tcp_queue->wnd_min;
+//		tcp_conn_desc->log.item[tcp_conn_desc->log.index].b_nxt_rcv = tcp_queue->nxt_rcv;
+//		tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_wnd_min = 0;
+//		tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_wnd_min = 0;
+//		tcp_conn_desc->log.item[tcp_conn_desc->log.index].b_max_seq = seq_num;
+//		tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_max_seq = 0;
+//		tcp_conn_desc->log.item[tcp_conn_desc->log.index].b_seq = tcp_queue->max_seq_num;
+//		tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_seq = 0;
+		
 		tcp_queue->seq_num = seq_num;
 		tcp_queue->data_len = data_len;
-		
 		if (tcp_conn_desc->pgybg_timer->val == 0 && no_piggy == 0)
 		{
 			timer_set(tcp_conn_desc->pgybg_timer,PIGGYBACKING_TIMEOUT);
 		}
-		//wnd_max = tcp_queue->nxt_rcv + (long long) tcp_queue->wnd_size;
-		wnd_max = tcp_queue->wnd_min + (long long) tcp_queue->buf_size;
-		if (seq_num >= tcp_queue->nxt_rcv && seq_num + data_len <= wnd_max)
+		
+		_wnd_max = tcp_queue->wnd_min + tcp_queue->buf_size;
+		_nxt_rcv = CHK_OVRFLW(tcp_queue->nxt_rcv ,tcp_queue->wnd_min);
+		_max_seq_num = tcp_queue->max_seq_num;
+		if (_wnd_max > 4294967295)
+		{
+			printk(".");
+			if (seq_num >=0 && seq_num <= tcp_queue->wnd_min + tcp_queue->buf_size)
+			{
+				_seq_num = seq_num + 4294967295;
+			}
+		}
+		else
+		{
+			_seq_num = seq_num;
+		}
+		if (_seq_num >= _nxt_rcv && _seq_num + data_len <= _wnd_max)
 		{
 			low_index = SLOT_WND(seq_num,tcp_queue->buf_size);
 			hi_index = SLOT_WND((seq_num + data_len),tcp_queue->buf_size);
@@ -548,7 +605,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 				if (tcp_queue->nxt_rcv != seq_num || tcp_queue->is_wnd_hole == 1)
 				{
 					tcp_queue->is_wnd_hole = 1;
-					if (tcp_queue->max_seq_num  < (seq_num + data_len))
+					if (_max_seq_num  < (_seq_num + data_len))
 					{
 						tcp_queue->max_seq_num = seq_num + data_len;
 					}
@@ -572,7 +629,7 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 				if (tcp_queue->nxt_rcv != seq_num || tcp_queue->is_wnd_hole == 1)
 				{
 					tcp_queue->is_wnd_hole = 1;
-					if (tcp_queue->max_seq_num  < (seq_num + data_len))
+					if (_max_seq_num  < (seq_num + data_len))
 					{
 						tcp_queue->max_seq_num = seq_num + data_len;
 					}
@@ -594,7 +651,17 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 					}
 				}
 			}
+			guard_tcp_conn_desc = tcp_conn_desc;
 			is_new_data = update_rcv_window_and_ack(tcp_queue,data_len,seq_num);
+			
+//			tcp_conn_desc->log.item[tcp_conn_desc->log.index].is_wnd_hole = tcp_queue->is_wnd_hole;
+//			tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_wnd_size = tcp_queue->wnd_size;	
+//			tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_wnd_min = tcp_queue->wnd_min;
+//			tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_nxt_rcv = tcp_queue->nxt_rcv;
+//			tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_data_len = data_len;
+//			tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_max_seq = tcp_queue->max_seq_num;
+//			tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_seq = seq_num;
+			
 			if (tcp_conn_desc->process_context != NULL && is_new_data > 0)
 			{
 				_awake(tcp_conn_desc->process_context);
@@ -615,7 +682,15 @@ void rcv_packet_tcp(t_data_sckt_buf* data_sckt_buf,u32 src_ip,u32 dst_ip,u16 dat
 		}
 		else
 		{
-			printk("window full!!! ");
+			if (_seq_num < _nxt_rcv)
+			{
+				printk("discarded seqnum %d ", _seq_num);
+				printk("   on port %d \n", dst_port);
+			}
+			if (_seq_num + data_len > _wnd_max)
+			{
+				printk("window full!!! ");
+			}
 			goto EXIT;
 		}
 	}
@@ -687,7 +762,18 @@ static void rcv_ack(t_tcp_conn_desc* tcp_conn_desc,u32 ack_seq_num,u32 data_len)
 {
 	t_tcp_snd_queue* tcp_queue = NULL;
 	u32 rtt = 0;
-	
+//	long _wnd_max = tcp_conn_desc->snd_queue->wnd_min + tcp_conn_desc->snd_queue->wnd_size;
+//	if (_wnd_max < tcp_conn_desc->snd_queue->wnd_min)
+//	{
+//		if (ack_seq_num >= 0 && ack_seq_num <= _wnd_max)
+//		{
+//			 _ack_seq_num = CHK_OVRFLW(ack_seq_num,tcp_conn_desc->snd_queue->wnd_min);
+//		}
+//	}
+//	else 
+//	{
+//		_ack_seq_num = ack_seq_num;
+//	}
 	long long _ack_seq_num = CHK_OVRFLW(ack_seq_num,tcp_conn_desc->snd_queue->wnd_min);
 	long long _nxt_snd = CHK_OVRFLW(tcp_conn_desc->snd_queue->nxt_snd,tcp_conn_desc->snd_queue->wnd_min);
 	if ((long long)tcp_conn_desc->snd_queue->wnd_min <= _ack_seq_num)
@@ -1060,7 +1146,6 @@ unsigned int _rand();
 
 int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size,char* data,u32 data_len,u32 ack_num,u8 flags,u32 seq_num)
 {
-	static counter = 0;
 	u16 chk;
 	char* tcp_payload = NULL;
 	t_data_sckt_buf* data_sckt_buf = NULL;
@@ -1123,7 +1208,7 @@ int send_packet_tcp(u32 src_ip,u32 dst_ip,u16 src_port,u16 dst_port,u32 wnd_size
 		tcp_header[20] = 0x2;				   //MSS OPTION:TYPE
 		tcp_header[21] = 0x4;                              //MSS OPTION:LENGTH
 		tcp_header[22] = 0x05;                             //MSS OPTION:1454
-		tcp_header[23] = 0xAE;                             //MSS OPTION:1454
+		tcp_header[23] = 0xAE;                             //MSS OPTION:1454 
 	}
 
 	chk = SWAP_WORD(checksum_tcp((unsigned short*) tcp_header,src_ip,dst_ip,data_len,tcp_header_len));
@@ -1174,6 +1259,6 @@ static u16 checksum_tcp(char* tcp_row_packet,u32 src_ip,u32 dst_ip,u16 data_len,
 unsigned int _rand()
 {
 	static u32 seed;
-        seed = seed * 1103515245 + 12345;
-        return (seed % ((unsigned int)RAND_MAX + 1));
+    seed = seed * 1103515245 + 12345;
+    return (seed % ((unsigned int)RAND_MAX + 1));
 }

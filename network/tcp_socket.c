@@ -234,6 +234,9 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	struct t_process_context* current_process_context;
 	t_tcp_rcv_queue* tcp_queue = NULL;
 	
+	int log_index;
+	int log_index_old;
+	
 //	DISABLE_PREEMPTION
 	SAVE_IF_STATUS
 //	SAVE_IF_STATUS
@@ -255,6 +258,30 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	}
 	else if (tcp_conn_desc->status == ESTABILISHED || tcp_conn_desc->status == CLOSE_WAIT)
 	{
+		
+//		tcp_conn_desc->log.index++;
+//		log_index = tcp_conn_desc->log.index;
+//		if (log_index == 250)
+//		{
+//			panic();
+//		}
+//		tcp_conn_desc->log.item[log_index].action = 1;
+//		tcp_conn_desc->log.item[log_index].b_data_len = data_len;
+//		tcp_conn_desc->log.item[log_index].is_wnd_hole = tcp_conn_desc->rcv_queue->is_wnd_hole;
+//		tcp_conn_desc->log.item[log_index].b_wnd_size = tcp_conn_desc->rcv_queue->wnd_size;
+//		tcp_conn_desc->log.item[log_index].a_data_len = -1;
+//		tcp_conn_desc->log.item[log_index].a_wnd_size = -1;
+//		tcp_conn_desc->log.item[log_index].sleep = 0;
+//		tcp_conn_desc->log.item[log_index].pid = current_process_context->pid;
+//		tcp_conn_desc->log.item[log_index].b_wnd_min = tcp_conn_desc->rcv_queue->wnd_min;
+//		tcp_conn_desc->log.item[log_index].b_nxt_rcv = tcp_conn_desc->rcv_queue->nxt_rcv;
+//		tcp_conn_desc->log.item[log_index].a_wnd_min = 0;
+//		tcp_conn_desc->log.item[log_index].a_nxt_rcv = 0;
+//		tcp_conn_desc->log.item[tcp_conn_desc->log.index].b_max_seq = tcp_queue->max_seq_num;
+//		tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_max_seq = 0;
+//		tcp_conn_desc->log.item[tcp_conn_desc->log.index].b_seq = 0;
+//		tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_seq = 0;
+		
 		tcp_queue = tcp_conn_desc->rcv_queue;
 		available_data = tcp_queue->nxt_rcv - tcp_queue->wnd_min;
 		if (tcp_conn_desc->status == CLOSE_WAIT && available_data == 0)
@@ -264,6 +291,7 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		}
 		while (available_data == 0)
 		{
+			//tcp_conn_desc->log.item[tcp_conn_desc->log.index].sleep = 1;
 			tcp_conn_desc->process_context = current_process_context;
 			system.flush_network = 1;
 			_sleep();
@@ -285,10 +313,6 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		if (low_index < hi_index)
 		{
 			kmemcpy(data,(tcp_queue->buf + low_index),data_len);	
-//			for (i = low_index;i < hi_index;i++)
-//			{
-//				tcp_queue->buf_state[i] = 0;
-//			}
 		}
 		else 
 		{
@@ -296,18 +320,37 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 			len_2 = data_len - len_1;
 			kmemcpy(data,(tcp_queue->buf + low_index),len_1);
 			kmemcpy(data + len_1,tcp_queue->buf,len_2);	
-//			for (i = low_index ; i < (low_index + len_1) ; i++)
-//			{
-//				tcp_queue->buf_state[i] = 0;
-//			}
-//			for (i = 0;i < len_2;i++)
-//			{
-//				tcp_queue->buf_state[i] = 0;
-//			}
 		}
+		
 		tcp_queue->wnd_size += data_len;
 		tcp_queue->wnd_min += data_len;
-		if (tcp_queue->wnd_size > 32768)
+		
+//		if (tcp_conn_desc->log.item[log_index].sleep == 1) 
+//		{
+//			log_index_old = log_index;
+//			tcp_conn_desc->log.index++;
+//			log_index = tcp_conn_desc->log.index;
+//			
+//			tcp_conn_desc->log.item[log_index].action = tcp_conn_desc->log.item[log_index_old].action;
+//			tcp_conn_desc->log.item[log_index].b_data_len = tcp_conn_desc->log.item[log_index_old].b_data_len; 
+//			tcp_conn_desc->log.item[log_index].b_wnd_size = tcp_conn_desc->log.item[log_index_old].b_wnd_size;
+//			tcp_conn_desc->log.item[log_index].sleep = 2;
+//			tcp_conn_desc->log.item[log_index].pid = tcp_conn_desc->log.item[log_index_old].pid;
+//			tcp_conn_desc->log.item[log_index].b_wnd_min = tcp_conn_desc->log.item[log_index_old].b_wnd_min; 
+//			tcp_conn_desc->log.item[log_index].b_nxt_rcv = tcp_conn_desc->log.item[log_index_old].b_nxt_rcv;
+//			tcp_conn_desc->log.item[tcp_conn_desc->log.index].b_max_seq = tcp_conn_desc->log.item[log_index_old].b_max_seq;
+//			tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_max_seq = tcp_queue->max_seq_num;
+//			tcp_conn_desc->log.item[tcp_conn_desc->log.index].b_seq = tcp_conn_desc->log.item[log_index_old].b_seq;
+//		}
+//		tcp_conn_desc->log.item[log_index].a_data_len = data_len;
+//		tcp_conn_desc->log.item[log_index].a_wnd_size  = tcp_queue->wnd_size;
+//		tcp_conn_desc->log.item[log_index].a_wnd_min = tcp_queue->wnd_min;
+//		tcp_conn_desc->log.item[log_index].a_nxt_rcv = tcp_queue->nxt_rcv;
+//		tcp_conn_desc->log.item[log_index].is_wnd_hole = tcp_queue->is_wnd_hole;
+//		tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_max_seq = tcp_queue->max_seq_num;
+//		tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_seq = 0;
+		
+		if (tcp_queue->wnd_size > 32768 || tcp_queue->wnd_size > 32768 - (tcp_queue->nxt_rcv - tcp_queue->wnd_min))
 		{
 			panic();
 		}

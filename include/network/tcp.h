@@ -72,13 +72,41 @@
                         tcp_conn_desc->dst_ip,                              \
                         tcp_conn_desc->src_port,                            \
                         tcp_conn_desc->dst_port,                            \
-			tcp_conn_desc->rcv_queue->wnd_size,                 \
+			            tcp_conn_desc->rcv_queue->wnd_size,                 \
                         data,                                               \
                         data_len,                                           \
                         ack_num,                                            \
                         flags, seq_num);                                    \
-                        /*equeue_packet_2(system.network_desc);*/
-		
+						/*equeue_packet_2(system.network_desc);*/
+
+typedef struct s_tcp_log_item
+{
+	int action;
+	int b_data_len;
+	int a_data_len;
+	int b_wnd_size;
+    int a_wnd_size;
+	int is_wnd_hole;
+	int sleep;
+	int pid;
+	unsigned int b_wnd_min;
+	unsigned int b_nxt_rcv;
+	unsigned int a_wnd_min;
+	unsigned int a_nxt_rcv;
+	unsigned int b_max_seq;
+	unsigned int a_max_seq;
+	unsigned int b_seq;
+	unsigned int a_seq;
+}
+t_tcp_log_item;
+
+						
+typedef struct s_tcp_profiler
+{
+	t_tcp_log_item item[250];
+	int index;
+}
+t_tcp_profiler;
 
 typedef struct s_tcp_snd_queue
 {
@@ -141,6 +169,7 @@ typedef struct s_tcp_conn_desc
 	u8 pending_ack;
 	u8 isActive;
 	u32 last_ack;
+	//t_tcp_profiler log;
 }
 t_tcp_conn_desc;
 

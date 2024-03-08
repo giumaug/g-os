@@ -21,5 +21,12 @@ void check_free_pid(pid)
 	SYSCALL(103,params);
 }
 
+void check_open_conn()
+{
+	unsigned int params[1];
+
+	SYSCALL(105,params);
+}
+
 
 

@@ -46,8 +46,8 @@ int main()
 
 	((unsigned char*) &(server_address.sin_addr.s_addr))[0]=192;
 	((unsigned char*) &(server_address.sin_addr.s_addr))[1]=168;
-	((unsigned char*) &(server_address.sin_addr.s_addr))[2]=122;
-        ((unsigned char*) &(server_address.sin_addr.s_addr))[3]=101;
+	((unsigned char*) &(server_address.sin_addr.s_addr))[2]=5;
+    ((unsigned char*) &(server_address.sin_addr.s_addr))[3]=65;
 
 	((unsigned char*) &(server_address.sin_port))[0]=((unsigned char*) &(port))[1];
 	((unsigned char*) &(server_address.sin_port))[1]=((unsigned char*) &(port))[0];
@@ -62,21 +62,23 @@ int main()
 	while(1) 
 	{
 		age++;
-		if ((age % 10) == 0)
+		if ((age % 1000) == 0)
 		{
 			check_free_mem();
 		}
 		client_len = sizeof(client_address);
 		client_sockfd = accept(server_sockfd,(struct sockaddr *)&client_address, &client_len);
 
-//		if ((request_count % 100) == 0)
-//		{
-//			printf("accepted request %d \n",request_count++);
-//		}
+		request_count++;
+		if ((request_count % 1000) == 0)
+		{
+			printf("accepted request %d \n",request_count++);
+		}
 
 		if(fork() == 0) 
 		{
 			process_request(client_sockfd);
+			//process_request_2(client_sockfd);
 			//process_request_3(client_sockfd);
 			close_socket(client_sockfd);
 			exit(0);
@@ -151,6 +153,7 @@ void process_request_2(int client_sockfd)
 	const char body[]  = "ciao";
 	const char http_header[]  = "HTTP/1.1 200 OK\nConnection: close\nContent-Type:text/html;\nContent-Disposition: inline;charset=utf-8\nContent-Length:5\n\n";
 
+    printf("inside request 2 \n");
 	ret = write_socket(client_sockfd,http_header,118);
 	if (ret < 0)
 	{
@@ -180,7 +183,7 @@ void process_request(int client_sockfd)
 	int i = 0;
 	const char http_header_1[] = "HTTP/1.1 200 OK\nConnection: close\nContent-Type: ";
 	const char http_header_2[] = ";\nContent-Disposition: inline;charset=utf-8\nContent-Length: ";
-	const char root_path[] = "/usr/src/kernels/g-os";
+	const char root_path[] = "";
 	const char text[] = "text/plain";
 	const char html[] = "text/html";
 	char http_header[2000];
@@ -303,12 +306,19 @@ void process_request(int client_sockfd)
 			exit(0);
 		}
 		ret = write_socket(client_sockfd,io_buffer,b_read);
+//		printf("ret is %d \n" , ret);
 		if (ret < 0)
 	 	{
 			close_socket(client_sockfd);
 			exit(0);
 		}
 		http_body_len -= b_read;
+	}
+	ret = 100;
+	while (ret > 0)
+	{
+		ret = read_socket(client_sockfd,io_buffer,10);
+		//printf("ret is %d \n" , ret);
 	}
 	close(f);
 	free(io_buffer);

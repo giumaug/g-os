@@ -247,3 +247,16 @@ void check_leak()
 	printk("\n not released count %d \n",xxx);
 	printk("index is %d \n",index);
 }
+
+void check_open_conn()
+{
+	int i;
+	
+	for (i = 0; i <= system.tcp_open_conn_index; i++)
+	{
+		if (system.tcp_open_conn[i] != 0)
+		{
+			printk("port open at %d \n", system.tcp_open_conn[i]);
+		}
+	}
+}

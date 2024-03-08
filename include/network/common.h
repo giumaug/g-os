@@ -1,7 +1,7 @@
 #ifndef COMMON_NETWORK_H                
 #define COMMON_NETWORK_H
 
-#define KVM
+#define HOME_PC
 //#define VMWARE
 //#define HOME_PC
 //#define WORK_PC
@@ -26,9 +26,9 @@
 #define ICMP_PROTOCOL	0x1
 
 #ifdef HOME_PC
-#define LOCAL_IP 	    0xC0A80165
+#define LOCAL_IP 	    0xC0A80541
 #define LOCAL_NETMASK   0xFFFFFF00
-#define DEFAULT_GW_IP 	0xC0A80102
+#define DEFAULT_GW_IP 	0xC0A80501
 #endif
 
 #ifdef KVM

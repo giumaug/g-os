@@ -1,4 +1,4 @@
-BASE_DIR=/home/peppe/Scrivania/g-os-grub2
+BASE_DIR=/home/peppe/Desktop/g-os-grub2
 target=$1;
 if [[ $target == "a" ]] || [[ $target == "i" ]]    
 then
@@ -47,21 +47,21 @@ then
    make process=dev6 clean
    make process=dev6 all
    make process=dev6 install
-#   make process=sp clean
-#   make process=sp all
-#   make process=sp install
+   make process=sp clean
+   make process=sp all
+   make process=sp install
 #   make process=c1 clean
 #   make process=c1 all
 #   make process=c1 install
-#   make process=ht clean
-#   make process=ht all
-#   make process=ht install
-   make process=htc clean
-   make process=htc all
-   make process=htc install
-   make process=htcs clean
-   make process=htcs all
-   make process=htcs install
+   make process=ht clean
+   make process=ht all
+   make process=ht install
+#   make process=htc clean
+#   make process=htc all
+#   make process=htc install
+#   make process=htcs clean
+#   make process=htcs all
+#   make process=htcs install
 #   make process=del clean
 #   make process=del all
 #   make process=del install
@@ -71,7 +71,35 @@ then
     make process=ht clean
     make process=ht all
     make process=ht install
+    make process=ss clean
+    make process=ss all
+    make process=ss install
+    make process=udpc clean
+    make process=udpc all
+    make process=udpc install
+    make process=screen clean
+    make process=screen all
+    make process=screen install
+    make process=htc clean
+    make process=htc all
+    make process=htc install
+    make process=htcs clean
+    make process=htcs all
+    make process=htcs install
+    make process=test clean
+    make process=test all
+    make process=test install
+    make process=open_conn clean
+    make process=open_conn all
+    make process=open_conn install
 
-
+    mount /dev/loop4 /mnt
+    echo $BASE_DIR
+    cp $BASE_DIR/g-os/img/ht_files/8042.c /mnt
+    cp $BASE_DIR/g-os/img/ht_files/tcp.c /mnt
+    cp $BASE_DIR/g-os/img/ht_files/ext2.c /mnt
+    cp $BASE_DIR/g-os/img/ht_files/vm.c /mnt
+    cp $BASE_DIR/g-os/img/ht_files/scheduler.c /mnt
+    umount /mnt
   echo 'Process build completed'
 fi

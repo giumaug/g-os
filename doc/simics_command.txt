@@ -2,15 +2,56 @@ $disk0_image="/home/peppe/Scrivania/g-os/img/c.img"
 run-command-file /opt/simics-package/simics-qsp-x86-6.0.61/targets/qsp-x86/qsp-hdd-boot.simics
 enable-debugger
 add-symbol-file /home/peppe/Scrivania/g-os/kernel.bin
-bp.source_line.break filename = ahci.c line-number = 147
+bp.source_line.break filename = network.c line-number = 68
 bp.source_location.break exception
 
-$disk0_image="/home/peppe/Scrivania/g-os-grub2/img/cl-b28910-v2.craff"
-$disk0_image="/home/peppe/Scrivania/g-os-grub2/g-os/img/c.img"
-run-command-file /opt/simics/simics-qsp-x86-6.0.43/targets/qsp-x86/qsp-hdd-boot.simics
+---LINUX---
+$disk0_image="/opt/simics/simics-qsp-clear-linux-6.0.14/targets/qsp-x86/images/cl-b28910-v2.craff"
+run-command-file /opt/simics/simics-qsp-x86-6.0.67/targets/qsp-x86/qsp-hdd-boot.simics
+connect-real-network-bridge
+@xxx=conf.board.mb.sb.phy
+@xxx.tx_bandwidth=0
+@yyy=conf.rn0
+@yyy.rn.tx_bandwidth=0
+@yyy.rn.tx_packet_rate=0
+
+---G-OS---
+$disk0_image="/home/peppe/Desktop/g-os-grub2/g-os/img/c.img"
+run-command-file /opt/simics/simics-qsp-x86-6.0.67/targets/qsp-x86/qsp-hdd-boot.simics
+connect-real-network-bridge
 enable-debugger
-add-symbol-file /home/peppe/Scrivania/g-os-grub2/g-os/kernel.bin
+add-symbol-file /home/peppe/Desktop/g-os-grub2/g-os/kernel.bin
 bp.source_location.break panic
+bp.source_location.break kmain
+bp.source_line.break filename = vm.c line-number = 413
+bp.source_location.break process_0
+bp.source_location.break syscall_handler
+
+@files = conf.board.disk0.hd_image.files
+@files[-1][1] = "rw"
+
+enable-reverse-execution
+
+
+@xxx=conf.board.mb.sb.phy
+@xxx.tx_bandwidth=0
+@yyy=conf.rn0
+@yyy.rn.tx_bandwidth=0
+@yyy.rn.tx_packet_rate=0
+bp.source_location.break panic
+bp.source_line.break filename = network.c line-number = 62
+
+bp.source_line.break filename = ext2.c line-number = 131
+bp.source_line.break filename = ext2.c line-number = 114
+
+bp.source_location.break add_entry_to_dir
+bp.source_line.break filename = tcp.c line-number = 945
+bp.source_location.break panic
+bp.source_location.break send_packet_tcp
+bp.source_location.break _sendto
+bp.source_location.break init_8254x
+bp.source_location.break int_handler_i8254x
+
 @files = conf.board.disk0.hd_image.files
 @files[-1][1] = "rw"
 bp.source_location.break _write_28_ahci
@@ -22,6 +63,22 @@ bp.source_location.break panic
 board.mb.sb.sata2.log-level 4
 board.disk0.sata.log-level 4
 log-setup log.log
+
+//Configurazione con scheda alternativa.
+$disk0_image="/home/peppe/Scrivania/g-os-grub2/g-os/img/c.img"
+run-command-file /opt/simics/simics-qsp-x86-6.0.67/targets/qsp-x86/qsp-hdd-boot.simics
+connect-real-network-bridge
+load-module pci-comp
+create-pci-i82543gc-comp board.eth2 mac_address = (get-auto-mac-address)
+board.eth2.connect-to board
+board.eth2.connect-to default_eth_switch0
+instantiate-components
+enable-debugger
+add-symbol-file /home/peppe/Scrivania/g-os-grub2/g-os/kernel.bin
+board.mb.sb.lan.log-level 4
+board.mb.sb.phy.log-level 4
+default_eth_switch0.log-level 4
+log-setup logos.log
 
 
 bp.source_location.break int_handler_ahci
@@ -91,6 +148,7 @@ list-objects
 list-objects namespace = board
 
 list-objects namespace = board.mb.cpu0 -tree
+list-objects namespace = board.mb.sb.lan
 
 inspect ioapic (status and info)
 board.mb.sb.ioapic.status
@@ -110,14 +168,80 @@ acpi=noirq noapic pci=nomsi hpet=disable
 CONFIGURAZIONE APIC (IOAPIC + LAPIC)
 pci=nomsi hpet=disable (acpi serve)
 
-
+ABILITAZIONE LOG
 board.mb.sb.sata2.log-level 4
 board.disk0.sata.log-level 4
 log-setup log2.log
 system-perfmeter
 
+IMMAGINE SCRIVIBILE
+1) 
+mettere default disk0_size = 125829120 su /opt/simics/simics-qsp-x86-6.0.67/targets/qsp-x86/qsp-hdd-boot.simics 
+
+2)
 @files = conf.board.disk0.hd_image.files
 @files[-1][1] = "rw"
+
+CONFIGURAZIONE BANDA
+@xxx=conf.board.mb.sb.phy
+@xxx.tx_bandwidth=0
+@yyy=conf.rn0
+@yyy.rn.tx_bandwidth=0
+@yyy.rn.tx_packet_rate=0
+
+
+Networking
+ifconfig enp0s25 192.168.5.65 netmask 255.255.255.0 up
+route add default gw 192.168.5.60 enp0s25
+
+
+tcpdump -U -XX -vv -e -nn -i any host 46.105.60.74 and port 11211
+
+tcpdump -U -XX -vv -e -nn -i virbr0
+
+$disk0_image="/home/peppe/Desktop/g-os-grub2/g-os/img/c.img"
+run-command-file /opt/simics/simics-qsp-x86-6.0.67/targets/qsp-x86/qsp-hdd-boot.simics
+connect-real-network-bridge
+enable-debugger
+add-symbol-file /home/peppe/Desktop/g-os-grub2/g-os/kernel.bin
+enable-reverse-execution
+rexec-limit 10240 0
+board.mb.cpu0.core[0][0]->current_virtual_context = "board.cell_context"
+bp.memory.break v:0xc0003726
+bp.memory.break v:0xc0003c06
+@xxx=conf.board.mb.sb.phy
+@xxx.tx_bandwidth=0
+@yyy=conf.rn0
+@yyy.rn.tx_bandwidth=0
+@yyy.rn.tx_packet_rate=0
+
+
+5000 request:88 vs 198x3
+
+linux 8 vs 130
+
+arch 8 vs 57
+
+g-os 1000  214sec
+g-os 200x5 20sec
+
+linux 1000 120sec
+linux 200x5 8sec
+
+-------------
+$disk0_image="/home/peppe/Desktop/g-os-grub2/g-os/img/c.img"
+run-command-file /opt/simics/simics-qsp-x86-6.0.67/targets/qsp-x86/qsp-hdd-boot.simics
+connect-real-network-bridge
+enable-debugger
+add-symbol-file /home/peppe/Desktop/g-os-grub2/g-os/kernel.bin
+bp.source_location.break panic 
+@xxx=conf.board.mb.sb.phy
+@xxx.tx_bandwidth=0
+@yyy=conf.rn0
+@yyy.rn.tx_bandwidth=0
+@yyy.rn.tx_packet_rate=0
+
+bp.source_line.break filename = tcp.c line-number = 433
 
 
 

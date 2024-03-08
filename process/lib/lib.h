@@ -122,6 +122,7 @@ int mkdir(const char* fullpath);
 
 //debug.h
 void check_free_mem();
+void check_opne_conn();
 
 //sys/stat.h
 int stat(char* pathname, t_stat* stat);

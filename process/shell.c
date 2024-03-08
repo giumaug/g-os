@@ -15,6 +15,7 @@ int main (int _argc, char* _argv[])
 	char c;
 	unsigned int index;
 	
+	malloc(sizeof(char*) * (2));
 	printf("g-shell v 0.1 \n");
 	check_free_mem();
 	while(1)
@@ -64,11 +65,9 @@ int main (int _argc, char* _argv[])
 			}
 		
 			argv = malloc(sizeof(char*) * (argc + 2));
-				
 			i = 0;
 			for(k = 0;k <= argc;k++)
 			{
-				printf("\n");
 				j = 0;
 				while (cmd[i] != ' ' && cmd[i] != NULL)
 				{		

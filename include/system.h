@@ -104,6 +104,8 @@ typedef struct s_system
 	u32 read_write_count;
 	u32 run_time;
 	u32 run_time_1;
+	int tcp_open_conn[25000];
+	int tcp_open_conn_index;
  }
 t_system;
 

@@ -26,9 +26,9 @@ void put_packet_mac(t_data_sckt_buf* data_sckt_buf,t_mac_addr src_mac,t_mac_addr
 	mac_row_packet[12] = HI_16(NETWORK_PROTOCOL_TYPE);  	//HIGH PROTOCOL TYPE
 	mac_row_packet[13] = LOW_16(NETWORK_PROTOCOL_TYPE);	//LOW PROTOCOL TYPE
 
-	//enqueue_sckt(system.network_desc->tx_queue,data_sckt_buf);
-	send_packet_i8254x(system.network_desc->dev,mac_row_packet,frame_len);
-	free_sckt(data_sckt_buf);
+	enqueue_sckt(system.network_desc->tx_queue,data_sckt_buf);
+	//send_packet_i8254x(system.network_desc->dev,mac_row_packet,frame_len);
+	//free_sckt(data_sckt_buf);
 }
 
 void rcv_packet_mac(t_data_sckt_buf* data_sckt_buf)

@@ -265,6 +265,10 @@ void syscall_handler()
         case 104:
 		panic();
 		break;
+		
+		case 105:
+		check_open_conn();
+		break;
 
 		case 200:
 		flush_inode_cache(system.root_fs);

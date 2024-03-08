@@ -63,6 +63,8 @@
                                 
 #define RET_FROM_INT_HANDLER 	asm("mov %ebp,%esp;pop %ebp;iret");
 
+//#define RET_FROM_INT_HANDLER asm("pop %ebp;iret;");
+
 #define SWITCH_TO_USER_MODE(stack_address)     asm("                               		\
 					mov    $0x23,%ax;                         		\
 					mov    %ax,%ds;                          		\

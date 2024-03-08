@@ -10,13 +10,13 @@ static void scroll(t_console_desc *console_desc);
 void init_console(t_console_desc* console_desc,
 				  void (*f)(u32, char),
 				  void (*g)(),
-				  int out_buf_len,
+				  int out_buf_mult,
 				  int in_buf_len)
 {
 	int i, j = 0;
 	SPINLOCK_INIT(console_desc->spinlock);
-	console_desc->out_buf = kmalloc(out_buf_len);
-	console_desc->out_buf_len = out_buf_len;
+	console_desc->out_buf = kmalloc(out_buf_mult * SCREEN_AREA);
+	console_desc->out_buf_len = out_buf_mult * SCREEN_AREA;
 	console_desc->out_buf_index = -1;
 	console_desc->video_buf_index = -1;
 	console_desc->write_char = f;

@@ -72,7 +72,7 @@ void kmain(multiboot_info_t* mbd, unsigned int magic, int init_data_add)
 	
 	init_kbc();
 	init_fb(mbd);
-	init_console(&console_desc, &draw_char_fb, &update_cursor_fb, 10000, 0);
+	init_console(&console_desc, &draw_char_fb, &update_cursor_fb, 2, 0);
 	
 	device_desc = init_device(device_num, 2);
 	device_desc_ahci = init_ahci(device_desc);
@@ -140,8 +140,8 @@ void kmain(multiboot_info_t* mbd, unsigned int magic, int init_data_add)
 	init_vm_process(process_context);
 	*(system.process_info->tss.ss) = 0x18;
 	*(system.process_info->tss.esp) = KERNEL_STACK;
-	//system.network_desc = network_init();
-	system.network_desc = NULL;
+	system.network_desc = network_init();
+	//system.network_desc = NULL;
 	//system.timer_list = new_dllist();                       		
 	kernel_stack = KERNEL_STACK - 100;
 	asm volatile ("movl %0,%%ebp;"::"r"(kernel_stack));
