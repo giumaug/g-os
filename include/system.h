@@ -76,6 +76,13 @@ typedef struct s_device_desc
 t_device_desc;
 */
 
+typedef struct s_tcp_fin_status
+{
+	int status;
+	struct s_tcp_conn_desc* conn;
+}
+t_tcp_fin_status;
+
 typedef struct s_system
 {
 	unsigned int time;
@@ -104,8 +111,6 @@ typedef struct s_system
 	u32 read_write_count;
 	u32 run_time;
 	u32 run_time_1;
-	int tcp_open_conn[25000];
-	int tcp_open_conn_index;
  }
 t_system;
 

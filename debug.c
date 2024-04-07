@@ -248,15 +248,100 @@ void check_leak()
 	printk("index is %d \n",index);
 }
 
-void check_open_conn()
+/*
+void tcp_socket_dump_1(t_tcp_conn_desc* tcp_conn_desc)
 {
-	int i;
-	
-	for (i = 0; i <= system.tcp_open_conn_index; i++)
-	{
-		if (system.tcp_open_conn[i] != 0)
+		tcp_conn_desc->log.index++;
+		log_index = tcp_conn_desc->log.index;
+		if (log_index == 250)
 		{
-			printk("port open at %d \n", system.tcp_open_conn[i]);
+			panic();
 		}
-	}
+		tcp_conn_desc->log.item[log_index].action = 1;
+		tcp_conn_desc->log.item[log_index].b_data_len = data_len;
+		tcp_conn_desc->log.item[log_index].is_wnd_hole = tcp_conn_desc->rcv_queue->is_wnd_hole;
+		tcp_conn_desc->log.item[log_index].b_wnd_size = tcp_conn_desc->rcv_queue->wnd_size;
+		tcp_conn_desc->log.item[log_index].a_data_len = -1;
+		tcp_conn_desc->log.item[log_index].a_wnd_size = -1;
+		tcp_conn_desc->log.item[log_index].sleep = 0;
+		tcp_conn_desc->log.item[log_index].pid = current_process_context->pid;
+		tcp_conn_desc->log.item[log_index].b_wnd_min = tcp_conn_desc->rcv_queue->wnd_min;
+		tcp_conn_desc->log.item[log_index].b_nxt_rcv = tcp_conn_desc->rcv_queue->nxt_rcv;
+		tcp_conn_desc->log.item[log_index].a_wnd_min = 0;
+		tcp_conn_desc->log.item[log_index].a_nxt_rcv = 0;
+		tcp_conn_desc->log.item[tcp_conn_desc->log.index].b_max_seq = tcp_queue->max_seq_num;
+		tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_max_seq = 0;
+		tcp_conn_desc->log.item[tcp_conn_desc->log.index].b_seq = 0;
+		tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_seq = 0;
 }
+*/
+
+/*
+void tcp_socket_dump_2(t_tcp_conn_desc* tcp_conn_desc)
+{
+		if (tcp_conn_desc->log.item[log_index].sleep == 1) 
+		{
+			log_index_old = log_index;
+			tcp_conn_desc->log.index++;
+			log_index = tcp_conn_desc->log.index;
+			
+			tcp_conn_desc->log.item[log_index].action = tcp_conn_desc->log.item[log_index_old].action;
+			tcp_conn_desc->log.item[log_index].b_data_len = tcp_conn_desc->log.item[log_index_old].b_data_len; 
+			tcp_conn_desc->log.item[log_index].b_wnd_size = tcp_conn_desc->log.item[log_index_old].b_wnd_size;
+			tcp_conn_desc->log.item[log_index].sleep = 2;
+			tcp_conn_desc->log.item[log_index].pid = tcp_conn_desc->log.item[log_index_old].pid;
+			tcp_conn_desc->log.item[log_index].b_wnd_min = tcp_conn_desc->log.item[log_index_old].b_wnd_min; 
+			tcp_conn_desc->log.item[log_index].b_nxt_rcv = tcp_conn_desc->log.item[log_index_old].b_nxt_rcv;
+			tcp_conn_desc->log.item[tcp_conn_desc->log.index].b_max_seq = tcp_conn_desc->log.item[log_index_old].b_max_seq;
+			tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_max_seq = tcp_queue->max_seq_num;
+			tcp_conn_desc->log.item[tcp_conn_desc->log.index].b_seq = tcp_conn_desc->log.item[log_index_old].b_seq;
+		}
+		tcp_conn_desc->log.item[log_index].a_data_len = data_len;
+		tcp_conn_desc->log.item[log_index].a_wnd_size  = tcp_queue->wnd_size;
+		tcp_conn_desc->log.item[log_index].a_wnd_min = tcp_queue->wnd_min;
+		tcp_conn_desc->log.item[log_index].a_nxt_rcv = tcp_queue->nxt_rcv;
+		tcp_conn_desc->log.item[log_index].is_wnd_hole = tcp_queue->is_wnd_hole;
+		tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_max_seq = tcp_queue->max_seq_num;
+		tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_seq = 0;
+}
+*/
+
+/*
+void tcp_dump_1(t_tcp_conn_desc* tcp_conn_desc)
+{
+	tcp_conn_desc->log.index++;
+		
+	if (tcp_conn_desc->log.index == 250)
+	{
+		panic();
+	}
+		
+	tcp_conn_desc->log.item[tcp_conn_desc->log.index].action = 0;
+	tcp_conn_desc->log.item[tcp_conn_desc->log.index].b_data_len = data_len;
+	tcp_conn_desc->log.item[tcp_conn_desc->log.index].b_wnd_size = tcp_queue->wnd_size;
+	tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_wnd_size = -1;
+	tcp_conn_desc->log.item[tcp_conn_desc->log.index].sleep = 0;
+	tcp_conn_desc->log.item[tcp_conn_desc->log.index].pid = tcp_conn_desc->process_context->pid;
+	tcp_conn_desc->log.item[tcp_conn_desc->log.index].b_wnd_min = tcp_queue->wnd_min;
+	tcp_conn_desc->log.item[tcp_conn_desc->log.index].b_nxt_rcv = tcp_queue->nxt_rcv;
+	tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_wnd_min = 0;
+	tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_wnd_min = 0;
+	tcp_conn_desc->log.item[tcp_conn_desc->log.index].b_max_seq = seq_num;
+	tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_max_seq = 0;
+	tcp_conn_desc->log.item[tcp_conn_desc->log.index].b_seq = tcp_queue->max_seq_num;
+	tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_seq = 0;		
+}
+*/
+
+/*
+void tcp_dump_2(t_tcp_conn_desc* tcp_conn_desc)
+{
+	tcp_conn_desc->log.item[tcp_conn_desc->log.index].is_wnd_hole = tcp_queue->is_wnd_hole;
+	tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_wnd_size = tcp_queue->wnd_size;	
+	tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_wnd_min = tcp_queue->wnd_min;
+	tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_nxt_rcv = tcp_queue->nxt_rcv;
+	tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_data_len = data_len;
+	tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_max_seq = tcp_queue->max_seq_num;
+	tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_seq = seq_num;
+}
+*/

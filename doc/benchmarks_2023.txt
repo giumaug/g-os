@@ -1,0 +1,19 @@
+dev2 30M = 15s
+dev6 30M = 5s
+sp 60M = 10s
+
+linux
+dev2 30M = 2s
+dev6 30M = 1s
+sp 60M = 3s
+
+
+test suite
+dev2 = scritture file singolo grande
+dev3 = scrittura concorrente
+dev6 = lettura file singolo grande
+file = test directory
+ht = server concorrente (vuole script htcs.sh sotto /home/peppe/Scrivania/g-os-grub2/linux_test su macchina Linux)
+htc = client concorrente (vuole server ht sotto /home/peppe/Scrivania/g-os-grub2/linux_test su macchina Linux)
+NB:su client concorrente e' stata disabilitata la scrittura su file perche' si esauriscono le entry delle directory anche
+con la cancellazione del file.

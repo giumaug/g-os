@@ -258,30 +258,7 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 	}
 	else if (tcp_conn_desc->status == ESTABILISHED || tcp_conn_desc->status == CLOSE_WAIT)
 	{
-		
-//		tcp_conn_desc->log.index++;
-//		log_index = tcp_conn_desc->log.index;
-//		if (log_index == 250)
-//		{
-//			panic();
-//		}
-//		tcp_conn_desc->log.item[log_index].action = 1;
-//		tcp_conn_desc->log.item[log_index].b_data_len = data_len;
-//		tcp_conn_desc->log.item[log_index].is_wnd_hole = tcp_conn_desc->rcv_queue->is_wnd_hole;
-//		tcp_conn_desc->log.item[log_index].b_wnd_size = tcp_conn_desc->rcv_queue->wnd_size;
-//		tcp_conn_desc->log.item[log_index].a_data_len = -1;
-//		tcp_conn_desc->log.item[log_index].a_wnd_size = -1;
-//		tcp_conn_desc->log.item[log_index].sleep = 0;
-//		tcp_conn_desc->log.item[log_index].pid = current_process_context->pid;
-//		tcp_conn_desc->log.item[log_index].b_wnd_min = tcp_conn_desc->rcv_queue->wnd_min;
-//		tcp_conn_desc->log.item[log_index].b_nxt_rcv = tcp_conn_desc->rcv_queue->nxt_rcv;
-//		tcp_conn_desc->log.item[log_index].a_wnd_min = 0;
-//		tcp_conn_desc->log.item[log_index].a_nxt_rcv = 0;
-//		tcp_conn_desc->log.item[tcp_conn_desc->log.index].b_max_seq = tcp_queue->max_seq_num;
-//		tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_max_seq = 0;
-//		tcp_conn_desc->log.item[tcp_conn_desc->log.index].b_seq = 0;
-//		tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_seq = 0;
-		
+//		tcp_socket_dump_1(tcp_conn_desc);	
 		tcp_queue = tcp_conn_desc->rcv_queue;
 		available_data = tcp_queue->nxt_rcv - tcp_queue->wnd_min;
 		if (tcp_conn_desc->status == CLOSE_WAIT && available_data == 0)
@@ -299,7 +276,7 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 			if (available_data == 0)
 			{
 				ret = -1;
-				printk("error ....\n");
+				//printk("error ....\n");
 				goto EXIT;
 			}
 		}
@@ -325,36 +302,8 @@ int dequeue_packet_tcp(t_tcp_conn_desc* tcp_conn_desc,char* data,u32 data_len)
 		tcp_queue->wnd_size += data_len;
 		tcp_queue->wnd_min += data_len;
 		
-//		if (tcp_conn_desc->log.item[log_index].sleep == 1) 
-//		{
-//			log_index_old = log_index;
-//			tcp_conn_desc->log.index++;
-//			log_index = tcp_conn_desc->log.index;
-//			
-//			tcp_conn_desc->log.item[log_index].action = tcp_conn_desc->log.item[log_index_old].action;
-//			tcp_conn_desc->log.item[log_index].b_data_len = tcp_conn_desc->log.item[log_index_old].b_data_len; 
-//			tcp_conn_desc->log.item[log_index].b_wnd_size = tcp_conn_desc->log.item[log_index_old].b_wnd_size;
-//			tcp_conn_desc->log.item[log_index].sleep = 2;
-//			tcp_conn_desc->log.item[log_index].pid = tcp_conn_desc->log.item[log_index_old].pid;
-//			tcp_conn_desc->log.item[log_index].b_wnd_min = tcp_conn_desc->log.item[log_index_old].b_wnd_min; 
-//			tcp_conn_desc->log.item[log_index].b_nxt_rcv = tcp_conn_desc->log.item[log_index_old].b_nxt_rcv;
-//			tcp_conn_desc->log.item[tcp_conn_desc->log.index].b_max_seq = tcp_conn_desc->log.item[log_index_old].b_max_seq;
-//			tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_max_seq = tcp_queue->max_seq_num;
-//			tcp_conn_desc->log.item[tcp_conn_desc->log.index].b_seq = tcp_conn_desc->log.item[log_index_old].b_seq;
-//		}
-//		tcp_conn_desc->log.item[log_index].a_data_len = data_len;
-//		tcp_conn_desc->log.item[log_index].a_wnd_size  = tcp_queue->wnd_size;
-//		tcp_conn_desc->log.item[log_index].a_wnd_min = tcp_queue->wnd_min;
-//		tcp_conn_desc->log.item[log_index].a_nxt_rcv = tcp_queue->nxt_rcv;
-//		tcp_conn_desc->log.item[log_index].is_wnd_hole = tcp_queue->is_wnd_hole;
-//		tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_max_seq = tcp_queue->max_seq_num;
-//		tcp_conn_desc->log.item[tcp_conn_desc->log.index].a_seq = 0;
-		
-		if (tcp_queue->wnd_size > 32768 || tcp_queue->wnd_size > 32768 - (tcp_queue->nxt_rcv - tcp_queue->wnd_min))
-		{
-			panic();
-		}
-
+//		tcp_socket_dump_2(tcp_conn_desc);
+	
 		if (tcp_conn_desc->rcv_queue->wnd_size >= (tcp_conn_desc->rcv_queue->last_adv_wnd + SMSS) ||
 				tcp_conn_desc->rcv_queue->wnd_size >= (TCP_RCV_SIZE - SMSS))
 		{

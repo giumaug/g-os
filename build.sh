@@ -86,12 +86,6 @@ then
     make process=htcs clean
     make process=htcs all
     make process=htcs install
-    make process=test clean
-    make process=test all
-    make process=test install
-    make process=open_conn clean
-    make process=open_conn all
-    make process=open_conn install
 
     mount /dev/loop4 /mnt
     echo $BASE_DIR

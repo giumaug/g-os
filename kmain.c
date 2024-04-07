@@ -44,7 +44,7 @@ void kmain(multiboot_info_t* mbd, unsigned int magic, int init_data_add)
 	system.run_time = 0;
 	system.run_time_1 = 0;
 	device_num = 0;
-
+	
 	init_data = init_data_add;
 //	if ( magic != 0x2BADB002 )
 //   	{
@@ -146,6 +146,14 @@ void kmain(multiboot_info_t* mbd, unsigned int magic, int init_data_add)
 	kernel_stack = KERNEL_STACK - 100;
 	asm volatile ("movl %0,%%ebp;"::"r"(kernel_stack));
 	asm volatile ("movl %0,%%esp;"::"r"(kernel_stack));
+	
+//	int i;
+//	for (i = 0; i < 25000; i++)
+//	{
+//			(system.tcp_fin_status[i]).status = 0;
+//			system.tcp_fin_status[i].conn = 0;
+//	}
+	
 	STI
 	process_0();	       	
 }

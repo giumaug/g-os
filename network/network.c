@@ -32,23 +32,23 @@ void network_free(t_network_desc* network_desc)
 	kfree(network_desc);
 }
 
-void equeue_packet_2(t_network_desc* network_desc)
-{
-	t_sckt_buf_desc* sckt_buf_desc;
-	t_data_sckt_buf* data_sckt_buf;
-	void* frame;
-	u16 frame_len;
-	
-	sckt_buf_desc=network_desc->tx_queue;
-	data_sckt_buf=dequeue_sckt(sckt_buf_desc);
-	if (data_sckt_buf != NULL)
-	{
-		frame=data_sckt_buf->mac_hdr;
-		frame_len=data_sckt_buf->data_len;
-		send_packet_i8254x(network_desc->dev,frame,frame_len);
-		free_sckt(data_sckt_buf);
-	}
-}
+//void equeue_packet_2(t_network_desc* network_desc)
+//{
+//	t_sckt_buf_desc* sckt_buf_desc;
+//	t_data_sckt_buf* data_sckt_buf;
+//	void* frame;
+//	u16 frame_len;
+//	
+//	sckt_buf_desc=network_desc->tx_queue;
+//	data_sckt_buf=dequeue_sckt(sckt_buf_desc);
+//	if (data_sckt_buf != NULL)
+//	{
+//		frame=data_sckt_buf->mac_hdr;
+//		frame_len=data_sckt_buf->data_len;
+//		send_packet_i8254x(network_desc->dev,frame,frame_len);
+//		free_sckt(data_sckt_buf);
+//	}
+//}
 
 void equeue_packet(t_network_desc* network_desc)
 {
@@ -57,27 +57,26 @@ void equeue_packet(t_network_desc* network_desc)
 	void* frame;
 	u16 frame_len;
 	
-	SAVE_IF_STATUS
-	CLI
+//	SAVE_IF_STATUS
+//	CLI
 	
-//	DISABLE_PREEMPTION
-//	STI 
 	sckt_buf_desc=network_desc->tx_queue;
-	//while ((data_sckt_buf = dequeue_sckt(sckt_buf_desc)) != NULL)
+	while ((data_sckt_buf = dequeue_sckt(sckt_buf_desc)) != NULL)
 	{
-		data_sckt_buf=dequeue_sckt(sckt_buf_desc);
+		//data_sckt_buf=dequeue_sckt(sckt_buf_desc);
 		if (data_sckt_buf != NULL)
 		{
+			DISABLE_PREEMPTION
+			STI
 			frame=data_sckt_buf->mac_hdr;
 			frame_len=data_sckt_buf->data_len;
 			send_packet_i8254x(network_desc->dev,frame,frame_len);
 			free_sckt(data_sckt_buf);
+			CLI
+			ENABLE_PREEMPTION
 		}
 	}
-	RESTORE_IF_STATUS
-	
-//	CLI
-//	ENABLE_PREEMPTION
+//	RESTORE_IF_STATUS
 }
 
 //TO VERIFY NEW LOGIC WITH INTERRUPT DISABLED!!!!
@@ -86,23 +85,22 @@ void dequeue_packet(t_network_desc* network_desc)
 	t_data_sckt_buf* data_sckt_buf;
 	system.flush_network = 0;
 	
-	SAVE_IF_STATUS
-	CLI
+//	SAVE_IF_STATUS
+//	CLI
 
-//	DISABLE_PREEMPTION
-//	STI
-	//while ((data_sckt_buf = dequeue_sckt(network_desc->rx_queue)) != NULL)
-	data_sckt_buf = dequeue_sckt(network_desc->rx_queue);
+	while ((data_sckt_buf = dequeue_sckt(network_desc->rx_queue)) != NULL)
+//	data_sckt_buf = dequeue_sckt(network_desc->rx_queue);
 	{
 		if (data_sckt_buf != NULL)
 		{
+			DISABLE_PREEMPTION
+			STI
 			rcv_packet_mac(data_sckt_buf);
+			CLI
+			ENABLE_PREEMPTION
 		}
 	}
-	RESTORE_IF_STATUS
-	
-//	CLI
-//	ENABLE_PREEMPTION
+//	RESTORE_IF_STATUS
 }
 
 void debug_network(char* data,u32 data_len)

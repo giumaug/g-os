@@ -1,0 +1,19 @@
+1) boot macchina
+/opt/simics/simics-qsp-x86-6.0.43/targets/qsp-x86/qsp-hdd-boot.simics
+
+
+2)file generale definizione macchina (richiamato da 1)
+/opt/simics/simics-qsp-x86-6.0.43/targets/qsp-x86/qsp-system.include
+
+3)boot setup (richiamato da 1)
+/opt/simics/simics-qsp-x86-6.0.43/targets/qsp-x86/qsp-device-boot.include
+modifica network qui!!!
+
+4)setup ethernet richiamato da 3)
+/opt/simics/simics-6.0.83/targets/common/ethernet-setup.include
+
+connect-real-network-bridge
+
+NUMERO CPU
+/opt/simics/simics-qsp-x86-6.0.43/targets/qsp-x86/qsp-system.include
+

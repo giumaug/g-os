@@ -241,7 +241,10 @@ bp.source_location.break panic
 @yyy.rn.tx_bandwidth=0
 @yyy.rn.tx_packet_rate=0
 
-bp.source_line.break filename = tcp.c line-number = 433
+bp.source_line.break filename = tcp_socket.c line-number = 308
+
+bp.source_location.break tcp_conn_desc_free
+
 
 
 

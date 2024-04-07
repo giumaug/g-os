@@ -40,15 +40,17 @@ int main(int argc, char **argv)
 	((unsigned char*) &(send_addr.sin_port))[0]=((unsigned char*) &(port))[1];
 	((unsigned char*) &(send_addr.sin_port))[1]=((unsigned char*) &(port))[0];
 
-	iteration = 9999;
+	iteration = 30000;
 	printf("starting .... \n");
 
 	for (j = 0; j < iteration;j++)
 	{
 		age++;
-		if (((age % 1000) == 0))
+		if (((age % 10000) == 0))
 		{
-			//check_free_mem();
+			check_free_mem();
+			printf("proc = %s \n", argv[1]);
+			printf("index is %d \n", j);
 		}
 //		f = open(argv[2], O_CREAT | O_RDWR);
 //		if (f == -1)
